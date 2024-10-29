@@ -32,6 +32,7 @@ class GoldPriceUpdate extends Command
     {
         //
 
+        echo 'start';
         $client = new Client();
         $response = $client->request('GET', $this->api);
         $data = json_decode($response->getBody()->getContents());
