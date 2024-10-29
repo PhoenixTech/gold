@@ -17,6 +17,14 @@ class SettingSeeder extends Seeder
         $sections = [
             'General' => [
                 [
+                    'title' => __("Gold price"),
+                    'key' => 'gold',
+                    'type' => 'TEXT',
+                    'ltr' => true,
+                    'value' => '100000',
+                    'size' => '12',
+                ],
+                [
                     'title' => __("Email"),
                     'key' => 'email',
                     'type' => 'TEXT',
