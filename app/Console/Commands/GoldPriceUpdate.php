@@ -33,20 +33,20 @@ class GoldPriceUpdate extends Command
         //
 
         echo 'start';
-//        $client = new Client();
-//        $response = $client->request('GET', $this->api);
-//        $data = json_decode($response->getBody()->getContents());
-//        print_r($data);
-//        if (isset($data->gold)) {
-//
-//            $s = Setting::where('key', 'gold')->first();
-//            $s->value = $data->gold;
-//            $s->save();
-//            $this->info('Price updated successfully');
-//        }else{
-//            $this->error('Price update failed');
-//        }
-//        Log::info('updated gold price');
+        $client = new Client();
+        $response = $client->request('GET', $this->api);
+        $data = json_decode($response->getBody()->getContents());
+        print_r($data);
+        if (isset($data->gold)) {
+
+            $s = Setting::where('key', 'gold')->first();
+            $s->value = $data->gold;
+            $s->save();
+            $this->info('Price updated successfully');
+        }else{
+            $this->error('Price update failed');
+        }
+        Log::info('updated gold price');
 
     }
 }
