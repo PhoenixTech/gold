@@ -32,6 +32,10 @@ class ClientController extends Controller
     public function __construct()
     {
 
+
+        if (!auth()->check()){
+            abort(403);
+        }
         $this->middleware(function ($request, $next) {
 
             if ($request->attributes->get('set_lang') != true) {
