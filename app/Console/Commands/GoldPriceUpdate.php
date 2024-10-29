@@ -35,6 +35,7 @@ class GoldPriceUpdate extends Command
         $client = new Client();
         $response = $client->request('GET', $this->api);
         $data = json_decode($response->getBody()->getContents());
+        print_r($data);
         if (isset($data->gold)) {
 
             $s = Setting::where('key', 'gold')->first();
