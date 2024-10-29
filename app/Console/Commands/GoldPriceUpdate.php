@@ -23,7 +23,7 @@ class GoldPriceUpdate extends Command
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'gold price update';
 
     /**
      * Execute the console command.
