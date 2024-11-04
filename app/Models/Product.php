@@ -228,6 +228,9 @@ class Product extends Model implements HasMedia
         $result = [];
         $i = 0;
         foreach ($metas as $key => $value) {
+            if ($result[$key]['data']['type']??null == null){
+                continue;
+            }
             $result[$key] = [
                 'value' => $value,
                 'data' => Prop::where('name', $key)->first(),

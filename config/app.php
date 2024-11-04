@@ -192,7 +192,8 @@ return [
       'payment' => [
           'gateway' =>  env('PAY_GATEWAY',''),
           'merchant_id' => env('MERCHANT_ID',''),
-      ]
+      ],
+      'vat' => 0.09
     ],
 
 

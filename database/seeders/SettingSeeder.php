@@ -25,6 +25,14 @@ class SettingSeeder extends Seeder
                     'size' => '12',
                 ],
                 [
+                    'title' => __("Minimum percent"),
+                    'key' => 'min',
+                    'type' => 'TEXT',
+                    'ltr' => true,
+                    'value' => '105',
+                    'size' => '12',
+                ],
+                [
                     'title' => __("Email"),
                     'key' => 'email',
                     'type' => 'TEXT',
