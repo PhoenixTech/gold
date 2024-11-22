@@ -36,11 +36,18 @@ php artisan key:generate
 php artisan serv
 
 # to develop front-end
+npm i
+php artisan client
+npm install @rollup/rollup-win32-x64-msvc # just for windows if the below line dose not work
+npm run dev
 
-npm install -g yarn
+# or with yarn
+
 yarn install
 php artisan client
+yarn add @rollup/rollup-win32-x64-msvc # just for windows if the below line dose not work
 yarn dev
+
 ```
 
 > [!TIP]
@@ -55,9 +62,17 @@ php artisan seeding:prepare
  ```
 - nor copy your image folder to `database/seeders/images/` 
 - then: Seeding image for models: [Group, Category, Post, Product, Slider] 
+
 ```bash
 php artisan seeding:image Product digital
 ```
+
+Or to seed all models:
+
+```bash
+php artisan seeding:all digital
+```
+
 > First parameter is Model, Second is image seeder directory available [bag, clothe, digital, sport, posts, makeup]
 > You can create your directory and put your image into new directory then use image seeder
 

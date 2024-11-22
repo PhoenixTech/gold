@@ -96,7 +96,8 @@ class ClientController extends Controller
             __('Video clips') => clipsUrl(),
             $clip->title => null,
         ];
-        return view('client.default-list', compact('area', 'clip', 'title', 'subtitle', 'breadcrumb'));
+        $model = $clip;
+        return view('client.default-list', compact('area', 'clip', 'title', 'subtitle', 'breadcrumb','model'));
     }
 
     public function gallery($slug)
@@ -179,7 +180,8 @@ class ClientController extends Controller
             __('Attachments') => attachmentsUrl(),
             $attachment->title => null,
         ];
-        return view('client.default-list', compact('area', 'attachment', 'title', 'subtitle', 'breadcrumb'));
+        $model = $attachment;
+        return view('client.default-list', compact('area', 'attachment', 'title', 'subtitle', 'breadcrumb','model'));
     }
 
     public function tag($slug)
@@ -225,7 +227,9 @@ class ClientController extends Controller
             }
         }
 
-        $comment->parent_id = $request->input('parent_id', null);
+        if ($request->input('parent_id') != '') {
+            $comment->parent_id = $request->input('parent_id', null);
+        }
         $comment->body = $request->input('message');
         $comment->commentable_type = $request->input('commentable_type');
         $comment->commentable_id = $request->input('commentable_id');
