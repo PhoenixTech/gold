@@ -28,6 +28,7 @@
                    @if(isset($item))
                        xvalue="{{old('title',implode(',,',$item->tags->pluck('name')->toArray()??''))}}"
             @endif
+                   auto-complete="{{route('v1.tag.search','')}}/"
         ></tag-input>
 
     </div>
@@ -57,7 +58,7 @@
         <label for="table">
             {{__('Description Table')}}
         </label>
-        <textarea name="table" class="ckeditorx @error('description') is-invalid @enderror"
+        <textarea name="table" class="ckeditorx @error('table') is-invalid @enderror"
                   placeholder="{{__('Description Table')}}"
                   id="table"
                   rows="8">{{old('table',$item->table??null)}}</textarea>
@@ -185,6 +186,19 @@
 
 {{--</div>--}}
 <hr>
-<div class="mt-4">
-    @include('components.panel-attachs',['attachs' => $item->attachs??[]])
+<div class="mt-4 position-relative">
+    <h3>
+        {{__("Attachments")}}
+    </h3>
+    <br>
+    @if(isset($item))
+    <fast-attaching
+        :attachments='@json($item->attachs)'
+        xlang="{{config('app.locale')}}"
+        upload-url="{{route('admin.attachment.attaching')}}"
+        detach-url="{{route('admin.attachment.detach','')}}/"
+        model="{{get_class($item)}}"
+        id="{{$item->id}}"
+    ></fast-attaching>
+    @endif
 </div>

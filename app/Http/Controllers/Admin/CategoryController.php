@@ -7,6 +7,8 @@ use App\Http\Controllers\XController;
 use App\Http\Requests\CategorySaveRequest;
 use App\Models\Access;
 use App\Models\Category;
+use App\Models\Item;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use App\Helper;
 use Spatie\Image\Enums\AlignPosition;
@@ -58,7 +60,11 @@ class CategoryController extends XController
         $category->subtitle = $request->input('subtitle');
         $category->icon = $request->input('icon');
         $category->description = $request->input('description');
-        if ($category->parent_id != ''){
+        $category->hide = $request->has('hide');
+
+        if ($request->input('parent_id') == ''){
+            $category->parent_id = null;
+        }else{
             $category->parent_id = $request->input('parent_id',null);
         }
         if ($request->has('canonical') && trim($request->input('canonical')) != ''){
@@ -164,6 +170,14 @@ class CategoryController extends XController
 
     public function destroy(Category $item)
     {
+        if (Setting::where('type','CATEGORY')->where('raw',$item->id)->count() > 0){
+            $msg = __("You can't delete this item while using it in setting.");
+            return redirect()->back()->withErrors($msg);
+        }
+        if (Item::where('menuable_type',Category::class)->where('menuable_type',$item->id)->count() > 0){
+            $msg = __("You can't delete this item while using it in menu.");
+            return redirect()->back()->withErrors($msg);
+        }
         return parent::delete($item);
     }
 

@@ -6,6 +6,7 @@ use App\Models\Group;
 use App\Models\Category;
 use App\Models\Area;
 use App\Models\Part;
+use App\Models\Post;
 use App\Models\Menu;
 use App\Models\Product;
 use App\Models\Rate;
@@ -198,7 +199,7 @@ function sortSuffix($col): string
  * @param $translate
  * @return false|string
  */
-function arrayNormolizeVueCompatible($array, $translate = false): false|string
+function arrayNormalizeVueCompatible($array, $translate = false): false|string
 {
     $result = [];
     foreach ($array as $index => $item) {
@@ -263,7 +264,7 @@ function gfx()
 
 
 /**
- * build query with excepts
+ * http build query with excepts
  * @param $except
  * @return string
  */
@@ -429,7 +430,7 @@ function showCatNested($cats, $parent = null)
 {
     $ret = "";
     foreach ($cats as $cat) {
-        if ($cat->parent_id == $parent) {
+        if ($cat->parent_id == $parent & !$cat->hide) {
             $ret .= "<li>";
             $ret .= "<a href='" . $cat->webUrl() . "'>";
             $ret .= $cat->name . '</a>';
@@ -872,17 +873,52 @@ function getGroupPostsBySetting($key, $limit = 10, $order = 'id', $dir = "DESC")
 }
 
 /**
- * get group's posts by setting key
+ * get category's products by setting key
  * @param $key
  * @param integer $limit
  * @param string $order
  * @param string $dir
- * @return \App\Models\Post[]|\Illuminate\Database\Eloquent\Collection|\LaravelIdea\Helper\App\Models\_IH_Post_C
+ * @return \App\Models\Category[]|\Illuminate\Database\Eloquent\Collection|\LaravelIdea\Helper\App\Models\_IH_Post_C
  */
 function getCategoryProductBySetting($key, $limit = 10, $order = 'id', $dir = "DESC")
 {
     return Category::where('id', getSetting($key) ?? 1)->first()
         ->products()->where('status', 1)->orderBy($order, $dir)->limit($limit)->get();
+}
+
+/**
+ * get  products by setting key
+ * @param $key
+ * @param integer $limit
+ * @return \App\Models\Product[]|\Illuminate\Database\Eloquent\Collection|\LaravelIdea\Helper\App\Models\_IH_Post_C
+ */
+function getProductsQueryBySetting($key, $limit = 10)
+{
+    $data = explode(',', getSetting($key) ?? '1,id,DESC');
+    if ($data[0] == 0) {
+        $q = Product::where('status', 1);
+    }else{
+        $q = Category::where('id', $data[0])->first()
+            ->products()->where('status', 1);
+    }
+    return $q->orderBy($data[1], $data[2])->limit($limit)->get();
+}
+/**
+ * get posts by setting key
+ * @param $key
+ * @param integer $limit
+ * @return \App\Models\Post[]|\Illuminate\Database\Eloquent\Collection|\LaravelIdea\Helper\App\Models\_IH_Post_C
+ */
+function getPostsQueryBySetting($key, $limit = 10)
+{
+    $data = explode(',', getSetting($key) ?? '1,id,DESC');
+    if ($data[0] == 0) {
+        $q = Post::where('status', 1);
+    }else{
+        $q = Group::where('id', $data[0])->first()
+            ->posts()->where('status', 1);
+    }
+    return $q->orderBy($data[1], $data[2])->limit($limit)->get();
 }
 
 /**
@@ -927,9 +963,9 @@ function success($data = null, $message = null, $meta = [], $og = [], $twitter =
     $defaultOg = [
         'url' => null,
         'type' => null,
-        'site_name' => env('APP_NAME'),
+        'site_name' => config('app.name'),
         'description' => null,
-        'locate' => 'fa_IR'
+        'locate' => config('app.locale')
     ];
 
     $defaultTwitter = [
@@ -941,7 +977,7 @@ function success($data = null, $message = null, $meta = [], $og = [], $twitter =
     ];
 
     return response()->json([
-        "success" => true,
+        "OK" => true,
         "message" => $message,
         "data" => $data,
         "meta" => array_merge($defaultMeta, $meta),
@@ -961,7 +997,7 @@ function success($data = null, $message = null, $meta = [], $og = [], $twitter =
 function errors($errors, $status = 422, $message = null, $data = null)
 {
     return response()->json([
-        "success" => false,
+        "OK" => false,
         "errors" => $errors,
         "message" => $message,
         "data" => $data,
@@ -975,7 +1011,7 @@ function errors($errors, $status = 422, $message = null, $data = null)
  */
 function readable($text)
 {
-    return ucfirst(trim(str_replace(['-', '_'], ' ', $text)));
+    return ucfirst(trim(str_replace(['-', '_','.'], ' ', $text)));
 }
 
 
@@ -1077,7 +1113,12 @@ function tagUrl($slug)
     return fixUrlLang(route('client.tag', $slug));
 }
 
-function usableProp($props)
+
+/**
+ * @param $props
+ * @return array
+ */
+function usableProp($props): array
 {
     $result = [];
 
@@ -1420,6 +1461,7 @@ function findArea($name,$model = null)
     return \App\Models\Area::where('name', $name)->first();
 }
 
+
 /**
  * cache number
  * @return false|mixed|string|null
@@ -1441,6 +1483,22 @@ function getMainCategory($limit=4,$orderBy = 'sort', $asc = 'ASC')
 {
     return \App\Models\Category::whereNull('parent_id')->limit($limit)->orderBy($orderBy,$asc)->get();
 }
+
+
+/**
+ * get group's posts by setting key
+ * @param $key
+ * @param integer $limit
+ * @param string $order
+ * @param string $dir
+ * @return \App\Models\Post[]|\Illuminate\Database\Eloquent\Collection|\LaravelIdea\Helper\App\Models\_IH_Post_C
+ */
+function getSubGroupSetting($key, $limit = 10, $order = 'id', $dir = "DESC")
+{
+    return Group::where('id', getSetting($key) ?? 1)->first()
+        ->children()->orderBy($order, $dir)->limit($limit)->get();
+}
+
 
 /**
  * calculate gold pice

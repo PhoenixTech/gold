@@ -1,0 +1,47 @@
+.GisooVideo {
+    position: relative;
+    min-height: 60vh;
+    &:before{
+        position: absolute;
+        content: ' ';
+        background: #ffffff33;
+        backdrop-filter: blur(12px);
+        width: 45%;
+        right: -25%;
+        top: 0;
+        z-index: 70;
+        bottom: .5rem;
+        transform: skewX(var(--gisso-deg-1));
+    }
+    &:after{
+        position: absolute;
+        content: ' ';
+        background: #ffffff33;
+        backdrop-filter: blur(12px);
+        width: 45%;
+        left: -25%;
+        top: 0;
+        z-index: 70;
+        bottom: .5rem;
+        transform: skewX(var(--gisso-deg-2));
+    }
+    // scss
+    video{
+        position: relative;
+        width: 100%;
+        z-index: 60;
+        min-height: 60vh;
+        object-fit: cover;
+    }
+
+    /*-500px width*/
+    @media (max-width: 500px) {
+        &:before{
+            right: -45%;
+        }
+        &:after{
+            left: -45%;
+        }
+    }
+
+}

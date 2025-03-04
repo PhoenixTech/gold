@@ -13,6 +13,8 @@
         <i class="ri-book-3-line"></i>
         {{__("Category")}}:
     </h2>
+    <input type="hidden" id="category-edit-url" value="{{route('admin.product.category-edit','')}}/">
+
     <searchable-multi-select
         :items='{{\App\Models\Category::all(['id','name'])}}'
         title-field="name"

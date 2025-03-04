@@ -33,9 +33,16 @@ class CategoryResource extends JsonResource
             'subtitle' => $this->subtitle,
             'description' => $this->description,
             'sort' => $this->sort,
-            'image' => $this->image,
-            'bg' => $this->bg,
-            'products' => $this->when($request->input('loadProduct', true), ProductResource::collection($this->products)->additional(['request' => $request['loadCategory']]))
+            'image' => $this->imgUrl(),
+            'image_original' => $this->imgOriginalUrl(),
+            'bg' => $this->bgUrl(),
+            'bg_original' => $this->bgOriginalUrl(),
+            'svg' => $this->svgUrl(),
+            'icons' => $this->icon,
+            'products' => $this->when($request->input('loadProduct', true),
+                ProductResource::collection($this->products()->paginate($request->input('per_page', 20)))
+                    ->additional(['request' => $request['loadCategory']])),
+            'products_pages_count' => ceil($this->products()->count()  / $request->input('per_page', 20) ),
         ];
     }
 }

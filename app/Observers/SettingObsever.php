@@ -13,6 +13,8 @@ class SettingObsever
     public function created(Setting $setting): void
     {
         //
+        $setting->raw = $setting->value;
+        $setting->save();
     }
 
     /**
