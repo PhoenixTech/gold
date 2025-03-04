@@ -1461,6 +1461,7 @@ function findArea($name,$model = null)
     return \App\Models\Area::where('name', $name)->first();
 }
 
+
 /**
  * cache number
  * @return false|mixed|string|null
@@ -1496,4 +1497,22 @@ function getSubGroupSetting($key, $limit = 10, $order = 'id', $dir = "DESC")
 {
     return Group::where('id', getSetting($key) ?? 1)->first()
         ->children()->orderBy($order, $dir)->limit($limit)->get();
+}
+
+
+/**
+ * calculate gold pice
+ * @param $gr
+ * @param $fee
+ * @return float|int
+ */
+function CalcPrice($gold,$gr, $fee)
+{
+    $p = $gold;
+//    $n = ($p * $gr);
+    $n1 = $p + ($p * ($fee / 100));
+    $n2 = ($n1 + ($n1 * 0.07) - $p) ;
+    $n3 = ($n2 * config('app.xshop.vat')) + $n2;
+    $complete = (( $n3 + $p ) * $gr) ;
+    return  floor($complete / 1000) * 1000;
 }

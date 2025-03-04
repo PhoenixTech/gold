@@ -32,8 +32,12 @@ class ClientController extends Controller
     public function __construct()
     {
 
+
         $this->middleware(function ($request, $next) {
 
+            if (!auth()->check()){
+                abort(403);
+            }
             if ($request->attributes->get('set_lang') != true) {
                 app()->setLocale(config('app.locale'));
                 \Session::remove('locate');

@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 use App\Console\Commands\AssetsBuild;
+use App\Console\Commands\GoldPriceUpdate;
 use App\Helpers\TDate;
 use App\Http\Middleware\Acl;
 use App\Models\Area;
@@ -26,6 +27,7 @@ class AppServiceProvider extends ServiceProvider
         $this->commands([
             TranslatorCommand::class,
             AssetsBuild::class,
+            GoldPriceUpdate::class,
         ]);
         foreach (config('xshop.payment.gateways') as $gateway){
             /** @var \App\Contracts\Payment $gateway */

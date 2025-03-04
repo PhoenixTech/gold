@@ -25,7 +25,7 @@
     </div>
 
 
-    <div class="col-lg-6 mt-3">
+    <div class="col-lg-3 mt-3">
         <div class="form-group">
             <label for="price">
                 {{__('Base price')}}
@@ -36,7 +36,28 @@
                             :xvalue="{{old('price',$item->price??null)}}"></currency-input>
         </div>
     </div>
-    <div class="col-lg-6 mt-3">
+    <div class="col-lg-3 mt-3">
+        <div class="form-group">
+            <label for="wage">
+                {{__('Wage')}}
+            </label>
+
+            <currency-input xname="wage" xid="wage" @error('wage')
+            :err="true" @enderror xtitle="{{__('Wage')}}"
+                            :xvalue="{{old('wage',$item->wage??15)}}"></currency-input>
+        </div>
+    </div>
+    <div class="col-lg-3 mt-3">
+        <div class="form-group">
+            <label for="addon">
+                {{__('Addon price')}}
+            </label>
+
+            <currency-input xname="addon" xid="addon" @error('addon')
+            :err="true" @enderror :xvalue="{{old('addon',$item->addon??0)}}"></currency-input>
+        </div>
+    </div>
+    <div class="col-lg-3 mt-3">
         <div class="form-group">
             <label for="buy_price">
                 {{__('Purchase price')}}
