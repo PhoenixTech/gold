@@ -11,6 +11,7 @@ use App\Models\Item;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use App\Helper;
+use Illuminate\Support\Facades\DB;
 use Spatie\Image\Enums\AlignPosition;
 use Spatie\Image\Enums\Fit;
 use Spatie\Image\Enums\Unit;
@@ -62,12 +63,12 @@ class CategoryController extends XController
         $category->description = $request->input('description');
         $category->hide = $request->has('hide');
 
-        if ($request->input('parent_id') == ''){
+        if ($request->input('parent_id') == '') {
             $category->parent_id = null;
-        }else{
-            $category->parent_id = $request->input('parent_id',null);
+        } else {
+            $category->parent_id = $request->input('parent_id', null);
         }
-        if ($request->has('canonical') && trim($request->input('canonical')) != ''){
+        if ($request->has('canonical') && trim($request->input('canonical')) != '') {
             $category->canonical = $request->input('canonical');
         }
         $category->slug = $this->getSlug($category);
@@ -75,7 +76,7 @@ class CategoryController extends XController
             $category->image = $this->storeFile('image', $category, 'categories');
             $key = 'image';
             $format = $request->file($key)->guessExtension();
-            if (strtolower($format) == 'png'){
+            if (strtolower($format) == 'png') {
                 $format = 'webp';
             }
             $i = Image::load($request->file($key)->getPathname())
@@ -89,14 +90,14 @@ class CategoryController extends XController
                     config('app.media.watermark_size'), Unit::Percent, Fit::Contain,
                     config('app.media.watermark_opacity'));
             }
-            $i->save(storage_path() . '/app/public/categories/optimized-'. $category->$key);
+            $i->save(storage_path() . '/app/public/categories/optimized-' . $category->$key);
 
         }
         if ($request->has('bg')) {
             $category->bg = $this->storeFile('bg', $category, 'categories');
             $key = 'bg';
             $format = $request->file($key)->guessExtension();
-            if (strtolower($format) == 'png'){
+            if (strtolower($format) == 'png') {
                 $format = 'webp';
             }
             $i = Image::load($request->file($key)->getPathname())
@@ -110,11 +111,11 @@ class CategoryController extends XController
                     config('app.media.watermark_size'), Unit::Percent, Fit::Contain,
                     config('app.media.watermark_opacity'));
             }
-            $i->save(storage_path() . '/app/public/categories/optimized-'. $category->$key);
+            $i->save(storage_path() . '/app/public/categories/optimized-' . $category->$key);
         }
 
-        if ($request->has('svg')){
-            $category->svg = $this->storeFile('svg',$category, 'categories');
+        if ($request->has('svg')) {
+            $category->svg = $this->storeFile('svg', $category, 'categories');
         }
         $category->save();
         return $category;
@@ -170,11 +171,11 @@ class CategoryController extends XController
 
     public function destroy(Category $item)
     {
-        if (Setting::where('type','CATEGORY')->where('raw',$item->id)->count() > 0){
+        if (Setting::where('type', 'CATEGORY')->where('raw', $item->id)->count() > 0) {
             $msg = __("You can't delete this item while using it in setting.");
             return redirect()->back()->withErrors($msg);
         }
-        if (Item::where('menuable_type',Category::class)->where('menuable_type',$item->id)->count() > 0){
+        if (Item::where('menuable_type', Category::class)->where('menuable_type', $item->id)->count() > 0) {
             $msg = __("You can't delete this item while using it in menu.");
             return redirect()->back()->withErrors($msg);
         }
@@ -216,7 +217,115 @@ class CategoryController extends XController
         logAdmin(__METHOD__, __CLASS__, null);
         return ['OK' => true, 'message' => __("As you wished sort saved")];
     }
+
     /*sort**/
 
 
+    public function omg(){
+        return view('admin.categories.omg');
+    }
+
+    public function omgSave(Request $request)
+    {
+        $request->validate([
+            'table' => ['required', 'string', 'min:10'],
+        ]);
+
+        $list = $this->parseTableData($request->input('table'));
+
+        // Disable foreign key checks
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+
+        // Truncate the Category model
+        Category::truncate();
+
+        // Insert the nested categories
+        $this->insertCategories($list);
+
+        // Enable foreign key checks
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
+        return __("It saved, now just God can help you :)");
+    }
+
+    private function parseTableData($tableData)
+    {
+        $list = [];
+
+        // Parse the HTML table data
+        $doc = new \DOMDocument();
+        @$doc->loadHTML($tableData); // Suppress warnings with @
+
+        // Find the top-level ul element
+        $topUl = $doc->getElementsByTagName('ul')->item(0);
+
+        if ($topUl) {
+            $list = $this->getCategories($topUl);
+        }
+
+        return $list;
+    }
+
+    private function getCategories($ul)
+    {
+        $categories = [];
+        $lis = $ul->getElementsByTagName('li');
+
+        foreach ($lis as $li) {
+            // Get the category name, ensuring we only take the first child text node
+            $categoryName = trim($li->childNodes->item(0)->textContent);
+
+            // Check if there is a nested <ul> for subcategories
+            $subUl = $li->getElementsByTagName('ul')->item(0);
+            $subcategories = [];
+
+            if ($subUl) {
+                $subcategories = $this->getCategories($subUl); // Recursively get subcategories
+            }
+
+            // Only add the category if it is not already in the list
+            if (!empty($categoryName)) {
+                $categories[] = [
+                    'name' => $categoryName,
+                    'subcategories' => $subcategories,
+                ];
+            }
+        }
+
+        return $categories;
+    }
+
+    private function getSubcategories(\DOMElement $element)
+    {
+        $subcategories = [];
+
+        $subLis = $element->getElementsByTagName('li');
+        foreach ($subLis as $subLi) {
+            $subcategory = $subLi->textContent;
+            $subSubcategories = $this->getSubcategories($subLi);
+
+            $subcategories[] = [
+                'name' => $subcategory,
+                'subcategories' => $subSubcategories,
+            ];
+        }
+
+        return $subcategories;
+    }
+
+    private function insertCategories($list, $parentId = null)
+    {
+        foreach ($list as $item) {
+            if (Category::where('slug', sluger($item['name']))->count() == 0) {
+
+                $category = Category::create([
+                    'name' => $item['name'],
+                    'slug' => sluger($item['name']),
+                    'parent_id' => $parentId,
+                ]);
+                $this->insertCategories($item['subcategories'], $category->id);
+            }
+
+        }
+    }
 }

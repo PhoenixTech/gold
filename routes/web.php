@@ -80,6 +80,8 @@ Route::prefix(config('app.panel.prefix'))->name('admin.')->group(
                     function () {
                         Route::get('', [\App\Http\Controllers\Admin\CategoryController::class, 'index'])->name('index');
                         Route::get('create', [\App\Http\Controllers\Admin\CategoryController::class, 'create'])->name('create');
+                        Route::get('omg', [\App\Http\Controllers\Admin\CategoryController::class, 'omg'])->name('omg');
+                        Route::post('omg/save', [\App\Http\Controllers\Admin\CategoryController::class, 'omgSave'])->name('omg.save');
                         Route::post('store', [\App\Http\Controllers\Admin\CategoryController::class, 'store'])->name('store');
                         Route::get('edit/{item}', [\App\Http\Controllers\Admin\CategoryController::class, 'edit'])->name('edit');
                         Route::get('show/{item}', [\App\Http\Controllers\Admin\CategoryController::class, 'show'])->name('show');

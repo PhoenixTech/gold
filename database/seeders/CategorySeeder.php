@@ -22,21 +22,21 @@ class CategorySeeder extends Seeder
         ];
 
         $subCats = [
-            1 => [
-                __("Smart phone"),
-                __("Basic phones"),
-            ],
-            3 => [
-                __("PC"),
-                __("Laptop"),
-            ],
-            4 => [
-              __("Apple"),
-              __("HP (Hewlett-Packard)"),
-              __("Nokia"),
-              __("Samsung"),
-              __("Sony"),
-            ],
+//            1 => [
+//                __("Smart phone"),
+//                __("Basic phones"),
+//            ],
+//            3 => [
+//                __("PC"),
+//                __("Laptop"),
+//            ],
+//            4 => [
+//              __("Apple"),
+//              __("HP (Hewlett-Packard)"),
+//              __("Nokia"),
+//              __("Samsung"),
+//              __("Sony"),
+//            ],
         ];
 
         // insert main categories
