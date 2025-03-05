@@ -10,7 +10,7 @@ NataliaCategories  live-setting' data-live="{{$data->area_name.'_'.$data->part}}
                     {{getSetting($data->area_name.'_'.$data->part.'_subtitle')}}
                 </h2>
                 <ul>
-                    @foreach(getCategorySubCatsBySetting($data->area_name.'_'.$data->part.'_category',4,'sort') as $category)
+                    @foreach(getCategorySubCatsBySetting($data->area_name.'_'.$data->part.'_category',4,'sort','ASC') as $category)
                         <li>
                             <a href="{{$category->webUrl()}}">
                                 <img src="{{$category->svgUrl()}}" alt="{{$category->name}}" class="mx-2">
