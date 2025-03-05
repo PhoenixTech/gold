@@ -3,6 +3,8 @@
         <div class="row">
 
             @foreach(getMainCategory() as $category)
+                @if(!$category->hide)
+
                 <div class="col-md">
 
                         <div class="v-main-category" data-id="#v-cat-{{$category->id}}">
@@ -12,6 +14,7 @@
                             </h4>
                         </div>
                 </div>
+                @endif
             @endforeach
         </div>
 

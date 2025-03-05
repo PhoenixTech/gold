@@ -1,4 +1,5 @@
-<section class='NataliaCategories  live-setting' data-live="{{$data->area_name.'_'.$data->part}}">
+<section class='
+NataliaCategories  live-setting' data-live="{{$data->area_name.'_'.$data->part}}">
     <div class="{{gfx()['container']}}">
         <div class="row nata-content">
             <div class="col-md-6 pt-5 slider-content">
@@ -9,7 +10,7 @@
                     {{getSetting($data->area_name.'_'.$data->part.'_subtitle')}}
                 </h2>
                 <ul>
-                    @foreach(getCategorySubCatsBySetting($data->area_name.'_'.$data->part.'_category') as $category)
+                    @foreach(getCategorySubCatsBySetting($data->area_name.'_'.$data->part.'_category',4,'sort') as $category)
                         <li>
                             <a href="{{$category->webUrl()}}">
                                 <img src="{{$category->svgUrl()}}" alt="{{$category->name}}" class="mx-2">
