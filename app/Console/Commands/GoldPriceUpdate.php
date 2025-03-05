@@ -37,7 +37,7 @@ class GoldPriceUpdate extends Command
 //        print_r($data);
         if (isset($data->gold)) {
             $s = Setting::where('key', 'gold')->first();
-            $s->value = floor($data->gold / 10);
+            $s->value = floor($data->gold );
             $s->save();
             $this->info('Price updated successfully');
         }else{
