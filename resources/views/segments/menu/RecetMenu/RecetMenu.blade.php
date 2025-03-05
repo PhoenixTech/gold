@@ -15,7 +15,7 @@
         <li class="float-end">
             <a class="d-inline-block px-">
                 <i class="ri-price-tag-3-line"></i>
-                {{__("Gold price")}}: {{number_format( ((int) getSetting('gold')) / 10)}} {{config('app.currency.symbol')}}
+                {{__("Gold price")}}: {{number_format( ((int) getSetting('gold')) )}} {{config('app.currency.symbol')}}
             </a>
             <a href="{{ route('client.card') }}" class="d-inline-block px-1 card-link">
                 <i class="ri-shopping-bag-2-line"></i>
