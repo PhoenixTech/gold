@@ -1481,7 +1481,7 @@ function cacheNumber()
  */
 function getMainCategory($limit=4,$orderBy = 'sort', $asc = 'ASC')
 {
-    return \App\Models\Category::whereNull('parent_id')->limit($limit)->orderBy($orderBy,$asc)->get();
+    return \App\Models\Category::whereNull('parent_id')->where('hide',0)->limit($limit)->orderBy($orderBy,$asc)->get();
 }
 
 
