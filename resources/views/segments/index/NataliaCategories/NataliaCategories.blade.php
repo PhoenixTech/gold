@@ -8,7 +8,7 @@
                 <h2>
                     {{getSetting($data->area_name.'_'.$data->part.'_subtitle')}}
                 </h2>
-                <ul>
+                <ul class="main-dir">
                     @foreach(getCategorySubCatsBySetting($data->area_name.'_'.$data->part.'_category',4,'sort','ASC') as $category)
                         <li>
                             <a href="{{$category->webUrl()}}">

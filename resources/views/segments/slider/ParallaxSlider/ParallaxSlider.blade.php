@@ -4,7 +4,7 @@
             <div>
                 <div class="parallax-slider" data-bg="{{$slider->imgUrl()}}"></div>
                 <div class="parallax-slide-item">
-                    <div class="main-content" @if(langIsRTL(config('app.locale'))) dir="rtl" @else dir="ltr" @endif>
+                    <div class="main-content main-dir" @if(langIsRTL(config('app.locale')))  @else dir="ltr" @endif>
                         {!! $slider->body !!}
                         <br>
                         <p class="text-center">
