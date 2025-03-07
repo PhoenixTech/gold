@@ -1,5 +1,4 @@
-<section class='
-NataliaCategories  live-setting' data-live="{{$data->area_name.'_'.$data->part}}">
+<section class='NataliaCategories  live-setting' data-live="{{$data->area_name.'_'.$data->part}}" style="background-image: url('{{$bg??asset('upload/images/'.$part->area_name . '.' . $part->part.'.webp')}}')">
     <div class="{{gfx()['container']}}">
         <div class="row nata-content">
             <div class="col-md-6 pt-5 slider-content">
@@ -20,9 +19,8 @@ NataliaCategories  live-setting' data-live="{{$data->area_name.'_'.$data->part}}
                     @endforeach
                 </ul>
             </div>
-            <div class="col-md-6 nata-bg"
-                 style="background-image: url('{{$bg??asset('upload/images/'.$part->area_name . '.' . $part->part.'.webp')}}')">
-                <img src="{{asset('upload/images/'.$part->area_name . '.' . $part->part.'.webp')}}" alt="">
+            <div class="col-md-6 nata-bg">
+
             </div>
         </div>
     </div>

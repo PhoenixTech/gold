@@ -1,20 +1,22 @@
 .NataliaCategories {
+    background-color: #272727;
+    background-repeat: no-repeat;
+    background-size:  auto 100%;
+    background-position: center right;
     // scss
     direction: ltr;
 
-    .nata-bg{
-        background-repeat: no-repeat;
-        background-size: 100% auto;
-        position: relative;
-        top: -3rem;
-        padding-bottom: 5rem;
-        margin-bottom: -3rem;
-        img{
-            width: 75%;
-            display: none;
-        }
-
-    }
+    //.nata-bg{
+    //    position: relative;
+    //    top: -3rem;
+    //    padding-bottom: 5rem;
+    //    margin-bottom: -3rem;
+    //    img{
+    //        width: 75%;
+    //        display: none;
+    //    }
+    //
+    //}
 
     h1{
         font-size: 29px;
@@ -32,6 +34,9 @@
             list-style: none;
             li{
                 padding: .5rem;
+                a{
+                    color: white;
+                }
                 img{
                     width: 35px;
                     padding: 4px;
