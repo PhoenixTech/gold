@@ -1,13 +1,16 @@
-<section class='NataliaCategories  live-setting' data-live="{{$data->area_name.'_'.$data->part}}" style="background-image: url('{{$bg??asset('upload/images/'.$part->area_name . '.' . $part->part.'.webp')}}')">
+<section class='NataliaCategories  live-setting' data-live="{{$data->area_name.'_'.$data->part}}"
+         style="background-image: url('{{$bg??asset('upload/images/'.$part->area_name . '.' . $part->part.'.webp')}}')">
     <div class="{{gfx()['container']}}">
         <div class="row nata-content">
             <div class="col-md-6 pt-5 slider-content">
-                <h1>
-                    {{getSetting($data->area_name.'_'.$data->part.'_title')}}
-                </h1>
-                <h2>
-                    {{getSetting($data->area_name.'_'.$data->part.'_subtitle')}}
-                </h2>
+                <div class="text-center">
+                    <h1>
+                        {{getSetting($data->area_name.'_'.$data->part.'_title')}}
+                    </h1>
+                    <h2>
+                        {{getSetting($data->area_name.'_'.$data->part.'_subtitle')}}
+                    </h2>
+                </div>
                 <ul class="main-dir">
                     @foreach(getCategorySubCatsBySetting($data->area_name.'_'.$data->part.'_category',4,'sort','ASC') as $category)
                         <li>
