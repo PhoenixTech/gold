@@ -31,12 +31,13 @@
 
     .nata-content{
         ul{
-            margin-bottom: 4rem;
+            margin-bottom: 6rem;
             list-style: none;
             li{
                 padding: .5rem;
-                background: #00000033;
+                background: #00000055;
                 margin-bottom: 5px;
+                overflow: hidden;
                 a{
                     color: white;
                 }
