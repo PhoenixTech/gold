@@ -53,6 +53,12 @@
                     background: var(--xshop-secondary);
                     border-radius: 50%;
                 }
+
+                &:hover{
+                    a{
+                        color: goldenrod;
+                    }
+                }
             }
         }
     }
