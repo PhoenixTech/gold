@@ -40,6 +40,11 @@
                 overflow: hidden;
                 a{
                     color: white;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    font-weight: 800;
+                    font-size: 19px;
                 }
                 img{
                     width: 35px;
