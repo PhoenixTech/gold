@@ -12,7 +12,7 @@
                     @foreach(getCategorySubCatsBySetting($data->area_name.'_'.$data->part.'_category',4,'sort','ASC') as $category)
                         <li>
                             <a href="{{$category->webUrl()}}">
-                                <img src="{{$category->svgUrl()}}" alt="{{$category->name}}" class="mx-2">
+                                <img src="{{$category->svgUrl()}}" alt="{{$category->name}}" class="mx-2 float-start">
                                 {{$category->name}}
                             </a>
                         </li>
