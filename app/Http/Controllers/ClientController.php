@@ -35,9 +35,9 @@ class ClientController extends Controller
 
         $this->middleware(function ($request, $next) {
 
-            if (!auth()->check()){
-                abort(403);
-            }
+//            if (!auth()->check()){
+//                abort(403);
+//            }
             if ($request->attributes->get('set_lang') != true) {
                 app()->setLocale(config('app.locale'));
                 \Session::remove('locate');
