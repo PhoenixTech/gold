@@ -184,7 +184,28 @@
                                        placeholder="{{__('Background image')}}"/>
                             </div>
                         </div>
-
+                        <div class="col-md-6 mt-3">
+                            <div class="form-group">
+                                <label for="color">
+                                    {{__('color')}}
+                                </label>
+                                <input name="color" type="color"
+                                       class="form-control @error('color') is-invalid @enderror" id="color"
+                                       placeholder="{{__('color')}}"
+                                       value="{{old('color',$item->color??null)}}"/>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mt-3">
+                            <div class="form-group">
+                                <label for="bg_color">
+                                    {{__('bg color')}}
+                                </label>
+                                <input name="bg_color" type="color"
+                                       class="form-control @error('bg_color') is-invalid @enderror" id="bg_color"
+                                       placeholder="{{__('bg_color')}}"
+                                       value="{{old('bg_color',$item->bg_color??null)}}"/>
+                            </div>
+                        </div>
                         <div class="col-md-12 mt-3">
                             <label for="description">
                                 {{__('Description')}}

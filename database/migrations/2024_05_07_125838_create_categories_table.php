@@ -26,6 +26,8 @@ return new class extends Migration
             $table->json('theme')->nullable();
             $table->text('canonical')->nullable();
             $table->boolean('hide')->default(false)->comment('hide in menu as sub category');
+            $table->string('bg_color')->default("#ffffff");
+            $table->string('color')->default("#000000");
             $table->softDeletes();
             $table->timestamps();
         });

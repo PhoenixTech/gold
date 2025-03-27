@@ -59,6 +59,8 @@ class CategoryController extends XController
 
         $category->name = $request->input('name');
         $category->subtitle = $request->input('subtitle');
+        $category->color = $request->input('color');
+        $category->bg_color = $request->input('bg_color');
         $category->icon = $request->input('icon');
         $category->description = $request->input('description');
         $category->hide = $request->has('hide');

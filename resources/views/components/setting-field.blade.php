@@ -1,3 +1,4 @@
+
 <div class="setting-field col-md-{{$setting->size}}">
     <label for="{{$setting->key}}">
         {{$setting->title}}
@@ -81,6 +82,19 @@
                 @error('category_id') :err="true" @enderror
                 xvalue='{{old($setting->key,$setting->value??null)}}'
                 :close-on-Select="true"></searchable-select>
+            @break
+        @case('CATEGORY_SET')
+            <searchable-multi-select
+                @error($setting->key) :err="true" @enderror
+            :items='@json($cats)'
+                title-field="name"
+                value-field="id"
+                xlang="{{config('app.locale')}}"
+                xid="{{$setting->key}}"
+                xname="{{$setting->key}}"
+                @error('category_id') :err="true" @enderror
+                :xvalue='{{old($setting->key,$setting->value??[])}}'
+                :close-on-Select="true"></searchable-multi-select>
             @break
         @case('GROUP')
             <searchable-select

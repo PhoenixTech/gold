@@ -1516,3 +1516,17 @@ function CalcPrice($gold,$gr, $fee)
     $complete = (( $n3 + $p ) * $gr) ;
     return  floor($complete / 1000) * 1000;
 }
+
+
+/**
+ * get website main categories
+ * @param $key
+ * @param $limit
+ * @param $orderBy
+ * @param $asc
+ * @return Category[]|\LaravelIdea\Helper\App\Models\_IH_Category_C
+ */
+function getCategoriesSet($key,$limit=4,$orderBy = 'sort', $asc = 'ASC')
+{
+    return \App\Models\Category::whereIn('id',json_decode(getSetting($key) ?? []))->where('hide',0)->limit($limit)->orderBy($orderBy,$asc)->get();
+}

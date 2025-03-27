@@ -1,0 +1,35 @@
+.WTFIndex {
+    // scss
+    #wtf-main-btns{
+        .col{
+            border: none !important;
+            text-align: center;
+            padding: .75rem;
+        }
+    }
+
+
+    div.col-3{
+
+        img{
+            height: 12vh ;
+            object-fit: cover;
+            width: 100%;
+        }
+        h5{
+            font-size: 17px;
+            padding: 1rem 0;
+            text-align: center;
+        }
+    }
+}
+
+/*+1000px width*/
+@media (min-width: 1000px) {
+    div.col-3{
+
+        img {
+            height: 25vh !important;
+        }
+    }
+}

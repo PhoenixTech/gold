@@ -12,6 +12,7 @@ window.addEventListener('load', function () {
                 window.$toast.error("Error!");
             }
         });
+
     });
     document.querySelectorAll('.compare-btn')?.forEach(function (el) {
         el.addEventListener('click', async function () {
