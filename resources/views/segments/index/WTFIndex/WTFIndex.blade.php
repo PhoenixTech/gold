@@ -9,8 +9,8 @@
         @endforeach
     </div>
     <div class="py-4">
-        @foreach(getCategoriesSet($data->area_name.'_'.$data->part.'_categories') as $mainCategory)
-            <div class="{{gfx()['container']}}" id="wtf-{{$mainCategory->id}}">
+        @foreach(getCategoriesSet($data->area_name.'_'.$data->part.'_categories') as $k => $mainCategory)
+            <div class="{{gfx()['container']}} wtf-section" id="wtf-{{$mainCategory->id}}"  @if($k == 0) style="display: block" @endif>
                 <div class="row">
                     @foreach($mainCategory->children as $childCategory)
                         <div class="col-3">

@@ -9,17 +9,22 @@
     }
 
 
+    .wtf-section{
+        display: none;
+    }
     div.col-3{
+        padding: .5rem;
 
         img{
-            height: 12vh ;
+            height: 10vh ;
             object-fit: cover;
             width: 100%;
         }
         h5{
-            font-size: 17px;
+            font-size: 15px;
             padding: 1rem 0;
             text-align: center;
+            white-space: nowrap;
         }
     }
 }
