@@ -13,7 +13,7 @@
             @php($x = explode(' ',$mainCategory->name))
             <div class="{{gfx()['container']}} wtf-section" id="wtf-{{$mainCategory->id}}"  @if($k == 0) style="display: block" @endif>
                 <div class="row">
-                    @foreach($mainCategory->children as $childCategory)
+                    @foreach($mainCategory->children()->where('hide',0)->get() as $childCategory)
                         <div class="col-3">
                             <img src="{{$childCategory->imgUrl()}}" alt="{{$childCategory->name}}" >
                             <h5>
