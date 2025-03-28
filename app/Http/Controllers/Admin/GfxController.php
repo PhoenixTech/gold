@@ -18,7 +18,7 @@ class GfxController extends Controller
 
         array_walk($previews, function ($value, $key) use (&$previews) {
             try {
-                $previews[$key] = route($value);
+                $previews[$key] = route('client.welcome');
             }catch (Exception $exception){
 
             }
