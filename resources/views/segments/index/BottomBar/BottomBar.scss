@@ -1,0 +1,23 @@
+.BottomBar {
+    // scss
+    ul{
+        list-style: none;
+        li{
+            padding: 0;
+            margin-bottom: -.75rem;
+            a{
+                padding: 0;
+                font-size: 45px;
+                color: var(--bottom-bar-color);
+                opacity: .75;
+                transition: 300ms;
+
+                &:hover{
+                    opacity: 1;
+                }
+            }
+        }
+    }
+
+    margin-bottom: 6.5rem;
+}

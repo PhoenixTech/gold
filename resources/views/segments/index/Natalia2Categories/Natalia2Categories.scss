@@ -1,0 +1,28 @@
+.Natalia2Categories {
+    direction: ltr;
+    // scss
+    .bg{
+        background-size: auto 100%;
+        background-position: right;
+        background-repeat: no-repeat;
+        min-height: 40vh;
+    }
+
+    .btn{
+        margin-top: 1rem;
+    }
+
+    .btn-outline-dark{
+        border-color: #a4a4a4;
+        border-width: 2.5px;
+    }
+
+
+    h1{
+        font-weight: 200;
+        font-size: 25px;
+    }
+    h2{
+        font-size: 17px;
+    }
+}
