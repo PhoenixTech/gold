@@ -12,11 +12,12 @@
     .wtf-section{
         display: none;
     }
-    div.col-3{
+    a.col-3{
+        display: block;
         padding: .5rem;
 
         img{
-            height: 10vh ;
+            height: 15vh ;
             object-fit: cover;
             width: 100%;
         }
