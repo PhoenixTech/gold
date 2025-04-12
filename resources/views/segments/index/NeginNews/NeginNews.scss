@@ -4,6 +4,15 @@
     direction: ltr;
     padding-bottom: 1rem;
 
+    ul{
+        list-style: none;
+        a{
+            color: black;
+            margin: 1rem 0;
+            display: block;
+        }
+    }
+
     h1{
         font-weight: 200;
         font-size: 25px;
@@ -13,11 +22,21 @@
        color: #444444;
     }
 
-    .btn-dark{
-        border-width: 0px;
-        color: black;
-        background: #d5d5d5;
-        border-radius: 0;
+    .btm{
 
+        ul{
+            display: flex;
+            align-items: center;
+            justify-content: space-evenly;
+        }
+        a{
+            border-width: 0px;
+            color: black;
+            background: #d5d5d5;
+            border-radius: 0;
+            padding: .4rem .7rem;
+            padding-top: .5rem;
+            margin: 0;
+        }
     }
 }

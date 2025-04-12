@@ -1,0 +1,101 @@
+.ZarMenu {
+
+    .tab-menu{
+        display: none;
+    }
+    .main-zar-btns{
+        display: flex;
+        list-style: none;
+        justify-content: space-around;
+        flex: 1;
+        li{
+            a,span{
+                align-items: center;
+                display: flex;
+                padding: 5px 0;
+                cursor: pointer;
+                justify-content: end;
+                color: var(--xshop-text);
+            }
+        }
+        .btn-main{
+            flex-grow: 6;
+
+            a{
+                justify-content: start;
+            }
+        }
+
+        .menu-btn{
+            flex-grow: 1;
+
+        }
+        i{
+            font-size: 30px;
+            color: #666666;
+        }
+    }
+
+    /*-968px width*/
+    @media (max-width: 968px) {
+        .main-zar-btns{
+            .desktop-menu{
+                display: none;
+            }
+        }
+        .menu-btn{
+            flex-grow: .75;
+
+        }
+
+
+        .tab-menu{
+            list-style: none;
+            display: flex;
+            margin-bottom: .15rem;
+            a,span{
+                display: flex;
+                align-items: center;
+                justify-content: space-around;
+                color: var(--xshop-text);
+            }
+
+            i{
+                font-size: 20px;
+                color: #444444;
+            }
+        }
+    }
+}
+
+#zar-menu{
+    display: none;
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background: #ffffff44;
+    backdrop-filter: blur(7px);
+    z-index: 99;
+    ul{
+        background: var(--xshop-background);
+        position: absolute;
+        inset-inline-end: 0;
+        top: 0;
+        bottom: 0;
+        overflow-y: auto;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        li{
+            padding:  .25rem .75rem;
+            border-bottom: 1px solid #11111111;
+
+            a{
+                display: block;
+                padding: 4px;
+            }
+        }
+    }
+}

@@ -1,5 +1,4 @@
 <section class="WTFIndex live-setting" data-live="{{$data->area_name.'_'.$data->part}}">
-    <div style="padding-top: 5rem"></div>
     <div id="wtf-main-btns" class="row">
         @foreach(getCategoriesSet($data->area_name.'_'.$data->part.'_categories') as $mainCategory)
             <div class="col" style="background: {{$mainCategory->bg_color}}; color: {{$mainCategory->color}}"

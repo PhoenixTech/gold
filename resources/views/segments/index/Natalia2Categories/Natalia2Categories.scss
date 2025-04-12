@@ -8,13 +8,19 @@
         min-height: 40vh;
     }
 
-    .btn{
+    ul li {
+        list-style: none;
         margin-top: 1rem;
-    }
-
-    .btn-outline-dark{
-        border-color: #a4a4a4;
-        border-width: 2.5px;
+        a{
+            border-color: #a4a4a4;
+            border-width: 2.5px;
+            border-style: solid;
+            display: inline-block;
+            color: #000000;
+            border-radius: var(--xshop-border-radius);
+            padding: .4rem;
+            padding-top: .5rem;
+        }
     }
 
 

@@ -11,31 +11,31 @@ class Natalia2Categories
 {
     public static function onAdd(Part $part = null)
     {
+//        $setting = new Setting();
+//        $setting->section = 'theme';
+//        $setting->key = $part->area_name . '_' . $part->part.'_categories';
+//        $setting->value = json_encode([Category::first()->id]);
+//        $setting->size = 12;
+//        $setting->type = 'CATEGORY_SET';
+////        $setting->data = json_encode(['xmin' => 2, 'xmax' => 90]);
+//        $setting->title =  $part->area_name . ' ' . $part->part. ' categories';
+//        $setting->save();
+//
+//
+//        $setting = new Setting();
+//        $setting->section = 'theme';
+//        $setting->key = $part->area_name . '_' . $part->part.'_title';
+//        $setting->value = 'Modern categories';
+//        $setting->type = 'TEXT';
+//        $setting->size = 6;
+//        $setting->title =  $part->area_name . ' ' . $part->part .' modern categories title';
+//        $setting->save();
+
         $setting = new Setting();
         $setting->section = 'theme';
-        $setting->key = $part->area_name . '_' . $part->part.'_categories';
-        $setting->value = json_encode([Category::first()->id]);
-        $setting->size = 12;
-        $setting->type = 'CATEGORY_SET';
-//        $setting->data = json_encode(['xmin' => 2, 'xmax' => 90]);
-        $setting->title =  $part->area_name . ' ' . $part->part. ' categories';
-        $setting->save();
-
-
-        $setting = new Setting();
-        $setting->section = 'theme';
-        $setting->key = $part->area_name . '_' . $part->part.'_title';
-        $setting->value = 'Modern categories';
-        $setting->type = 'TEXT';
-        $setting->size = 6;
-        $setting->title =  $part->area_name . ' ' . $part->part .' modern categories title';
-        $setting->save();
-
-        $setting = new Setting();
-        $setting->section = 'theme';
-        $setting->key = $part->area_name . '_' . $part->part.'_subtitle';
-        $setting->value = 'Lorem ipsum dolor sit amet, consectetur adipisicing elit';
-        $setting->type = 'TEXT';
+        $setting->key = $part->area_name . '_' . $part->part.'_text';
+        $setting->value = 'Lorem ipsum dolor sit amet, consectetur adipisicing elit <ul> <li> <a href="#"> test </a></li> <li> <a href="#"> test2 </a></li> </ul>';
+        $setting->type = 'EDITOR';
         $setting->size = 12;
         $setting->title =  $part->area_name . ' ' . $part->part .' modern categories subtitle';
         $setting->save();
@@ -55,9 +55,10 @@ class Natalia2Categories
     }
     public static function onRemove(Part $part = null)
     {
-        Setting::where('key',$part->area_name . '_' . $part->part.'_categories')->first()?->delete();
-        Setting::where('key',$part->area_name . '_' . $part->part.'_title')->first()?->delete();
-        Setting::where('key',$part->area_name . '_' . $part->part.'_subtitle')->first()?->delete();
+//        Setting::where('key',$part->area_name . '_' . $part->part.'_categories')->first()?->delete();
+//        Setting::where('key',$part->area_name . '_' . $part->part.'_title')->first()?->delete();
+//        Setting::where('key',$part->area_name . '_' . $part->part.'_subtitle')->first()?->delete();
+        Setting::where('key',$part->area_name . '_' . $part->part.'_text')->first()?->delete();
         Setting::where('key',$part->area_name . '_' . $part->part.'_webp')->first()?->delete();
 
     }
