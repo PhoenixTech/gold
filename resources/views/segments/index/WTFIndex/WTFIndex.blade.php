@@ -13,12 +13,12 @@
             <div class="{{gfx()['container']}} wtf-section" id="wtf-{{$mainCategory->id}}"  @if($k == 0) style="display: block" @endif>
                 <div class="row">
                     @foreach($mainCategory->children()->where('hide',0)->get() as $childCategory)
-                        <div class="col-3">
+                        <a class="col-3" href="{{$childCategory->webUrl()}}">
                             <img src="{{$childCategory->imgUrl()}}" alt="{{$childCategory->name}}" >
                             <h5>
                                 {{implode(' ',array_diff(explode(' ',$childCategory->name),$x))}}
                             </h5>
-                        </div>
+                        </a>
                     @endforeach
                 </div>
             </div>
