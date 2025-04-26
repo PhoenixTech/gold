@@ -3,7 +3,7 @@
 
         <div class="row">
 
-            <div class="col-6 col-md-8 pt-4 main-dir">
+            <div class="col-7 col-md-8 pt-4 main-dir">
 {{--                <h1>--}}
 {{--                    {{getSetting($data->area_name.'_'.$data->part.'_title')}}--}}
 {{--                </h1>--}}
@@ -19,7 +19,7 @@
                 </div>
 
             </div>
-            <div class="col-6 col-md-4">
+            <div class="col-5 col-md-4">
                 <img src="{{asset('upload/images/'.$part->area_name . '.' . $part->part.'.webp')}}" alt="image"
                      class="img-fluid">
             </div>
