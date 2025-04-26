@@ -17,7 +17,9 @@
         display: inline-block;
         width: 25%;
         border-bottom: 2px solid gray;
-        margin-top: -.75em;
+        margin-top: -.75em 5px 0 5px;
+        max-width: 110px;
+
     }
 
     h1{
