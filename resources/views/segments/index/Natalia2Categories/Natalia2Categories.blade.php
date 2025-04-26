@@ -3,7 +3,7 @@
     <div class="{{gfx()['container']}}">
         <div class="row">
 
-            <div class="col-6 col-md-8">
+            <div class="col-7 col-md-8">
                 <div class="main-dir">
 {{--                    <h1>--}}
 {{--                        {{getSetting($data->area_name.'_'.$data->part.'_title')}}--}}
@@ -21,7 +21,7 @@
                 </div>
 
             </div>
-            <div class="col-6 col-md-4 bg"  style="background-image: url('{{asset('upload/images/'.$part->area_name . '.' . $part->part.'.webp')}}')">
+            <div class="col-5 col-md-4 bg"  style="background-image: url('{{asset('upload/images/'.$part->area_name . '.' . $part->part.'.webp')}}')">
 
             </div>
         </div>
