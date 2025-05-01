@@ -8,6 +8,10 @@
         min-height: 40vh;
     }
 
+    ol{
+        list-style: none;
+    }
+
     ul li {
         list-style: none;
         margin-top: 1rem;
@@ -31,5 +35,16 @@
     }
     h2{
         font-size: 17px;
+    }
+
+    .nsp{
+        display: inline-block;
+        width: 25%;
+        border-bottom: 2px solid gray;
+        margin: 0 10px;
+        position: relative;
+        top: -4px;
+        max-width: 110px;
+
     }
 }
