@@ -2,9 +2,9 @@
     // scss
     position: fixed;
     bottom: 1rem;
-    right: 1rem;
-    left: 1rem;
-    border: 1px solid silver;
+    right: 4rem;
+    left: 4rem;
+    border: 3px solid silver;
     background: #ffffff;
 
     border-radius: var(--xshop-border-radius);
@@ -25,13 +25,14 @@
     a{
         color: #222222;
         position: relative;
+        font-size: 11px;
     }
 
     #ballon{
-        width: 75%;
+        width: 100%;
         position: absolute;
         height: auto;
-        inset-inline-end: 15%;
+        inset-inline-end: 5%;
         max-height: none;
         top: -90%;
     }
