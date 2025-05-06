@@ -1,11 +1,13 @@
 .WTFIndex {
     // scss
     #wtf-main-btns{
+        direction: ltr;
         .col{
 
             border: none !important;
             text-align: center;
             padding:  .5rem;
+
         }
     }
 
