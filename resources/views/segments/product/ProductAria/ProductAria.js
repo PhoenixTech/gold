@@ -5,6 +5,9 @@ var ariaImgSlider, ariaRelativeSlider;
 document.addEventListener('DOMContentLoaded',function () {
 
 
+    try {
+
+
 
     for (const el of document.querySelectorAll('.light-box')) {
         el.addEventListener('click', Lightbox.initialize);
@@ -60,5 +63,9 @@ document.addEventListener('DOMContentLoaded',function () {
           document.querySelector('#aria-main-img img').setAttribute('src',el.querySelector('img').getAttribute('src'));
         })
     });
+
+    } catch(e) {
+        console.log(e.message);
+    }
 
 });
