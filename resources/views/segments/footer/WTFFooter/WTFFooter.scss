@@ -4,10 +4,12 @@
     bottom: 1rem;
     right: 4rem;
     left: 4rem;
-    border: 3px solid silver;
+    border: 3px solid #c4c5c0;
     background: #ffffff;
 
-    border-radius: var(--xshop-border-radius);
+    border-radius: 10px;
+
+    //border-radius: var(--xshop-border-radius);
     padding: .5rem;
 
     display: flex;
