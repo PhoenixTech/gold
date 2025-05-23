@@ -1,48 +1,54 @@
 .WTFIndex {
     // scss
-    #wtf-main-btns{
+    #wtf-main-btns {
         direction: ltr;
-        .col{
+
+        .col {
 
             border: none !important;
             text-align: center;
-            padding:  .5rem;
+            padding: .5rem;
 
         }
     }
 
 
-    .wtf-section{
+    .wtf-section {
         display: none;
     }
-    a.col-3{
-        display: block;
-        padding:0 .5rem;
 
-        img{
-            height: 12vh ;
+    a.col-3 {
+        display: block;
+        padding: 0 .5rem;
+
+        img {
+            height: 35vh;
             object-fit: cover;
             width: 100%;
         }
-        h5{
-            font-size: 13px;
+
+        h5 {
+            font-size: 11px;
             padding: .75rem 0;
             text-align: center;
             white-space: nowrap;
         }
     }
 
-    a{
+    a {
         color: #111111;
     }
+
+
 }
 
-/*+900px width*/
-@media (min-width: 900px) {
-    div.col-3{
+/*-768px width*/
+@media (max-width: 768px) {
 
-        img {
-            height: 25vh !important;
-        }
+    .wtf-section{
+        padding: 1.5rem 3rem;
+    }
+    .WTFIndex a.col-3 img {
+        height: 10vh !important;
     }
 }
