@@ -17,6 +17,9 @@
     <meta name="generator" content="xShop; version={{config('app.version')}}">
     {{--  Please don't modify or remove generator --}}
 
+    <style>
+        {{getSetting('css')}}
+    </style>
     <title>
         @yield('title')
     </title>
