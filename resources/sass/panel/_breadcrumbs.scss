@@ -2,7 +2,7 @@ $pnl-brc-height: 50px;
 
 #panel-breadcrumb{
     height: $pnl-brc-height;
-    background: #282d46;
+    background: $lighter-color;
     margin-bottom: 1rem;
 
     ul{
@@ -24,6 +24,7 @@ $pnl-brc-height: 50px;
                 align-items: center;
                 justify-content: center;
                 padding: 0 1rem;
+                color: grey;
             }
             i{
                 font-size: 25px;
@@ -39,7 +40,7 @@ $pnl-brc-height: 50px;
                 transform: rotate(45deg);
                 position: absolute;
                 inset-inline-start: -1.05rem;
-                background: #282d46;
+                background: $lighter-color;
                 top: 7px;
             }
 

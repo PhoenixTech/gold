@@ -47,8 +47,8 @@
         }
 
         &.active {
-            border-color: lighten($primary-color-panel,20);
-            background-color: $primary-color-panel;
+            border-color: lightcoral;
+            background-color: lightcoral;
         }
     }
 }

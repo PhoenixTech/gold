@@ -19,7 +19,7 @@ window.addEventListener('load', function () {
                 filebrowserUploadUrl: xupload,
                 filebrowserUploadMethod: 'form',
                 contentsLangDirection: finalDir,
-                skin: 'moono-dark',
+                // skin: 'moono-dark',
             });
 
 
