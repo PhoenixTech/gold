@@ -7,7 +7,7 @@
             </div>
         @endforeach
     </div>
-    <div class="py-4">
+    <div class="py-2">
         @foreach(getCategoriesSet($data->area_name.'_'.$data->part.'_categories') as $k => $mainCategory)
             @php($x = explode(' ',$mainCategory->name))
             <div class="{{gfx()['container']}} wtf-section" id="wtf-{{$mainCategory->id}}"  @if($k == 0) style="display: block" @endif>
