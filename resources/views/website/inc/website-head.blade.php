@@ -18,7 +18,7 @@
     {{--  Please don't modify or remove generator --}}
 
     <style>
-        {{getSetting('css')}}
+        {!! getSetting('css') !!}
     </style>
     <title>
         @yield('title')

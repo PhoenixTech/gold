@@ -1,4 +1,4 @@
-<section class="Natalia2Categories live-setting" data-live="{{$data->area_name.'_'.$data->part}}"
+<section class="Natalia2Categories live-setting position-relative" data-live="{{$data->area_name.'_'.$data->part}}"
         >
     <div class="{{gfx()['container']}}">
         <div class="row">
@@ -21,8 +21,8 @@
                 </div>
 
             </div>
-            <div class="col-5 col-md-4 bg"  style="background-image: url('{{asset('upload/images/'.$part->area_name . '.' . $part->part.'.webp')}}')">
-
+            <div class="col-5 col-md-4 bg" >
+                <img src="{{asset('upload/images/'.$part->area_name . '.' . $part->part.'.webp')}}" alt="bg" class="bg-img-nata">
             </div>
         </div>
 

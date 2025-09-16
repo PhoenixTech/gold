@@ -47,4 +47,14 @@
         max-width: 110px;
 
     }
+
+    .bg-img-nata{
+        position: absolute;
+        width: 50%;
+        height: 100%;
+        object-fit: scale-down;
+        inset-inline-end: 0;
+        top: 0;
+        pointer-events: none;
+    }
 }
