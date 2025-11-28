@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Log;
 class GoldPriceUpdate extends Command
 {
 
-    private $api = 'https://price.xstack.ir:8080/api/price';
+    private $api = 'https://gold.xstack.ir/v1/gold';
     /**
      * The name and signature of the console command.
      *
@@ -34,10 +34,9 @@ class GoldPriceUpdate extends Command
         $client = new Client();
         $response = $client->request('GET', $this->api);
         $data = json_decode($response->getBody()->getContents());
-//        print_r($data);
-        if (isset($data->gold)) {
+        if (isset($data->price_toman)) {
             $s = Setting::where('key', 'gold')->first();
-            $s->value = floor($data->gold / 10);
+            $s->value = $data->price_toman;
             $s->save();
             $this->info('Price updated successfully '. $s->value);
         }else{
