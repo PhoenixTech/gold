@@ -132,6 +132,9 @@ class Product extends Model implements HasMedia
 
     public function quantities()
     {
+        if ($this->stock_status == 'OUT_STOCK') {
+            $this->hasMany(Quantity::class, 'product_id', 'idd');
+        }
         return $this->hasMany(Quantity::class);
     }
 
