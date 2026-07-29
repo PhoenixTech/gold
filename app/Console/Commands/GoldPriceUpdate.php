@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Log;
 class GoldPriceUpdate extends Command
 {
 
-    private $api = 'http://142.93.20.169:8001/gold';
+    private $api = 'http://194.33.105.71:8000/gold';
     /**
      * The name and signature of the console command.
      *
