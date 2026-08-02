@@ -38,6 +38,10 @@ class clientAssetGenerator extends Command
         $vars['xshop-text'] = $gfxes['text'] ?? '#111111';
         $vars['xshop-border-radius'] = $gfxes['border-radius'] ?? '7px';
         $vars['xshop-shadow'] = $gfxes['shadow'] ?? '2px 2px 4px #777777';
+        $vars['xshop-success'] = $gfxes['success'] ?? '#2e7d5b';
+        $vars['xshop-danger'] = $gfxes['danger'] ?? '#c0392b';
+        $vars['xshop-warning'] = $gfxes['warning'] ?? '#a16207';
+        $vars['xshop-info'] = $gfxes['info'] ?? '#2f5b66';
 
 
         // prepare client.scss and add gfx variable

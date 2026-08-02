@@ -1,0 +1,64 @@
+:root {
+    --bs-success: var(--xshop-success);
+    --bs-danger: var(--xshop-danger);
+    --bs-warning: var(--xshop-warning);
+    --bs-info: var(--xshop-info);
+
+    --bs-success-text-emphasis: var(--xshop-success);
+    --bs-danger-text-emphasis: var(--xshop-danger);
+    --bs-warning-text-emphasis: var(--xshop-warning);
+    --bs-info-text-emphasis: var(--xshop-info);
+
+    --bs-success-bg-subtle: color-mix(in srgb, var(--xshop-success) 12%, var(--xshop-background));
+    --bs-danger-bg-subtle: color-mix(in srgb, var(--xshop-danger) 12%, var(--xshop-background));
+    --bs-warning-bg-subtle: color-mix(in srgb, var(--xshop-warning) 12%, var(--xshop-background));
+    --bs-info-bg-subtle: color-mix(in srgb, var(--xshop-info) 12%, var(--xshop-background));
+
+    --bs-success-border-subtle: color-mix(in srgb, var(--xshop-success) 40%, var(--xshop-background));
+    --bs-danger-border-subtle: color-mix(in srgb, var(--xshop-danger) 40%, var(--xshop-background));
+    --bs-warning-border-subtle: color-mix(in srgb, var(--xshop-warning) 40%, var(--xshop-background));
+    --bs-info-border-subtle: color-mix(in srgb, var(--xshop-info) 40%, var(--xshop-background));
+
+    --bs-form-valid-color: var(--xshop-success);
+    --bs-form-valid-border-color: var(--xshop-success);
+    --bs-form-invalid-color: var(--xshop-danger);
+    --bs-form-invalid-border-color: var(--xshop-danger);
+}
+
+.alert-success,
+.alert-danger,
+.alert-warning,
+.alert-info {
+    border-radius: var(--xshop-border-radius);
+}
+
+.btn-warning,
+.btn-info {
+    --bs-btn-color: var(--xshop-diff2);
+    --bs-btn-hover-color: var(--xshop-diff2);
+    --bs-btn-active-color: var(--xshop-diff2);
+}
+
+.btn-outline-warning:hover,
+.btn-outline-info:hover,
+.btn-outline-warning:active,
+.btn-outline-info:active {
+    color: var(--xshop-diff2);
+}
+
+.v-toast__item--success {
+    background-color: var(--xshop-success);
+}
+
+.v-toast__item--info {
+    background-color: var(--xshop-info);
+}
+
+.v-toast__item--warning {
+    background-color: var(--xshop-warning);
+    color: var(--xshop-diff2);
+}
+
+.v-toast__item--error {
+    background-color: var(--xshop-danger);
+}
