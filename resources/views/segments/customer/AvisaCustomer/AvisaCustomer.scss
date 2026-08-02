@@ -194,22 +194,33 @@
             align-items: center;
             gap: .5rem;
             border: 0;
-            border-radius: var(--xshop-border-radius);
+            border-radius: 50rem;
             background: var(--xshop-primary);
             color: var(--xshop-diff);
-            padding: .55rem 1.1rem;
+            padding: .6rem 1.2rem;
             font-size: 15px;
             margin-bottom: 1rem;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, .18);
+            transition: 300ms;
+
+            &:active {
+                transform: scale(.96);
+            }
         }
 
         .avisa-backdrop {
             position: fixed;
             inset: 47px 0 0 0;
-            background: rgba(0, 0, 0, .5);
+            background: rgba(0, 0, 0, .45);
             z-index: 9980;
+            opacity: 0;
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
+            transition: opacity 300ms;
 
             &.open {
                 display: block;
+                opacity: 1;
             }
         }
 
@@ -218,23 +229,124 @@
             top: 47px;
             bottom: 0;
             inset-inline-start: 0;
-            width: min(85vw, 300px);
+            width: min(88vw, 320px);
             z-index: 9990;
             transform: translateX(-100%);
-            transition: transform 300ms;
+            transition: transform 450ms cubic-bezier(.32, .72, .35, 1);
             border: 0;
-            border-radius: 0;
+            border-radius: 0 1.25rem 1.25rem 0;
             overflow-y: auto;
             overscroll-behavior: contain;
+            box-shadow: 12px 0 40px rgba(0, 0, 0, .25);
+            padding-bottom: env(safe-area-inset-bottom);
 
             &.open {
                 transform: translateX(0);
+            }
+
+            .avisa-user {
+                position: sticky;
+                top: 0;
+                z-index: 2;
+                background: linear-gradient(135deg, color-mix(in srgb, var(--xshop-primary) 72%, white), var(--xshop-primary));
+                border-radius: 0 1.25rem 0 0;
+                gap: .85rem;
+                padding: 1.25rem 1.25rem 1.1rem;
+
+                .avisa-avatar {
+                    height: 62px;
+                    width: 62px;
+                    min-width: 62px;
+                    border: 2px solid rgba(255, 255, 255, .85);
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, .25);
+                }
+
+                .avisa-user-meta {
+                    strong {
+                        font-size: 17px;
+                    }
+
+                    small {
+                        font-size: 12px;
+                    }
+                }
+
+                .avisa-close-btn {
+                    position: absolute;
+                    top: .75rem;
+                    inset-inline-end: .75rem;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 34px;
+                    height: 34px;
+                    border: 0;
+                    border-radius: 50%;
+                    background: rgba(255, 255, 255, .18);
+                    color: inherit;
+                    font-size: 18px;
+                    transition: 250ms;
+
+                    &:active {
+                        transform: scale(.92);
+                        background: rgba(255, 255, 255, .3);
+                    }
+                }
+            }
+
+            #avisa-tabs {
+                padding: .9rem .75rem 1.5rem;
+
+                li {
+                    opacity: 0;
+                    transform: translateY(10px);
+                    transition: opacity 350ms, transform 350ms;
+
+                    a {
+                        display: flex;
+                        align-items: center;
+                        gap: .5rem;
+                        padding: .75rem .9rem;
+                        margin-bottom: .15rem;
+                        border-radius: .75rem;
+                        font-size: 15px;
+
+                        i {
+                            margin: 0;
+                            font-size: 19px;
+                            opacity: .85;
+                        }
+
+                        &.active, &:hover {
+                            background: var(--xshop-primary);
+                            color: var(--xshop-diff);
+                            box-shadow: 0 3px 10px rgba(0, 0, 0, .12);
+                        }
+                    }
+                }
+            }
+
+            &.open #avisa-tabs li {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            @for $i from 1 through 12 {
+                &.open #avisa-tabs li:nth-child(#{$i}) {
+                    transition-delay: #{$i * 35}ms;
+                }
             }
         }
 
         [dir="rtl"] & {
             .avisa-sidebar {
                 transform: translateX(100%);
+                border-radius: 1.25rem 0 0 1.25rem;
+                box-shadow: -12px 0 40px rgba(0, 0, 0, .25);
+
+                .avisa-user {
+                    border-radius: 1.25rem 0 0 0;
+                }
 
                 &.open {
                     transform: translateX(0);

@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     const btn = document.getElementById('avisa-menu-btn');
+    const closeBtn = document.getElementById('avisa-close-btn');
     const sidebar = document.getElementById('avisa-sidebar');
     const backdrop = document.getElementById('avisa-backdrop');
     if (!btn || !sidebar) {
@@ -19,6 +20,9 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     if (backdrop) {
         backdrop.addEventListener('click', close);
+    }
+    if (closeBtn) {
+        closeBtn.addEventListener('click', close);
     }
     sidebar.querySelectorAll('#avisa-tabs a').forEach(function (a) {
         a.addEventListener('click', close);

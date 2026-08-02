@@ -18,6 +18,9 @@
                                 {{auth('customer')->user()->name}}
                             </strong>
                         </div>
+                        <button class="avisa-close-btn d-lg-none" id="avisa-close-btn" type="button" aria-label="Close">
+                            <i class="ri-close-line"></i>
+                        </button>
                     </div>
                 <ul class="tab-control" id="avisa-tabs">
                     <li>
