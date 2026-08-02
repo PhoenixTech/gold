@@ -14,7 +14,9 @@ const handleDocumentClickZar = function (e) {
 
 
 document.addEventListener('DOMContentLoaded',function () {
-    document.querySelector('#open-zar-1').addEventListener('click',openZarMenu);
-    document.querySelector('#open-zar-2').addEventListener('click',openZarMenu);
+    const openZar1 = document.querySelector('#open-zar-1');
+    const openZar2 = document.querySelector('#open-zar-2');
+    if (openZar1) openZar1.addEventListener('click',openZarMenu);
+    if (openZar2) openZar2.addEventListener('click',openZarMenu);
 });
 

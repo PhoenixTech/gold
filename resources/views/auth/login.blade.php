@@ -90,6 +90,26 @@
                             {{ __('Login') }}
                         </button>
                     </div>
+
+                    @if(app()->environment('local'))
+                        <hr>
+                        <div class="row mb-0">
+                            <div class="col-md-6 mb-2">
+                                <a href="{{ route('quick-login.admin') }}"
+                                   class="btn btn-success w-100">
+                                    <i class="ri-flashlight-line"></i>
+                                    {{ __('Quick login as Developer') }}
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <a href="{{ route('quick-login.customer') }}"
+                                   class="btn btn-info text-white w-100">
+                                    <i class="ri-user-line"></i>
+                                    {{ __('Quick login as Customer') }}
+                                </a>
+                            </div>
+                        </div>
+                    @endif
                 </form>
             </div>
         </div>

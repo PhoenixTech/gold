@@ -1,15 +1,24 @@
 <section id='AvisaCustomer' class=' live-setting' data-live="{{$data->area_name.'_'.$data->part}}">
 <div class="{{gfx()['container']}}">
+        <button class="avisa-menu-btn d-lg-none" id="avisa-menu-btn" type="button" aria-label="Menu">
+            <i class="ri-menu-3-line"></i>
+            {{__("User menu")}}
+        </button>
+        <div class="avisa-backdrop d-lg-none" id="avisa-backdrop"></div>
         <div class="row">
             <div class="col-lg-3">
-                <img src="{{auth('customer')->user()->avatar()}}"  alt="[avatar]" class="avisa-avatar" onclick="document.querySelector('#avatar').click();">
-                <div class="text-center ">
-                    {{__("Welcome back")}}
-                    <br>
-                    <strong>
-                        {{auth('customer')->user()->name}}
-                    </strong>
-                </div>
+                <div class="avisa-sidebar" id="avisa-sidebar">
+                    <div class="avisa-user">
+                        <img src="{{auth('customer')->user()->avatar()}}"  alt="[avatar]" class="avisa-avatar" onclick="document.querySelector('#avatar').click();">
+                        <div class="avisa-user-meta">
+                            <small>
+                                {{__("Welcome back")}}
+                            </small>
+                            <strong>
+                                {{auth('customer')->user()->name}}
+                            </strong>
+                        </div>
+                    </div>
                 <ul class="tab-control" id="avisa-tabs">
                     <li>
                         <a href="#summary" class="active">
@@ -72,11 +81,10 @@
                         </a>
                     </li>
                 </ul>
+                </div>
             </div>
             <div class="col-lg-9" id="tabs-content">
 
-                <div class="mt-lg-5 mb-lg-5"> &nbsp;</div>
-                <div class="mt-lg-5 mb-lg-5"> &nbsp;</div>
                 @include('components.err')
                 @if(cardCount() > 0)
                     <div class="alert alert-info mt-4">

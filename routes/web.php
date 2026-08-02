@@ -480,6 +480,25 @@ Route::get('login/as/{mobile}', function ($mobile) {
     }
 })->name('login.as');
 
+// quick local logins (dev only)
+Route::get('quick-login/admin', function () {
+    if (!app()->environment('local')) {
+        return abort(404);
+    }
+    \Auth::loginUsingId(\App\Models\User::firstOrFail()->id);
+    return redirect()->route('admin.home');
+})->name('quick-login.admin');
+
+Route::get('quick-login/customer', function () {
+    if (!app()->environment('local')) {
+        return abort(404);
+    }
+    $customer = \App\Models\Customer::whereNotNull('name')->orderByDesc('id')->first()
+        ?? \App\Models\Customer::firstOrFail();
+    \Auth::guard('customer')->loginUsingId($customer->id);
+    return redirect()->route('client.profile');
+})->name('quick-login.customer');
+
 Route::get('test', function () {
     $p = \App\Models\Product::first();
     return $p->evaluations();
