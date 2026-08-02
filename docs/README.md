@@ -37,3 +37,4 @@
 - [Report](29-report.md)
 - [Command Middleware](30-command-middleware.md)
 - [User](31-user.md)
+- [Templating System (Areas, Parts & Segments)](32-templating-system.md)
