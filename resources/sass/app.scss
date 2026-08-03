@@ -20,12 +20,12 @@
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
-    background: darkred;
+    background: $primary-color-panel;
 }
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-    background: var(--bs-indigo);
+    background: $secondary-color-panel;
 }
 
 *{

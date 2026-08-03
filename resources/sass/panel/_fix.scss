@@ -1,6 +1,6 @@
 .form-control:focus,.form-check-input:focus{
-    box-shadow: 0 0 0 0.25rem rgba(133, 13, 253, 0.25);
-border-color: #bc86fe;
+    box-shadow: 0 0 0 0.25rem rgba($primary-color-panel, 0.25);
+border-color: lighten($primary-color-panel, 10);
 }
 
 .forms{
@@ -9,7 +9,7 @@ border-color: #bc86fe;
         background-color: rgba(var(--bs-body-bg),.5);
         background-image: url("../../images/pattern.png");
         backdrop-filter: blur(4px);
-        box-shadow: -2px -2px 7px #560000, 2px 2px 7px #5e00b5;
+        box-shadow: -2px -2px 7px rgba($primary-color-panel,.5), 2px 2px 7px rgba($secondary-color-panel,.5);
     }
 }
 
@@ -37,7 +37,7 @@ main{
         color: black;
 
         &:hover{
-            color: dodgerblue !important;
+            color: $primary-color-panel !important;
         }
     }
 }
@@ -45,26 +45,26 @@ main{
 
 
 .form-check-input:checked,.btn-primary{
-    background-color: #a60087;
-    border-color: #ff0067;
+    background-color: $primary-color-panel;
+    border-color: $primary-color-panel;
 }
 
 .btn-primary:hover{
-    background-color: #ff0067;
+    background-color: $secondary-color-panel;
 }
 
 a,a:visited{
     color: black;
     &:hover{
-        color: #ff0067;
+        color: $primary-color-panel;
     }
 }
 
 .pagination{
-    --bs-pagination-active-bg: #6e0000 ;
-    --bs-pagination-active-border-color: #810000;
-    --bs-pagination-color: #cb00a5;
-    --bs-pagination-hover-color: red;
+    --bs-pagination-active-bg: #{$primary-color-panel} ;
+    --bs-pagination-active-border-color: #{darken($primary-color-panel, 8)};
+    --bs-pagination-color: #{$primary-color-panel};
+    --bs-pagination-hover-color: #{$secondary-color-panel};
 }
 
 .v-toast__item{

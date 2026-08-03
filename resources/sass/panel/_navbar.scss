@@ -70,7 +70,12 @@
                 }
 
                 &:hover{
-                    background: darkred;
+                    background: $secondary-color-panel;
+                    color: white;
+
+                    i{
+                        color: white;
+                    }
                 }
             }
 

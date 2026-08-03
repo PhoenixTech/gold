@@ -9,18 +9,18 @@ body {
     background: $secondary-color-panel;
     backdrop-filter: blur(4px);
     border: 0;
-    box-shadow: 0px 3px 5px #11111177, inset 0 0 0 0 darkred;
+    box-shadow: 0px 3px 5px #11111177, inset 0 0 0 0 $primary-color-panel;
     user-select: none;
     cursor: pointer;
     transition: 500ms;
 
     &:hover {
-        box-shadow: 0px 3px 5px #11111177, inset 0 0 0 40px darkred;
+        box-shadow: 0px 3px 5px #11111177, inset 0 0 0 40px $primary-color-panel;
     }
 }
 
 .custom-tooltip {
-    --bs-tooltip-bg: var(--bs-indigo);
+    --bs-tooltip-bg: #{$secondary-color-panel};
     --bs-tooltip-color: var(--bs-white);
 }
 
@@ -150,16 +150,18 @@ a.btn, a.action-btn, a.circle-btn {
     .section-group-item {
         display: block;
         padding: .5rem;
-        background: #ffffff11;
-        border-bottom: 1px solid #00000022;
-        color: white;
+        background: rgba($secondary-color-panel, .05);
+        border-bottom: 1px solid rgba($secondary-color-panel, .15);
+        color: #212529;
 
         &.active {
-            background: $primary-color-panel;
+            background: $secondary-color-panel;
+            color: white;
         }
 
         &:hover {
-            background: rgba($primary-color-panel, .7);
+            background: rgba($primary-color-panel, .4);
+            color: black;
         }
     }
 }
@@ -340,7 +342,7 @@ a.btn, a.action-btn, a.circle-btn {
             position: absolute;
             inset: 0;
             box-shadow: 0 0 10px 2px rgba(0, 0, 0, 0.3) inset;
-            box-shadow: 0 2px 0 #FF3D00 inset;
+            box-shadow: 0 2px 0 $primary-color-panel inset;
             animation: rotate 2s linear infinite;
         }
     }

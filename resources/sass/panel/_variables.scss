@@ -1,11 +1,12 @@
 // Body
-$body-bg: #dddddd;
+$body-bg: #ffffff;
 
 // Typography
 $font-family-sans-serif: 'Vazirmatn', sans-serif;
 $font-size-base: 0.9rem;
 $line-height-base: 1.6;
-$primary-color-panel: #6e0000;
-$secondary-color-panel:  rgba(139, 0, 139, 0.86) ;
+// Use the same brand colors as the public website (resources/sass/client.scss)
+$primary-color-panel: #db9a00; // == var(--xshop-primary)
+$secondary-color-panel: #3d3846; // == var(--xshop-secondary)
 $lighter-color: #eeeeee;
 $text-muted: gray;

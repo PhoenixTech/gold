@@ -50,11 +50,11 @@ $pnl-brc-height: 50px;
 
 
             &:hover{
-                background: #444e7c;
+                background: rgba($secondary-color-panel,.12);
                 //background-image: url("../images/pattern.png");
 
                 & + li:before{
-                    background: #444e7c;
+                    background: rgba($secondary-color-panel,.12);
                     //background-image: url("../images/pattern.png");
                 }
             }
