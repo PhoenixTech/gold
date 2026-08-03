@@ -31,4 +31,8 @@ return [
         ],
     ],
 
+    'brsapi' => [
+        'key' => env('BR_API_KEY'),
+    ],
+
 ];

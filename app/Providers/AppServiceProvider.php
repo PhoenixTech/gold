@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 use App\Console\Commands\AssetsBuild;
+use App\Console\Commands\GoldFreePriceUpdate;
 use App\Console\Commands\GoldPriceUpdate;
 use App\Helpers\TDate;
 use App\Http\Middleware\Acl;
@@ -28,6 +29,7 @@ class AppServiceProvider extends ServiceProvider
             TranslatorCommand::class,
             AssetsBuild::class,
             GoldPriceUpdate::class,
+            GoldFreePriceUpdate::class,
         ]);
         foreach (config('xshop.payment.gateways') as $gateway){
             /** @var \App\Contracts\Payment $gateway */

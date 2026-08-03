@@ -25,6 +25,22 @@ class SettingSeeder extends Seeder
                     'size' => '12',
                 ],
                 [
+                    'title' => __("Gold 24 price"),
+                    'key' => 'gold24',
+                    'type' => 'TEXT',
+                    'ltr' => true,
+                    'value' => '100000',
+                    'size' => '12',
+                ],
+                [
+                    'title' => __("Dollar price"),
+                    'key' => 'dollar',
+                    'type' => 'TEXT',
+                    'ltr' => true,
+                    'value' => '0',
+                    'size' => '12',
+                ],
+                [
                     'title' => __("Minimum percent"),
                     'key' => 'min',
                     'type' => 'TEXT',

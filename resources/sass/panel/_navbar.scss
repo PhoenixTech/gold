@@ -82,6 +82,35 @@
 #panel-top-navbar{
     background: rgb(231, 231, 231);
     padding-top: .8rem;
+
+    .gold-nav-prices{
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        margin-inline-end: 1rem;
+        font-size: 13px;
+        color: #333;
+
+        .gold-nav-price{
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            white-space: nowrap;
+        }
+
+        .gold-nav-label{
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 2rem;
+            padding: .15rem .45rem;
+            border-radius: 4px;
+            background: #3d3846;
+            color: #ffd34d;
+            font-weight: 700;
+            font-size: 12px;
+        }
+    }
 }
 
 

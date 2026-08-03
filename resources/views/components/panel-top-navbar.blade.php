@@ -16,7 +16,23 @@
             </ul>
 
             <!-- Right Side Of Navbar -->
-            <ul class="navbar-nav ms-auto">
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item d-none d-md-block">
+                    <div class="gold-nav-prices">
+                        <span class="gold-nav-price">
+                            <span class="gold-nav-label">18K</span>
+                            {{number_format((int)getSetting('gold'))}} {{config('app.currency.symbol')}}
+                        </span>
+                        <span class="gold-nav-price">
+                            <span class="gold-nav-label">24K</span>
+                            {{number_format((int)getSetting('gold24'))}} {{config('app.currency.symbol')}}
+                        </span>
+                        <span class="gold-nav-price">
+                            <span class="gold-nav-label">$</span>
+                            {{number_format((int)getSetting('dollar'))}} {{config('app.currency.symbol')}}
+                        </span>
+                    </div>
+                </li>
                 <!-- Authentication Links -->
                 @guest
                 @if (Route::has('login'))
