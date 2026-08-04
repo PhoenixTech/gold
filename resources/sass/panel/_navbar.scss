@@ -1,84 +1,212 @@
+// ---------------------------------------------------------------
+// WordPress-like panel sidebar
+// ---------------------------------------------------------------
 #panel-navbar {
     height: 100%;
     overflow-y: auto;
+    overflow-x: hidden;
     position: absolute;
     left: 0;
     top: 0;
     right: 0;
     bottom: 0;
+    background: $secondary-color-panel;
+    color: rgba(255, 255, 255, .88);
 
     ul {
         padding: 0;
+        margin: 0;
         list-style: none;
     }
 
     > ul {
-        position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        height: 100%;
-        overflow-y: auto;
-        //border-right: 1px dashed gray;
-        //border-left: 1px dashed gray;
+        padding: .5rem .5rem 1.5rem;
 
+        > li {
+            position: relative;
+            margin-bottom: 2px;
 
-        li {
-            i {
-                font-size: 28px;
+            > a.dsb-item {
+                display: flex;
+                align-items: center;
+                gap: .7rem;
+                padding: .6rem .7rem;
+                border-radius: 6px;
+                color: rgba(255, 255, 255, .88);
+                font-size: .88rem;
+                font-weight: 500;
+                cursor: pointer;
+                transition: background-color .18s ease, color .18s ease;
+                white-space: nowrap;
+
+                i {
+                    font-size: 1.2rem;
+                    min-width: 1.4rem;
+                    text-align: center;
+                    flex-shrink: 0;
+                }
+
+                .nav-label {
+                    flex: 1;
+                    min-width: 0;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+
+                .nav-chevron {
+                    font-size: 1rem;
+                    margin-inline-start: auto;
+                    transition: transform .25s ease;
+                    color: rgba(255, 255, 255, .45);
+                }
+
+                &:hover {
+                    background: rgba(255, 255, 255, .09);
+                    color: #ffffff;
+                }
+
+                &.active {
+                    background: $primary-color-panel;
+                    color: #ffffff;
+                }
             }
-            ul{
+
+            &.open {
+                > a.dsb-item {
+                    background: rgba(255, 255, 255, .12);
+                    color: #ffffff;
+
+                    .nav-chevron {
+                        transform: rotate(180deg);
+                        color: $primary-color-panel;
+                    }
+                }
+
+                > ul {
+                    display: block;
+                }
+            }
+
+            // A group whose child is the current page
+            &.active-group {
+                > a.dsb-item {
+                    color: #ffffff;
+                    border-inline-start: 3px solid $primary-color-panel;
+                    background: rgba($primary-color-panel, .12);
+                }
+            }
+
+            > ul {
                 display: none;
+                margin: .15rem 0 .45rem;
+                padding-inline-start: 1.15rem;
+
+                li {
+                    a {
+                        display: flex;
+                        align-items: center;
+                        gap: .55rem;
+                        padding: .42rem .6rem;
+                        border-radius: 5px;
+                        color: rgba(255, 255, 255, .72);
+                        font-size: .8rem;
+                        transition: background-color .15s ease, color .15s ease;
+
+                        i {
+                            font-size: .95rem;
+                            min-width: 1.1rem;
+                            text-align: center;
+                            flex-shrink: 0;
+                        }
+
+                        &:hover {
+                            color: #ffffff;
+                            background: rgba(255, 255, 255, .07);
+                        }
+
+                        &.active {
+                            color: #ffffff;
+                            background: rgba($primary-color-panel, .85);
+                        }
+                    }
+                }
             }
         }
+    }
 
-        a, a:visited {
-            padding: 5px 9px 5px 11px;
-            display: block;
-            color: black;
+    // Collapsed icon rail on small screens: labels, chevrons and
+    // inline submenus are hidden (submenus open as a flyout panel).
+    @media (max-width: 991.98px) {
+        > ul {
+            padding: .5rem;
 
-            &:hover {
-                color: $secondary-color-panel;
+            > li {
+                > a.dsb-item {
+                    justify-content: center;
+                    padding: .6rem;
+
+                    .nav-label,
+                    .nav-chevron {
+                        display: none;
+                    }
+
+                    i {
+                        font-size: 1.3rem;
+                        min-width: 0;
+                    }
+
+                    &.active {
+                        border-radius: 8px;
+                    }
+                }
+
+                > ul {
+                    display: none !important;
+                }
             }
         }
     }
 }
 
+// Flyout panel (only used on small screens)
 #sidebar-panel {
     overflow: hidden;
-    background: rgba(0, 0, 0, .1);
-    transition: .5s;
-    ul{
+    overflow-y: auto;
+    background: #ffffff;
+    box-shadow: 0 0 24px rgba(0, 0, 0, .16);
+    transition: .25s;
+
+    ul {
         padding: 5px;
         list-style: none;
-        li{
-            a{
+
+        li {
+            a {
                 width: 100%;
                 display: flex;
-                padding: 7px ;
+                padding: 7px;
                 color: black;
-                transition: .7s;
+                transition: .3s;
                 border-radius: 5px;
                 align-items: center;
                 justify-self: center;
+                font-size: .85rem;
 
-
-                i{
-                    font-size: 20px;
-                    margin-right: 1rem;
-                    margin-left: 1rem;
+                i {
+                    font-size: 1.15rem;
+                    margin-right: .9rem;
+                    margin-left: .9rem;
                 }
 
-                &:hover{
+                &:hover {
                     background: $secondary-color-panel;
                     color: white;
 
-                    i{
+                    i {
                         color: white;
                     }
                 }
             }
-
         }
     }
 }

@@ -28,19 +28,29 @@ a{
 
 #panel{
     display: grid;
-    grid-template-columns:50px 0 minmax(0, 1fr);
+    grid-template-columns:260px minmax(0, 1fr);
     transition: 400ms;
     min-height: calc(100vh - 60px);
 
     >aside{
-        background-image: url("../images/pattern.png");
-        background-color: lighten($body-bg,7);
+        background-color: $secondary-color-panel;
         position: relative;
     }
-    &.sided{
-        grid-template-columns:50px 250px minmax(0, 1fr);
-        #sidebar-panel{
-            display: block;
+
+    #sidebar-panel{
+        display: none;
+    }
+
+    // On smaller screens the sidebar collapses to an icon rail and
+    // submenus are shown as a flyout panel (see panel/navbar.js).
+    @media (max-width: 991.98px) {
+        grid-template-columns:64px minmax(0, 1fr);
+
+        &.sided{
+            grid-template-columns:64px 250px minmax(0, 1fr);
+            #sidebar-panel{
+                display: block;
+            }
         }
     }
 }
