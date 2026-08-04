@@ -189,71 +189,77 @@
                     </div>
                 </div>
                 <div class="tab" id="invoices">
-                    <table class="table table-striped text-center">
-                        <tr>
-                            <th>
-                                #
-                            </th>
-                            <th>
-                                {{__("Datetime")}}
-                            </th>
-                            <th>
-                                {{__("Orders count")}}
-                            </th>
-                            <th>
-                                {{__("Total price")}}
-                            </th>
-                            <th>
-                                {{__("Status")}}
-                            </th>
-                            <th>
-                                -
-                            </th>
-                        </tr>
-                        @foreach(auth('customer')->user()->invoices()->orderByDesc('id')->get() as $inv)
-                            <tr>
-                                <td>
-                                    {{$inv->hash}}
-                                </td>
-                                <td>
-                                    {{$inv->created_at->ldate('Y-m-d H:i')}}
-                                </td>
-                                <td>
-                                    {{number_format($inv->count)}}
-                                </td>
-                                <td>
-                                    <b>
-                                        {{number_format($inv->total_price)}}
-                                        {{config('app.currency.symbol')}}
-                                    </b>
-                                </td>
-                                <td>
-                                    <span class="inv-{{$inv->status}}">
-                                            {{__($inv->status)}}
-                                    </span>
-                                </td>
-                                <td style="width: 170px">
-                                    <a href="{{ route('client.invoice',$inv->hash) }}"
-                                       class="btn btn-outline-primary btn-sm ">
-                                        <i class="ri-eye-line"></i>
-                                    </a>
-                                    @if( in_array($inv->status, ['PENDING', 'CANCELED', 'FAILED'] ) && $inv->created_at->timestamp >  (time() - 3600) )
-                                        <a href="{{route('client.pay',$inv->hash)}}"
-                                           class="btn btn-outline-primary btn-sm ms-2">
-                                            <i class="ri-secure-payment-line"></i>
-                                            {{__("Pay now")}}
-                                        </a>
-
-                                    @endif
-                                </td>
-                            </tr>
-                        @endforeach
-                    </table>
+                    <div class="avisa-table-card">
+                        <div class="avisa-table-head">
+                            <h4>
+                                <i class="ri-file-list-3-line"></i>
+                                {{__("Invoices")}}
+                            </h4>
+                            <span class="avisa-count-badge">{{number_format(auth('customer')->user()->invoices()->count())}}</span>
+                        </div>
+                        <div class="avisa-table-wrap">
+                            <table class="avisa-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>{{__("Datetime")}}</th>
+                                        <th>{{__("Orders count")}}</th>
+                                        <th>{{__("Total price")}}</th>
+                                        <th>{{__("Status")}}</th>
+                                        <th class="text-end">{{__("Actions")}}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach(auth('customer')->user()->invoices()->orderByDesc('id')->get() as $inv)
+                                        <tr>
+                                            <td data-label="#"> {{$inv->hash}} </td>
+                                            <td data-label="{{__('Datetime')}}">{{$inv->created_at->ldate('Y-m-d H:i')}}</td>
+                                            <td data-label="{{__('Orders count')}}">{{number_format($inv->count)}}</td>
+                                            <td data-label="{{__('Total price')}}">
+                                                <b>{{number_format($inv->total_price)}} {{config('app.currency.symbol')}}</b>
+                                            </td>
+                                            <td data-label="{{__('Status')}}">
+                                                <span class="inv-badge inv-{{$inv->status}}">{{__($inv->status)}}</span>
+                                            </td>
+                                            <td data-label="{{__('Actions')}}" class="avisa-row-actions">
+                                                <a href="{{ route('client.invoice',$inv->hash) }}"
+                                                   class="avisa-icon-btn" title="{{__('View')}}">
+                                                    <i class="ri-eye-line"></i>
+                                                </a>
+                                                @if( in_array($inv->status, ['PENDING', 'CANCELED', 'FAILED'] ) && $inv->created_at->timestamp >  (time() - 3600) )
+                                                    <a href="{{route('client.pay',$inv->hash)}}"
+                                                       class="avisa-pay-btn">
+                                                        <i class="ri-secure-payment-line"></i>
+                                                        {{__("Pay now")}}
+                                                    </a>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
                 <div class="tab" id="profile">
-                    <div class="alert alert-info">
+                    <div class="avisa-profile-head">
+                        <img src="{{auth('customer')->user()->avatar()}}" alt="avatar"
+                             class="avisa-profile-avatar"
+                             onclick="document.querySelector('#avatar')?.click();">
+                        <div class="avisa-profile-info">
+                            <h4>{{auth('customer')->user()->name}}</h4>
+                            <span>{{auth('customer')->user()->mobile}}</span>
+                        </div>
+                        <label class="avisa-upload-btn" for="avatar">
+                            <i class="ri-image-add-line"></i>
+                            {{__("Change avatar")}}
+                        </label>
+                    </div>
+                    <div class="avisa-hint">
+                        <i class="ri-information-line"></i>
                         {{__("If you want to change the password, choose both the same. Otherwise, leave the password field blank.")}}
                     </div>
+                    <div class="avisa-panel">
                     <form action="{{route('client.profile.save')}}" method="post" enctype="multipart/form-data">
                         @csrf
                         <div class="row">
@@ -356,21 +362,16 @@
                                            value="{{old('password_confirmation',$item->password_confirmation??null)}}"/>
                                 </div>
                             </div>
-                            <div class="col-md-4 mt-3">
-                                <div class="form-group">
-                                    <label>
-                                        {{__("Avatar")}}
-                                    </label>
-                                    <input type="file" name="avatar" class="form-control" id="avatar"  accept="image/jpeg">
-                                </div>
-                            </div>
                             <div class="col-md-12">
-                                <label> &nbsp;</label>
-                                <input name="" type="submit" class="btn btn-primary mt-3 w-100 "
-                                       value="{{__('Save')}}"/>
+                                <input type="file" name="avatar" class="d-none" id="avatar" accept="image/jpeg">
+                                <button type="submit" class="avisa-pay-btn w-100 justify-content-center">
+                                    <i class="ri-save-3-line"></i>
+                                    {{__('Save')}}
+                                </button>
                             </div>
                         </div>
                     </form>
+                    </div>
                 </div>
                 <div class="tab" id="credit">
                     <div class="avisa-grid">
@@ -390,22 +391,29 @@
                         {{__("Credit history")}}
                     </h5>
                     @foreach(auth('customer')->user()->credits as $cr)
-                        <div class="alert alert-info">
-                            @if($cr->invoice_id != null)
-                                <a href="{{ route('client.invoice',$cr->invoice()->hash) }}"
-                                   class="btn btn-outline-primary btn-sm ">
-                                    <i class="ri-eye-line"></i>
-                                </a>
-                            @endif
-                            [{{$cr->created_at->ldate('Y-m-d H:i')}}]
-                            <b class="ms-4">
+                        <div class="avisa-credit-item">
+                            <div class="avisa-credit-top">
+                                <span class="avisa-credit-date">
+                                    <i class="ri-time-line"></i>
+                                    {{$cr->created_at->ldate('Y-m-d H:i')}}
+                                </span>
+                                @if($cr->invoice_id != null)
+                                    <a href="{{ route('client.invoice',$cr->invoice()->hash) }}"
+                                       class="avisa-icon-btn" title="{{__('View')}}">
+                                        <i class="ri-eye-line"></i>
+                                    </a>
+                                @endif
+                            </div>
+                            <div class="avisa-credit-amount">
+                                <i class="ri-bank-card-2-line"></i>
                                 {{number_format($cr->amount)}} {{config('app.currency.symbol')}}
-                            </b>
+                            </div>
                             @php($data = json_decode($cr->data))
                             @if(isset($data->message))
-                                <i class="ms-4">
+                                <div class="avisa-credit-note">
+                                    <i class="ri-chat-3-line"></i>
                                     {{$data->message}}
-                                </i>
+                                </div>
                             @endif
                         </div>
                     @endforeach
@@ -413,42 +421,44 @@
 
                 </div>
                 <div class="tab" id="tickets">
-                    <table class="table table-striped">
-                        <tr>
-                            <td>
-                                #
-                            </td>
-                            <th>
-                                {{__("Title")}}
-                            </th>
-                            <th>
-                                {{__("Status")}}
-                            </th>
-                            <th class="text-center">
-                                -
-                            </th>
-                        </tr>
-                        @foreach(auth('customer')->user()->main_tickets()->orderByDesc('id')->get() as $i =>  $ticket)
-                            <tr>
-                                <td>
-                                    {{$i+1}}
-                                </td>
-                                <td>
-                                    {{$ticket->title}}
-                                </td>
-                                <td>
-                                    {{__($ticket->status)}}
-                                </td>
-                                <td class="text-center">
-                                    <a href="{{ route('client.ticket.show',$ticket->id) }}"
-                                       class="btn btn-outline-primary btn-sm">
-                                        <i class="ri-eye-line"></i>
-                                        {{__("View")}}
-                                    </a>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </table>
+                    <div class="avisa-table-card">
+                        <div class="avisa-table-head">
+                            <h4>
+                                <i class="ri-customer-service-2-line"></i>
+                                {{__("Tickets")}}
+                            </h4>
+                        </div>
+                        <div class="avisa-table-wrap">
+                            <table class="avisa-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>{{__("Title")}}</th>
+                                        <th>{{__("Status")}}</th>
+                                        <th class="text-end">{{__("Actions")}}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach(auth('customer')->user()->main_tickets()->orderByDesc('id')->get() as $i =>  $ticket)
+                                        <tr>
+                                            <td data-label="#"> {{$i+1}} </td>
+                                            <td data-label="{{__('Title')}}">{{$ticket->title}}</td>
+                                            <td data-label="{{__('Status')}}">
+                                                <span class="inv-badge inv-{{$ticket->status}}">{{__($ticket->status)}}</span>
+                                            </td>
+                                            <td data-label="{{__('Actions')}}" class="avisa-row-actions">
+                                                <a href="{{ route('client.ticket.show',$ticket->id) }}"
+                                                   class="avisa-pay-btn">
+                                                    <i class="ri-eye-line"></i>
+                                                    {{__("View")}}
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
                 <div class="tab" id="comments">
 
@@ -474,6 +484,7 @@
                     @endif
                 </div>
                 <div class="tab" id="submit-ticket">
+                    <div class="avisa-panel">
                     <form action="{{ route('client.ticket.submit') }}" method="post">
                         @csrf
                         <div class="form-group">
@@ -492,30 +503,41 @@
                                       placeholder="{{__("Your message ...")}}">{{old('body')}}</textarea>
                         </div>
                         <div class="mt-3">
-                            <button class="btn btn-outline-primary w-100">
+                            <button class="avisa-pay-btn w-100 justify-content-center">
                                 <i class="ri-send-plane-2-line"></i>
                                 {{__("Send ticket")}}
                             </button>
                         </div>
                     </form>
+                    </div>
                 </div>
                 <div class="tab" id="addresses">
-                    <address-input
-                        list-link="{{route('client.addresses')}}"
-                        add-link="{{route('client.address.store')}}"
-                        update-link="{{route('client.address.update','')}}"
-                        rem-link="{{route('client.address.destroy','')}}"
-                        state-link="{{route('v1.state.index')}}"
-                        cities-link="{{route('v1.state.show','')}}"
-                        :dark-mode="false"
-                        :translate='{{vueTranslate([
+                    <div class="avisa-panel">
+                        <div class="avisa-panel-head">
+                            <h4>
+                                <i class="ri-map-pin-user-line"></i>
+                                {{__("Addresses")}}
+                            </h4>
+                        </div>
+                        <address-input
+                            list-link="{{route('client.addresses')}}"
+                            add-link="{{route('client.address.store')}}"
+                            update-link="{{route('client.address.update','')}}"
+                            rem-link="{{route('client.address.destroy','')}}"
+                            state-link="{{route('v1.state.index')}}"
+                            cities-link="{{route('v1.state.show','')}}"
+                            :dark-mode="false"
+                            :translate='{{vueTranslate([
             'addr-editor' => __('Address editor'),
             'state' => __('State'),
             'city' => __('City'),
             'address' => __('Address'),
             'post-code' => __('Post code'),
+            'add-address' => __('Add address'),
+            'save' => __('Save'),
             ])}}'
-                    ></address-input>
+                        ></address-input>
+                    </div>
                 </div>
                 <div class="tab" id="favs">
                     @foreach(auth('customer')->user()->favorites as $fav)
