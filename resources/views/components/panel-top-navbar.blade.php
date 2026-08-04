@@ -21,7 +21,8 @@
 
             <!-- Right Side Of Navbar -->
             <ul class="navbar-nav ms-auto align-items-center gap-2 gap-md-3">
-                <li class="nav-item d-none d-md-block">
+                <!-- Desktop Market Rates -->
+                <li class="nav-item d-none d-lg-block">
                     <div class="gold-nav-prices">
                         <span class="gold-nav-price" title="{{__('Gold 18K Price')}}">
                             <span class="gold-nav-label"><i class="ri-coins-line me-1"></i>18K</span>
@@ -38,6 +39,36 @@
                             <span class="gold-nav-val">{{number_format((int)getSetting('dollar'))}}</span>
                             <span class="gold-nav-unit">{{config('app.currency.symbol')}}</span>
                         </span>
+                    </div>
+                </li>
+
+                <!-- Mobile / Tablet Compact Market Rates Dropdown -->
+                <li class="nav-item d-lg-none">
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-light border rounded-pill d-flex align-items-center gap-1 px-2.5 py-1" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="{{__('Live Rates')}}">
+                            <i class="ri-coins-line text-warning me-1"></i>
+                            <span class="fw-bold fs-xs">{{number_format((int)getSetting('gold'))}}</span>
+                            <i class="ri-chevron-down-s-line fs-xs text-muted"></i>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 p-2 mt-2" style="min-width: 210px;">
+                            <div class="dropdown-header px-2 py-1 text-muted fs-xs fw-bold border-bottom mb-2 d-flex align-items-center justify-content-between">
+                                <span><i class="ri-line-chart-line me-1"></i>{{__('Market Rates')}}</span>
+                            </div>
+                            <div class="d-flex flex-column gap-1">
+                                <div class="d-flex align-items-center justify-content-between p-2 rounded-2 bg-light">
+                                    <span class="badge bg-dark text-warning"><i class="ri-coins-line me-1"></i>18K</span>
+                                    <span class="fw-bold fs-xs">{{number_format((int)getSetting('gold'))}} {{config('app.currency.symbol')}}</span>
+                                </div>
+                                <div class="d-flex align-items-center justify-content-between p-2 rounded-2 bg-light">
+                                    <span class="badge bg-dark text-warning"><i class="ri-vip-crown-2-line me-1"></i>24K</span>
+                                    <span class="fw-bold fs-xs">{{number_format((int)getSetting('gold24'))}} {{config('app.currency.symbol')}}</span>
+                                </div>
+                                <div class="d-flex align-items-center justify-content-between p-2 rounded-2 bg-light">
+                                    <span class="badge bg-dark text-warning"><i class="ri-money-dollar-circle-line me-1"></i>$</span>
+                                    <span class="fw-bold fs-xs">{{number_format((int)getSetting('dollar'))}} {{config('app.currency.symbol')}}</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </li>
 
