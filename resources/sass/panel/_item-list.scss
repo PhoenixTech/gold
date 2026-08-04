@@ -106,11 +106,14 @@
     }
 }
 
+.bulk-toolbar-mobile{
+    display: none;
+    background: #00000011;
+    border-bottom: 1px solid #ffffff11;
+}
 
-
-#bulk-from{
-    max-height: 0;
-    overflow: hidden;
-    box-sizing: border-box;
-    transition: 1s;
+@media (max-width: 620px) {
+    .bulk-toolbar-mobile{
+        display: flex;
+    }
 }

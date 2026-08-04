@@ -28,7 +28,7 @@
                 {{__("Model")}}
             </th>
             <th>
-
+                @include('admin.templates.partials.bulk-toolbar')
             </th>
         </tr>
         </thead>

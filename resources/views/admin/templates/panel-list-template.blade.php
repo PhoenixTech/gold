@@ -8,26 +8,19 @@
             <div class="col-xl-3">
                 @include('components.err')
                 <div class="item-list mb-3">
-                    <div class="row">
-                        <div class="col-8">
-                            <h1>
-                                @yield('list-title')
-                            </h1>
+                    @if(hasRoute('trashed'))
+                        <div class="text-end p-2">
+                            <a class="btn btn-outline-danger btn-sm"
+                               data-bs-toggle="tooltip"
+                               data-bs-placement="top"
+                               data-bs-custom-class="custom-tooltip"
+                               data-bs-title="{{__("Trashed items")}}"
+                               href="{{getRoute('trashed')}}"
+                            >
+                                <i class="ri-delete-bin-6-line"></i>
+                            </a>
                         </div>
-                        <div class="col-4 pt-3 text-end">
-                            @if(hasRoute('trashed'))
-                                <a class="btn btn-outline-danger me-3"
-                                   data-bs-toggle="tooltip"
-                                   data-bs-placement="top"
-                                   data-bs-custom-class="custom-tooltip"
-                                   data-bs-title="{{__("Trashed items")}}"
-                                   href="{{getRoute('trashed')}}"
-                                >
-                                    <i class="ri-delete-bin-6-line"></i>
-                                </a>
-                            @endif
-                        </div>
-                    </div>
+                    @endif
                     <form action="" class="p-3">
                         <div class="input-group mb-3">
                             <span class="btn btn-outline-secondary" type="button" id="button-addon2">
@@ -65,36 +58,6 @@
                     </div>
                 </div>
 
-                @if(hasRoute('bulk'))
-
-                    <div class="item-list mb-3">
-                        <h3 class="p-3">
-                            <i class="ri-check-double-line"></i>
-                            {{__("Bulk actions:")}}
-                        </h3>
-                        <form action="{{getRoute('bulk',[])}}" id="bulk-from" method="post">
-
-                            <div class="p-3">
-
-                                @csrf
-                                <select class="form-control mb-3" name="action" required>
-                                    <option value=""></option>
-                                    @if(strpos(request()->url(),'trashed') != false)
-                                        <option value="restore"> {{__("Batch restore")}} </option>
-                                    @else
-                                        <option value="delete"> {{__("Batch delete")}} </option>
-                                    @endif
-                                    @yield('bulk')
-                                </select>
-
-                                <button class="btn btn-primary w-100">
-                                    {{__("Do it")}}
-                                </button>
-                                <div id="bulk-idz"></div>
-                            </div>
-                        </form>
-                    </div>
-                @endif
 
 
             </div>
@@ -103,7 +66,19 @@
 
             {{--   list content start--}}
             <div class="col-xl-9 ps-xl-0">
-                <form class="item-list" id="main-form">
+                <form class="item-list" id="main-form"
+                      @if(hasRoute('bulk'))
+                          action="{{getRoute('bulk',[])}}" method="POST"
+                      @endif>
+                    @if(hasRoute('bulk'))
+                        @csrf
+                    @endif
+                    <div class="bulk-toolbar-mobile align-items-center justify-content-between gap-2 flex-wrap p-2">
+                        <span class="small text-muted">
+                            {{__("Bulk actions")}}
+                        </span>
+                        @include('admin.templates.partials.bulk-toolbar')
+                    </div>
                     <table class="table-list">
 
                         <thead>
@@ -133,6 +108,7 @@
                             @endforeach
                             {{--                            @yield('table-head')--}}
                             <th>
+                                @include('admin.templates.partials.bulk-toolbar')
                             </th>
                         </tr>
                         </thead>

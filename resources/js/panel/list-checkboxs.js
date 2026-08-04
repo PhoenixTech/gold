@@ -7,51 +7,42 @@ function clearSelection() {
 }
 
 
-function serializeForm(selector) {
-    let form = document.querySelector(selector);
-    if (form == null) {
-        return [];
-    }
-    let formData = new FormData(form);
-    let serializedArray = [];
+function handleCheckChange() {
+    let table = document.querySelector('#main-form .table-list');
 
-    formData.forEach(function (value, key) {
-        serializedArray.push({
-            name: key,
-            value: value
-        });
+    if (table == null) {
+        return;
+    }
+
+    let count = table.querySelectorAll('.chkbox:checked').length;
+    let countEls = document.querySelectorAll('[data-bulk-count]');
+    let runBtns = document.querySelectorAll('[data-bulk-run]');
+
+    countEls.forEach(function (countEl) {
+        if (count > 0) {
+            countEl.textContent = ' (' + count + ')';
+            countEl.classList.remove('d-none');
+        } else {
+            countEl.classList.add('d-none');
+        }
     });
 
-    return serializedArray;
+    runBtns.forEach(function (runBtn) {
+        runBtn.disabled = count === 0;
+    });
 }
 
-function handleCheckChange() {
-    let frm = serializeForm('#main-form');
-    let bi = document.querySelector('#bulk-idz');
-
-    if (bi != null) {
-
-        try {
-            bi.innerHTML = '';
-            for (const item of frm) {
-                let n = document.createElement("input");
-                n.name = item.name;
-                n.value = item.value;
-                n.type = 'hidden';
-                bi.appendChild(n);
-            }
-
-            if (frm.length == 0) {
-                document.querySelector('#bulk-from').style.maxHeight = '0';
-            } else {
-                document.querySelector('#bulk-from').style.maxHeight = '250px';
-            }
-        } catch (e) {
-            console.log(e.message);
-        }
-    }
-
-
+function syncBulkActions() {
+    let selects = document.querySelectorAll('[data-bulk-action]');
+    selects.forEach(function (sel) {
+        sel.addEventListener('change', function () {
+            selects.forEach(function (other) {
+                if (other !== sel) {
+                    other.value = sel.value;
+                }
+            });
+        });
+    });
 }
 
 window.addEventListener('load', function () {
@@ -60,6 +51,7 @@ window.addEventListener('load', function () {
     if (chkall.length == 0) {
         return false;
     }
+    syncBulkActions();
     let toggle = document.querySelector('#toggle-select');
     if (toggle != null) {
         toggle?.addEventListener('click', function () {

@@ -1,89 +1,47 @@
-$pnl-brc-height: 50px;
-
 #panel-breadcrumb{
-    height: $pnl-brc-height;
     background: $lighter-color;
+    border-radius: 4px;
     margin-bottom: 1rem;
 
-    ul{
-        padding: 0;
-        display: grid;
-        grid-auto-columns: minmax(0, 1fr);
-        grid-auto-flow: column;
-        list-style: none;
-        //border: 1px solid black;
-        border-radius: 4px ;
-        transition: .5s;
-        li{
-            transition: 300ms;
-            position: relative;
-            overflow: hidden;
-            a,span{
-                height: $pnl-brc-height;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                padding: 0 1rem;
+    .breadcrumb{
+        padding: .75rem 1rem;
+        margin-bottom: 0;
+        background: transparent;
+
+        .breadcrumb-item{
+            display: flex;
+            align-items: center;
+
+            a{
                 color: grey;
-            }
-            i{
-                font-size: 25px;
-                margin: 0 .5rem;
-            }
+                display: inline-flex;
+                align-items: center;
+                gap: .35rem;
 
-            &:before {
-                transition: 300ms;
-                content: "";
-                width: 37px;
-                height: 37px;
-                border: 1px solid black;
-                transform: rotate(45deg);
-                position: absolute;
-                inset-inline-start: -1.05rem;
-                background: $lighter-color;
-                top: 7px;
-            }
-
-            &:first-child:before {
-                display: none;
-            }
-
-
-            &:hover{
-                background: rgba($secondary-color-panel,.12);
-                //background-image: url("../images/pattern.png");
-
-                & + li:before{
-                    background: rgba($secondary-color-panel,.12);
-                    //background-image: url("../images/pattern.png");
+                &:hover{
+                    color: $primary-color-panel;
                 }
+            }
+
+            i{
+                font-size: 1rem;
+                line-height: 1;
+            }
+
+            &.active{
+                color: $secondary-color-panel;
             }
         }
     }
-
 }
 
 /*-500px width*/
 @media (max-width: 600px) {
     #panel-breadcrumb{
-        display: block;
-        li{
-            text-align: end;
-        }
-
-        span{
-            display: none !important;
-        }
-        i{
-            margin: 0;
-            display: inline-block;
-        }
-        a{
-            justify-content: end !important;
-            padding-right: 0 !important;
-            padding-left: 0 !important;
+        .breadcrumb-item{
+            span{
+                display: none !important;
+            }
         }
     }
-
-
 }

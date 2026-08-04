@@ -321,7 +321,7 @@ function lastCrump()
 
     $routes = explode('.', Route::currentRouteName());
     if (count($routes) != 3) {
-        echo '<li >
+        echo '<li class="breadcrumb-item">
         <a>
             <i class="ri-folder-chart-line" ></i>
             <span>' . __(ucfirst($routes[count($routes) - 1])) . '</span>
@@ -335,7 +335,7 @@ function lastCrump()
     }
 
     if ($route == 'all' || $route == 'index' || $route == 'list') {
-        echo '<li >
+        echo '<li class="breadcrumb-item">
         <a>
             <i class="ri-list-check" ></i>
             <span>' . __(Str::plural(ucfirst($routes[count($routes) - 2]))) . '</span>
@@ -347,7 +347,7 @@ function lastCrump()
         array_pop($temp);
         $temp = implode('.', $temp) . '.';
         $link = \route($temp . 'index');
-        echo '<li>
+        echo '<li class="breadcrumb-item">
         <a href="' . $link . '">
             <i class="ri-list-check" ></i>
             <span>' . __(ucfirst(Str::plural($routes[count($routes) - 2]))) . '</span>
@@ -384,7 +384,7 @@ function lastCrump()
                 $icon = 'ri-bubble-chart-line';
                 break;
         }
-        echo '<li>
+        echo '<li class="breadcrumb-item">
             <a>
                 <i class="' . $icon . '" ></i>
                <span> ' . $title . ' </span>
