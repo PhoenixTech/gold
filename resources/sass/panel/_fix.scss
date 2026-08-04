@@ -6,13 +6,37 @@ border-color: lighten($primary-color-panel, 10);
 
 
 
-.form-check-input:checked,.btn-primary{
+.form-check-input:checked {
     background-color: $primary-color-panel;
     border-color: $primary-color-panel;
 }
 
-.btn-primary:hover{
-    background-color: $secondary-color-panel;
+.btn-primary {
+    --bs-btn-bg: #{$primary-color-panel};
+    --bs-btn-border-color: #{$primary-color-panel};
+    --bs-btn-hover-bg: #{$secondary-color-panel};
+    --bs-btn-hover-border-color: #{$secondary-color-panel};
+    --bs-btn-active-bg: #{$secondary-color-panel};
+    --bs-btn-active-border-color: #{$secondary-color-panel};
+    --bs-btn-disabled-bg: #6c757d;
+    --bs-btn-disabled-border-color: #6c757d;
+    --bs-btn-disabled-color: #ffffff;
+    background-color: $primary-color-panel;
+    border-color: $primary-color-panel;
+
+    &:hover:not(:disabled):not(.disabled) {
+        background-color: $secondary-color-panel;
+        border-color: $secondary-color-panel;
+    }
+
+    &:disabled,
+    &.disabled {
+        background-color: #6c757d !important;
+        border-color: #6c757d !important;
+        color: #ffffff !important;
+        opacity: 0.65;
+        cursor: not-allowed;
+    }
 }
 
 a,a:visited{

@@ -485,7 +485,7 @@ Route::get('quick-login/admin', function () {
     if (!app()->environment('local')) {
         return abort(404);
     }
-    \Auth::loginUsingId(\App\Models\User::firstOrFail()->id);
+    \Auth::loginUsingId(\App\Models\User::where('role', 'DEVELOPER')->firstOrFail()->id);
     return redirect()->route('admin.home');
 })->name('quick-login.admin');
 

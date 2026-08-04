@@ -31,13 +31,4 @@
     }
 }
 
-/*-500px width*/
-@media (max-width: 600px) {
-    #panel-breadcrumb{
-        .breadcrumb-item{
-            span{
-                display: none !important;
-            }
-        }
-    }
-}
+
