@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="mb-5 pb-5">
-        <div class="row">
+        <div class="row g-3">
 
             {{--  list side bar start--}}
             <div class="col-xl-3">
@@ -38,25 +38,7 @@
                 </div>
 
 
-                <div class="item-list mb-3 py-3">
-                    <div class="grid-equal text-center p-1">
-                        <span>
-                             {{__("Total")}}
-                        </span>
-                        <span>
-                            ({{$items->total()}})
-                        </span>
-                    </div>
-                    <hr>
-                    <div class="grid-equal text-center p-1">
-                        <span>
-                             {{__("From - To")}}
-                        </span>
-                        <span>
-                             @paginated($items)
-                        </span>
-                    </div>
-                </div>
+
 
 
 
@@ -79,7 +61,8 @@
                         </span>
                         @include('admin.templates.partials.bulk-toolbar')
                     </div>
-                    <table class="table-list">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
 
                         <thead>
                         <tr>
@@ -107,7 +90,7 @@
                                 </th>
                             @endforeach
                             {{--                            @yield('table-head')--}}
-                            <th>
+                            <th class="d-none d-md-table-cell">
                                 @include('admin.templates.partials.bulk-toolbar')
                             </th>
                         </tr>
@@ -124,11 +107,13 @@
                                 <tr>
 
                                     <td>
-                                        <input type="checkbox" id="chk-{{$item->id}}" class="chkbox"
-                                               name="id[{{$item->id}}]" value="{{$item->id}}">
-                                        <label for="chk-{{$item->id}}">
-                                            {{$item->id}}
-                                        </label>
+                                        <div class="form-check m-0 d-inline-flex align-items-center gap-1">
+                                            <input type="checkbox" id="chk-{{$item->id}}" class="form-check-input chkbox m-0"
+                                                   name="id[{{$item->id}}]" value="{{$item->id}}">
+                                            <label class="form-check-label ms-1" for="chk-{{$item->id}}">
+                                                {{$item->id}}
+                                            </label>
+                                        </div>
                                     </td>
                                     @if(isset($item) && method_exists($item,'imgUrl'))
                                         <td>
@@ -153,11 +138,11 @@
                                                         {{ $item->parent?->{$cols[0]}??'-' }}
                                                         @break
                                                     @case('status')
-                                                        <div class="model-status status-{{$item->status}} float-start"
-                                                             data-bs-toggle="tooltip"
-                                                             data-bs-placement="top"
-                                                             data-bs-custom-class="custom-tooltip"
-                                                             data-bs-title="{{$item->status}}"></div>
+                                                        <span class="badge bg-secondary float-start"
+                                                              data-bs-toggle="tooltip"
+                                                              data-bs-placement="top"
+                                                              data-bs-custom-class="custom-tooltip"
+                                                              data-bs-title="{{$item->status}}">{{$item->status}}</span>
                                                         @break
                                                     @case('user_id')
                                                         @if($item->user != null)
@@ -361,6 +346,7 @@
                         </tfoot>
                         {{-- pagination and toggle button end --}}
                     </table>
+                    </div>
                 </form>
             </div>
         </div>

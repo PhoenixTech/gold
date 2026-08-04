@@ -38,82 +38,18 @@
 
 .table-list {
     width: 100%;
-
-    tr{
-
-        th{
-            background-color: #00000033;
-            background-image: url("../images/pattern.png");
-
-        }
-
-        td,th{
-            transition: 300ms;
-            transition-delay: 100ms;
-            &:first-child{
-                width: 100px;
-            }
-            &:last-child{
-                text-align: center;
-            }
-            vertical-align: center;
-            padding: .5rem;
-            border-bottom: 1px solid #ffffff11;
-            input{
-                margin: .5rem 1rem ;
-            }
-            a{
-                b{
-                    color: black;
-                }
-            }
-        }
-        td{
-            label{
-                padding: .45rem 1rem ;
-                cursor: pointer;
-                border-radius: 3px;
-            }
-             input:checked + label{
-                background: lighten($primary-color-panel,10);
-            }
-            input{
-                display: none;
-            }
-        }
-
-        &:nth-child(even) td{
-            background: #00000010;
-        }
-
-
-        &:hover{
-            background-image: url("../images/pattern.png");
-            background-color: #00000044;
-            td{
-                background-color: transparent;
-            }
-        }
-
-    }
-
-    tfoot th{
-        border-bottom: 0;
-        ul.pagination{
-            margin: 0;
-            justify-content: center;
-        }
-    }
 }
 
-.bulk-toolbar-mobile{
+.bulk-toolbar-mobile {
     display: none;
-    background: #00000011;
-    border-bottom: 1px solid #ffffff11;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    margin-bottom: 0.75rem;
 }
 
-@media (max-width: 620px) {
-    .bulk-toolbar-mobile{
+@media (max-width: 768px) {
+    .bulk-toolbar-mobile {
         display: flex;
     }
 }

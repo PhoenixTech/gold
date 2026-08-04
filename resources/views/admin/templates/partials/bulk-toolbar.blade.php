@@ -10,9 +10,6 @@
             @endif
             @yield('bulk')
         </select>
-        <button type="submit" data-bulk-run class="btn btn-sm btn-primary" disabled>
-            <i class="ri-check-double-line"></i>
-            {{__("Run")}}<span data-bulk-count class="d-none"></span>
-        </button>
+        <button type="submit" data-bulk-run class="btn btn-sm btn-primary" disabled><i class="ri-check-double-line me-1"></i>{{__("Run")}}<span data-bulk-count class="d-none"></span></button>
     </div>
 @endif

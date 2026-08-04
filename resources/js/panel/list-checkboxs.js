@@ -8,7 +8,7 @@ function clearSelection() {
 
 
 function handleCheckChange() {
-    let table = document.querySelector('#main-form .table-list');
+    let table = document.querySelector('#main-form table');
 
     if (table == null) {
         return;
@@ -20,7 +20,7 @@ function handleCheckChange() {
 
     countEls.forEach(function (countEl) {
         if (count > 0) {
-            countEl.textContent = ' (' + count + ')';
+            countEl.textContent = '(' + count + ')';
             countEl.classList.remove('d-none');
         } else {
             countEl.classList.add('d-none');
@@ -104,7 +104,10 @@ window.addEventListener('load', function () {
 
     chkboxes.forEach(chkbox => {
         chkbox.addEventListener('click', handleCheckboxClick);
-        chkbox.parentNode.querySelector('label').addEventListener('click', handleCheckboxClick);
+        let label = chkbox.parentNode ? chkbox.parentNode.querySelector('label') : null;
+        if (label) {
+            label.addEventListener('click', handleCheckboxClick);
+        }
         chkbox.addEventListener('change', handleCheckChange);
     });
 

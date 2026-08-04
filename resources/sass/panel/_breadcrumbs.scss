@@ -1,19 +1,15 @@
 #panel-breadcrumb{
-    background: $lighter-color;
-    border-radius: 4px;
     margin-bottom: 1rem;
 
     .breadcrumb{
-        padding: .75rem 1rem;
         margin-bottom: 0;
-        background: transparent;
 
         .breadcrumb-item{
             display: flex;
             align-items: center;
 
             a{
-                color: grey;
+                color: inherit;
                 display: inline-flex;
                 align-items: center;
                 gap: .35rem;

@@ -3,7 +3,7 @@
     {{__("Comments")}} -
 @endsection
 @section('table')
-    <table class="table-list">
+    <table class="table table-hover align-middle">
 
         <thead>
         <tr>
@@ -27,7 +27,7 @@
             <th>
                 {{__("Model")}}
             </th>
-            <th>
+            <th class="d-none d-md-table-cell">
                 @include('admin.templates.partials.bulk-toolbar')
             </th>
         </tr>
@@ -43,11 +43,13 @@
             @foreach($items as $item)
                 <tr>
                     <td>
-                        <input type="checkbox" id="chk-{{$item->id}}" class="chkbox"
-                               name="id[{{$item->id}}]" value="{{$item->id}}">
-                        <label for="chk-{{$item->id}}">
-                            {{$item->id}}
-                        </label>
+                        <div class="form-check m-0 d-inline-flex align-items-center gap-1">
+                            <input type="checkbox" id="chk-{{$item->id}}" class="form-check-input chkbox m-0"
+                                   name="id[{{$item->id}}]" value="{{$item->id}}">
+                            <label class="form-check-label ms-1" for="chk-{{$item->id}}">
+                                {{$item->id}}
+                            </label>
+                        </div>
                     </td>
                     <td>
                         @if($item->commentator()['url'] == null)

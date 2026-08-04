@@ -8,25 +8,6 @@
 // Bootstrap
 //@import 'bootstrap/scss/bootstrap';
 
-/* width */
-::-webkit-scrollbar {
-    width: 5px;
-}
-
-/* Track */
-::-webkit-scrollbar-track {
-    background: #282c34;
-}
-
-/* Handle */
-::-webkit-scrollbar-thumb {
-    background: $primary-color-panel;
-}
-
-/* Handle on hover */
-::-webkit-scrollbar-thumb:hover {
-    background: $secondary-color-panel;
-}
 
 *{
     padding: 0;
@@ -47,7 +28,7 @@ a{
 
 #panel{
     display: grid;
-    grid-template-columns:50px 0 1fr;
+    grid-template-columns:50px 0 minmax(0, 1fr);
     transition: 400ms;
     min-height: calc(100vh - 60px);
 
@@ -57,11 +38,15 @@ a{
         position: relative;
     }
     &.sided{
-        grid-template-columns:50px 250px 1fr;
+        grid-template-columns:50px 250px minmax(0, 1fr);
         #sidebar-panel{
             display: block;
         }
     }
+}
+
+main {
+    min-width: 0;
 }
 
 

@@ -39,25 +39,7 @@
 
                 @yield('side-raw')
 
-                <div class="item-list mb-3 py-3">
-                    <div class="grid-equal text-center p-1">
-                        <span>
-                             {{__("Total")}}
-                        </span>
-                        <span>
-                            ({{$items->total()}})
-                        </span>
-                    </div>
-                    <hr>
-                    <div class="grid-equal text-center p-1">
-                        <span>
-                             {{__("From - To")}}
-                        </span>
-                        <span>
-                             @paginated($items)
-                        </span>
-                    </div>
-                </div>
+
 
 
 
@@ -80,7 +62,9 @@
                         </span>
                         @include('admin.templates.partials.bulk-toolbar')
                     </div>
-                    @yield('table')
+                    <div class="table-responsive">
+                        @yield('table')
+                    </div>
                 </form>
             </div>
         </div>
