@@ -1,0 +1,117 @@
+.TypicalFooter {
+    margin-top: 3rem;
+    background: var(--xshop-tf-bg, #23272e);
+    color: #e8e8e8;
+    font-size: 14px;
+
+    a {
+        color: #d5d5d5;
+        text-decoration: none;
+
+        &:hover {
+            color: var(--xshop-tf-accent, var(--xshop-primary));
+        }
+    }
+
+    h4 {
+        margin-bottom: 1.25rem;
+        font-size: 16px;
+        font-weight: 700;
+        color: #ffffff;
+    }
+
+    .tf-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1.2fr 1fr;
+        gap: 2.5rem;
+        padding: 3.5rem 0 2.5rem;
+
+        @media (max-width: 991px) {
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 575px) {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .tf-brand {
+        display: inline-block;
+        margin-bottom: 1rem;
+
+        img {
+            max-height: 3rem;
+        }
+    }
+
+    .tf-about {
+        line-height: 2;
+    }
+
+    .tf-links,
+    .tf-contact,
+    .tf-social {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .tf-links {
+        li {
+            margin-bottom: .65rem;
+        }
+    }
+
+    .tf-contact {
+        li {
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+            margin-bottom: .8rem;
+
+            i {
+                font-size: 18px;
+                color: var(--xshop-tf-accent, var(--xshop-primary));
+                flex-shrink: 0;
+            }
+        }
+    }
+
+    .tf-social {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .5rem;
+
+        li {
+            a {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 40px;
+                height: 40px;
+                border: 1px solid rgba(255, 255, 255, .15);
+                border-radius: 0;
+                transition: all .2s ease;
+
+                i {
+                    font-size: 20px;
+                }
+
+                &:hover {
+                    border-color: var(--xshop-tf-accent, var(--xshop-primary));
+                    background: var(--xshop-tf-accent, var(--xshop-primary));
+                    color: #ffffff;
+                }
+            }
+        }
+    }
+
+    .tf-bottom {
+        border-top: 1px solid rgba(255, 255, 255, .12);
+        padding: 1.1rem 0;
+        text-align: center;
+        font-size: 13px;
+        color: #b8b8b8;
+    }
+}
