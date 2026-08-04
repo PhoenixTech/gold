@@ -4,7 +4,11 @@
         <img src="{{$product->thumbUrl2()}}" class="img-2" alt="{{$product->name}}" loading="lazy">
         <div class="">
             <div class="btns">
-                @if($product->stock_status == 'IN_STOCK')
+                @php
+                    $rawPrice = $product->quantities()->count() > 0 ? $product->quantities()->min('price') : $product->price;
+                    $hasNoPrice = ($rawPrice == 0 || $rawPrice == '' || $rawPrice == null);
+                @endphp
+                @if($product->stock_status == 'IN_STOCK' && !$hasNoPrice)
                     <a href="{{ route('client.product-card-toggle',$product->slug) }}"
                        class="btn btn-primary add-to-card">
                         <i class="ri-shopping-bag-3-line"></i>
@@ -14,7 +18,11 @@
                     <a
                         class="btn btn-primary disabled">
                         <i class="ri-shopping-bag-3-line"></i>
-                        {{__("Not available")}}
+                        @if($hasNoPrice)
+                            {{__("Call us!")}}
+                        @else
+                            {{__("Not available")}}
+                        @endif
                     </a>
                 @endif
                 <a class="btn btn-outline-dark compare-btn text-dark" data-slug="{{$product->slug}}"

@@ -27,7 +27,11 @@
             </span>
         </div>
         <div class="p-2">
-            @if($product->stock_status == 'IN_STOCK')
+        @php
+            $rawPrice = $product->quantities()->count() > 0 ? $product->quantities()->min('price') : $product->price;
+            $hasNoPrice = ($rawPrice == 0 || $rawPrice == '' || $rawPrice == null);
+        @endphp
+        @if($product->stock_status == 'IN_STOCK' && !$hasNoPrice)
                 <a href="{{ route('client.product-card-toggle',$product->slug) }}"
                    class="btn btn-primary add-to-card w-100">
                     <i class="ri-shopping-bag-3-line"></i>
@@ -37,7 +41,11 @@
                 <a
                     class="btn btn-primary disabled">
                     <i class="ri-shopping-bag-3-line"></i>
-                    {{__("Not available")}}
+                    @if($hasNoPrice)
+                        {{__("Call us!")}}
+                    @else
+                        {{__("Not available")}}
+                    @endif
                 </a>
             @endif
         </div>

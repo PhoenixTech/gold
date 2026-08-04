@@ -26,12 +26,29 @@
                                             {{$product->getPrice()}}
                                         </div>
 
-                                        <a href="{{ route('client.product-card-toggle',$product->slug) }}" class="btn btn-primary btn-sm w-100 add-to-card">
-                                            <i class="ri-shopping-cart-2-line"></i>
-                                            <span>
-                                                {{__("Add to card")}}
-                                            </span>
-                                        </a>
+                                        @php
+                                            $rawPrice = $product->quantities()->count() > 0 ? $product->quantities()->min('price') : $product->price;
+                                            $hasNoPrice = ($rawPrice == 0 || $rawPrice == '' || $rawPrice == null);
+                                        @endphp
+                                        @if($product->stock_status == 'IN_STOCK' && !$hasNoPrice)
+                                            <a href="{{ route('client.product-card-toggle',$product->slug) }}" class="btn btn-primary btn-sm w-100 add-to-card">
+                                                <i class="ri-shopping-cart-2-line"></i>
+                                                <span>
+                                                    {{__("Add to card")}}
+                                                </span>
+                                            </a>
+                                        @else
+                                            <a class="btn btn-primary btn-sm w-100 disabled">
+                                                <i class="ri-shopping-cart-2-line"></i>
+                                                <span>
+                                                    @if($hasNoPrice)
+                                                        {{__("Call us!")}}
+                                                    @else
+                                                        {{__("Not available")}}
+                                                    @endif
+                                                </span>
+                                            </a>
+                                        @endif
                                     </div>
                                 </div>
                             @endforeach

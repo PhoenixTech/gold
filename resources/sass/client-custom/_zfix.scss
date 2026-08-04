@@ -45,6 +45,15 @@ a, a:visited {
         border-color: var(--xshop-primary);
         background: var(--xshop-secondary);;
     }
+
+    &.disabled, &:disabled {
+        background-color: #6c757d !important;
+        border-color: #6c757d !important;
+        color: #fff !important;
+        opacity: 0.65;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
 }
 
 .btn-outline-primary {
