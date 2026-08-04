@@ -23,16 +23,16 @@
                     @endif
                     <form action="" class="p-3">
                         <div class="input-group mb-3">
-                            <span class="btn btn-outline-secondary" type="button" id="button-addon2">
-                                <i class="ri-search-2-line"></i>
+                            <span class="input-group-text bg-light border-end-0" id="button-addon2">
+                                <i class="ri-search-2-line text-muted"></i>
                             </span>
-                            <input type="text" name="q" class="form-control" placeholder="{{__("Search")}}..."
+                            <input type="text" name="q" class="form-control border-start-0" placeholder="{{__("Search")}}..."
                                    aria-label="{{__("Search")}}..." aria-describedby="button-addon2"
                                    value="{{request()->input('q','')}}">
                         </div>
                         @yield('filter')
-                        <button class="btn btn-primary w-100">
-                            {{__("Search & Filter")}}
+                        <button class="btn btn-primary w-100 py-2 font-semibold">
+                            <i class="ri-filter-3-line me-1"></i>{{__("Search & Filter")}}
                         </button>
                     </form>
                 </div>
