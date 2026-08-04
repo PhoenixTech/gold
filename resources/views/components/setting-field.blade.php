@@ -1,7 +1,44 @@
 
-<div class="setting-field col-md-{{$setting->size}}">
+@php
+    // These price settings are shown in the panel top-navbar with these labels.
+    // Keep the settings page labels consistent with the navbar (18K / 24K / $).
+    $navbarPriceLabels = [
+        'gold' => '18K',
+        'gold24' => '24K',
+        'dollar' => '$',
+    ];
+    $displayTitle = $navbarPriceLabels[$setting->key] ?? $setting->title;
+
+    // UX: give small numeric/short fields a sensible column width instead of
+    // letting them stretch a full row (gold/gold24/dollar sit 3-in-a-row).
+    $columnOverrides = [
+        'gold' => 4,
+        'gold24' => 4,
+        'dollar' => 4,
+        'min' => 6,
+        'cache_number' => 6,
+        'social_whatsapp' => 4,
+    ];
+    $fieldSize = $columnOverrides[$setting->key] ?? $setting->size;
+
+    // UX: show the right mobile keypad / autocomplete for known fields
+    // (inputmode only, no strict HTML5 validation that could block the form).
+    $inputMode = match ($setting->key) {
+        'gold', 'gold24', 'dollar', 'min', 'cache_number' => 'decimal',
+        'email' => 'email',
+        'tel' => 'tel',
+        default => null,
+    };
+    $autoComplete = match ($setting->key) {
+        'email' => 'email',
+        'tel' => 'tel',
+        default => null,
+    };
+@endphp
+
+<div class="setting-field col-md-{{$fieldSize}}">
     <label for="{{$setting->key}}">
-        {{$setting->title}}
+        {{$displayTitle}}
         @if(config('app.xlang.active') && isset($setting->translatable) &&
 ($setting['type'] == 'LONGTEXT' || $setting['type'] == 'TEXT' || $setting['type'] == 'EDITOR'))
             <a href="{{route('admin.lang.model',[$setting->id, get_class($setting)])}}{{$setting['type'] == 'EDITOR'?'?editor=1':''}}">
@@ -280,7 +317,9 @@
             @else
                 <input type="text" id="{{$setting->key}}"
                        name="{{$setting->key}}" class="form-control"
-                       value="{{old($setting->key, $setting->value)}}" @if($setting->ltr) dir="ltr" @endif>
+                       value="{{old($setting->key, $setting->value)}}" @if($setting->ltr) dir="ltr" @endif
+                       @if($inputMode) inputmode="{{$inputMode}}" @endif
+                       @if($autoComplete) autocomplete="{{$autoComplete}}" @endif>
             @endif
     @endswitch
 </div>

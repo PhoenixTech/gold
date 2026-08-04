@@ -22,7 +22,7 @@ class SettingSeeder extends Seeder
                     'type' => 'TEXT',
                     'ltr' => true,
                     'value' => '100000',
-                    'size' => '12',
+                    'size' => '4',
                 ],
                 [
                     'title' => __("Gold 24 price"),
@@ -30,7 +30,7 @@ class SettingSeeder extends Seeder
                     'type' => 'TEXT',
                     'ltr' => true,
                     'value' => '100000',
-                    'size' => '12',
+                    'size' => '4',
                 ],
                 [
                     'title' => __("Dollar price"),
@@ -38,7 +38,7 @@ class SettingSeeder extends Seeder
                     'type' => 'TEXT',
                     'ltr' => true,
                     'value' => '0',
-                    'size' => '12',
+                    'size' => '4',
                 ],
                 [
                     'title' => __("Minimum percent"),
@@ -46,7 +46,7 @@ class SettingSeeder extends Seeder
                     'type' => 'TEXT',
                     'ltr' => true,
                     'value' => '105',
-                    'size' => '12',
+                    'size' => '6',
                 ],
                 [
                     'title' => __("Email"),

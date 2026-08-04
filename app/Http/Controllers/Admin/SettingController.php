@@ -20,8 +20,14 @@ class SettingController extends Controller
     public function index()
     {
         //
+        // Keep the navbar price settings (18K / 24K / $) grouped together
+        // at the top of their section instead of scattered by insertion order.
         $settings = Setting::where('active', true)
-            ->orderBy('section')->get();  //ESH// just active setting`s show
+            ->orderBy('section')
+            ->orderByRaw("CASE WHEN `key` IN ('gold','gold24','dollar') THEN 0 ELSE 1 END")
+            ->orderByRaw("FIELD(`key`, 'gold', 'gold24', 'dollar')")
+            ->orderBy('id')
+            ->get();
         $cats = Category::all(['id', 'name'])->toArray();
         $menus = Menu::all(['id', 'name']);
         $groups = Group::all(['id', 'name'])->toArray();
