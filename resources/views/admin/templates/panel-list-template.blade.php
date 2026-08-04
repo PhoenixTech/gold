@@ -60,34 +60,6 @@
                 </div>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle">
-
-
-
-
-
-
-            </div>
-            {{--  list side bar end--}}
-
-
-            {{--   list content start--}}
-            <div class="col-xl-9 ps-xl-0">
-                <form class="item-list" id="main-form"
-                      @if(hasRoute('bulk'))
-                          action="{{getRoute('bulk',[])}}" method="POST"
-                      @endif>
-                    @if(hasRoute('bulk'))
-                        @csrf
-                    @endif
-                    <div class="bulk-toolbar-mobile align-items-center justify-content-between gap-2 flex-wrap p-2">
-                        <span class="small text-muted">
-                            {{__("Bulk actions")}}
-                        </span>
-                        @include('admin.templates.partials.bulk-toolbar')
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-
                         <thead>
                         <tr>
                             <th>
