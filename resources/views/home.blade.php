@@ -180,12 +180,37 @@
                     layout: {
                         padding: 10,
                     },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#334155', font: { family: 'Vazirmatn, Vazir, sans-serif', size: 12 } }
+                        },
+                        title: {
+                            display: true,
+                            text: '{{__("Website visits traffic")}}',
+                            color: '#1e293b',
+                            font: { family: 'Vazirmatn, Vazir, sans-serif', size: 14, weight: 'bold' }
+                        }
+                    },
                     legend: {
                         position: 'bottom',
+                        labels: { fontColor: '#334155', color: '#334155' }
                     },
                     title: {
                         display: true,
-                        text: 'Website visits traffic'
+                        text: '{{__("Website visits traffic")}}',
+                        fontColor: '#1e293b',
+                        color: '#1e293b'
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: '#475569', fontColor: '#475569' },
+                            grid: { color: 'rgba(0, 0, 0, 0.06)' }
+                        },
+                        y: {
+                            ticks: { color: '#475569', fontColor: '#475569' },
+                            grid: { color: 'rgba(0, 0, 0, 0.06)' }
+                        }
                     }
                 }
             });
@@ -212,12 +237,27 @@
                     layout: {
                         padding: 10
                     },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#334155', font: { family: 'Vazirmatn, Vazir, sans-serif', size: 12 } }
+                        },
+                        title: {
+                            display: true,
+                            text: '{{__("Visitor device")}}',
+                            color: '#1e293b',
+                            font: { family: 'Vazirmatn, Vazir, sans-serif', size: 14, weight: 'bold' }
+                        }
+                    },
                     legend: {
                         position: 'bottom',
+                        labels: { fontColor: '#334155', color: '#334155' }
                     },
                     title: {
                         display: true,
-                        text: 'Visitor device'
+                        text: '{{__("Visitor device")}}',
+                        fontColor: '#1e293b',
+                        color: '#1e293b'
                     }
                 }
             });
@@ -250,12 +290,37 @@
                     layout: {
                         padding: 10
                     },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#334155', font: { family: 'Vazirmatn, Vazir, sans-serif', size: 12 } }
+                        },
+                        title: {
+                            display: true,
+                            text: '{{__("Last week orders")}}',
+                            color: '#1e293b',
+                            font: { family: 'Vazirmatn, Vazir, sans-serif', size: 14, weight: 'bold' }
+                        }
+                    },
                     legend: {
                         position: 'bottom',
+                        labels: { fontColor: '#334155', color: '#334155' }
                     },
                     title: {
                         display: true,
-                        text: 'Visitor device'
+                        text: '{{__("Last week orders")}}',
+                        fontColor: '#1e293b',
+                        color: '#1e293b'
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: '#475569', fontColor: '#475569' },
+                            grid: { color: 'rgba(0, 0, 0, 0.06)' }
+                        },
+                        y: {
+                            ticks: { color: '#475569', fontColor: '#475569' },
+                            grid: { color: 'rgba(0, 0, 0, 0.06)' }
+                        }
                     }
                 }
             });
