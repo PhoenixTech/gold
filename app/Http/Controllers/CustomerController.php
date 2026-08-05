@@ -69,16 +69,17 @@ class CustomerController extends Controller
             'height' => ['nullable', 'numeric'],
             'weight' => ['nullable', 'numeric'],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
-            'sex' => ['required', 'in:MALE,FEMALE'],
+            'sex' => ['nullable', 'in:MALE,FEMALE'],
             'dob' => ['nullable', 'date'],
             'avatar' => ['nullable', 'image', 'mimes:jpeg','max:2048'],
         ]);
-//        dd($request->all());
 
         $customer = auth('customer')->user();
         $customer->name = $request->name;
         $customer->email = $request->email;
-        $customer->sex = $request->input('sex');
+        if ($request->has('sex') && $request->input('sex') != '') {
+            $customer->sex = $request->input('sex');
+        }
         if ($request->has('height') && trim($request->input('height')) != '') {
             $customer->height = $request->input('height', null);
         }

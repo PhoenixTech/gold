@@ -255,19 +255,47 @@ class PartSeeder extends Seeder
         // -------------------------------------------------------------
 
         $part = new Part();
+        $part->segment = 'menu';
+        $part->part = 'AplMenu';
+        $part->area_id = Area::where('name', 'login')->first()->id;
+        $part->sort = 0;
+        $part->save();
+
+        $part = new Part();
         $part->segment = 'login';
         $part->part = 'LoginPatternBg';
         $part->area_id = Area::where('name', 'login')->first()->id;
         $part->sort = 1;
         $part->save();
 
+        $part = new Part();
+        $part->segment = 'footer';
+        $part->part = 'TypicalFooter';
+        $part->area_id = Area::where('name', 'login')->first()->id;
+        $part->sort = 2;
+        $part->save();
+
         // -------------------------------------------------------------
+
+        $part = new Part();
+        $part->segment = 'menu';
+        $part->part = 'AplMenu';
+        $part->area_id = Area::where('name', 'register')->first()->id;
+        $part->sort = 0;
+        $part->save();
 
         $part = new Part();
         $part->segment = 'register';
         $part->part = 'SimpleRegister';
         $part->area_id = Area::where('name', 'register')->first()->id;
         $part->sort = 1;
+        $part->save();
+
+        $part = new Part();
+        $part->segment = 'footer';
+        $part->part = 'TypicalFooter';
+        $part->area_id = Area::where('name', 'register')->first()->id;
+        $part->sort = 2;
         $part->save();
 
         // -------------------------------------------------------------

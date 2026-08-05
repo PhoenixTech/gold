@@ -1,4 +1,4 @@
-<section id='AvisaCustomer' class=' live-setting' data-live="{{$data->area_name.'_'.$data->part}}">
+<section id='AvisaCustomer' class=' live-setting' data-live="{{$data->area_name.'_'.$data->part}}" data-profile-incomplete="{{ (auth('customer')->user()->name == null || trim(auth('customer')->user()->name) == '' || auth('customer')->user()->addresses()->count() == 0) ? 'true' : 'false' }}">
 <div class="{{gfx()['container']}}">
         <button class="avisa-menu-btn d-lg-none" id="avisa-menu-btn" type="button" aria-label="Menu">
             <i class="ri-menu-3-line"></i>
@@ -40,13 +40,6 @@
                         <a href="#profile">
                             <span class="avisa-nav-icon"><i class="ri-user-3-line"></i></span>
                             <span class="avisa-nav-label">{{__("Profile")}}</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#addresses">
-                            <span class="avisa-nav-icon"><i class="ri-map-pin-user-line"></i></span>
-                            <span class="avisa-nav-label">{{__("Addresses")}}</span>
-                            <span class="avisa-nav-count">{{number_format(auth('customer')->user()->addresses()->count())}}</span>
                         </a>
                     </li>
                     <li>
@@ -107,20 +100,26 @@
                         <br>
                     </div>
                 @endif
-                @if( auth('customer')->user()->name == null || trim(auth('customer')->user()->name) == '')
-                    <div class="alert alert-danger mt-4">
-                        <h5 class="alert-heading">
-                            {{__("System notification")}}
-                        </h5>
-                        {{__("Your information is insufficient, Please complete your information")}}
-                    </div>
-                @endif
-                @if(  auth('customer')->user()->addresses()->count() == 0)
-                    <div class="alert alert-danger mt-4">
-                        <h5 class="alert-heading">
-                            {{__("System notification")}}
-                        </h5>
-                        {{__("You need at least one address to order, Please add address")}}
+                @php
+                    $isProfileIncomplete = (auth('customer')->user()->name == null || trim(auth('customer')->user()->name) == '' || auth('customer')->user()->addresses()->count() == 0);
+                @endphp
+                @if($isProfileIncomplete)
+                    <div id="avisa-alert-profile" class="alert alert-danger mt-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="ri-error-warning-line fs-4"></i>
+                            <div>
+                                <h6 class="alert-heading mb-0 font-weight-bold">
+                                    {{__("System notification")}}
+                                </h6>
+                                <a href="#profile" class="text-decoration-none text-danger fw-bold avisa-alert-action">
+                                    اطلاعات شما ناقص است، لطفا اطلاعات خود را تکمیل کنید
+                                </a>
+                            </div>
+                        </div>
+                        <a href="#profile" class="btn btn-sm btn-danger px-3 py-2 text-white shadow-sm avisa-alert-action">
+                            <i class="ri-user-edit-line me-1"></i>
+                            {{__("Complete profile")}}
+                        </a>
                     </div>
                 @endif
                 <div class="tab active" id="summary">
@@ -201,26 +200,21 @@
                                 <i class="ri-file-list-3-line"></i>
                                 {{__("Invoices")}}
                             </h4>
-                            <span class="avisa-count-badge">{{number_format(auth('customer')->user()->invoices()->count())}}</span>
                         </div>
                         <div class="avisa-table-wrap">
                             <table class="avisa-table">
                                 <thead>
                                     <tr>
                                         <th>#</th>
-                                        <th>{{__("Datetime")}}</th>
-                                        <th>{{__("Orders count")}}</th>
                                         <th>{{__("Total price")}}</th>
                                         <th>{{__("Status")}}</th>
                                         <th class="text-end">{{__("Actions")}}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach(auth('customer')->user()->invoices()->orderByDesc('id')->get() as $inv)
+                                    @foreach(auth('customer')->user()->invoices()->orderByDesc('id')->get() as $i => $inv)
                                         <tr>
-                                            <td data-label="#"> {{$inv->hash}} </td>
-                                            <td data-label="{{__('Datetime')}}">{{$inv->created_at->ldate('Y-m-d H:i')}}</td>
-                                            <td data-label="{{__('Orders count')}}">{{number_format($inv->count)}}</td>
+                                            <td data-label="#"> {{$i+1}} </td>
                                             <td data-label="{{__('Total price')}}">
                                                 <b>{{number_format($inv->total_price)}} {{config('app.currency.symbol')}}</b>
                                             </td>
@@ -253,7 +247,7 @@
                              class="avisa-profile-avatar"
                              onclick="document.querySelector('#avatar')?.click();">
                         <div class="avisa-profile-info">
-                            <h4>{{auth('customer')->user()->name}}</h4>
+                            <h4>{{auth('customer')->user()->name ?: __('Customer')}}</h4>
                             <span>{{auth('customer')->user()->mobile}}</span>
                         </div>
                         <label class="avisa-upload-btn" for="avatar">
@@ -266,117 +260,106 @@
                         {{__("If you want to change the password, choose both the same. Otherwise, leave the password field blank.")}}
                     </div>
                     <div class="avisa-panel">
-                    <form action="{{route('client.profile.save')}}" method="post" enctype="multipart/form-data">
-                        @csrf
-                        <div class="row">
-                            <div class="col-md-4 mt-3">
-                                <div class="form-group">
-                                    <label for="name">
-                                        {{__('Name')}}
-                                    </label>
-                                    <input name="name" type="text"
-                                           class="form-control @error('name') is-invalid @enderror"
-                                           placeholder="{{__('Name')}}"
-                                           value="{{old('name',auth('customer')->user()->name??null)}}"/>
-                                </div>
-                            </div>
-                            <div class="col-md-4 mt-3">
-                                <div class="form-group">
-                                    <label for="email">
-                                        {{__('Email')}}
-                                    </label>
-                                    <input name="email" type="email"
-                                           class="form-control @error('email') is-invalid @enderror"
-                                           placeholder="{{__('Email')}}"
-                                           value="{{old('email',auth('customer')->user()->email??null)}}"/>
-                                </div>
-                            </div>
-                            <div class="col-md-4 mt-3">
-                                <div class="form-group">
-                                    <label for="mobile">
-                                        {{__('Mobile')}}
-                                    </label>
-                                    <input name="mobile" type="text" @if(config('app.sms.sign'))  readonly
-                                           @endif  class="form-control @error('mobile') is-invalid @enderror"
-                                           placeholder="{{__('Mobile')}}"
-                                           value="{{old('mobile',auth('customer')->user()->mobile??null)}}"
-                                           min-length="10"/>
-                                </div>
-                            </div>
-                            <div class="col-md-3 mt-3">
-                                <div class="form-group">
-                                    <label for="dp">
-                                        {{__('Date of born')}}
-                                    </label>
-                                    <vue-datetime-picker-input
-                                        :xmax="{{strtotime('yesterday')}}"
-                                        xid="dp" xname="dob" xtitle="{{__("Date of born")}}"
-                                        @if(app()->getLocale() != 'fa')  def-tab="1" xshow="date"  @else xshow="pdate"  @endif
-                                        :xvalue="{{strtotime(auth('customer')->user()->dob)}}"
-                                        :timepicker="false"
-                                    ></vue-datetime-picker-input>
-                                </div>
-                            </div>
-                            <div class="col-md-3 mt-3">
-                                <label for="height">
-                                    {{__('Height')}}
-                                </label>
-                                <input name="height" type="text"
-                                       class="form-control @error('height') is-invalid @enderror"
-                                       placeholder="{{__('Height')}}"
-                                       value="{{old('height',auth('customer')->user()->height??null)}}"
-                                       minlength="2"/>
-                            </div>
-                            <div class="col-md-3 mt-3">
-                                <label for="weight">
-                                    {{__('Weight')}}
-                                </label>
-                                <input name="weight" type="text"
-                                       class="form-control @error('weight') is-invalid @enderror"
-                                       placeholder="{{__('Weight')}}"
-                                       value="{{old('weight',auth('customer')->user()->weight??null)}}"
-                                       minlength="2"/>
-                            </div>
-                            <div class="col-md-3 mt-3">
-                                <label for="sex">
-                                    {{__('Sex')}}
-                                </label>
-                                <select name="sex" id="sex" class="form-control">
-                                    <option value="MALE"> {{__("Male")}} </option>
-                                    <option value="FEMALE"
-                                            @if(auth('customer')->user()->sex == 'FEMALE') selected @endif> {{__("Female")}} </option>
-                                </select>
-                            </div>
-                            <div class="col-md-4 mt-3">
-                                <div class="form-group">
-                                    <label for="password">
-                                        {{__('Password')}}
-                                    </label>
-                                    <input name="password" type="password"
-                                           class="form-control @error('password') is-invalid @enderror"
-                                           placeholder="{{__('Password')}}" value="{{old('password',''??null)}}"/>
-                                </div>
-                            </div>
-                            <div class="col-md-4 mt-3">
-                                <div class="form-group">
-                                    <label for="password_confirmation">
-                                        {{__('password repeat')}}
-                                    </label>
-                                    <input name="password_confirmation" type="password"
-                                           class="form-control @error('password_confirmation') is-invalid @enderror"
-                                           placeholder="{{__('password repeat')}}"
-                                           value="{{old('password_confirmation',$item->password_confirmation??null)}}"/>
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <input type="file" name="avatar" class="d-none" id="avatar" accept="image/jpeg">
-                                <button type="submit" class="avisa-pay-btn w-100 justify-content-center">
-                                    <i class="ri-save-3-line"></i>
-                                    {{__('Save')}}
-                                </button>
-                            </div>
+                        <div class="avisa-panel-head mb-3">
+                            <h4>
+                                <i class="ri-user-3-line"></i>
+                                {{__("Personal Information")}}
+                            </h4>
                         </div>
-                    </form>
+                        <form action="{{route('client.profile.save')}}" method="post" enctype="multipart/form-data">
+                            @csrf
+                            <div class="row">
+                                <div class="col-md-4 mt-3">
+                                    <div class="form-group">
+                                        <label for="name">
+                                            {{__('Name')}}
+                                        </label>
+                                        <input name="name" type="text"
+                                               class="form-control @error('name') is-invalid @enderror"
+                                               placeholder="{{__('Name')}}"
+                                               value="{{old('name',auth('customer')->user()->name??null)}}"/>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mt-3">
+                                    <div class="form-group">
+                                        <label for="email">
+                                            {{__('Email')}}
+                                        </label>
+                                        <input name="email" type="email"
+                                               class="form-control @error('email') is-invalid @enderror"
+                                               placeholder="{{__('Email')}}"
+                                               value="{{old('email',auth('customer')->user()->email??null)}}"/>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mt-3">
+                                    <div class="form-group">
+                                        <label for="mobile">
+                                            {{__('Mobile')}}
+                                        </label>
+                                        <input name="mobile" type="text" @if(config('app.sms.sign')) readonly
+                                               @endif class="form-control @error('mobile') is-invalid @enderror"
+                                               placeholder="{{__('Mobile')}}"
+                                               value="{{old('mobile',auth('customer')->user()->mobile??null)}}"
+                                               min-length="10"/>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mt-3">
+                                    <div class="form-group">
+                                        <label for="password">
+                                            {{__('Password')}}
+                                        </label>
+                                        <input name="password" type="password"
+                                               class="form-control @error('password') is-invalid @enderror"
+                                               placeholder="{{__('Password')}}" value="{{old('password',''??null)}}"/>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mt-3">
+                                    <div class="form-group">
+                                        <label for="password_confirmation">
+                                            {{__('password repeat')}}
+                                        </label>
+                                        <input name="password_confirmation" type="password"
+                                               class="form-control @error('password_confirmation') is-invalid @enderror"
+                                               placeholder="{{__('password repeat')}}"
+                                               value="{{old('password_confirmation',$item->password_confirmation??null)}}"/>
+                                    </div>
+                                </div>
+                                <div class="col-md-12 mt-3">
+                                    <input type="file" name="avatar" class="d-none" id="avatar" accept="image/jpeg">
+                                    <button type="submit" class="avisa-pay-btn w-100 justify-content-center">
+                                        <i class="ri-save-3-line"></i>
+                                        {{__('Save')}}
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="avisa-panel mt-4">
+                        <div class="avisa-panel-head mb-3">
+                            <h4>
+                                <i class="ri-map-pin-user-line"></i>
+                                {{__("Addresses")}}
+                            </h4>
+                        </div>
+                        <address-input
+                            list-link="{{route('client.addresses')}}"
+                            add-link="{{route('client.address.store')}}"
+                            update-link="{{route('client.address.update','')}}"
+                            rem-link="{{route('client.address.destroy','')}}"
+                            state-link="{{route('v1.state.index')}}"
+                            cities-link="{{route('v1.state.show','')}}"
+                            :dark-mode="false"
+                            :translate='{{vueTranslate([
+            'addr-editor' => __('Address editor'),
+            'state' => __('State'),
+            'city' => __('City'),
+            'address' => __('Address'),
+            'post-code' => __('Post code'),
+            'add-address' => __('Add address'),
+            'save' => __('Save'),
+            ])}}'
+                        ></address-input>
                     </div>
                 </div>
                 <div class="tab" id="credit">

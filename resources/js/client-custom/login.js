@@ -50,8 +50,8 @@ document.addEventListener('DOMContentLoaded', function () {
             if (resp.data.OK) {
                 window.$toast.success(resp.data.message);
                 setTimeout(() => {
-                    window.location.href = this.getAttribute('data-profile');
-                }, 5000);
+                    window.location.href = resp.data.redirect || this.getAttribute('data-profile');
+                }, 1200);
             } else {
                 window.$toast.error(resp.data.message);
             }

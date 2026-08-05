@@ -557,7 +557,9 @@ class ClientController extends Controller
 
         if (\Hash::check($request->input('password'), $customer->password)) {
             auth('customer')->login($customer);
-            return redirect()->route('client.profile')->with(['message' => __('Signed in successfully')]);
+            $profileIncomplete = ($customer->name == null || trim($customer->name) == '');
+            $target = $profileIncomplete ? route('client.profile') . '#profile' : route('client.profile');
+            return redirect()->to($target)->with(['message' => __('Signed in successfully')]);
         } else {
             return redirect()->back()->withErrors([__('Email or password is incorrect'), __('If you forget your password call us')]);
         }
@@ -638,10 +640,13 @@ class ClientController extends Controller
         $customer->save();
 
         auth('customer')->login($customer);
+        $profileIncomplete = ($customer->name == null || trim($customer->name) == '');
+        $redirectUrl = $profileIncomplete ? route('client.profile') . '#profile' : route('client.profile');
 
         return [
             'OK' => true,
             'message' => __('You are logged in successfully'),
+            'redirect' => $redirectUrl,
         ];
 
     }

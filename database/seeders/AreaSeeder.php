@@ -302,7 +302,7 @@ class AreaSeeder extends Seeder
             $a->valid_segments = $area['valid_segments'];
             $a->icon = $area['icon'];
             $a->preview = $area['preview'];
-            if ($area['name'] == 'index') {
+            if (in_array($area['name'], ['index', 'login', 'register', 'customer'])) {
                 $a->use_default = false;
             }
             $a->save();
