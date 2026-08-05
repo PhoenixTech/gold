@@ -38,7 +38,7 @@
 
 <div class="setting-field col-md-{{$fieldSize}}">
     <label for="{{$setting->key}}">
-        {{$displayTitle}}
+        {{__($displayTitle)}}
         @if(config('app.xlang.active') && isset($setting->translatable) &&
 ($setting['type'] == 'LONGTEXT' || $setting['type'] == 'TEXT' || $setting['type'] == 'EDITOR'))
             <a href="{{route('admin.lang.model',[$setting->id, get_class($setting)])}}{{$setting['type'] == 'EDITOR'?'?editor=1':''}}">

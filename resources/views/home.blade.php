@@ -219,7 +219,7 @@
             window.dchart = new window.chartjs(ctx2, {
                 type: 'pie',
                 data: {
-                    labels: ['All visitors','Desktop', 'Mobile / Tablet'],
+                    labels: ['{{__("All visitors")}}', '{{__("Desktop")}}', '{{__("Mobile / Tablet")}}'],
                     datasets: [
                         {
                             label:"{{__('Devices')}}",
