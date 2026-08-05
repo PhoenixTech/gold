@@ -1,38 +1,28 @@
 .ParallaxHeaderPin {
     background-size: cover;
-    background-attachment: fixed;
-    height: 270px;
-    color: var(--xshop-diff);
-    padding-top: 3rem;
+    background-position: center;
+    background-attachment: scroll;
+    min-height: 120px;
+    height: auto;
+    padding: 2rem 1rem;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-    h2{
-        opacity: .4;
-        margin-bottom: 3rem;
-        max-height: 2.1em;
-        overflow: hidden;
+    h1 {
+        font-size: 1.65rem;
+        font-weight: 700;
+        margin: 0;
+        color: #ffffff;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
     }
 
-    .fake-container{
-        background: var(--xshop-background);
-        border-radius: var(--xshop-border-radius);
-        border-bottom-right-radius: 0;
-        border-bottom-left-radius: 0;
-        height: 100px;
-        position: relative;
-        &:after{
-            position: absolute;
-            left: 0;
-            right: 0;
-            content: ' ';
-            height: 10px;
-            bottom: -5px;
-            background: var(--xshop-background);
-        }
-    }
-
-    + .content{
-        margin-top: -3rem;
-        position: relative;
-        z-index: 11;
+    h2 {
+        font-size: 0.92rem;
+        opacity: .85;
+        margin-top: 0.25rem;
+        color: rgba(255, 255, 255, 0.85);
+        font-weight: 400;
     }
 }
