@@ -5,6 +5,11 @@
 @endsection
 
 @section('content')
+    @php
+        $area = 'login';
+        $title = __('Login');
+        $subtitle = __('Sign in to your account');
+    @endphp
     <main>
         @php($headerParts = getParts('defaultHeader'))
         @foreach($headerParts as $part)
