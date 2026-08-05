@@ -22,7 +22,7 @@
         </nav>
 
         <div class="row g-4">
-            @if(!getSetting($data->area_name.'_'.$data->part.'_invert'))
+            @if(getSetting($data->area_name.'_'.$data->part.'_invert'))
                 <div class="col-lg-4 col-xl-3">
                     @include('segments.post.PostSidebar.inc.sidebar')
                 </div>
@@ -96,7 +96,7 @@
                 </article>
             </div>
 
-            @if(getSetting($data->area_name.'_'.$data->part.'_invert'))
+            @if(!getSetting($data->area_name.'_'.$data->part.'_invert'))
                 <div class="col-lg-4 col-xl-3">
                     @include('segments.post.PostSidebar.inc.sidebar')
                 </div>
