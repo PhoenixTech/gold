@@ -1,5 +1,5 @@
-<section class='NsCard'>
-    <div class="container-fluid">
+<section class='NsCard content live-setting' data-live="{{$data->area_name.'_'.$data->part}}">
+    <div class="{{gfx()['container']}}">
         @include('components.err')
         @if(cardCount() == 0 )
             <div class="alert alert-info">
