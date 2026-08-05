@@ -105,14 +105,14 @@
                                         <a href="{{ route('quick-login.admin') }}"
                                            class="btn btn-success btn-sm w-100">
                                             <i class="ri-flashlight-line me-1"></i>
-                                            {{ __('Developer') }}
+                                            {{ __('Quick login as Developer') }}
                                         </a>
                                     </div>
                                     <div class="col-6">
                                         <a href="{{ route('quick-login.customer') }}"
                                            class="btn btn-info btn-sm text-white w-100">
                                             <i class="ri-user-line me-1"></i>
-                                            {{ __('Customer') }}
+                                            {{ __('Quick login as Customer') }}
                                         </a>
                                     </div>
                                 </div>

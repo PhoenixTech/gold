@@ -228,7 +228,7 @@
     "Edit transport": "ویرایش حمل و نقل",
     "Edit user": "ویرایش کاربر",
     "Email": "رایانامه",
-    "Email Address": "نشانی ایمیل",
+    "Email Address": "آدرس ایمیل",
     "Email or password is incorrect": "نام رایانامه یا گذرواژه اشتباه است",
     "Emoji": "ایموجی",
     "Evaluations": "ارزیابی‌ها",
@@ -254,7 +254,7 @@
     "Flag": "پرچم",
     "Floats": "شناورها",
     "Follow us": "",
-    "Forgot Your Password?": "آیا گذرواژه خود را فراموش کردید",
+    "Forgot Your Password?": "رمز عبور خود را فراموش کرده‌اید؟",
     "From - To": "از - تا",
     "GFX": "طراحی",
     "GFX of website updated": "گرافیک سایت به روز شد",
@@ -442,7 +442,7 @@
     "Reply message...": "پاسخ پیام...",
     "Reports": "گزارشات",
     "Required": "ضروری",
-    "Reset Password": "بازنشانی گذرواژه",
+    "Reset Password": "بازیابی رمز عبور",
     "Restore": "بازیافت",
     "Role": "نقش",
     "Role filter": "صافی نقش‌ها",
@@ -466,7 +466,7 @@
     "Send": "ارسال",
     "Send Answer": "ارسال پاسخ",
     "Send Answer and close": "ارسال پاسخ و بستن",
-    "Send Password Reset Link": "ارسال پیوند بازنشانی گذرواژه",
+    "Send Password Reset Link": "ارسال لینک بازیابی رمز عبور",
     "Send answer": "ارسال پاسخ",
     "Send authenticate code": "ارسال کد احراز هویت",
     "Send ticket": "ارسال تیکت",
@@ -720,7 +720,14 @@
     "No invoices found": "صورت‌حسابی یافت نشد",
     "No tickets found": "تیکتی یافت نشد",
     "Member since": "تاریخ عضویت",
-    "Your profile is incomplete. Required fields:": "اطلاعات حساب شما ناقص است. موارد الزامی:"
+    "Your profile is incomplete. Required fields:": "اطلاعات حساب شما ناقص است. موارد الزامی:",
+    "Sign in to your account": "ورود به حساب کاربری",
+    "Enter your email to receive a password reset link": "ایمیل خود را جهت دریافت لینک بازیابی رمز عبور وارد کنید",
+    "Set a new password for your account": "رمز عبور جدید حساب کاربری خود را وارد کنید",
+    "Back to login": "بازگشت به صفحه ورود",
+    "Quick login as Developer": "ورود سریع به عنوان توسعه‌دهنده",
+    "Quick login as Customer": "ورود سریع به عنوان مشتری",
+    "Developer": "توسعه‌دهنده"
 }
 
 
