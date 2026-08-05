@@ -1,4 +1,4 @@
-<section id='AvisaCustomer' class=' live-setting' data-live="{{$data->area_name.'_'.$data->part}}" data-profile-incomplete="{{ (auth('customer')->user()->name == null || trim(auth('customer')->user()->name) == '' || auth('customer')->user()->addresses()->count() == 0) ? 'true' : 'false' }}">
+<section id='AvisaCustomer' class=' live-setting' data-live="{{$data->area_name.'_'.$data->part}}" data-profile-incomplete="{{ (auth('customer')->user()->name == null || trim(auth('customer')->user()->name) == '' || auth('customer')->user()->email == null || trim(auth('customer')->user()->email) == '' || auth('customer')->user()->addresses()->count() == 0) ? 'true' : 'false' }}">
 <div class="{{gfx()['container']}}">
         <button class="avisa-menu-btn d-lg-none" id="avisa-menu-btn" type="button" aria-label="Menu">
             <i class="ri-menu-3-line"></i>
@@ -62,20 +62,7 @@
                             <span class="avisa-nav-label">{{__("Submit new ticket")}}</span>
                         </a>
                     </li>
-                    <li>
-                        <a href="#comments">
-                            <span class="avisa-nav-icon"><i class="ri-message-2-line"></i></span>
-                            <span class="avisa-nav-label">{{__("Comments")}}</span>
-                            <span class="avisa-nav-count">{{number_format(auth('customer')->user()->comments()->count())}}</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#favs">
-                            <span class="avisa-nav-icon"><i class="ri-hearts-line"></i></span>
-                            <span class="avisa-nav-label">{{__("Favorites")}}</span>
-                            <span class="avisa-nav-count">{{number_format(auth('customer')->user()->favorites()->count())}}</span>
-                        </a>
-                    </li>
+
                     <li>
                         <a href="{{route('client.sign-out')}}">
                             <span class="avisa-nav-icon"><i class="ri-logout-box-line"></i></span>
@@ -101,94 +88,191 @@
                     </div>
                 @endif
                 @php
-                    $isProfileIncomplete = (auth('customer')->user()->name == null || trim(auth('customer')->user()->name) == '' || auth('customer')->user()->addresses()->count() == 0);
+                    $u = auth('customer')->user();
+                    $missingFields = [];
+                    if ($u->name == null || trim($u->name) == '') {
+                        $missingFields[] = __('Name');
+                    }
+                    if ($u->email == null || trim($u->email) == '') {
+                        $missingFields[] = __('Email');
+                    }
+                    if ($u->addresses()->count() == 0) {
+                        $missingFields[] = __('Addresses');
+                    }
+                    $isProfileIncomplete = count($missingFields) > 0;
                 @endphp
                 @if($isProfileIncomplete)
-                    <div id="avisa-alert-profile" class="alert alert-danger mt-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <div id="avisa-alert-profile" class="alert alert-danger mt-4 d-flex align-items-center justify-content-between flex-wrap gap-2 rounded-4">
                         <div class="d-flex align-items-center gap-2">
                             <i class="ri-error-warning-line fs-4"></i>
                             <div>
                                 <h6 class="alert-heading mb-0 font-weight-bold">
                                     {{__("System notification")}}
                                 </h6>
-                                <a href="#profile" class="text-decoration-none text-danger fw-bold avisa-alert-action">
-                                    اطلاعات شما ناقص است، لطفا اطلاعات خود را تکمیل کنید
+                                <a href="#profile" class="text-decoration-none text-danger avisa-alert-action">
+                                    <span class="fw-bold">{{__("Your profile is incomplete. Required fields:")}}</span>
+                                    <span class="badge bg-danger text-white ms-1 fs-6 fw-normal">{{ implode('، ', $missingFields) }}</span>
                                 </a>
                             </div>
                         </div>
-                        <a href="#profile" class="btn btn-sm btn-danger px-3 py-2 text-white shadow-sm avisa-alert-action">
+                        <a href="#profile" class="btn btn-sm btn-danger px-3 py-2 text-white shadow-sm rounded-3 avisa-alert-action">
                             <i class="ri-user-edit-line me-1"></i>
                             {{__("Complete profile")}}
                         </a>
                     </div>
                 @endif
+
                 <div class="tab active" id="summary">
-                    <div class="row">
-                        <div class="avisa-grid col-lg-3 col-md-6">
-                            <div class="grid-item">
-                                <i class="ri-list-check-3"></i>
-                                <h2>
-                                    {{number_format(auth('customer')->user()->invoices()->count())}}
-                                </h2>
-                                <h3>
-                                    {{__("Invoices")}}
-                                </h3>
+                    <!-- Welcome Hero Header -->
+                    <div class="avisa-hero-card mb-4">
+                        <div class="avisa-hero-body">
+                            <div class="avisa-hero-user">
+                                <img src="{{auth('customer')->user()->avatar()}}" alt="avatar" class="avisa-hero-avatar" onclick="document.querySelector('#avatar')?.click();">
+                                <div>
+                                    <h3 class="avisa-hero-title">
+                                        {{__("Welcome back")}}, {{auth('customer')->user()->name ?: __('Customer')}}! 👋
+                                    </h3>
+                                    <p class="avisa-hero-sub text-muted mb-0">
+                                        <i class="ri-phone-line me-1"></i> {{auth('customer')->user()->mobile}}
+                                        @if(auth('customer')->user()->created_at)
+                                            <span class="mx-2">•</span>
+                                            <i class="ri-calendar-line me-1"></i> {{__("Member since")}}: {{auth('customer')->user()->created_at->ldate('Y-m-d')}}
+                                        @endif
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="avisa-hero-actions">
+                                <a href="#profile" class="btn btn-outline-primary btn-sm avisa-alert-action">
+                                    <i class="ri-user-settings-line me-1"></i> {{__("Personal Information")}}
+                                </a>
+                                <a href="#submit-ticket" class="btn btn-primary btn-sm avisa-alert-action">
+                                    <i class="ri-add-line me-1"></i> {{__("Submit new ticket")}}
+                                </a>
                             </div>
                         </div>
-                        <div class="avisa-grid col-lg-3 col-md-6">
-                            <div class="grid-item">
-                                <i class="ri-bank-card-2-line"></i>
-                                <h3>
-                                    {{__("Credits")}}
-                                </h3>
-                                <h2>
-                                    {{number_format(auth('customer')->user()->credit)}}
-                                    {{config('app.currency.symbol')}}
-                                </h2>
+                    </div>
+
+                    <!-- 4 Stat Summary Cards -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-lg-3 col-md-6">
+                            <div class="avisa-summary-stat-card card-invoice" onclick="document.querySelector('.tab-control a[href=\'#invoices\']')?.click();">
+                                <div class="stat-icon-wrapper">
+                                    <i class="ri-file-list-3-line"></i>
+                                </div>
+                                <div class="stat-details">
+                                    <span class="stat-label">{{__("Invoices")}}</span>
+                                    <h3 class="stat-value">{{number_format(auth('customer')->user()->invoices()->count())}}</h3>
+                                </div>
                             </div>
                         </div>
-                        <div class="avisa-grid col-lg-3 col-md-6">
-                            <div class="grid-item">
-                                <i class="ri-customer-service-2-line"></i>
-                                <h2>
-                                    {{number_format(auth('customer')->user()->tickets()->count())}}
-                                </h2>
-                                <h3>
-                                    {{__("Tickets")}}
-                                </h3>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="avisa-summary-stat-card card-credit" onclick="document.querySelector('.tab-control a[href=\'#credit\']')?.click();">
+                                <div class="stat-icon-wrapper">
+                                    <i class="ri-wallet-3-line"></i>
+                                </div>
+                                <div class="stat-details">
+                                    <span class="stat-label">{{__("Credits")}}</span>
+                                    <h3 class="stat-value">{{number_format(auth('customer')->user()->credit)}} <small>{{config('app.currency.symbol')}}</small></h3>
+                                </div>
                             </div>
                         </div>
-                        <div class="avisa-grid col-lg-3 col-md-6">
-                            <div class="grid-item">
-                                <i class="ri-map-pin-line"></i>
-                                <h2>
-                                    {{number_format(auth('customer')->user()->addresses()->count())}}
-                                </h2>
-                                <h3>
-                                    {{__("Addresses")}}
-                                </h3>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="avisa-summary-stat-card card-ticket" onclick="document.querySelector('.tab-control a[href=\'#tickets\']')?.click();">
+                                <div class="stat-icon-wrapper">
+                                    <i class="ri-customer-service-2-line"></i>
+                                </div>
+                                <div class="stat-details">
+                                    <span class="stat-label">{{__("Tickets")}}</span>
+                                    <h3 class="stat-value">{{number_format(auth('customer')->user()->tickets()->count())}}</h3>
+                                </div>
                             </div>
                         </div>
-                        <div class="avisa-grid col-md-6">
-                            <div class="grid-item">
-                                <i class="ri-message-3-line"></i>
-                                <h2>
-                                    {{number_format(auth('customer')->user()->comments()->count())}}
-                                </h2>
-                                <h3>
-                                    {{__("Comments")}}
-                                </h3>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="avisa-summary-stat-card card-address" onclick="document.querySelector('.tab-control a[href=\'#addresses\']')?.click();">
+                                <div class="stat-icon-wrapper">
+                                    <i class="ri-map-pin-line"></i>
+                                </div>
+                                <div class="stat-details">
+                                    <span class="stat-label">{{__("Addresses")}}</span>
+                                    <h3 class="stat-value">{{number_format(auth('customer')->user()->addresses()->count())}}</h3>
+                                </div>
                             </div>
                         </div>
-                        <div class="avisa-grid col-md-6">
-                            <div class="grid-item">
-                                <i class="ri-hearts-line"></i>
-                                <h2>
-                                    {{number_format(auth('customer')->user()->favorites()->count())}}
-                                </h2>
-                                <h3>
-                                    {{__("Favorites")}}
-                                </h3>
+                    </div>
+
+                    <!-- Widgets Row: Recent Invoices & Recent Tickets -->
+                    <div class="row g-3">
+                        <div class="col-lg-7">
+                            <div class="avisa-summary-widget">
+                                <div class="widget-header">
+                                    <h4><i class="ri-file-list-3-line me-1"></i> {{__("Recent Invoices")}}</h4>
+                                    <a href="#invoices" class="widget-link avisa-alert-action">{{__("View All")}} <i class="ri-arrow-left-s-line"></i></a>
+                                </div>
+                                <div class="widget-body p-0">
+                                    @php($recentInvoices = auth('customer')->user()->invoices()->orderByDesc('id')->take(4)->get())
+                                    @if($recentInvoices->count() > 0)
+                                        <div class="table-responsive">
+                                            <table class="table avisa-summary-table align-middle mb-0">
+                                                <thead>
+                                                    <tr>
+                                                        <th>#</th>
+                                                        <th>{{__("Total price")}}</th>
+                                                        <th>{{__("Status")}}</th>
+                                                        <th class="text-end">{{__("Actions")}}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach($recentInvoices as $inv)
+                                                        <tr>
+                                                            <td>#{{$inv->id}}</td>
+                                                            <td><b>{{number_format($inv->total_price)}} {{config('app.currency.symbol')}}</b></td>
+                                                            <td><span class="inv-badge inv-{{$inv->status}}">{{__($inv->status)}}</span></td>
+                                                            <td class="text-end">
+                                                                <a href="{{ route('client.invoice',$inv->hash) }}" class="avisa-icon-btn" title="{{__('View')}}">
+                                                                    <i class="ri-eye-line"></i>
+                                                                </a>
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    @else
+                                        <div class="p-4 text-center text-muted">
+                                            <i class="ri-inbox-line fs-2 d-block mb-1"></i>
+                                            <small>{{__("No invoices found")}}</small>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-5">
+                            <div class="avisa-summary-widget">
+                                <div class="widget-header">
+                                    <h4><i class="ri-customer-service-2-line me-1"></i> {{__("Recent Tickets")}}</h4>
+                                    <a href="#tickets" class="widget-link avisa-alert-action">{{__("View All")}} <i class="ri-arrow-left-s-line"></i></a>
+                                </div>
+                                <div class="widget-body">
+                                    @php($recentTickets = auth('customer')->user()->main_tickets()->orderByDesc('id')->take(3)->get())
+                                    @if($recentTickets->count() > 0)
+                                        <div class="avisa-ticket-mini-list">
+                                            @foreach($recentTickets as $ticket)
+                                                <div class="ticket-mini-item">
+                                                    <div class="ticket-mini-info">
+                                                        <a href="{{ route('client.ticket.show',$ticket->id) }}" class="ticket-mini-title">{{$ticket->title}}</a>
+                                                        <span class="ticket-mini-date"><i class="ri-time-line me-1"></i>{{$ticket->created_at->ldate('Y-m-d')}}</span>
+                                                    </div>
+                                                    <span class="inv-badge inv-{{$ticket->status}}">{{__($ticket->status)}}</span>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @else
+                                        <div class="p-4 text-center text-muted">
+                                            <i class="ri-question-answer-line fs-2 d-block mb-1"></i>
+                                            <small>{{__("No tickets found")}}</small>
+                                        </div>
+                                    @endif
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -449,29 +533,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="tab" id="comments">
 
-                    @if(auth('customer')->user()->comments()->count() == 0)
-                        <div class="alert alert-info">
-                            {{__("You don't have any comments, We are so pleased to hear your look-out")}}
-                        </div>
-                    @else
-                        @foreach(auth('customer')->user()->comments as $comment)
-                            <div class="avisa-comment">
-                                <h3>
-                                    {{$comment->commentable->title}}
-                                    {{$comment->commentable->name}}
-                                </h3>
-                                <span class="comment-date float-end">
-                                    {{$comment->created_at->ldate('Y-m-d')}}
-                                </span>
-                                <p>
-                                    {{$comment->body}}
-                                </p>
-                            </div>
-                        @endforeach
-                    @endif
-                </div>
                 <div class="tab" id="submit-ticket">
                     <div class="avisa-panel">
                     <form action="{{ route('client.ticket.submit') }}" method="post">
@@ -528,34 +590,7 @@
                         ></address-input>
                     </div>
                 </div>
-                <div class="tab" id="favs">
-                    @foreach(auth('customer')->user()->favorites as $fav)
 
-                        <div class="product-item">
-                            <div class="row">
-                                <div class="col-md-2">
-                                    <img src="{{$fav->imgUrl()}}" class="img-fluid" alt="{{$fav->name}}" loading="lazy">
-                                </div>
-                                <div class="col-md-10">
-                                    <h4>
-                                        {{$fav->name}}
-                                    </h4>
-                                    <p class="text-muted">
-                                        {{$fav->excerpt}}
-                                    </p>
-                                    <a class="fav-btn float-end mx-2" data-slug="{{$fav->slug}}"
-                                       data-is-fav="{{$fav->isFav()}}"
-                                       data-bs-custom-class="custom-tooltip"
-                                       data-bs-toggle="tooltip" data-bs-placement="top"
-                                       title="{{__("Add to / Remove from favorites")}}">
-                                        <i class="ri-heart-line"></i>
-                                        <i class="ri-heart-fill"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
             </div>
         </div>
     </div>

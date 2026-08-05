@@ -699,5 +699,29 @@
     "words": "واژه",
     "xShop": "",
     "yesterday": "دیروز",
-    "User menu": "منو کاربری"
+    "User menu": "منو کاربری",
+    "Complete profile": "تکمیل پروفایل",
+    "Personal Information": "اطلاعات شخصی",
+    "Change avatar": "تغییر تصویر نمایه",
+    "Add address": "افزودن نشانی",
+    "PENDING": "در انتظار پرداخت",
+    "CANCELED": "لغو شده",
+    "FAILED": "ناموفق",
+    "PAID": "پرداخت شده",
+    "SUCCESSFUL": "موفق",
+    "COMPLETED": "تکمیل شده",
+    "PROCESSING": "در حال پردازش",
+    "OPEN": "باز",
+    "CLOSED": "بسته شده",
+    "ANSWERED": "پاسخ داده شده",
+    "Recent Invoices": "آخرین فاکتورها",
+    "Recent Tickets": "آخرین تیکت‌های پشتیبانی",
+    "View All": "مشاهده همه",
+    "No invoices found": "صورت‌حسابی یافت نشد",
+    "No tickets found": "تیکتی یافت نشد",
+    "Member since": "تاریخ عضویت",
+    "Your profile is incomplete. Required fields:": "اطلاعات حساب شما ناقص است. موارد الزامی:"
 }
+
+
+

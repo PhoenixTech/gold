@@ -4,18 +4,37 @@ document.addEventListener('DOMContentLoaded', function () {
 
             el.addEventListener('click', function () {
                 try {
-                    document.querySelector('.tab-control a.active').classList.remove('active');
+                    document.querySelector('.tab-control a.active')?.classList.remove('active');
                     this.classList.add('active');
-                    document.querySelector('.tab.active,.tab-content.active').classList.remove('active');
-                    document.querySelector(this.getAttribute('href')).classList.add('active');
-                } catch {
+                    const targetContent = document.querySelector(this.getAttribute('href'));
+                    if (targetContent) {
+                        document.querySelector('.tab.active,.tab-content.active')?.classList.remove('active');
+                        targetContent.classList.add('active');
+                    }
+                } catch (e) {
                 }
 
             });
         });
     }
 
-    if(window.location.hash) {
-       document.querySelector(`.tab-control [href="${window.location.hash}"]`)?.click();
+    function activateTabFromHash() {
+        const hash = window.location.hash;
+        if (hash && hash.startsWith('#')) {
+            try {
+                const tabLink = document.querySelector(`.tab-control a[href="${hash}"]`);
+                if (tabLink && !tabLink.classList.contains('active')) {
+                    tabLink.click();
+                }
+            } catch (e) {
+            }
+        }
     }
+
+    activateTabFromHash();
+
+    window.addEventListener('hashchange', function () {
+        activateTabFromHash();
+    });
 });
+

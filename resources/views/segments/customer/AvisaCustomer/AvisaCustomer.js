@@ -36,13 +36,19 @@ document.addEventListener('DOMContentLoaded', function () {
             const href = this.getAttribute('href');
             if (href && href.startsWith('#')) {
                 updateAlertVisibility(href);
+                if (!this.closest('.tab-control')) {
+                    const targetTab = document.querySelector(`.tab-control a[href="${href}"]`);
+                    if (targetTab) {
+                        targetTab.click();
+                    }
+                }
             }
         });
     });
 
     const root = document.getElementById('AvisaCustomer');
     if (root && root.getAttribute('data-profile-incomplete') === 'true') {
-        if (!window.location.hash || window.location.hash === '#summary') {
+        if (!window.location.hash) {
             const profileTab = document.querySelector('#avisa-tabs a[href="#profile"]');
             if (profileTab) {
                 profileTab.click();
@@ -51,4 +57,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     updateAlertVisibility(window.location.hash);
+
+    window.addEventListener('hashchange', function () {
+        updateAlertVisibility(window.location.hash);
+    });
 });
+
