@@ -25,62 +25,68 @@
                 <ul class="tab-control" id="avisa-tabs">
                     <li>
                         <a href="#summary" class="active">
-                            <i class="ri-home-2-line"></i>
-                            {{__("Summary")}}
+                            <span class="avisa-nav-icon"><i class="ri-home-2-line"></i></span>
+                            <span class="avisa-nav-label">{{__("Summary")}}</span>
                         </a>
                     </li>
                     <li>
                         <a href="#invoices">
-                            <i class="ri-file-list-3-line"></i>
-                            {{__("Invoices")}}
+                            <span class="avisa-nav-icon"><i class="ri-file-list-3-line"></i></span>
+                            <span class="avisa-nav-label">{{__("Invoices")}}</span>
+                            <span class="avisa-nav-count">{{number_format(auth('customer')->user()->invoices()->count())}}</span>
                         </a>
                     </li>
                     <li>
                         <a href="#profile">
-                            <i class="ri-user-3-line"></i>
-                            {{__("Profile")}}
+                            <span class="avisa-nav-icon"><i class="ri-user-3-line"></i></span>
+                            <span class="avisa-nav-label">{{__("Profile")}}</span>
                         </a>
                     </li>
                     <li>
                         <a href="#addresses">
-                            <i class="ri-map-pin-user-line"></i>
-                            {{__("Addresses")}}
+                            <span class="avisa-nav-icon"><i class="ri-map-pin-user-line"></i></span>
+                            <span class="avisa-nav-label">{{__("Addresses")}}</span>
+                            <span class="avisa-nav-count">{{number_format(auth('customer')->user()->addresses()->count())}}</span>
                         </a>
                     </li>
                     <li>
                         <a href="#credit">
-                            <i class="ri-bank-card-2-line"></i>
-                            {{__("Credit")}}
+                            <span class="avisa-nav-icon"><i class="ri-bank-card-2-line"></i></span>
+                            <span class="avisa-nav-label">{{__("Credit")}}</span>
+                            <span class="avisa-nav-count">{{number_format(auth('customer')->user()->credit)}}</span>
                         </a>
                     </li>
                     <li>
                         <a href="#tickets">
-                            <i class="ri-customer-service-fill"></i>
-                            {{__("Tickets")}}
+                            <span class="avisa-nav-icon"><i class="ri-customer-service-fill"></i></span>
+                            <span class="avisa-nav-label">{{__("Tickets")}}</span>
+                            <span class="avisa-nav-count">{{number_format(auth('customer')->user()->tickets()->count())}}</span>
                         </a>
                     </li>
                     <li>
                         <a href="#submit-ticket">
-                            <i class="ri-mail-add-line"></i>
-                            {{__("Submit new ticket")}}
+                            <span class="avisa-nav-icon"><i class="ri-mail-add-line"></i></span>
+                            <span class="avisa-nav-label">{{__("Submit new ticket")}}</span>
                         </a>
                     </li>
                     <li>
                         <a href="#comments">
-                            <i class="ri-message-2-line"></i>
-                            {{__("Comments")}}
+                            <span class="avisa-nav-icon"><i class="ri-message-2-line"></i></span>
+                            <span class="avisa-nav-label">{{__("Comments")}}</span>
+                            <span class="avisa-nav-count">{{number_format(auth('customer')->user()->comments()->count())}}</span>
                         </a>
                     </li>
                     <li>
                         <a href="#favs">
-                            <i class="ri-hearts-line"></i>
-                            {{__("Favorites")}}
+                            <span class="avisa-nav-icon"><i class="ri-hearts-line"></i></span>
+                            <span class="avisa-nav-label">{{__("Favorites")}}</span>
+                            <span class="avisa-nav-count">{{number_format(auth('customer')->user()->favorites()->count())}}</span>
                         </a>
                     </li>
                     <li>
                         <a href="{{route('client.sign-out')}}">
-                            <i class="ri-logout-box-line"></i>
-                            {{__("Sign-out")}}
+                            <span class="avisa-nav-icon"><i class="ri-logout-box-line"></i></span>
+                            <span class="avisa-nav-label">{{__("Sign-out")}}</span>
                         </a>
                     </li>
                 </ul>
