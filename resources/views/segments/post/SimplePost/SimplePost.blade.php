@@ -23,20 +23,9 @@
 
         <!-- Main Post Card -->
         <article class="post-article-card mb-5">
-            <!-- Header -->
-            <header class="post-header mb-4">
-                <h1 class="post-title">
-                    {{$post->title}}
-                </h1>
-
-                @if($post->subtitle)
-                    <p class="post-subtitle lead text-muted mt-2 mb-3">
-                        {{$post->subtitle}}
-                    </p>
-                @endif
-
-                <!-- Meta bar -->
-                <div class="post-meta-bar d-flex align-items-center flex-wrap gap-3 py-2 border-top border-bottom my-3 fs-14 text-muted">
+            <!-- Header Meta Bar -->
+            <header class="post-header mb-3">
+                <div class="post-meta-bar d-flex align-items-center flex-wrap gap-3 pb-2 border-bottom mb-3 fs-14 text-muted">
                     <div class="meta-item">
                         <i class="ri-calendar-line text-primary me-1"></i>
                         <span>{{$post->created_at->ldate('Y/m/d')}}</span>
