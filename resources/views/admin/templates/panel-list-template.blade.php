@@ -200,13 +200,22 @@
                                                         {{$item->$col?->ldate("Y-m-d H:i")??'-'}}
                                                         @break
                                                      @case('metal_type')
-                                                         <span class="badge @if(($item->metal_type ?? 'gold') == 'gold') bg-warning text-dark @else bg-secondary text-white @endif">
-                                                             {{ __($item->metal_type == 'silver' ? 'Silver' : 'Gold') }}
+                                                         <span class="badge @if(($item->metal_type ?? 'gold') == 'silver') bg-secondary text-white @else bg-warning text-dark @endif">
+                                                             {{ $item->metal_type == 'silver' ? __('Silver') : __('Gold') }}
                                                          </span>
                                                          @break
                                                      @case('target_group')
-                                                         <span class="badge bg-light text-dark border">
-                                                             {{ __($item->target_group ?: 'unisex') }}
+                                                         @php
+                                                             $tgMap = [
+                                                                 'women' => __("Women's"),
+                                                                 'men' => __("Men's"),
+                                                                 'children' => __("Children's"),
+                                                                 'unisex' => __("Unisex"),
+                                                             ];
+                                                             $tgVal = $tgMap[$item->target_group ?? 'unisex'] ?? $item->target_group;
+                                                         @endphp
+                                                         <span class="badge bg-info-subtle text-info border border-info-subtle">
+                                                             {{ $tgVal }}
                                                          </span>
                                                          @break
                                                      @case('weight')

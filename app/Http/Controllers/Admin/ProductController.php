@@ -31,11 +31,11 @@ class ProductController extends XController
         'edit' =>
             ['title' => "Edit", 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
         'show' =>
-            ['title' => "Detail", 'class' => 'btn-outline-light', 'icon' => 'ri-eye-line'],
+            ['title' => "Detail", 'class' => 'btn-outline-secondary', 'icon' => 'ri-eye-line'],
         'destroy' =>
             ['title' => "Remove", 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-close-line'],
         'category' =>
-            ['title' => "Edit category", 'class' => 'btn-outline-light edit-category-btn', 'icon' => 'ri-list-check-3'],
+            ['title' => "Edit category", 'class' => 'btn-outline-info edit-category-btn', 'icon' => 'ri-list-check-3'],
     ];
 
 
