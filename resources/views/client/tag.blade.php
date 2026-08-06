@@ -4,6 +4,15 @@
     {{$title}} - {{config('app.name')}}
 @endsection
 
+@php
+    $defaultTab = 'products';
+    if (count($products) == 0 && count($posts) > 0) {
+        $defaultTab = 'posts';
+    } elseif (count($products) == 0 && count($posts) == 0 && count($clips) > 0) {
+        $defaultTab = 'clips';
+    }
+@endphp
+
 @section('content')
     @foreach(getParts('defaultHeader') as $part)
         @php($p = $part->getBladeWithData())
@@ -22,17 +31,17 @@
         <!-- Search / Tag Navigation Tabs -->
         <div class="search-tabs-wrapper mb-4">
             <div class="d-flex align-items-center justify-content-center flex-wrap gap-2">
-                <button type="button" class="search-tab-btn btn btn-light border rounded-pill px-4 py-2 fw-semibold fs-14 transition-all" data-tab-target="products">
+                <button type="button" class="search-tab-btn btn @if($defaultTab == 'products') btn-primary text-white active @else btn-light text-dark border @endif rounded-pill px-4 py-2 fw-semibold fs-14 transition-all" data-tab-target="products">
                     <i class="ri-shopping-bag-3-line me-1"></i>
                     {{__("Products")}}
                     <span class="badge bg-white text-dark border rounded-pill ms-1 px-2 py-0.5">{{count($products)}}</span>
                 </button>
-                <button type="button" class="search-tab-btn btn btn-light border rounded-pill px-4 py-2 fw-semibold fs-14 transition-all" data-tab-target="posts">
+                <button type="button" class="search-tab-btn btn @if($defaultTab == 'posts') btn-primary text-white active @else btn-light text-dark border @endif rounded-pill px-4 py-2 fw-semibold fs-14 transition-all" data-tab-target="posts">
                     <i class="ri-article-line me-1"></i>
                     {{__("Posts")}}
                     <span class="badge bg-white text-dark border rounded-pill ms-1 px-2 py-0.5">{{count($posts)}}</span>
                 </button>
-                <button type="button" class="search-tab-btn btn btn-light border rounded-pill px-4 py-2 fw-semibold fs-14 transition-all" data-tab-target="clips">
+                <button type="button" class="search-tab-btn btn @if($defaultTab == 'clips') btn-primary text-white active @else btn-light text-dark border @endif rounded-pill px-4 py-2 fw-semibold fs-14 transition-all" data-tab-target="clips">
                     <i class="ri-video-line me-1"></i>
                     {{__("Video clips")}}
                     <span class="badge bg-white text-dark border rounded-pill ms-1 px-2 py-0.5">{{count($clips)}}</span>
@@ -43,7 +52,7 @@
         <!-- Tab Panes -->
         <div class="search-tab-contents">
             <!-- PRODUCTS TAB -->
-            <div class="search-tab-pane d-none" id="products">
+            <div class="search-tab-pane @if($defaultTab != 'products') d-none @endif" id="products">
                 @if(count($products) == 0)
                     <div class="alert alert-info border-0 shadow-sm rounded-4 text-center py-4 my-3">
                         <i class="ri-information-line fs-2 d-block mb-2 text-info"></i>
@@ -96,7 +105,7 @@
             </div>
 
             <!-- POSTS TAB -->
-            <div class="search-tab-pane d-none" id="posts">
+            <div class="search-tab-pane @if($defaultTab != 'posts') d-none @endif" id="posts">
                 @if(count($posts) == 0)
                     <div class="alert alert-info border-0 shadow-sm rounded-4 text-center py-4 my-3">
                         <i class="ri-information-line fs-2 d-block mb-2 text-info"></i>
@@ -156,7 +165,7 @@
             </div>
 
             <!-- CLIPS TAB -->
-            <div class="search-tab-pane d-none" id="clips">
+            <div class="search-tab-pane @if($defaultTab != 'clips') d-none @endif" id="clips">
                 @if(count($clips) == 0)
                     <div class="alert alert-info border-0 shadow-sm rounded-4 text-center py-4 my-3">
                         <i class="ri-information-line fs-2 d-block mb-2 text-info"></i>
@@ -203,78 +212,69 @@
         </div>
     </div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            function getTargetHash() {
+                var hash = window.location.hash.replace('#', '').trim();
+                if (hash === 'products' || hash === 'posts' || hash === 'clips') {
+                    return hash;
+                }
+                return null;
+            }
+
+            function activateTab(tabTarget) {
+                if (!tabTarget) {
+                    return;
+                }
+
+                var btn = document.querySelector('[data-tab-target="' + tabTarget + '"]');
+                if (!btn) return;
+
+                document.querySelectorAll('.search-tab-btn').forEach(function(b) {
+                    b.classList.remove('active', 'btn-primary', 'text-white');
+                    b.classList.add('btn-light', 'text-dark', 'border');
+                });
+                btn.classList.add('active', 'btn-primary', 'text-white');
+                btn.classList.remove('btn-light', 'text-dark', 'border');
+
+                document.querySelectorAll('.search-tab-pane').forEach(function(pane) {
+                    pane.classList.add('d-none');
+                });
+                var activePane = document.getElementById(tabTarget);
+                if (activePane) {
+                    activePane.classList.remove('d-none');
+                }
+            }
+
+            document.querySelectorAll('.search-tab-btn').forEach(function (btn) {
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    var target = this.getAttribute('data-tab-target');
+                    activateTab(target);
+                    if (history.pushState) {
+                        history.pushState(null, null, '#' + target);
+                    } else {
+                        window.location.hash = '#' + target;
+                    }
+                });
+            });
+
+            var hash = getTargetHash();
+            if (hash) {
+                activateTab(hash);
+            }
+
+            window.addEventListener('hashchange', function() {
+                var newHash = getTargetHash();
+                if (newHash) {
+                    activateTab(newHash);
+                }
+            });
+        });
+    </script>
+
     @foreach(getParts('defaultFooter') as $part)
         @php($p = $part->getBladeWithData())
         @include($p['blade'],['data' => $p['data']])
     @endforeach
 @endsection
-
-@push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        function getTargetHash() {
-            var hash = window.location.hash.replace('#', '').trim();
-            if (hash === 'products' || hash === 'posts' || hash === 'clips') {
-                return hash;
-            }
-            return null;
-        }
-
-        function activateTab(tabTarget) {
-            if (!tabTarget) {
-                var productBtn = document.querySelector('[data-tab-target="products"]');
-                var postBtn = document.querySelector('[data-tab-target="posts"]');
-                
-                var prodCount = parseInt(productBtn ? productBtn.querySelector('.badge').textContent : 0);
-                var postCount = parseInt(postBtn ? postBtn.querySelector('.badge').textContent : 0);
-                
-                if (prodCount > 0) {
-                    tabTarget = 'products';
-                } else if (postCount > 0) {
-                    tabTarget = 'posts';
-                } else {
-                    tabTarget = 'products';
-                }
-            }
-
-            var btn = document.querySelector('[data-tab-target="' + tabTarget + '"]');
-            if (!btn) return;
-
-            document.querySelectorAll('.search-tab-btn').forEach(function(b) {
-                b.classList.remove('active', 'btn-primary', 'text-white');
-                b.classList.add('btn-light', 'text-dark', 'border');
-            });
-            btn.classList.add('active', 'btn-primary', 'text-white');
-            btn.classList.remove('btn-light', 'text-dark', 'border');
-
-            document.querySelectorAll('.search-tab-pane').forEach(function(pane) {
-                pane.classList.add('d-none');
-                pane.classList.remove('d-block');
-            });
-            var activePane = document.getElementById(tabTarget);
-            if (activePane) {
-                activePane.classList.remove('d-none');
-                activePane.classList.add('d-block');
-            }
-        }
-
-        document.querySelectorAll('.search-tab-btn').forEach(function (btn) {
-            btn.addEventListener('click', function (e) {
-                e.preventDefault();
-                var target = this.getAttribute('data-tab-target');
-                activateTab(target);
-                if (history.pushState) {
-                    history.pushState(null, null, '#' + target);
-                } else {
-                    window.location.hash = '#' + target;
-                }
-            });
-        });
-
-        activateTab(getTargetHash());
-        window.addEventListener('hashchange', function() {
-            activateTab(getTargetHash());
-        });
-    });
-</script>
-@endpush
