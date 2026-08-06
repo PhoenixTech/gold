@@ -1,68 +1,57 @@
-<section class='GridPostList content live-setting' data-live="{{$data->area_name.'_'.$data->part}}">
+<section class="GridPostList content live-setting py-4" data-live="{{$data->area_name.'_'.$data->part}}">
     <div class="{{gfx()['container']}}">
-        @if(\App\Models\Post::where('status',1)->where('is_pinned',1)->count() < 0 )
-        <div class="row pinned-posts">
-            @foreach(\App\Models\Post::where('status',1)->where('is_pinned',1)->limit(2)->get() as $post)
-                <div class="col-md-6 p-1">
-                    <div class="post-item">
-                        <div class="corner">
-                            {{$post->mainGroup->name}}
+        <div class="row g-4">
+            @foreach($posts as $post)
+                <div class="col-md-6 col-lg-4">
+                    <div class="grid-post-card card h-100 border-0 shadow-sm rounded-4 overflow-hidden d-flex flex-column transition-all">
+                        <div class="card-img-wrapper position-relative overflow-hidden">
+                            @if($post->mainGroup)
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill position-absolute top-0 start-0 m-3 z-2 fs-12 px-3 py-1.5 shadow-sm">
+                                    <i class="ri-folder-3-line me-1"></i> {{$post->mainGroup->name}}
+                                </span>
+                            @endif
+                            <a href="{{$post->webUrl()}}" class="d-block overflow-hidden">
+                                <img src="{{$post->imgUrl()}}" alt="{{$post->title}}" class="card-img-top post-card-img" loading="lazy">
+                            </a>
                         </div>
-                        <a href="{{$post->webUrl()}}">
-                            <img src="{{$post->orgUrl()}}" alt="{{$post->title}}"
-                                 title="{{implode(',',$post->tags->pluck('name')->toArray()??'')}}" loading="lazy">
-                        </a>
-                        <div class="detail">
-                            <h4>
-                                {{$post->title}}
-                            </h4>
-                            <span>
-                                {{$post->created_at->ldate('Y-m-d l')}}
-                            </span>
+
+                        <div class="card-body p-3.5 d-flex flex-column flex-grow-1">
+                            <h3 class="post-card-title fs-16 fw-bold mb-2">
+                                <a href="{{$post->webUrl()}}" class="text-decoration-none text-dark hover-primary line-clamp-2">
+                                    {{$post->title}}
+                                </a>
+                            </h3>
+
+                            @if($post->subtitle)
+                                <p class="card-text text-muted fs-14 mb-3 line-clamp-2 leading-relaxed">
+                                    {{$post->subtitle}}
+                                </p>
+                            @endif
+
+                            <div class="mt-auto pt-3 border-top d-flex align-items-center justify-content-between text-muted fs-13">
+                                <span class="d-inline-flex align-items-center">
+                                    <i class="ri-calendar-line text-primary me-1"></i>
+                                    {{$post->created_at->ldate('Y/m/d')}}
+                                </span>
+                                <span class="d-inline-flex align-items-center">
+                                    <i class="ri-eye-line text-primary me-1"></i>
+                                    {{number_format($post->view)}}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="card-footer bg-transparent border-0 p-3 pt-0">
+                            <a href="{{$post->webUrl()}}" class="btn btn-outline-primary btn-sm rounded-pill w-100 fw-semibold py-1.5 d-flex align-items-center justify-content-center gap-1">
+                                <span>{{__("Read more")}}</span>
+                                <i class="ri-arrow-left-line"></i>
+                            </a>
                         </div>
                     </div>
                 </div>
             @endforeach
         </div>
-        <hr>
-        @endif
-        <div class="row">
-
-            <div class="col-12">
-                <div class="row">
-                    @foreach($posts as $post)
-                        <div class="col-md-4">
-                            <div class="grid-post-item">
-                                <div class="corner">
-                                    {{$post->mainGroup->name}}
-                                </div>
-                                <img src="{{$post->imgUrl()}}" alt="{{$post->title}}" loading="lazy">
-                                <h4>
-                                    {{$post->title}}
-                                </h4>
-                                <div class="text-muted py-2">
-                                    <span>
-                                        <i class="ri-calendar-line"></i>
-                                        {{$post->created_at->ldate('Y/m/d l')}}
-                                    </span>
-                                    <span class="float-end">
-                                        <i class="ri-eye-line"></i>
-                                        {{number_format($post->view)}}
-                                    </span>
-                                </div>
-                                <p>
-                                    {{$post->subtitle}}
-                                    <br>
-                                </p>
-                                <a href="{{$post->webUrl()}}" class="btn btn-outline-primary my-2 btn-sm">
-                                    {{__("Read more")}}
-                                </a>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-                {{$posts->links()}}
-            </div>
+        <div class="mt-4">
+            {{$posts->links()}}
         </div>
     </div>
 </section>
