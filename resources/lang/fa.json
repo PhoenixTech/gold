@@ -797,7 +797,28 @@
     "Watch video": "تماشای ویدیو",
     "Search for": "جستجو برای",
     "View category": "مشاهده دسته‌بندی",
-    "Other categories": "سایر دسته‌بندی‌ها"
+    "Other categories": "سایر دسته‌بندی‌ها",
+    "metal_type": "نوع فلز",
+    "target_group": "مخاطب",
+    "weight": "وزن (گرم)",
+    "Gold & Silver Specifications": "مشخصات تخصصی طلا و نقره",
+    "Metal type": "نوع فلز (طلا/نقره)",
+    "Gold": "طلا",
+    "Silver": "نقره",
+    "Target group": "مخاطب",
+    "Men's": "مردانه",
+    "Women's": "زنانه",
+    "Children's": "بچه‌گانه",
+    "Unisex": "اسپرت",
+    "Weight (grams)": "وزن (گرم)",
+    "Labor charge 1": "اجرت ساخت ۱",
+    "Labor charge 2": "اجرت ساخت ۲",
+    "Labor charge 3": "اجرت ساخت ۳",
+    "Profit (%)": "درصد سود",
+    "Tax (%)": "درصد مالیات",
+    "Minimum stock level": "حداقل موجودی",
+    "Inventory level": "سطح موجودی انبار",
+    "g": "گرم"
 }
 
 

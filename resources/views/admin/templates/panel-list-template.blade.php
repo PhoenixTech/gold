@@ -199,9 +199,22 @@
                                                     @case('updated_at')
                                                         {{$item->$col?->ldate("Y-m-d H:i")??'-'}}
                                                         @break
-                                                    @case('icon')
-                                                        <i class="{{$item->$col}}"></i>
-                                                        @break
+                                                     @case('metal_type')
+                                                         <span class="badge @if(($item->metal_type ?? 'gold') == 'gold') bg-warning text-dark @else bg-secondary text-white @endif">
+                                                             {{ __($item->metal_type == 'silver' ? 'Silver' : 'Gold') }}
+                                                         </span>
+                                                         @break
+                                                     @case('target_group')
+                                                         <span class="badge bg-light text-dark border">
+                                                             {{ __($item->target_group ?: 'unisex') }}
+                                                         </span>
+                                                         @break
+                                                     @case('weight')
+                                                         <span>{{ number_format($item->weight ?? 0, 3) }} {{__('g')}}</span>
+                                                         @break
+                                                     @case('icon')
+                                                         <i class="{{$item->$col}}"></i>
+                                                         @break
                                                     @default
                                                         @if(substr($col,0,3) == 'is_')
                                                             @if($item->$col == 1)

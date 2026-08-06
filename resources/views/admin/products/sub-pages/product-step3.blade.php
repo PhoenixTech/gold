@@ -2,11 +2,20 @@
     <div class="col-md-6">
         <div class="form-group">
             <label for="stock_quantity" class="my-2">
-                {{__('Stock quantity')}}
+                {{__('Stock quantity')}} ({{__('Inventory level')}})
             </label>
             <input type="number" id="stock_quantity" name="stock_quantity"
                    value="{{old('stock_quantity',$item->stock_quantity??0)}}"
                    placeholder="{{__('Stock quantity')}}"
+                   class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="min_stock_level" class="my-2">
+                {{__('Minimum stock level')}}
+            </label>
+            <input type="number" id="min_stock_level" name="min_stock_level"
+                   value="{{old('min_stock_level',$item->min_stock_level??0)}}"
+                   placeholder="{{__('Minimum stock level')}}"
                    class="form-control">
         </div>
         <div class="form-group">

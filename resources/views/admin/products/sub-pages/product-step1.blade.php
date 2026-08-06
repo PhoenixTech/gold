@@ -67,13 +67,92 @@
             :err="true" @enderror :xvalue="{{old('buy_price',$item->buy_price??0)}}"></currency-input>
         </div>
     </div>
+
+    <!-- Gold & Silver Specifications Section -->
+    <div class="col-12 mt-4">
+        <div class="card border border-warning-subtle shadow-sm rounded-3">
+            <div class="card-header bg-warning-subtle fw-bold text-dark d-flex align-items-center gap-2">
+                <i class="ri-vip-diamond-line text-warning fs-5"></i>
+                <span>{{__("Gold & Silver Specifications")}}</span>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="metal_type" class="fw-semibold">{{__('Metal type')}}</label>
+                            <select name="metal_type" id="metal_type" class="form-control @error('metal_type') is-invalid @enderror">
+                                <option value="gold" @if(old('metal_type', $item->metal_type ?? 'gold') == 'gold') selected @endif>{{__('Gold')}}</option>
+                                <option value="silver" @if(old('metal_type', $item->metal_type ?? 'gold') == 'silver') selected @endif>{{__('Silver')}}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="target_group" class="fw-semibold">{{__('Target group')}}</label>
+                            <select name="target_group" id="target_group" class="form-control @error('target_group') is-invalid @enderror">
+                                <option value="women" @if(old('target_group', $item->target_group ?? 'women') == 'women') selected @endif>{{__("Women's")}}</option>
+                                <option value="men" @if(old('target_group', $item->target_group ?? 'women') == 'men') selected @endif>{{__("Men's")}}</option>
+                                <option value="children" @if(old('target_group', $item->target_group ?? 'women') == 'children') selected @endif>{{__("Children's")}}</option>
+                                <option value="unisex" @if(old('target_group', $item->target_group ?? 'women') == 'unisex') selected @endif>{{__("Unisex")}}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="weight" class="fw-semibold">{{__('Weight (grams)')}}</label>
+                            <input name="weight" type="number" step="0.001" min="0" id="weight"
+                                   class="form-control @error('weight') is-invalid @enderror"
+                                   placeholder="0.000"
+                                   value="{{old('weight', $item->weight ?? 0)}}"/>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="labor_charge_1" class="fw-semibold">{{__('Labor charge 1')}}</label>
+                            <currency-input xname="labor_charge_1" xid="labor_charge_1" @error('labor_charge_1') :err="true" @enderror :xvalue="{{old('labor_charge_1', $item->labor_charge_1 ?? $item->wage ?? 0)}}"></currency-input>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="labor_charge_2" class="fw-semibold">{{__('Labor charge 2')}}</label>
+                            <currency-input xname="labor_charge_2" xid="labor_charge_2" @error('labor_charge_2') :err="true" @enderror :xvalue="{{old('labor_charge_2', $item->labor_charge_2 ?? 0)}}"></currency-input>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="labor_charge_3" class="fw-semibold">{{__('Labor charge 3')}}</label>
+                            <currency-input xname="labor_charge_3" xid="labor_charge_3" @error('labor_charge_3') :err="true" @enderror :xvalue="{{old('labor_charge_3', $item->labor_charge_3 ?? 0)}}"></currency-input>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="profit" class="fw-semibold">{{__('Profit (%)')}}</label>
+                            <input name="profit" type="number" step="0.01" min="0" max="100" id="profit"
+                                   class="form-control @error('profit') is-invalid @enderror"
+                                   placeholder="7%"
+                                   value="{{old('profit', $item->profit ?? 7)}}"/>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="tax" class="fw-semibold">{{__('Tax (%)')}}</label>
+                            <input name="tax" type="number" step="0.01" min="0" max="100" id="tax"
+                                   class="form-control @error('tax') is-invalid @enderror"
+                                   placeholder="9%"
+                                   value="{{old('tax', $item->tax ?? 9)}}"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="col-lg-4 mt-3">
         <div class="form-group">
             <label for="categoryId">
                 {{__('Main product category')}}
             </label>
 
-            {{--                        data-url="{{route('props.list','')}}/"--}}
             <searchable-select
                 vuex-dispatch="updateCategory"
                 @error('category_id') :err="true" @enderror

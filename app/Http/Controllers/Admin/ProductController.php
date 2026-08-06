@@ -19,7 +19,7 @@ class ProductController extends XController
     // protected  $_MODEL_ = Product::class;
     // protected  $SAVE_REQUEST = ProductSaveRequest::class;
 
-    protected $cols = ['name', 'category_id', 'view', 'sell', 'status'];
+    protected $cols = ['name', 'metal_type', 'target_group', 'weight', 'category_id', 'stock_quantity', 'status'];
     protected $extra_cols = ['id', 'slug', 'image_index'];
 
     protected $searchable = ['name', 'slug', 'description', 'excerpt', 'sku', 'table'];
@@ -60,7 +60,16 @@ class ProductController extends XController
         $product->description = $request->input('desc');
         $product->excerpt = $request->input('excerpt');
         $product->addon = $request->input('addon');
-        $product->wage = $request->input('wage');
+        $product->wage = $request->input('labor_charge_1', $request->input('wage', 0));
+        $product->weight = $request->input('weight', 0);
+        $product->labor_charge_1 = $request->input('labor_charge_1', $request->input('wage', 0));
+        $product->labor_charge_2 = $request->input('labor_charge_2', 0);
+        $product->labor_charge_3 = $request->input('labor_charge_3', 0);
+        $product->profit = $request->input('profit', 0);
+        $product->tax = $request->input('tax', 0);
+        $product->min_stock_level = $request->input('min_stock_level', 0);
+        $product->target_group = $request->input('target_group', 'unisex');
+        $product->metal_type = $request->input('metal_type', 'gold');
         $product->keyword = $request->input('keyword');
         $product->stock_status = $request->input('stock_status');
         $product->price = $request->input('price', 0);
