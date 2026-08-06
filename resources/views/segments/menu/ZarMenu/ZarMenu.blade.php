@@ -63,7 +63,7 @@
                 {{__("Credit")}}
             </a>
         </li>
-        <li class="menu-btn  desktop-menu">
+        <li class="menu-btn">
             <span>
                 <i class="ri-line-chart-line mx-2"></i>
                  {{number_format( ((int) getSetting('gold')) )}} {{config('app.currency.symbol')}}

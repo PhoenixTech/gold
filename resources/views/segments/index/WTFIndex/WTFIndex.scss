@@ -1,54 +1,69 @@
 .WTFIndex {
-    // scss
-    #wtf-main-btns {
-        direction: ltr;
+    .wtf-tabs-container {
+        #wtf-main-btns {
+            -webkit-overflow-scrolling: touch;
+            &::-webkit-scrollbar {
+                display: none;
+            }
 
-        .col {
+            .main-dir {
+                border: 1px solid rgba(0, 0, 0, 0.08);
+                cursor: pointer;
+                opacity: 0.85;
+                transition: transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
 
-            border: none !important;
-            text-align: center;
-            padding: .5rem;
-
+                &:hover, &.active {
+                    opacity: 1;
+                    transform: scale(1.05);
+                    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15) !important;
+                }
+            }
         }
     }
-
 
     .wtf-section {
         display: none;
     }
 
-    a.col-3 {
-        display: block;
-        padding: 0 .5rem;
+    .wtf-cat-card {
+        background: var(--xshop-background);
 
-        img {
-            height: 35vh;
-            object-fit: cover;
-            width: 100%;
+        &:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 30px -5px rgba(0, 0, 0, 0.15) !important;
+
+            .cat-img-hover {
+                transform: scale(1.09);
+                opacity: 0.95;
+            }
         }
 
-        h5 {
-            font-size: 11px;
-            padding: .75rem 0;
-            text-align: center;
-            white-space: nowrap;
+        .cat-img-hover {
+            transition: transform 0.4s ease, opacity 0.4s ease;
         }
-    }
 
-    a {
-        color: #111111;
-    }
+        .card-overlay-vignette {
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.78) 0%, rgba(0, 0, 0, 0.2) 60%, transparent 100%);
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
 
+        .text-shadow {
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
 
-}
+        .bg-white-20 {
+            background-color: rgba(255, 255, 255, 0.25);
+        }
 
-/*-768px width*/
-@media (max-width: 768px) {
+        .border-white-30 {
+            border-color: rgba(255, 255, 255, 0.35) !important;
+        }
 
-    .wtf-section{
-        padding: 1.5rem 3rem;
-    }
-    .WTFIndex a.col-3 img {
-        height: 10vh !important;
+        .backdrop-blur {
+            backdrop-filter: blur(4px);
+        }
     }
 }
