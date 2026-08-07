@@ -10,6 +10,8 @@ class Setting extends Model
 {
     use HasFactory, HasTranslations;
 
+    protected $guarded = [];
+
     public $translatable = ['value'];
 
     public static $settingTypes = ['TEXT', 'NUMBER', 'LONGTEXT', 'CODE', 'EDITOR',
