@@ -60,8 +60,11 @@ abstract class XController extends Controller
                 $quickCounts['silver'] = $this->_MODEL_::where('metal_type', 'silver')->count();
             }
             if (\Illuminate\Support\Facades\Schema::hasColumn($table, 'status')) {
-                $quickCounts['published'] = $this->_MODEL_::where('status', 1)->count();
-                $quickCounts['draft'] = $this->_MODEL_::where('status', 0)->count();
+                $sample = $this->_MODEL_::whereNotNull('status')->first();
+                if ($sample && (is_numeric($sample->status) || in_array(strtolower((string)$sample->status), ['0', '1', 'published', 'draft']))) {
+                    $quickCounts['published'] = $this->_MODEL_::whereIn('status', [1, '1', 'published'])->count();
+                    $quickCounts['draft'] = $this->_MODEL_::whereIn('status', [0, '0', 'draft'])->count();
+                }
             }
             if (in_array(\Illuminate\Database\Eloquent\SoftDeletes::class, class_uses_recursive($model))) {
                 $quickCounts['trashed'] = $this->_MODEL_::onlyTrashed()->count();
