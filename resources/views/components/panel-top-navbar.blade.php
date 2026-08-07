@@ -29,9 +29,9 @@
                             <span class="gold-nav-val">{{number_format((int)getSetting('gold'))}}</span>
                             <span class="gold-nav-unit">{{config('app.currency.symbol')}}</span>
                         </span>
-                        <span class="gold-nav-price" title="{{__('Gold 24K Price')}}">
-                            <span class="gold-nav-label"><i class="ri-vip-crown-2-line me-1"></i>24K</span>
-                            <span class="gold-nav-val">{{number_format((int)getSetting('gold24'))}}</span>
+                        <span class="gold-nav-price" title="{{__('Silver price')}}">
+                            <span class="gold-nav-label"><i class="ri-vip-diamond-line me-1"></i>{{__('Silver')}}</span>
+                            <span class="gold-nav-val">{{number_format((int)getSetting('silver'))}}</span>
                             <span class="gold-nav-unit">{{config('app.currency.symbol')}}</span>
                         </span>
                         <span class="gold-nav-price" title="{{__('Dollar Rate')}}">
@@ -60,8 +60,8 @@
                                     <span class="fw-bold fs-xs">{{number_format((int)getSetting('gold'))}} {{config('app.currency.symbol')}}</span>
                                 </div>
                                 <div class="d-flex align-items-center justify-content-between p-2 rounded-2 bg-light">
-                                    <span class="badge bg-dark text-warning"><i class="ri-vip-crown-2-line me-1"></i>24K</span>
-                                    <span class="fw-bold fs-xs">{{number_format((int)getSetting('gold24'))}} {{config('app.currency.symbol')}}</span>
+                                    <span class="badge bg-dark text-warning"><i class="ri-vip-diamond-line me-1"></i>{{__('Silver')}}</span>
+                                    <span class="fw-bold fs-xs">{{number_format((int)getSetting('silver'))}} {{config('app.currency.symbol')}}</span>
                                 </div>
                                 <div class="d-flex align-items-center justify-content-between p-2 rounded-2 bg-light">
                                     <span class="badge bg-dark text-warning"><i class="ri-money-dollar-circle-line me-1"></i>$</span>
