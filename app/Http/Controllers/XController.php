@@ -45,16 +45,35 @@ abstract class XController extends Controller
 
     protected function showList($query)
     {
-
-
         if (hasRoute('trashed')) {
             $this->extra_cols[] = 'deleted_at';
         }
+
+        $quickCounts = [];
+        try {
+            $model = new ($this->_MODEL_);
+            $table = $model->getTable();
+            $quickCounts['all'] = $this->_MODEL_::count();
+
+            if (\Illuminate\Support\Facades\Schema::hasColumn($table, 'user_id')) {
+                $quickCounts['mine'] = $this->_MODEL_::where('user_id', auth()->id())->count();
+            }
+            if (\Illuminate\Support\Facades\Schema::hasColumn($table, 'status')) {
+                $quickCounts['published'] = $this->_MODEL_::where('status', 1)->count();
+                $quickCounts['draft'] = $this->_MODEL_::where('status', 0)->count();
+            }
+            if (in_array(\Illuminate\Database\Eloquent\SoftDeletes::class, class_uses_recursive($model))) {
+                $quickCounts['trashed'] = $this->_MODEL_::onlyTrashed()->count();
+            }
+        } catch (\Throwable $e) {
+            $quickCounts = [];
+        }
+
         $items = $query->paginate(config('app.panel.page_count'),
             array_merge($this->extra_cols, $this->cols));
         $cols = $this->cols;
         $buttons = $this->buttons;
-        return view($this->listView, compact('items', 'cols', 'buttons'));
+        return view($this->listView, compact('items', 'cols', 'buttons', 'quickCounts'));
     }
 
     protected function makeSortAndFilter()

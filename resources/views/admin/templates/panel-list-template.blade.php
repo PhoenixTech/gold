@@ -4,42 +4,91 @@
     <div class="mb-5 pb-5">
         @include('components.err')
 
-        {{-- Minimal Horizontal Filter Bar --}}
-        <div class="item-list mb-3 p-2 p-md-3">
-            <form action="" method="GET" class="d-flex flex-wrap align-items-center justify-content-between gap-2">
-                <div class="d-flex flex-wrap align-items-center gap-2 flex-grow-1">
-                    {{-- Search Input --}}
-                    <div class="search-input-wrapper" style="min-width: 220px; max-width: 340px; flex-grow: 1;">
-                        <div class="input-group">
-                            <span class="input-group-text bg-light border-end-0" id="button-addon2">
-                                <i class="ri-search-2-line text-muted"></i>
-                            </span>
-                            <input type="text" name="q" class="form-control border-start-0" placeholder="{{__("Search")}}..."
-                                   aria-label="{{__("Search")}}..." aria-describedby="button-addon2"
-                                   value="{{request()->input('q','')}}">
-                        </div>
-                    </div>
-
-                    {{-- Custom Filters --}}
-                    @yield('filter')
-
-                    <button type="submit" class="btn btn-primary px-3">
-                        <i class="ri-filter-3-line me-1"></i>{{__("Filter")}}
-                    </button>
-                </div>
-
-                <div class="d-flex align-items-center gap-2 ms-auto">
-                    @if(hasRoute('trashed'))
-                        <a class="btn btn-outline-danger btn-sm px-2.5"
-                           data-bs-toggle="tooltip"
-                           data-bs-placement="top"
-                           data-bs-custom-class="custom-tooltip"
-                           data-bs-title="{{__("Trashed items")}}"
-                           href="{{getRoute('trashed')}}">
-                            <i class="ri-delete-bin-6-line fs-6"></i>
+        {{-- WordPress Style Quick Filters Links Bar (All (10) | Mine (5) | Published (7) | Draft (2) | Trashed (1)) --}}
+        @if(isset($quickCounts) && count($quickCounts) > 0)
+            <div class="wp-quick-filters mb-2 px-1 fs-13">
+                <ul class="list-inline mb-0 d-flex align-items-center flex-wrap gap-2 text-muted">
+                    @php
+                        $currentStatus = request()->input('filter.status', null);
+                        $currentMine = request()->input('filter.user_id', null);
+                        $isAll = $currentStatus === null && $currentMine === null && !request()->routeIs('*trashed*');
+                    @endphp
+                    <li class="list-inline-item m-0">
+                        <a href="{{request()->url()}}" class="text-decoration-none @if($isAll) fw-bold text-primary @else text-dark @endif">
+                            {{__("All")}} <span class="text-muted">({{number_format($quickCounts['all'] ?? 0)}})</span>
                         </a>
+                    </li>
+                    @if(isset($quickCounts['mine']))
+                        <li class="list-inline-item m-0 text-black-50">|</li>
+                        <li class="list-inline-item m-0">
+                            <a href="{{request()->fullUrlWithQuery(['filter' => array_merge(request()->input('filter', []), ['user_id' => auth()->id()])])}}" class="text-decoration-none @if($currentMine == auth()->id()) fw-bold text-primary @else text-dark @endif">
+                                {{__("Mine")}} <span class="text-muted">({{number_format($quickCounts['mine'])}})</span>
+                            </a>
+                        </li>
                     @endif
-                </div>
+                    @if(isset($quickCounts['published']))
+                        <li class="list-inline-item m-0 text-black-50">|</li>
+                        <li class="list-inline-item m-0">
+                            <a href="{{request()->fullUrlWithQuery(['filter' => array_merge(request()->input('filter', []), ['status' => 1])])}}" class="text-decoration-none @if($currentStatus === '1' || $currentStatus === 1) fw-bold text-primary @else text-dark @endif">
+                                {{__("Published")}} <span class="text-muted">({{number_format($quickCounts['published'])}})</span>
+                            </a>
+                        </li>
+                    @endif
+                    @if(isset($quickCounts['draft']))
+                        <li class="list-inline-item m-0 text-black-50">|</li>
+                        <li class="list-inline-item m-0">
+                            <a href="{{request()->fullUrlWithQuery(['filter' => array_merge(request()->input('filter', []), ['status' => 0])])}}" class="text-decoration-none @if($currentStatus === '0' || $currentStatus === 0) fw-bold text-primary @else text-dark @endif">
+                                {{__("Draft")}} <span class="text-muted">({{number_format($quickCounts['draft'])}})</span>
+                            </a>
+                        </li>
+                    @endif
+                    @if(isset($quickCounts['trashed']) && hasRoute('trashed'))
+                        <li class="list-inline-item m-0 text-black-50">|</li>
+                        <li class="list-inline-item m-0">
+                            <a href="{{getRoute('trashed')}}" class="text-decoration-none @if(request()->routeIs('*trashed*')) fw-bold text-danger @else text-dark @endif">
+                                {{__("Trashed")}} <span class="text-muted">({{number_format($quickCounts['trashed'])}})</span>
+                            </a>
+                        </li>
+                    @endif
+                </ul>
+            </div>
+        @endif
+
+        {{-- WordPress Style Compact Single Action & Filter Row --}}
+        <div class="wp-tablenav mb-3 p-2 bg-white border rounded-3 shadow-sm d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <!-- Left Actions & Custom Filters -->
+            <form action="" method="GET" class="d-flex flex-wrap align-items-center gap-2 flex-grow-1 mb-0">
+                @if(hasRoute('bulk'))
+                    <div class="bulk-action-inline d-flex align-items-center gap-1">
+                        <select data-bulk-action class="form-select form-select-sm w-auto" name="action" style="min-width: 140px;">
+                            <option value="">{{__("Bulk actions")}}</option>
+                            @if(strpos(request()->url(),'trashed') != false)
+                                <option value="restore">{{__("Batch restore")}}</option>
+                            @else
+                                <option value="delete">{{__("Batch delete")}}</option>
+                            @endif
+                            @yield('bulk')
+                        </select>
+                        <button type="submit" form="main-form" data-bulk-run class="btn btn-sm btn-outline-secondary" disabled>
+                            {{__("Apply")}}
+                        </button>
+                    </div>
+                @endif
+
+                {{-- Custom Filters --}}
+                @yield('filter')
+
+                <button type="submit" class="btn btn-sm btn-primary px-3">
+                    <i class="ri-filter-3-line me-1"></i>{{__("Filter")}}
+                </button>
+            </form>
+
+            <!-- Right Search Box -->
+            <form action="" method="GET" class="d-flex align-items-center gap-1 ms-auto mb-0" style="max-width: 280px; min-width: 200px;">
+                <input type="search" name="q" class="form-control form-control-sm" placeholder="{{__('Search')}}..." value="{{request()->input('q','')}}">
+                <button type="submit" class="btn btn-sm btn-secondary">
+                    <i class="ri-search-line"></i>
+                </button>
             </form>
         </div>
 
@@ -52,12 +101,6 @@
                 @if(hasRoute('bulk'))
                     @csrf
                 @endif
-                <div class="bulk-toolbar-mobile align-items-center justify-content-between gap-2 flex-wrap p-2">
-                    <span class="small text-muted">
-                        {{__("Bulk actions")}}
-                    </span>
-                    @include('admin.templates.partials.bulk-toolbar')
-                </div>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle">
                         <thead>
@@ -85,10 +128,7 @@
                                     </a>
                                 </th>
                             @endforeach
-                            {{--                            @yield('table-head')--}}
-                            <th class="d-none d-md-table-cell">
-                                @include('admin.templates.partials.bulk-toolbar')
-                            </th>
+                            <th></th>
                         </tr>
                         </thead>
                         <tbody>

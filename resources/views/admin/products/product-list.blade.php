@@ -9,10 +9,9 @@
 @endsection
 @section('filter')
     {{--  Other filters --}}
-    <h2>
-        <i class="ri-book-3-line"></i>
-        {{__("Category")}}:
-    </h2>
+    <span class="small fw-semibold text-muted align-self-center">
+        <i class="ri-book-3-line me-1"></i>{{__("Category")}}:
+    </span>
     <input type="hidden" id="category-edit-url" value="{{route('admin.product.category-edit','')}}/">
 
     <searchable-multi-select
