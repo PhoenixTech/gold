@@ -8,12 +8,10 @@
     {{__("Tickets list")}} -
 @endsection
 @section('filter')
-    @php
-        $selectedTicketStatus = (array) request()->input('filter.status', []);
-    @endphp
-    <select name="filter[status][]" class="form-select form-select-sm w-auto" multiple style="min-width: 160px; max-height: 38px;">
+    <select name="filter[status]" class="form-select form-select-sm w-auto">
+        <option value="">{{__("All statuses")}}</option>
         @foreach(\App\Models\Ticket::$ticket_statuses as $st)
-            <option value="{{$st}}" @if(in_array($st, $selectedTicketStatus)) selected @endif>
+            <option value="{{$st}}" @if(request()->input('filter.status') == $st) selected @endif>
                 {{__($st)}}
             </option>
         @endforeach

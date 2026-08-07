@@ -8,12 +8,10 @@
     {{__("Invoices list")}} -
 @endsection
 @section('filter')
-    @php
-        $selectedStatus = (array) request()->input('filter.status', []);
-    @endphp
-    <select name="filter[status][]" class="form-select form-select-sm w-auto" multiple style="min-width: 160px; max-height: 38px;">
+    <select name="filter[status]" class="form-select form-select-sm w-auto">
+        <option value="">{{__("All statuses")}}</option>
         @foreach(\App\Models\Invoice::$invoiceStatus as $st)
-            <option value="{{$st}}" @if(in_array($st, $selectedStatus)) selected @endif>
+            <option value="{{$st}}" @if(request()->input('filter.status') == $st) selected @endif>
                 {{__($st)}}
             </option>
         @endforeach

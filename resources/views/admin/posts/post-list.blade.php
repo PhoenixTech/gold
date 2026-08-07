@@ -10,12 +10,10 @@
 @section('filter')
     <input type="hidden" id="group-edit-url" value="{{route('admin.post.group-edit','')}}/">
 
-    @php
-        $selectedGroups = (array) request()->input('filter.group_id', []);
-    @endphp
-    <select name="filter[group_id][]" class="form-select form-select-sm w-auto" multiple style="min-width: 160px; max-height: 38px;" title="{{__('Hold Ctrl/Cmd to select multiple')}}">
+    <select name="filter[group_id]" class="form-select form-select-sm w-auto">
+        <option value="">{{__("All groups")}}</option>
         @foreach(\App\Models\Group::all(['id','name']) as $grp)
-            <option value="{{$grp->id}}" @if(in_array($grp->id, $selectedGroups)) selected @endif>
+            <option value="{{$grp->id}}" @if(request()->input('filter.group_id') == $grp->id) selected @endif>
                 {{$grp->name}}
             </option>
         @endforeach

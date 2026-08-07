@@ -10,12 +10,10 @@
 @section('filter')
     <input type="hidden" id="category-edit-url" value="{{route('admin.product.category-edit','')}}/">
 
-    @php
-        $selectedCats = (array) request()->input('filter.category_id', []);
-    @endphp
-    <select name="filter[category_id][]" class="form-select form-select-sm w-auto" multiple style="min-width: 160px; max-height: 38px;" title="{{__('Hold Ctrl/Cmd to select multiple')}}">
+    <select name="filter[category_id]" class="form-select form-select-sm w-auto">
+        <option value="">{{__("All categories")}}</option>
         @foreach(\App\Models\Category::all(['id','name']) as $cat)
-            <option value="{{$cat->id}}" @if(in_array($cat->id, $selectedCats)) selected @endif>
+            <option value="{{$cat->id}}" @if(request()->input('filter.category_id') == $cat->id) selected @endif>
                 {{$cat->name}}
             </option>
         @endforeach

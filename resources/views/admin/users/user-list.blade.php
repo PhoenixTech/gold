@@ -8,12 +8,10 @@
     {{__("Users list")}} -
 @endsection
 @section('filter')
-    @php
-        $selectedRoles = (array) request()->input('filter.role', []);
-    @endphp
-    <select name="filter[role][]" class="form-select form-select-sm w-auto" multiple style="min-width: 160px; max-height: 38px;">
+    <select name="filter[role]" class="form-select form-select-sm w-auto">
+        <option value="">{{__("All roles")}}</option>
         @foreach(\App\Models\User::$roles as $role)
-            <option value="{{$role}}" @if(in_array($role, $selectedRoles)) selected @endif>
+            <option value="{{$role}}" @if(request()->input('filter.role') == $role) selected @endif>
                 {{__($role)}}
             </option>
         @endforeach
