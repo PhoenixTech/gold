@@ -75,19 +75,35 @@
                     </div>
                 @endif
 
-                {{-- Custom Filters --}}
-                @yield('filter')
+                @if(request()->has('q') && trim(request()->input('q')) != '')
+                    <input type="hidden" name="q" value="{{request()->input('q')}}">
+                @endif
 
-                <button type="submit" class="btn btn-sm btn-primary px-3">
-                    <i class="ri-filter-3-line me-1"></i>{{__("Filter")}}
-                </button>
+                {{-- Custom Filters --}}
+                @hasSection('filter')
+                    @yield('filter')
+                    <button type="submit" class="btn btn-sm btn-primary px-3">
+                        <i class="ri-filter-3-line me-1"></i>{{__("Filter")}}
+                    </button>
+                @endif
             </form>
 
-            <!-- Right Search Box -->
-            <form action="" method="GET" class="d-flex align-items-center gap-1 ms-auto mb-0" style="max-width: 280px; min-width: 200px;">
+            <!-- Right Search Box with Separate Search Action Button -->
+            <form action="" method="GET" class="d-flex align-items-center gap-1 ms-auto mb-0" style="max-width: 300px; min-width: 220px;">
+                @if(request()->has('filter'))
+                    @foreach(request()->input('filter', []) as $fk => $fv)
+                        @if(is_array($fv))
+                            @foreach($fv as $fval)
+                                <input type="hidden" name="filter[{{$fk}}][]" value="{{$fval}}">
+                            @endforeach
+                        @elseif($fv !== null && $fv !== '')
+                            <input type="hidden" name="filter[{{$fk}}]" value="{{$fv}}">
+                        @endif
+                    @endforeach
+                @endif
                 <input type="search" name="q" class="form-control form-control-sm" placeholder="{{__('Search')}}..." value="{{request()->input('q','')}}">
-                <button type="submit" class="btn btn-sm btn-secondary">
-                    <i class="ri-search-line"></i>
+                <button type="submit" class="btn btn-sm btn-primary px-3 text-nowrap">
+                    <i class="ri-search-line me-1"></i>{{__("Search")}}
                 </button>
             </form>
         </div>
