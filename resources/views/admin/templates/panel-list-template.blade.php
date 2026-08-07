@@ -125,8 +125,8 @@
                     @endforeach
                 @endif
                 <input type="search" name="q" class="form-control form-control-sm" placeholder="{{__('Search')}}..." value="{{request()->input('q','')}}">
-                <button type="submit" class="btn btn-sm btn-primary px-3 text-nowrap">
-                    <i class="ri-search-line me-1"></i>{{__("Search")}}
+                <button type="submit" class="btn btn-sm btn-primary px-2.5" title="{{__('Search')}}">
+                    <i class="ri-search-line"></i>
                 </button>
             </form>
         </div>

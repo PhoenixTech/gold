@@ -249,7 +249,7 @@
     "File name": "نام پرونده",
     "File size": "حجم پرونده",
     "File uploaded successfully": "پرونده با موفقیت بارگزاری شد",
-    "Filter": "صافی",
+    "Filter": "فیلتر",
     "Find more": "موارد بیشتر",
     "Flag": "پرچم",
     "Floats": "شناورها",
@@ -445,7 +445,7 @@
     "Reset Password": "بازیابی رمز عبور",
     "Restore": "بازیافت",
     "Role": "نقش",
-    "Role filter": "صافی نقش‌ها",
+    "Role filter": "فیلتر نقش‌ها",
     "SEO": "سئو",
     "SEO Score": "امتیاز سئو",
     "SKU": "",
@@ -455,7 +455,7 @@
     "Save all settings": "ذخیره همه تنظیمات",
     "Save and build": "ذخیره و ساخت",
     "Search": "جستجو",
-    "Search & Filter": "جستجو و صافی",
+    "Search & Filter": "جستجو و فیلتر",
     "Search for": "جستجو برای",
     "Search word is too short": "واژه مورد جستجو بسیار کوتاه است",
     "Searchable": "قابل جستجو",
@@ -496,7 +496,7 @@
     "Sliders list": "فهرست اسلایدر",
     "Slug": "نامک",
     "Sort": "ترتیب",
-    "Sort & filter": "ترتیب و صافی",
+    "Sort & filter": "ترتیب و فیلتر",
     "State": "استان",
     "States": "استان‌ها",
     "States list": "فهرست استان‌ها",
@@ -562,7 +562,7 @@
     "Upload new images": "بارگزاری تصاویر جدید",
     "Use default": "استفاده از پیش فرض ها",
     "User": "کاربر",
-    "User filter": "صافی کاربر",
+    "User filter": "فیلتر کاربر",
     "Users": "کاربران",
     "Users list": "فهرست کاربران",
     "Value": "مقدار",
@@ -830,7 +830,8 @@
     "All categories": "همه دسته‌بندی‌ها",
     "All groups": "همه گروه‌ها",
     "All statuses": "همه وضعیت‌ها",
-    "All roles": "همه نقش‌ها"
+    "All roles": "همه نقش‌ها",
+    "Bulk actions": "کارهای دسته‌جمعی"
 }
 
 
