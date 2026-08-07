@@ -213,13 +213,26 @@
                                                     @case('parent_id')
                                                         {{ $item->parent?->{$cols[0]}??'-' }}
                                                         @break
-                                                    @case('status')
-                                                        <span class="badge bg-secondary float-start"
-                                                              data-bs-toggle="tooltip"
-                                                              data-bs-placement="top"
-                                                              data-bs-custom-class="custom-tooltip"
-                                                              data-bs-title="{{$item->status}}">{{$item->status}}</span>
-                                                        @break
+                                                     @case('status')
+                                                         @php
+                                                             $stVal = (string) $item->status;
+                                                             $stIsPublished = ($stVal === '1' || strtolower($stVal) === 'published');
+                                                             $stIsDraft = ($stVal === '0' || strtolower($stVal) === 'draft');
+                                                         @endphp
+                                                         @if($stIsPublished)
+                                                             <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                                                 {{__("Published")}}
+                                                             </span>
+                                                         @elseif($stIsDraft)
+                                                             <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">
+                                                                 {{__("Draft")}}
+                                                             </span>
+                                                         @else
+                                                             <span class="badge bg-info-subtle text-info border border-info-subtle">
+                                                                 {{ __($item->status) }}
+                                                             </span>
+                                                         @endif
+                                                         @break
                                                     @case('user_id')
                                                         @if($item->user != null)
                                                             <a href="{{route('admin.user.edit',$item->user?->email)}}">
