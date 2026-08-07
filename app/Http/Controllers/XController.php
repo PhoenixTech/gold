@@ -55,8 +55,9 @@ abstract class XController extends Controller
             $table = $model->getTable();
             $quickCounts['all'] = $this->_MODEL_::count();
 
-            if (\Illuminate\Support\Facades\Schema::hasColumn($table, 'user_id')) {
-                $quickCounts['mine'] = $this->_MODEL_::where('user_id', auth()->id())->count();
+            if (\Illuminate\Support\Facades\Schema::hasColumn($table, 'metal_type')) {
+                $quickCounts['gold'] = $this->_MODEL_::where('metal_type', 'gold')->count();
+                $quickCounts['silver'] = $this->_MODEL_::where('metal_type', 'silver')->count();
             }
             if (\Illuminate\Support\Facades\Schema::hasColumn($table, 'status')) {
                 $quickCounts['published'] = $this->_MODEL_::where('status', 1)->count();

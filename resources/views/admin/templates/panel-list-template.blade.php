@@ -11,23 +11,33 @@
                     @php
                         $baseUrl = hasRoute('index') ? getRoute('index') : str_replace('/trashed', '', request()->url());
                         $currentStatus = request()->input('filter.status', null);
-                        $currentMine = request()->input('filter.user_id', null);
-                        $isAll = $currentStatus === null && $currentMine === null && !request()->routeIs('*trashed*');
+                        $currentMetal = request()->input('filter.metal_type', null);
+                        $isAll = $currentStatus === null && $currentMetal === null && !request()->routeIs('*trashed*');
                     @endphp
                     <li class="list-inline-item m-0">
                         <a href="{{$baseUrl}}" class="text-decoration-none @if($isAll) fw-bold text-primary @else text-dark @endif">
                             {{__("All")}} <span class="text-muted">({{number_format($quickCounts['all'] ?? 0)}})</span>
                         </a>
                     </li>
-                    @if(isset($quickCounts['mine']))
+                    @if(isset($quickCounts['gold']))
                         @php
-                            $mineFilter = array_merge(request()->input('filter', []), ['user_id' => auth()->id()]);
-                            unset($mineFilter['status']);
+                            $goldFilter = array_merge(request()->input('filter', []), ['metal_type' => 'gold']);
                         @endphp
                         <li class="list-inline-item m-0 text-black-50">|</li>
                         <li class="list-inline-item m-0">
-                            <a href="{{$baseUrl}}?{{http_build_query(['filter' => $mineFilter])}}" class="text-decoration-none @if($currentMine == auth()->id()) fw-bold text-primary @else text-dark @endif">
-                                {{__("Mine")}} <span class="text-muted">({{number_format($quickCounts['mine'])}})</span>
+                            <a href="{{$baseUrl}}?{{http_build_query(['filter' => $goldFilter])}}" class="text-decoration-none @if($currentMetal === 'gold') fw-bold text-warning @else text-dark @endif">
+                                {{__("Gold")}} <span class="text-muted">({{number_format($quickCounts['gold'])}})</span>
+                            </a>
+                        </li>
+                    @endif
+                    @if(isset($quickCounts['silver']))
+                        @php
+                            $silverFilter = array_merge(request()->input('filter', []), ['metal_type' => 'silver']);
+                        @endphp
+                        <li class="list-inline-item m-0 text-black-50">|</li>
+                        <li class="list-inline-item m-0">
+                            <a href="{{$baseUrl}}?{{http_build_query(['filter' => $silverFilter])}}" class="text-decoration-none @if($currentMetal === 'silver') fw-bold text-secondary @else text-dark @endif">
+                                {{__("Silver")}} <span class="text-muted">({{number_format($quickCounts['silver'])}})</span>
                             </a>
                         </li>
                     @endif
