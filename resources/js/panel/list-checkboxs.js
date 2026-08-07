@@ -7,6 +7,23 @@ function clearSelection() {
 }
 
 
+function syncMainFormAction() {
+    let mainForm = document.querySelector('#main-form');
+    if (!mainForm) return;
+
+    let activeSelect = document.querySelector('[data-bulk-action]');
+    if (activeSelect) {
+        let hiddenInput = mainForm.querySelector('input[name="action"]');
+        if (!hiddenInput) {
+            hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'action';
+            mainForm.appendChild(hiddenInput);
+        }
+        hiddenInput.value = activeSelect.value || '';
+    }
+}
+
 function handleCheckChange() {
     let table = document.querySelector('#main-form table');
 
@@ -17,6 +34,8 @@ function handleCheckChange() {
     let count = table.querySelectorAll('.chkbox:checked').length;
     let countEls = document.querySelectorAll('[data-bulk-count]');
     let runBtns = document.querySelectorAll('[data-bulk-run]');
+    let activeSelect = document.querySelector('[data-bulk-action]');
+    let hasAction = activeSelect && activeSelect.value !== '';
 
     countEls.forEach(function (countEl) {
         if (count > 0) {
@@ -28,8 +47,10 @@ function handleCheckChange() {
     });
 
     runBtns.forEach(function (runBtn) {
-        runBtn.disabled = count === 0;
+        runBtn.disabled = (count === 0 || !hasAction);
     });
+
+    syncMainFormAction();
 }
 
 function syncBulkActions() {
@@ -41,8 +62,16 @@ function syncBulkActions() {
                     other.value = sel.value;
                 }
             });
+            handleCheckChange();
         });
     });
+
+    let mainForm = document.querySelector('#main-form');
+    if (mainForm) {
+        mainForm.addEventListener('submit', function () {
+            syncMainFormAction();
+        });
+    }
 }
 
 window.addEventListener('load', function () {

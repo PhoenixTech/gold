@@ -116,6 +116,7 @@
                   @endif>
                 @if(hasRoute('bulk'))
                     @csrf
+                    <input type="hidden" name="action" id="main-form-action-input" value="">
                 @endif
                 <div class="table-responsive">
                     <table class="table table-hover align-middle">
@@ -437,4 +438,30 @@
             <i class="ri-add-line"></i>
         </a>
     @endif
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var actionInput = document.getElementById('main-form-action-input');
+        var mainForm = document.getElementById('main-form');
+
+        function updateAction() {
+            var activeSelect = document.querySelector('[data-bulk-action]');
+            if (activeSelect && actionInput) {
+                actionInput.value = activeSelect.value || '';
+            }
+        }
+
+        document.addEventListener('change', function (e) {
+            if (e.target && e.target.matches('[data-bulk-action]')) {
+                updateAction();
+            }
+        });
+
+        if (mainForm) {
+            mainForm.addEventListener('submit', function () {
+                updateAction();
+            });
+        }
+    });
+    </script>
 @endsection
