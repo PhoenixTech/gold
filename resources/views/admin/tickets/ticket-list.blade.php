@@ -8,20 +8,17 @@
     {{__("Tickets list")}} -
 @endsection
 @section('filter')
-    <h2>
-        <i class="ri-shield-check-line"></i>
-        {{__("Status")}}:
-    </h2>
-    <searchable-multi-select
-        :items='{{arrayNormalizeVueCompatible(\App\Models\Ticket::$ticket_statuses, true)}}'
-        title-field="name"
-        value-field="name"
-        xname="filter[status]"
-        :xvalue='{{request()->input('filter.status','[]')}}'
-        :close-on-Select="true"></searchable-multi-select>
+    <select name="filter[status]" class="form-select form-select-sm w-auto">
+        <option value="">{{__("All statuses")}}</option>
+        @foreach(\App\Models\Ticket::$ticket_statuses as $st)
+            <option value="{{$st}}" @if(request()->input('filter.status') == $st) selected @endif>
+                {{__($st)}}
+            </option>
+        @endforeach
+    </select>
 @endsection
 @section('bulk')
-        <option value="close"> {{__("Close")}} </option>
-        <option value="pending"> {{__("Pending")}} </option>
-        <option value="answered"> {{__("Answered")}} </option>
+    <option value="close"> {{__("Close")}} </option>
+    <option value="pending"> {{__("Pending")}} </option>
+    <option value="answered"> {{__("Answered")}} </option>
 @endsection

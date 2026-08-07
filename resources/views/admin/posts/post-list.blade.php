@@ -9,19 +9,17 @@
 @endsection
 @section('filter')
     <input type="hidden" id="group-edit-url" value="{{route('admin.post.group-edit','')}}/">
-    {{--  Other filters --}}
 
-    {{__("Main group")}}
-    <searchable-multi-select
-        :items='{{\App\Models\Group::all(['id','name'])}}'
-        title-field="name"
-        value-field="id"
-        xlang="{{config('app.locale')}}"
-        xname="filter[group_id]"
-        :xvalue='{{request()->input('filter.group_id','[]')}}'
-        :close-on-Select="true"></searchable-multi-select>
+    <select name="filter[group_id]" class="form-select form-select-sm w-auto">
+        <option value="">{{__("All groups")}}</option>
+        @foreach(\App\Models\Group::all(['id','name']) as $grp)
+            <option value="{{$grp->id}}" @if(request()->input('filter.group_id') == $grp->id) selected @endif>
+                {{$grp->name}}
+            </option>
+        @endforeach
+    </select>
 @endsection
 @section('bulk')
-        <option value="publish"> {{__("Publish")}} </option>
-        <option value="draft"> {{__("Draft")}} </option>
+    <option value="publish"> {{__("Publish")}} </option>
+    <option value="draft"> {{__("Draft")}} </option>
 @endsection

@@ -8,20 +8,17 @@
     {{__("Users list")}} -
 @endsection
 @section('filter')
-    <h2>
-        <i class="ri-shield-check-line"></i>
-        {{__("Role filter")}}:
-    </h2>
-    <searchable-multi-select
-        :items='{{arrayNormalizeVueCompatible(\App\Models\User::$roles, true)}}'
-        title-field="name"
-        value-field="name"
-        xname="filter[role]"
-        :xvalue='{{request()->input('filter.role','[]')}}'
-        :close-on-Select="true"></searchable-multi-select>
+    <select name="filter[role]" class="form-select form-select-sm w-auto">
+        <option value="">{{__("All roles")}}</option>
+        @foreach(\App\Models\User::$roles as $role)
+            <option value="{{$role}}" @if(request()->input('filter.role') == $role) selected @endif>
+                {{__($role)}}
+            </option>
+        @endforeach
+    </select>
 @endsection
 @section('bulk')
     @foreach(\App\Models\User::$roles as $role)
-    <option value="role.{{$role}}"> {{__("Set")}} {{__("$role")}} </option>
+        <option value="role.{{$role}}"> {{__("Set")}} {{__("$role")}} </option>
     @endforeach
 @endsection

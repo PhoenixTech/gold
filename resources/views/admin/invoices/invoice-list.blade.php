@@ -8,18 +8,14 @@
     {{__("Invoices list")}} -
 @endsection
 @section('filter')
-    <h2>
-        <i class="ri-shield-check-line"></i>
-        {{__("Status")}}:
-    </h2>
-    <searchable-multi-select
-        :items='{{arrayNormalizeVueCompatible(\App\Models\Invoice::$invoiceStatus, true)}}'
-        title-field="name"
-        value-field="name"
-        xname="filter[status]"
-        :xvalue='{{request()->input('filter.status','[]')}}'
-        :close-on-Select="true"></searchable-multi-select>
+    <select name="filter[status]" class="form-select form-select-sm w-auto">
+        <option value="">{{__("All statuses")}}</option>
+        @foreach(\App\Models\Invoice::$invoiceStatus as $st)
+            <option value="{{$st}}" @if(request()->input('filter.status') == $st) selected @endif>
+                {{__($st)}}
+            </option>
+        @endforeach
+    </select>
 @endsection
 @section('bulk')
-    {{--    <option value="-"> - </option> --}}
 @endsection

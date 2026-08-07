@@ -8,24 +8,18 @@
     {{__("Products list")}} -
 @endsection
 @section('filter')
-    {{--  Other filters --}}
-    <span class="small fw-semibold text-muted align-self-center">
-        <i class="ri-book-3-line me-1"></i>{{__("Category")}}:
-    </span>
     <input type="hidden" id="category-edit-url" value="{{route('admin.product.category-edit','')}}/">
 
-    <searchable-multi-select
-        :items='{{\App\Models\Category::all(['id','name'])}}'
-        title-field="name"
-        value-field="id"
-        xlang="{{config('app.locale')}}"
-        xname="filter[category_id]"
-        :xvalue='{{request()->input('filter.category_id','[]')}}'
-        :close-on-Select="true"></searchable-multi-select>
+    <select name="filter[category_id]" class="form-select form-select-sm w-auto">
+        <option value="">{{__("All categories")}}</option>
+        @foreach(\App\Models\Category::all(['id','name']) as $cat)
+            <option value="{{$cat->id}}" @if(request()->input('filter.category_id') == $cat->id) selected @endif>
+                {{$cat->name}}
+            </option>
+        @endforeach
+    </select>
 @endsection
 @section('bulk')
-    {{--    <option value="-"> - </option> --}}
-
     <option value="publish"> {{__("Publish")}} </option>
     <option value="draft"> {{__("Draft")}} </option>
 @endsection

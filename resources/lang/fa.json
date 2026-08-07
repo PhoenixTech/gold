@@ -826,7 +826,11 @@
     "Published": "منتشرشده",
     "Draft": "پیش‌نویس",
     "Trashed": "زباله‌دان",
-    "Apply": "اجرا"
+    "Apply": "اجرا",
+    "All categories": "همه دسته‌بندی‌ها",
+    "All groups": "همه گروه‌ها",
+    "All statuses": "همه وضعیت‌ها",
+    "All roles": "همه نقش‌ها"
 }
 
 
