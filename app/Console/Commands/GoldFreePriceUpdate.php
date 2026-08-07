@@ -48,13 +48,13 @@ class GoldFreePriceUpdate extends Command
             $this->warn('gold24 not found, derived from 18 karat gold');
         }
 
-        foreach (['gold', 'gold24', 'dollar'] as $key) {
+        foreach (['gold', 'gold24', 'silver', 'dollar'] as $key) {
             if (empty($prices[$key])) {
                 continue;
             }
             $s = Setting::firstOrNew(['key' => $key]);
             $s->section = 'General';
-            $s->title = __("Gold price");
+            $s->title = $key === 'silver' ? __("Silver price") : __("Gold price");
             $s->type = 'TEXT';
             $s->ltr = true;
             $s->size = 12;
@@ -64,7 +64,7 @@ class GoldFreePriceUpdate extends Command
 
         GoldPriceUpdate::reprice($prices['gold']);
 
-        $this->info('Gold prices updated from free providers: ' . json_encode($prices));
+        $this->info('Gold and Silver prices updated from free providers: ' . json_encode($prices));
 
         return self::SUCCESS;
     }
@@ -79,6 +79,7 @@ class GoldFreePriceUpdate extends Command
         $symbols = [
             'gold' => 'geram18',
             'gold24' => 'geram24',
+            'silver' => 'silver_999',
             'dollar' => 'price_dollar_rl',
         ];
 
@@ -130,6 +131,11 @@ class GoldFreePriceUpdate extends Command
                 if ($row['symbol'] === 'IR_GOLD_24K') {
                     $result['gold24'] = (int)$row['price'];
                     $this->info('brsapi.ir [IR_GOLD_24K] = ' . $result['gold24'] . ' toman');
+                }
+                // we might not know the exact symbol for silver on brsapi, but let's try IR_SILVER_999 or IR_SILVER
+                if ($row['symbol'] === 'IR_SILVER' || $row['symbol'] === 'IR_SILVER_999') {
+                    $result['silver'] = (int)$row['price'];
+                    $this->info('brsapi.ir [' . $row['symbol'] . '] = ' . $result['silver'] . ' toman');
                 }
             }
             foreach ($data['currency'] ?? [] as $row) {
