@@ -9,35 +9,48 @@
             <div class="wp-quick-filters mb-2 px-1 fs-13">
                 <ul class="list-inline mb-0 d-flex align-items-center flex-wrap gap-2 text-muted">
                     @php
+                        $baseUrl = hasRoute('index') ? getRoute('index') : str_replace('/trashed', '', request()->url());
                         $currentStatus = request()->input('filter.status', null);
                         $currentMine = request()->input('filter.user_id', null);
                         $isAll = $currentStatus === null && $currentMine === null && !request()->routeIs('*trashed*');
                     @endphp
                     <li class="list-inline-item m-0">
-                        <a href="{{request()->url()}}" class="text-decoration-none @if($isAll) fw-bold text-primary @else text-dark @endif">
+                        <a href="{{$baseUrl}}" class="text-decoration-none @if($isAll) fw-bold text-primary @else text-dark @endif">
                             {{__("All")}} <span class="text-muted">({{number_format($quickCounts['all'] ?? 0)}})</span>
                         </a>
                     </li>
                     @if(isset($quickCounts['mine']))
+                        @php
+                            $mineFilter = array_merge(request()->input('filter', []), ['user_id' => auth()->id()]);
+                            unset($mineFilter['status']);
+                        @endphp
                         <li class="list-inline-item m-0 text-black-50">|</li>
                         <li class="list-inline-item m-0">
-                            <a href="{{request()->fullUrlWithQuery(['filter' => array_merge(request()->input('filter', []), ['user_id' => auth()->id()])])}}" class="text-decoration-none @if($currentMine == auth()->id()) fw-bold text-primary @else text-dark @endif">
+                            <a href="{{$baseUrl}}?{{http_build_query(['filter' => $mineFilter])}}" class="text-decoration-none @if($currentMine == auth()->id()) fw-bold text-primary @else text-dark @endif">
                                 {{__("Mine")}} <span class="text-muted">({{number_format($quickCounts['mine'])}})</span>
                             </a>
                         </li>
                     @endif
                     @if(isset($quickCounts['published']))
+                        @php
+                            $pubFilter = array_merge(request()->input('filter', []), ['status' => 1]);
+                            unset($pubFilter['user_id']);
+                        @endphp
                         <li class="list-inline-item m-0 text-black-50">|</li>
                         <li class="list-inline-item m-0">
-                            <a href="{{request()->fullUrlWithQuery(['filter' => array_merge(request()->input('filter', []), ['status' => 1])])}}" class="text-decoration-none @if($currentStatus === '1' || $currentStatus === 1) fw-bold text-primary @else text-dark @endif">
+                            <a href="{{$baseUrl}}?{{http_build_query(['filter' => $pubFilter])}}" class="text-decoration-none @if($currentStatus === '1' || $currentStatus === 1) fw-bold text-primary @else text-dark @endif">
                                 {{__("Published")}} <span class="text-muted">({{number_format($quickCounts['published'])}})</span>
                             </a>
                         </li>
                     @endif
                     @if(isset($quickCounts['draft']))
+                        @php
+                            $draftFilter = array_merge(request()->input('filter', []), ['status' => 0]);
+                            unset($draftFilter['user_id']);
+                        @endphp
                         <li class="list-inline-item m-0 text-black-50">|</li>
                         <li class="list-inline-item m-0">
-                            <a href="{{request()->fullUrlWithQuery(['filter' => array_merge(request()->input('filter', []), ['status' => 0])])}}" class="text-decoration-none @if($currentStatus === '0' || $currentStatus === 0) fw-bold text-primary @else text-dark @endif">
+                            <a href="{{$baseUrl}}?{{http_build_query(['filter' => $draftFilter])}}" class="text-decoration-none @if($currentStatus === '0' || $currentStatus === 0) fw-bold text-primary @else text-dark @endif">
                                 {{__("Draft")}} <span class="text-muted">({{number_format($quickCounts['draft'])}})</span>
                             </a>
                         </li>

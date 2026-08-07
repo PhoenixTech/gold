@@ -87,13 +87,23 @@ abstract class XController extends Controller
         }
 
         foreach (\request()->input('filter', []) as $col => $filter) {
-            if (isJson($filter)) {
-                $vals = json_decode($filter);
-                if (count($vals) != 0) {
-                    $query->whereIn($col, $vals);
+            if (is_array($filter)) {
+                if (count($filter) > 0) {
+                    $query->whereIn($col, $filter);
+                }
+            } elseif (is_string($filter) && isJson($filter)) {
+                $vals = json_decode($filter, true);
+                if (is_array($vals)) {
+                    if (count($vals) > 0) {
+                        $query->whereIn($col, $vals);
+                    }
+                } else {
+                    $query->where($col, $vals);
                 }
             } else {
-                $query->where($col, $filter);
+                if ($filter !== null && $filter !== '') {
+                    $query->where($col, $filter);
+                }
             }
         }
 
