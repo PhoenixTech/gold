@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Setting;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class SettingSeeder extends Seeder
@@ -17,7 +16,7 @@ class SettingSeeder extends Seeder
         $sections = [
             'General' => [
                 [
-                    'title' => __("Gold price"),
+                    'title' => __('Gold price'),
                     'key' => 'gold',
                     'type' => 'TEXT',
                     'ltr' => true,
@@ -25,7 +24,7 @@ class SettingSeeder extends Seeder
                     'size' => '4',
                 ],
                 [
-                    'title' => __("Gold 24 price"),
+                    'title' => __('Gold 24 price'),
                     'key' => 'gold24',
                     'type' => 'TEXT',
                     'ltr' => true,
@@ -33,7 +32,7 @@ class SettingSeeder extends Seeder
                     'size' => '4',
                 ],
                 [
-                    'title' => __("Dollar price"),
+                    'title' => __('Dollar price'),
                     'key' => 'dollar',
                     'type' => 'TEXT',
                     'ltr' => true,
@@ -41,7 +40,7 @@ class SettingSeeder extends Seeder
                     'size' => '4',
                 ],
                 [
-                    'title' => __("Minimum percent"),
+                    'title' => __('Minimum percent'),
                     'key' => 'min',
                     'type' => 'TEXT',
                     'ltr' => true,
@@ -49,7 +48,7 @@ class SettingSeeder extends Seeder
                     'size' => '6',
                 ],
                 [
-                    'title' => __("Email"),
+                    'title' => __('Email'),
                     'key' => 'email',
                     'type' => 'TEXT',
                     'ltr' => true,
@@ -57,7 +56,7 @@ class SettingSeeder extends Seeder
                     'size' => '6',
                 ],
                 [
-                    'title' => __("Tel"),
+                    'title' => __('Tel'),
                     'key' => 'tel',
                     'type' => 'TEXT',
                     'ltr' => true,
@@ -65,40 +64,40 @@ class SettingSeeder extends Seeder
                     'size' => '6',
                 ],
                 [
-                    'title' => __("Subtitle"),
+                    'title' => __('Subtitle'),
                     'key' => 'subtitle',
                     'type' => 'TEXT',
                     'value' => 'another shop with xShop',
                 ],
                 [
-                    'title' => __("copyright"),
+                    'title' => __('copyright'),
                     'key' => 'copyright',
                     'type' => 'TEXT',
-                    'value' => 'xShop community © ' . date('Y'),
+                    'value' => 'xShop community © '.date('Y'),
                 ],
                 [
-                    'title' => __("Twitter (x)"),
+                    'title' => __('Twitter (x)'),
                     'key' => 'social_twitter',
                     'type' => 'TEXT',
                     'size' => '4',
                     'ltr' => true,
                 ],
                 [
-                    'title' => __("Facebook"),
+                    'title' => __('Facebook'),
                     'key' => 'social_facebook',
                     'type' => 'TEXT',
                     'size' => '4',
                     'ltr' => true,
                 ],
                 [
-                    'title' => __("Instagram"),
+                    'title' => __('Instagram'),
                     'key' => 'social_instagram',
                     'type' => 'TEXT',
                     'size' => '4',
                     'ltr' => true,
                 ],
                 [
-                    'title' => __("LinkedIn"),
+                    'title' => __('LinkedIn'),
                     'key' => 'social_linkedin',
                     'type' => 'TEXT',
                     'size' => '4',
@@ -106,14 +105,14 @@ class SettingSeeder extends Seeder
                 ],
 
                 [
-                    'title' => __("Youtube"),
+                    'title' => __('Youtube'),
                     'key' => 'social_youtube',
                     'type' => 'TEXT',
                     'size' => '4',
                     'ltr' => true,
                 ],
                 [
-                    'title' => __("Telegram"),
+                    'title' => __('Telegram'),
                     'key' => 'social_telegram',
                     'type' => 'TEXT',
                     'size' => '4',
@@ -136,19 +135,19 @@ class SettingSeeder extends Seeder
             ],
             'SMS' => [
                 [
-                    'title' => __("Sign-in authentication"),
+                    'title' => __('Sign-in authentication'),
                     'key' => 'sign',
                     'type' => 'LONGTEXT',
                     'value' => 'sign',
                 ],
                 [
-                    'title' => __("Order confirmation"),
+                    'title' => __('Order confirmation'),
                     'key' => 'order',
                     'type' => 'LONGTEXT',
                     'value' => 'order',
                 ],
                 [
-                    'title' => __("Sent message"),
+                    'title' => __('Sent message'),
                     'key' => 'sent',
                     'type' => 'LONGTEXT',
                     'value' => 'sent',
@@ -156,35 +155,35 @@ class SettingSeeder extends Seeder
             ],
             'SEO' => [
                 [
-                    'title' => __("Common keyword"),
+                    'title' => __('Common keyword'),
                     'key' => 'keyword',
                     'type' => 'TEXT',
                     'value' => 'shop,xshop, sale, xStack',
                 ],
                 [
-                    'title' => __("Common description"),
+                    'title' => __('Common description'),
                     'key' => 'desc',
                     'type' => 'TEXT',
                     'value' => 'Best customizable shop in the world',
                 ],
                 [
-                    'title' => __("Google Webmaster code"),
+                    'title' => __('Google Webmaster code'),
                     'key' => 'google-webmaster-code',
                     'type' => 'CODE',
                 ],
                 [
-                    'title' => __("SEO image"),
+                    'title' => __('SEO image'),
                     'key' => 'site_image',
                     'type' => 'FILE',
                 ],
                 [
-                    'title' => __("Product description template"),
-                    'value' => __("%name% sale in our shop by %price% %category.name%"),
+                    'title' => __('Product description template'),
+                    'value' => __('%name% sale in our shop by %price% %category.name%'),
                     'key' => 'product_description',
                     'type' => 'TEXT',
                 ],
                 [
-                    'title' => __("Guarantee"),
+                    'title' => __('Guarantee'),
                     'key' => 'guarantee',
                     'type' => 'TEXT',
                     'value' => '',
@@ -192,12 +191,12 @@ class SettingSeeder extends Seeder
             ],
             'Media' => [
                 [
-                    'title' => __("Logo (svg)"),
+                    'title' => __('Logo (svg)'),
                     'key' => 'logo_svg',
                     'type' => 'FILE',
                 ],
                 [
-                    'title' => __("Logo (png)"),
+                    'title' => __('Logo (png)'),
                     'key' => 'logo_png',
                     'type' => 'FILE',
                 ],
@@ -250,12 +249,36 @@ class SettingSeeder extends Seeder
                     'value' => '900x900',
                     'size' => '6',
                 ],
-            ]
+                [
+                    'title' => __('Bank card number'),
+                    'key' => 'bank_card_number',
+                    'type' => 'TEXT',
+                    'ltr' => true,
+                    'value' => '',
+                    'size' => '4',
+                ],
+                [
+                    'title' => __('Bank SHEBA'),
+                    'key' => 'bank_sheba',
+                    'type' => 'TEXT',
+                    'ltr' => true,
+                    'value' => '',
+                    'size' => '4',
+                ],
+                [
+                    'title' => __('Bank account name'),
+                    'key' => 'bank_account_name',
+                    'type' => 'TEXT',
+                    'ltr' => false,
+                    'value' => '',
+                    'size' => '4',
+                ],
+            ],
         ];
         foreach ($sections as $section => $section_data) {
             foreach ($section_data as $set) {
 
-                $setting = new Setting();
+                $setting = new Setting;
                 $setting->title = $set['title'];
                 $setting->section = $section;
                 $setting->key = $set['key'];
@@ -264,7 +287,7 @@ class SettingSeeder extends Seeder
                 $setting->ltr = $set['ltr'] ?? false;
                 $setting->active = $set['active'] ?? true;
                 $setting->is_basic = true;
-                $setting->size = $set['size'] ?? 12;;
+                $setting->size = $set['size'] ?? 12;
                 $setting->save();
             }
         }

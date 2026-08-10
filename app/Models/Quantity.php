@@ -4,30 +4,50 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Quantity extends Model
 {
-    use HasFactory,SoftDeletes;
-    protected $casts = [
-        'meta',
-    ];
+    use HasFactory, SoftDeletes;
 
+    protected $guarded = [];
 
-    public function product(){
+    protected function casts(): array
+    {
+        return [
+            'weight' => 'float',
+            'count' => 'integer',
+            'price' => 'integer',
+        ];
+    }
+
+    public function product(): BelongsTo
+    {
         return $this->belongsTo(Product::class);
     }
 
-    public function getMetaAttribute(){
+    public function isAvailable(): bool
+    {
+        return $this->count > 0;
+    }
 
-        $data = json_decode($this->data,true);
+    public function markSold(): void
+    {
+        $this->count = 0;
+        $this->save();
+    }
+
+    public function getMetaAttribute()
+    {
+        $data = json_decode($this->data, true);
         if ($data == null) {
             return [];
         }
         $props = $this->product->category->props()->whereIn('name', array_keys($data))->get();
         $result = [];
         foreach ($props as $key => $prop) {
-            $result[$prop->name] =  [
+            $result[$prop->name] = [
                 'label' => $prop->label,
                 'human_value' => '',
                 'type' => $prop->type,
@@ -43,17 +63,17 @@ class Quantity extends Model
                 case 'select':
                 case 'singlemulti':
                     $tmp = $prop->datas;
-                    if (!is_array($data[$prop->name])) {
-                        if (isset($tmp[$data[$prop->name]])){
+                    if (! is_array($data[$prop->name])) {
+                        if (isset($tmp[$data[$prop->name]])) {
                             $result[$prop->name]['human_value'] = $tmp[$data[$prop->name]];
-                        }else{
+                        } else {
                             $result[$prop->name]['human_value'] = '-';
                         }
                     } else {
                         $result[$prop->name]['human_value'] = '';
                         $tmp = $prop->datas;
                         foreach ($data[$prop->name] as $k => $v) {
-                            $result[$prop->name]['human_value'] = $tmp[$v] . ', ';
+                            $result[$prop->name]['human_value'] = $tmp[$v].', ';
                         }
                         $result[$prop->name]['human_value'] = trim($result[$prop->name], ' ,');
                     }
@@ -64,15 +84,15 @@ class Quantity extends Model
                     } else {
                         if ($data[$prop->name] == '' || $data[$prop->name] == null) {
                             $result[$prop->name]['human_value'] = '-';
-                        }else{
+                        } else {
                             $result[$prop->name]['human_value'] = $data[$prop->name];
                         }
                     }
             }
 
-            $result[$prop->name]['human_value'] .= ' ' . $prop->unit;
+            $result[$prop->name]['human_value'] .= ' '.$prop->unit;
         }
 
-        return  $result;
+        return $result;
     }
 }

@@ -12,6 +12,11 @@ document.addEventListener('DOMContentLoaded',function () {
     for (const el of document.querySelectorAll('.light-box')) {
         el.addEventListener('click', Lightbox.initialize);
     }
+
+    if (!document.querySelector('#aria-img-slider')) {
+        return;
+    }
+
     ariaImgSlider = tns({
         container: '#aria-img-slider',
         items: 3,
@@ -26,6 +31,7 @@ document.addEventListener('DOMContentLoaded',function () {
         autoplayTimeout: 5000,
         // speed:10000,
     });
+    if (document.querySelector('#rel-products')) {
     ariaRelativeSlider = tns({
         container: '#rel-products',
         items: 3,
@@ -55,6 +61,7 @@ document.addEventListener('DOMContentLoaded',function () {
         }
         // speed:10000,
     });
+    }
 
     document.querySelectorAll('#aria-img-slider a')?.forEach(function (el) {
         el.addEventListener('click',function (e) {

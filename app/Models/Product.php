@@ -18,14 +18,15 @@ use Spatie\Translatable\HasTranslations;
 
 class Product extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, InteractsWithMedia, HasTranslations, HasTags, Metable;
+    use HasFactory, HasTags, HasTranslations, InteractsWithMedia, Metable, SoftDeletes;
 
     public static $stock_status = ['IN_STOCK', 'OUT_STOCK', 'BACK_ORDER'];
 
     public $translatable = ['name', 'excerpt', 'description', 'table'];
+
     protected $casts = [
         'qz' => 'array',
-        'qidz' => 'array'
+        'qidz' => 'array',
     ];
 
     public function attachs()
@@ -34,7 +35,6 @@ class Product extends Model implements HasMedia
     }
 
     protected $guarded = [];
-
 
     public function getQzAttribute()
     {
@@ -53,7 +53,6 @@ class Product extends Model implements HasMedia
     {
         return $this->quantities()->pluck('id')->toArray();
     }
-
 
     public function registerMediaConversions(?Media $media = null): void
     {
@@ -104,7 +103,6 @@ class Product extends Model implements HasMedia
             ->format('webp');
     }
 
-
     public function comments()
     {
         return $this->morphMany(Comment::class, 'commentable');
@@ -135,7 +133,22 @@ class Product extends Model implements HasMedia
         if ($this->stock_status == 'OUT_STOCK') {
             $this->hasMany(Quantity::class, 'product_id', 'idd');
         }
+
         return $this->hasMany(Quantity::class);
+    }
+
+    public function availableQuantities()
+    {
+        return $this->hasMany(Quantity::class)->where('count', '>', 0);
+    }
+
+    public function lowestAvailablePrice(): int
+    {
+        if ($this->availableQuantities()->exists()) {
+            return (int) $this->availableQuantities()->min('price');
+        }
+
+        return (int) ($this->price ?? 0);
     }
 
     public function discounts()
@@ -157,18 +170,18 @@ class Product extends Model implements HasMedia
         return $this->hasMany(Question::class);
     }
 
-    function hasDiscount()
+    public function hasDiscount()
     {
-        if (!$this->isAvailable()) {
+        if (! $this->isAvailable()) {
             return false;
         }
-        return $this->discounts()
-                ->where(function ($query) {
-                    $query->where('expire', '>=', date('Y-m-d'))
-                        ->orWhereNull('expire');
-                })->count() > 0;
-    }
 
+        return $this->discounts()
+            ->where(function ($query) {
+                $query->where('expire', '>=', date('Y-m-d'))
+                    ->orWhereNull('expire');
+            })->count() > 0;
+    }
 
     public function imgUrl()
     {
@@ -224,14 +237,13 @@ class Product extends Model implements HasMedia
         }
     }
 
-
     public function fullMeta($limit = 99)
     {
         $metas = $this->getAllMeta()->toArray();
         $result = [];
         $i = 0;
         foreach ($metas as $key => $value) {
-            if ($result[$key]['data']['type']??null == null){
+            if ($result[$key]['data']['type'] ?? null == null) {
                 continue;
             }
             $result[$key] = [
@@ -247,7 +259,7 @@ class Product extends Model implements HasMedia
                     break;
                 case 'select':
                 case 'singlemulti':
-                    if (!is_array($value)) {
+                    if (! is_array($value)) {
                         if (isset($result[$key]['data']->datas[$value])) {
 
                             $result[$key]['human_value'] =
@@ -258,14 +270,14 @@ class Product extends Model implements HasMedia
                     } else {
                         $result[$key]['human_value'] = '';
                         foreach ($value as $k => $v) {
-                            $result[$key]['human_value'] = $result[$key]['data']->datas[$v] . ', ';
+                            $result[$key]['human_value'] = $result[$key]['data']->datas[$v].', ';
                         }
                         $result[$key]['human_value'] = trim($result[$key]['human_value'], ' ,');
                     }
                     break;
                 default:
                     if (is_array($value)) {
-                        $result[$key]['human_value'] = '<span class="meta-tag">' . implode('</span> <span class="meta-tag">', $value) . '</span>';
+                        $result[$key]['human_value'] = '<span class="meta-tag">'.implode('</span> <span class="meta-tag">', $value).'</span>';
                     } else {
                         if ($value == '' || $value == null) {
                             $result[$key]['human_value'] = '-';
@@ -275,7 +287,7 @@ class Product extends Model implements HasMedia
                     }
             }
 
-            $result[$key]['human_value'] .= ' ' . $result[$key]['data']['unit'];
+            $result[$key]['human_value'] .= ' '.$result[$key]['data']['unit'];
         }
 
         usort($result, function ($a, $b) {
@@ -292,17 +304,11 @@ class Product extends Model implements HasMedia
         return fixUrlLang(route('client.product', $this->slug));
     }
 
-
     public function getPrice()
     {
-        $price = 0;
-        if ($this->quantities()->count() == 0) {
-            $price = $this->price;
-        } else {
-            $price = $this->quantities()->min('price');
-        }
+        $price = $this->lowestAvailablePrice();
 
-        if (!$this->isAvailable()) {
+        if (! $this->isAvailable()) {
             return __('Unavailable');
         }
 
@@ -316,23 +322,18 @@ class Product extends Model implements HasMedia
         }
 
         if ($price == 0 || $price == '' || $price == null) {
-            return __("Call us!");
+            return __('Call us!');
         }
 
-        return number_format($price) . ' ' . config('app.currency.symbol');
+        return number_format($price).' '.config('app.currency.symbol');
     }
 
     public function oldPricePure()
     {
-        $price = 0;
-        if ($this->quantities()->count() == 0) {
-            $price = $this->price;
-        } else {
-            $price = $this->quantities()->min('price');
-        }
+        $price = $this->lowestAvailablePrice();
 
         if ($price == 0 || $price == '' || $price == null) {
-            return __("Call us!");
+            return __('Call us!');
         }
 
         return $price;
@@ -340,23 +341,18 @@ class Product extends Model implements HasMedia
 
     public function oldPrice()
     {
-        $price = 0;
-        if ($this->quantities()->count() == 0) {
-            $price = $this->price;
-        } else {
-            $price = $this->quantities()->min('price');
-        }
+        $price = $this->lowestAvailablePrice();
 
         if ($price == 0 || $price == '' || $price == null) {
-            return __("Call us!");
+            return __('Call us!');
         }
 
-        return number_format($price) . ' ' . config('app.currency.symbol');
+        return number_format($price).' '.config('app.currency.symbol');
     }
 
     public function isFav()
     {
-        if (!auth('customer')->check()) {
+        if (! auth('customer')->check()) {
             return -1;
         }
         if (\auth('customer')->user()->products()->where('product_id', $this->id)->exists()) {
@@ -375,15 +371,16 @@ class Product extends Model implements HasMedia
         if ($this->stock_status != 'IN_STOCK') {
             return false;
         }
+
         return true;
     }
 
     public function markup()
     {
 
-
         $currency = config('app.currency.code');
         $reviews = CommentMarkupCollection::collection($this->approvedComments)->toJson();
+
         return <<<RESULT
 <script type="application/ld+json">
 {
@@ -437,7 +434,6 @@ RESULT;
 
     }
 
-
     public function tagsList()
     {
         if ($this->tags()->count() == 0) {
@@ -447,8 +443,8 @@ RESULT;
         }
     }
 
-
-    public function evaluations(){
+    public function evaluations()
+    {
 
         return Evaluation::where(function ($query) {
             $query->whereNull('evaluationable_type')
@@ -456,12 +452,12 @@ RESULT;
         })->orWhere(function ($query) {
             $query->where('evaluationable_type', Product::class)
                 ->whereNull('evaluationable_id');
-        })->orWhere(function ($query ) {
+        })->orWhere(function ($query) {
             $query->where('evaluationable_type', Product::class)
-                ->where('evaluationable_id',$this->id);
-        })->orWhere(function ($query ) {
+                ->where('evaluationable_id', $this->id);
+        })->orWhere(function ($query) {
             $query->where('evaluationable_type', Category::class)
-                ->where('evaluationable_id',$this->category_id);
+                ->where('evaluationable_id', $this->category_id);
         })->get();
     }
 }

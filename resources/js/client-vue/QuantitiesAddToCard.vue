@@ -2,44 +2,41 @@
     <div id="quantities-add-to-card">
         <template v-for="(q,i) in qz">
             <div :class="`q `+(selected == i?'selected-q':'')" v-if="q.count > 0" @click="select(i)">
-                <div class="row">
+                <div class="row align-items-center">
+                    <div class="col-md">
+                        <span class="text-muted">{{ weightLabel }}:</span>
+                        <b>{{ formatWeight(q) }}</b>
+                        <span v-if="q.code" class="ms-2">
+                            <span class="text-muted">{{ codeLabel }}:</span>
+                            <b>{{ q.code }}</b>
+                        </span>
+                    </div>
 
                     <template v-for="(v,k) in data2object(q.data)">
-                        <div :class="calcClass(props[k])">
-                            <div v-if="props[k].type == 'color'">
+                        <div v-if="shouldShowProp(k)" :class="calcClass(props[k])">
+                            <div v-if="props[k] && props[k].type == 'color'">
                                 <span class="q-color float-start" :style="`background-color:${v}`"></span>
                             </div>
                             <div
-                                v-if="props[k].type == 'select' || props[k].type == 'singlemulti' || props[k].type == 'multi'">
-
-
-                        <span>
-                            {{ props[k].label }}:
-                        </span>
-                                <b>
-                                    {{ props[k].data[v] }}
-                                </b>
+                                v-if="props[k] && (props[k].type == 'select' || props[k].type == 'singlemulti' || props[k].type == 'multi')">
+                                <span>{{ props[k].label }}:</span>
+                                <b>{{ props[k].data[v] }}</b>
                             </div>
                         </div>
                     </template>
-                    <div class="col-md" v-if="discount != null">
 
-                        <strong>
-                            {{ calcDiscount(q.price) }}
-                        </strong>
+                    <div class="col-md text-end" v-if="discount != null">
+                        <strong>{{ calcDiscount(q.price) }}</strong>
                         &nbsp;
-                        <del class="text-muted">
-                            {{ commafy(q.price.toString()) }} {{ currency }}
-                        </del>
+                        <del class="text-muted">{{ commafy(q.price.toString()) }} {{ currency }}</del>
                     </div>
-                    <div class="col-md" v-else>
+                    <div class="col-md text-end" v-else>
                         {{ commafy(q.price.toString()) }} {{ currency }}
                     </div>
                 </div>
             </div>
         </template>
-        <a
-            class="btn btn-outline-primary btn-lg" @click="add2card">
+        <a class="btn btn-outline-primary btn-lg" @click="add2card">
             <i class="ri-shopping-bag-3-line"></i>
             {{ translate['add-to-card'] }}
         </a>
@@ -94,17 +91,33 @@ export default {
             default: {},
         }
     },
-    mounted() {
-
+    computed: {
+        weightLabel() {
+            return this.translate['weight'] || 'Weight';
+        },
+        codeLabel() {
+            return this.translate['code'] || 'Code';
+        },
     },
-    computed: {},
     methods: {
+        formatWeight(q) {
+            const weight = q.weight != null ? q.weight : (this.data2object(q.data)?.weight ?? null);
+            if (weight == null || weight === '') {
+                return '—';
+            }
+            return Number(weight).toLocaleString(undefined, {maximumFractionDigits: 3}) + ' g';
+        },
+        shouldShowProp(key) {
+            return key !== 'weight' && key !== 'code' && this.props && this.props[key];
+        },
         select(i) {
             document.querySelector('#price').innerText = commafy(this.qz[i].price.toString()) + ' ' + this.currency;
             let index = this.qz[i].image;
             this.selected = i;
-            document.querySelector('#preview a').setAttribute('href', document.querySelector(`#hidden-images a:nth-child(${index + 1})`).getAttribute('href'));
-            document.querySelector('#preview img').setAttribute('src', document.querySelector(`#hidden-images a:nth-child(${index + 1}) img`).getAttribute('src'));
+            if (index != null && document.querySelector(`#hidden-images a:nth-child(${index + 1})`)) {
+                document.querySelector('#preview a')?.setAttribute('href', document.querySelector(`#hidden-images a:nth-child(${index + 1})`).getAttribute('href'));
+                document.querySelector('#preview img')?.setAttribute('src', document.querySelector(`#hidden-images a:nth-child(${index + 1}) img`).getAttribute('src'));
+            }
         },
         async add2card() {
             if (this.selected == null) {
@@ -113,13 +126,13 @@ export default {
             }
 
             let resp = await axios.get(this.cardLink + '?quantity=' + this.qz[this.selected].id);
-            if (resp.data.success) {
+            if (resp.data.OK || resp.data.success) {
                 window.$toast.success(resp.data.message);
                 document.querySelectorAll('.card-count')?.forEach(function (el2) {
                     el2.innerText = resp.data.data.count;
                 });
             } else {
-                window.$toast.error("Error!");
+                window.$toast.error(resp.data.message || "Error!");
             }
         },
         calcDiscount(price) {
@@ -136,6 +149,9 @@ export default {
         },
         calcClass(prop) {
             let cls = '';
+            if (!prop) {
+                return 'col-md';
+            }
             if (prop.type == 'color') {
                 cls = 'col-md-1';
             } else {
@@ -145,10 +161,13 @@ export default {
             return cls;
         },
         data2object(data) {
+            if (data && typeof data === 'object') {
+                return data;
+            }
             try {
                 return JSON.parse(data);
             } catch {
-                return '';
+                return {};
             }
         },
         commafy: commafy,
@@ -157,10 +176,6 @@ export default {
 </script>
 
 <style scoped>
-#quantities-add-to-card {
-
-}
-
 .q {
     border: 1px solid var(--xshop-primary);
     border-radius: var(--xshop-border-radius);
@@ -188,5 +203,4 @@ export default {
     background: var(--xshop-secondary);
     color: var(--xshop-diff2);
 }
-
 </style>

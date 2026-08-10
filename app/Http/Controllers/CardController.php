@@ -3,33 +3,69 @@
 namespace App\Http\Controllers;
 
 use App\Contracts\Payment;
+use App\Models\Address;
 use App\Models\Customer;
 use App\Models\Discount;
 use App\Models\Invoice;
 use App\Models\Order;
+use App\Models\Payment as PaymentModel;
 use App\Models\Product;
 use App\Models\Quantity;
+use App\Models\Setting;
 use App\Models\Transport;
+use App\Services\ProductPriceCalculator;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class CardController extends Controller
 {
-
     public function __construct()
     {
-
         $this->middleware(function ($request, $next) {
             if (\Session::has('locate')) {
                 app()->setLocale(\Session::get('locate'));
             }
+
             return $next($request);
         });
     }
 
     public function productCardToggle(Product $product)
     {
-
         $quantity = \request()->input('quantity', null);
+        if ($quantity !== null && $quantity !== '') {
+            $quantity = (int) $quantity;
+        } else {
+            $quantity = null;
+        }
+
+        if ($product->availableQuantities()->exists()) {
+            if ($quantity === null || $quantity === '') {
+                $msg = __('You need to select one stock piece');
+                if (request()->expectsJson() || request()->ajax()) {
+                    return errors([], 422, $msg);
+                }
+
+                return redirect()->back()->withErrors($msg);
+            }
+
+            $stockPiece = Quantity::query()
+                ->where('product_id', $product->id)
+                ->whereKey($quantity)
+                ->where('count', '>', 0)
+                ->first();
+
+            if ($stockPiece === null) {
+                $msg = __('Selected stock piece is not available');
+                if (request()->expectsJson() || request()->ajax()) {
+                    return errors([], 422, $msg);
+                }
+
+                return redirect()->back()->withErrors($msg);
+            }
+        }
+
         if (\Cookie::has('card')) {
             $cards = json_decode(\Cookie::get('card'), true);
             $qs = json_decode(\Cookie::get('q'), true);
@@ -42,29 +78,29 @@ class CardController extends Controller
                     }
                 }
                 if ($found) {
-                    $msg = "Product removed from card";
+                    $msg = __('Product removed from card');
                     unset($cards[$i]);
                     unset($qs[$i]);
                 } else {
                     $cards[] = $product->id;
                     $qs[] = $quantity;
-                    $msg = "Product added to card";
+                    $msg = __('Product added to card');
                 }
             } else {
                 $cards[] = $product->id;
                 $qs[] = $quantity;
-                $msg = "Product added to card";
+                $msg = __('Product added to card');
             }
             $count = count($cards);
             \Cookie::queue('card', json_encode($cards), 2000);
             \Cookie::queue('q', json_encode($qs), 2000);
         } else {
             $count = 1;
-            $msg = "Product added to card";
-            \Cookie::queue('card', "[$product->id]", 2000);
-            \Cookie::queue('q', "[null]", 2000);
+            $msg = __('Product added to card');
             $qs = [$quantity];
             $cards = [$product->id];
+            \Cookie::queue('card', json_encode($cards), 2000);
+            \Cookie::queue('q', json_encode($qs), 2000);
         }
 
         if ($count > 0 && auth('customer')->check()) {
@@ -75,103 +111,204 @@ class CardController extends Controller
 
         if (\request()->ajax()) {
             return success(['count' => $count], $msg);
-        } else {
-            return redirect()->back()->with(['message' => $msg]);
         }
+
+        return redirect()->back()->with(['message' => $msg]);
     }
 
     public function index()
     {
-//        auth('customer')->login(Customer::first());
         $area = 'card';
-        $title = __("Shopping card");
+        $title = __('Shopping card');
         $subtitle = '';
+
         return view('client.default-list', compact('area', 'title', 'subtitle'));
     }
 
     public function check(Request $request)
     {
+        /** @var Customer $customer */
+        $customer = auth('customer')->user();
+
+        if (! $customer->isCheckoutReady()) {
+            return redirect()
+                ->route('client.profile')
+                ->withErrors(__('Please complete your name, mobile and address before checkout.'));
+        }
 
         $request->validate([
             'product_id' => ['required', 'array'],
             'count' => ['required', 'array'],
+            'quantity_id' => ['nullable', 'array'],
             'address_id' => ['required', 'exists:addresses,id'],
-            'desc' => ['nullable', 'string']
+            'transport_id' => ['required', 'exists:transports,id'],
+            'payment_method' => ['required', 'in:online,card'],
+            'discount_id' => ['nullable', 'exists:discounts,id'],
+            'desc' => ['nullable', 'string'],
         ]);
+
+        if (! $customer->addresses()->whereKey($request->address_id)->exists()) {
+            throw ValidationException::withMessages([
+                'address_id' => __('Selected address is invalid'),
+            ]);
+        }
+
         $total = 0;
-//        return $request->all();
-        $invoice = new Invoice();
-        $invoice->customer_id = auth('customer')->user()->id;
-        $invoice->count = array_sum($request->count);
-        $invoice->address_id = $request->address_id;
-        $invoice->desc = $request->desc;
+        $calculator = app(ProductPriceCalculator::class);
+        $paymentMethod = $request->input('payment_method');
 
-        if ($request->has('transport_id')) {
-            $request->transport_id = $request->input('transport_id');
-            $t = Transport::find($request->input('transport_id'));
-            $invoice->transport_price = $t->price;
-            $total += $t->price;
+        try {
+            $invoice = DB::transaction(function () use ($request, &$total, $calculator, $customer) {
+                $invoice = new Invoice;
+                $invoice->customer_id = $customer->id;
+                $invoice->count = array_sum($request->count);
+                $invoice->address_id = $request->address_id;
+                $invoice->desc = $request->desc;
+                $invoice->status = Invoice::PENDING;
+
+                $transport = Transport::query()->findOrFail($request->input('transport_id'));
+                $invoice->transport_id = $transport->id;
+                $invoice->transport_price = $transport->price;
+                $total += (int) $transport->price;
+
+                if ($request->filled('discount_id')) {
+                    $invoice->discount_id = $request->input('discount_id');
+                }
+
+                $invoice->save();
+
+                $productsTotal = 0;
+                foreach ($request->product_id as $i => $productId) {
+                    $product = Product::query()->lockForUpdate()->findOrFail($productId);
+                    $order = new Order;
+                    $order->product_id = $product->id;
+                    $order->invoice_id = $invoice->id;
+                    $order->count = (int) $request->count[$i];
+
+                    $quantityId = $request->quantity_id[$i] ?? null;
+
+                    if ($product->availableQuantities()->exists()) {
+                        if ($quantityId === null || $quantityId === '') {
+                            throw ValidationException::withMessages([
+                                'quantity_id' => __('You need to select one stock piece'),
+                            ]);
+                        }
+
+                        $quantity = Quantity::query()
+                            ->where('product_id', $product->id)
+                            ->whereKey($quantityId)
+                            ->lockForUpdate()
+                            ->first();
+
+                        if ($quantity === null || $quantity->count <= 0) {
+                            throw ValidationException::withMessages([
+                                'quantity_id' => __('Selected stock piece is not available'),
+                            ]);
+                        }
+
+                        if ($order->count > 1) {
+                            throw ValidationException::withMessages([
+                                'count' => __('Each stock piece can only be purchased once'),
+                            ]);
+                        }
+
+                        $order->quantity_id = $quantity->id;
+                        $order->price_total = $quantity->price * $order->count;
+                        $order->data = $quantity->data;
+                        $order->save();
+
+                        $quantity->markSold();
+                        $calculator->syncProductAggregates($product->fresh());
+                    } elseif ($quantityId !== null && $quantityId !== '') {
+                        $quantity = Quantity::query()->whereKey($quantityId)->lockForUpdate()->firstOrFail();
+                        $order->quantity_id = $quantity->id;
+                        $order->price_total = $quantity->price * $order->count;
+                        $order->data = $quantity->data;
+                        $order->save();
+                        $quantity->markSold();
+                        $calculator->syncProductAggregates($product->fresh());
+                    } else {
+                        $order->price_total = $product->price * $order->count;
+                        $order->save();
+                    }
+
+                    $productsTotal += $order->price_total;
+                }
+
+                if ($invoice->discount_id) {
+                    $discount = Discount::query()->whereKey($invoice->discount_id)->first();
+                    if ($discount) {
+                        if ($discount->type === 'PERCENT') {
+                            $productsTotal = (int) (((100 - $discount->amount) * $productsTotal) / 100);
+                        } else {
+                            $productsTotal = max(0, $productsTotal - (int) $discount->amount);
+                        }
+                    }
+                }
+
+                $total = $productsTotal + (int) $invoice->transport_price;
+                $invoice->total_price = $total;
+                $invoice->save();
+
+                return $invoice;
+            });
+        } catch (ValidationException $exception) {
+            throw $exception;
+        } catch (\Throwable $exception) {
+            \Log::error('Checkout exception: '.$exception->getMessage());
+
+            return redirect()->back()->withErrors(__('error in payment. contact admin.'));
         }
-        if ($request->has('discount_id')) {
-            $request->discount_id = $request->input('discount_id');
-        }
 
-        $invoice->save();
-
-        foreach ($request->product_id as $i => $product) {
-            $order = new Order();
-            $order->product_id = $product;
-            $order->invoice_id = $invoice->id;
-            $order->count = $request->count[$i];
-            if ($request->quantity_id[$i] != '') {
-                $order->quantity_id = $request->quantity_id[$i];
-                $q = Quantity::find($request->quantity_id[$i]);
-                $order->price_total = $q->price * $request->count[$i];
-                $order->data = $q->data;
-
-            } else {
-                $p = Product::find($request->product_id[$i]);
-                $order->price_total = $p->price * $request->count[$i];
+        if ($paymentMethod === 'card') {
+            $invoice->storePaymentRequest(
+                'CARD-'.$invoice->hash.'-'.time(),
+                (int) (($invoice->total_price - $invoice->credit_price) * config('app.currency.factor')),
+                null,
+                'CARD',
+                'card-to-card'
+            );
+            $payment = $invoice->payments()->latest('id')->first();
+            if ($payment) {
+                $payment->status = PaymentModel::PENDING;
+                $payment->save();
             }
-            $total += $order->price_total;
-            $order->save();
+
+            self::clear();
+
+            return redirect()
+                ->route('client.invoice', $invoice->hash)
+                ->with('message', __('Order registered. Please pay by card-to-card and wait for confirmation.'));
         }
 
-        $invoice->total_price = $total;
-        $invoice->save();
-        // clear shopping card
-        // self::clear();
-        //prepare to redirect to bank gateway
         $activeGateway = config('xshop.payment.active_gateway');
         /** @var Payment $gateway */
-        $gateway = app($activeGateway . '-gateway');
-        logger()->info('pay controller', ["active_gateway" => $activeGateway, "invoice" => $invoice->toArray(),]);
+        $gateway = app($activeGateway.'-gateway');
+        logger()->info('pay controller', ['active_gateway' => $activeGateway, 'invoice' => $invoice->toArray()]);
 
         if ($invoice->isCompleted()) {
             return redirect()->back()->with('message', __('Invoice payed.'));
         }
 
         $callbackUrl = route('pay.check', ['invoice_hash' => $invoice->hash, 'gateway' => $gateway->getName()]);
-        $payment = null;
         try {
             $response = $gateway->request((($invoice->total_price - $invoice->credit_price) * config('app.currency.factor')), $callbackUrl);
-            $payment = $invoice->storePaymentRequest($response['order_id'], (($invoice->total_price - $invoice->credit_price) * config('app.currency.factor')), $response['token'] ?? null, null, $gateway->getName());
-            session(["payment_id" => $payment->id]);
+            $invoice->storePaymentRequest($response['order_id'], (($invoice->total_price - $invoice->credit_price) * config('app.currency.factor')), $response['token'] ?? null, 'ONLINE', $gateway->getName());
+            $payment = $invoice->payments()->latest('id')->first();
+            session(['payment_id' => $payment?->id]);
             \Session::save();
 
             return $gateway->goToBank();
         } catch (\Throwable $exception) {
             $invoice->status = 'FAILED';
             $invoice->save();
-            \Log::error("Payment REQUEST exception: " . $exception->getMessage());
+            $this->releaseStockPieces($invoice);
+            \Log::error('Payment REQUEST exception: '.$exception->getMessage());
             \Log::warning($exception->getTraceAsString());
-            $result = false;
-            $message = __('error in payment. contact admin.');
-            return redirect()->back()->withErrors($message);
+
+            return redirect()->back()->withErrors(__('error in payment. contact admin.'));
         }
-
     }
-
 
     public static function clear()
     {
@@ -182,13 +319,35 @@ class CardController extends Controller
         }
         \Cookie::expire('card');
         \Cookie::expire('q');
+
         return true;
+    }
+
+    protected function releaseStockPieces(Invoice $invoice): void
+    {
+        $calculator = app(ProductPriceCalculator::class);
+
+        foreach ($invoice->orders as $order) {
+            if (! $order->quantity_id) {
+                continue;
+            }
+
+            $quantity = Quantity::query()->find($order->quantity_id);
+            if ($quantity === null) {
+                continue;
+            }
+
+            $quantity->count = 1;
+            $quantity->save();
+            $calculator->syncProductAggregates($quantity->product);
+        }
     }
 
     public function clearing()
     {
         self::clear();
-        return __("Card cleared");
+
+        return __('Card cleared');
     }
 
     public function discount($code)
@@ -202,45 +361,114 @@ class CardController extends Controller
                 'OK' => false,
                 'err' => __("Discount code isn't valid."),
             ];
-        } else {
-            if ($discount->type == 'PERCENT') {
-                $human = $discount->title . '( ' . $discount->amount . '%' . ' )';
-            } else {
-                $human = '- ' . $discount->title . '( ' . $discount->amount . config('app.currency.symbol') . ' )';
-            }
-            return [
-                'OK' => true,
-                'msg' => __("Discount code is valid."),
-                'data' => $discount,
-                'human' => $human,
-            ];
         }
-    }
 
+        if ($discount->type == 'PERCENT') {
+            $human = $discount->title.'( '.$discount->amount.'%'.' )';
+        } else {
+            $human = '- '.$discount->title.'( '.$discount->amount.config('app.currency.symbol').' )';
+        }
+
+        return [
+            'OK' => true,
+            'msg' => __('Discount code is valid.'),
+            'data' => $discount,
+            'human' => $human,
+        ];
+    }
 
     public function productCompareToggle($slug)
     {
-
         $product = Product::where('slug', $slug)->firstOrFail();
         if (\Cookie::has('compares')) {
             $compares = json_decode(\Cookie::get('compares'), true);
             if (in_array($product->id, $compares)) {
-                $msg = __("Product removed from compare");
+                $msg = __('Product removed from compare');
                 unset($compares[array_search($product->id, $compares)]);
             } else {
                 $compares[] = $product->id;
-                $msg = __("Product added to compare");
+                $msg = __('Product added to compare');
             }
             \Cookie::queue('compares', json_encode($compares), 2000);
         } else {
-            $msg = "Product added to compare";
+            $msg = __('Product added to compare');
             \Cookie::queue('compares', "[$product->id]", 2000);
         }
 
         if (\request()->ajax()) {
             return success(null, $msg);
-        } else {
-            return redirect()->back()->with(['message' => $msg]);
         }
+
+        return redirect()->back()->with(['message' => $msg]);
+    }
+
+    public function completeCheckoutProfile(Request $request)
+    {
+        /** @var Customer $customer */
+        $customer = auth('customer')->user();
+
+        $rules = [
+            'name' => ['required', 'string', 'min:2', 'max:255'],
+            'mobile' => ['required', 'string', 'regex:/^09\d{9}$/', 'unique:customers,mobile,'.$customer->id],
+        ];
+
+        if (! $customer->addresses()->exists()) {
+            $rules['address'] = ['required', 'string', 'min:10'];
+        }
+
+        $request->validate($rules, [
+            'mobile.regex' => __('Mobile number format is invalid'),
+        ]);
+
+        $customer->name = $request->input('name');
+        $customer->mobile = $request->input('mobile');
+        $customer->save();
+
+        if (! $customer->addresses()->exists()) {
+            $address = new Address;
+            $address->customer_id = $customer->id;
+            $address->address = $request->input('address');
+            $address->save();
+        }
+
+        $customer->load('addresses');
+
+        return success([
+            'profile_complete' => $customer->isCheckoutReady(),
+            'addresses' => $customer->addresses,
+            'customer' => [
+                'name' => $customer->name,
+                'mobile' => $customer->mobile,
+                'email' => $customer->email,
+            ],
+        ], __('Profile updated successfully'));
+    }
+
+    public static function ensureBankSettings(): array
+    {
+        $defaults = [
+            'bank_card_number' => ['title' => __('Bank card number'), 'value' => ''],
+            'bank_sheba' => ['title' => __('Bank SHEBA'), 'value' => ''],
+            'bank_account_name' => ['title' => __('Bank account name'), 'value' => ''],
+        ];
+
+        $result = [];
+        foreach ($defaults as $key => $cfg) {
+            $setting = Setting::query()->firstOrNew(['key' => $key]);
+            if (! $setting->exists) {
+                $setting->section = 'General';
+                $setting->type = 'TEXT';
+                $setting->title = $cfg['title'];
+                $setting->ltr = $key !== 'bank_account_name';
+                $setting->size = 4;
+                $setting->value = $cfg['value'];
+                $setting->raw = $cfg['value'];
+                $setting->is_basic = true;
+                $setting->save();
+            }
+            $result[$key] = (string) ($setting->value ?: $setting->raw ?: '');
+        }
+
+        return $result;
     }
 }

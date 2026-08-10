@@ -16,19 +16,28 @@ class ProductFactory extends Factory
      */
     public function definition(): array
     {
-        $rand = rand(1,2);
-        $title = ($rand == 1?'mobile':'Tablet').' ' . $this->faker->unique()->firstNameFemale;
+        $title = 'Ring '.$this->faker->unique()->firstNameFemale;
+
         return [
-            //
             'name' => $title,
             'slug' => sluger($title),
             'excerpt' => $this->faker->realText(150),
-            'user_id' => 1,
-            'category_id' => $rand,
+            'user_id' => \App\Models\User::factory(),
+            'category_id' => \App\Models\Category::factory(),
             'description' => $this->faker->realText(600),
-            'stock_quantity' => rand(1,7),
-            'price' => rand(1,100),
+            'stock_quantity' => 0,
+            'stock_status' => 'IN_STOCK',
+            'status' => 1,
+            'price' => 0,
+            'buy_price' => 0,
             'sku' => $this->faker->unique()->ean8(),
+            'metal_type' => 'gold',
+            'target_group' => 'unisex',
+            'labor_charge_1' => 15,
+            'wage' => 15,
+            'profit' => 7,
+            'tax' => 9,
+            'addon' => 0,
         ];
     }
 }

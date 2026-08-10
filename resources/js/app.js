@@ -105,6 +105,9 @@ app.component('props-type-input', PropTypeInput);
 import MetaInput from "./components/MetaInput.vue";
 app.component('meta-input', MetaInput);
 
+import StockItemsInput from "./components/StockItemsInput.vue";
+app.component('stock-items-input', StockItemsInput);
+
 import MorphSelector from "./components/MorphSelector.vue";
 app.component('morph-selector', MorphSelector);
 

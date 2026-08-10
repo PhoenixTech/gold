@@ -1,133 +1,74 @@
-<div class="row">
+<div class="row g-4">
     <div class="col-md-6">
-        <div class="form-group">
-            <label for="stock_quantity" class="my-2">
-                {{__('Stock quantity')}} ({{__('Inventory level')}})
-            </label>
-            <input type="number" id="stock_quantity" name="stock_quantity"
-                   value="{{old('stock_quantity',$item->stock_quantity??0)}}"
-                   placeholder="{{__('Stock quantity')}}"
-                   class="form-control">
-        </div>
-        <div class="form-group">
-            <label for="min_stock_level" class="my-2">
-                {{__('Minimum stock level')}}
-            </label>
-            <input type="number" id="min_stock_level" name="min_stock_level"
-                   value="{{old('min_stock_level',$item->min_stock_level??0)}}"
-                   placeholder="{{__('Minimum stock level')}}"
-                   class="form-control">
-        </div>
-        <div class="form-group">
-            <label for="status" class="my-2">
-                {{__("Status")}}
-            </label>
-            <select class="form-control" name="stock_status" id="status">
-                @foreach(\App\Models\Product::$stock_status as $k => $v)
-                    <option
-                        value="{{ $v }}" {{ old("stock_status", $item->stock_status??null) == $v ? "selected" : "" }}>{{ __($v) }}</option>
-                @endforeach
-            </select>
-        </div>
-        <label for="tags" class="mt-2">
-            {{__("Tags")}}
-        </label>
+        <label for="tags" class="fw-semibold">{{__("Tags")}}</label>
         <tag-input xname="tags" splitter=",," xid="tags"
                    xtitle="{{__("Tags, Press enter")}}"
                    @if(isset($item))
                        xvalue="{{old('title',implode(',,',$item->tags->pluck('name')->toArray()??''))}}"
-            @endif
+                   @endif
                    auto-complete="{{route('v1.tag.search','')}}/"
         ></tag-input>
 
+        <div class="form-group mt-3">
+            <label for="canonical" class="fw-semibold">{{__('Canonical')}}</label>
+            <input type="text" id="canonical" name="canonical"
+                   value="{{old('canonical',$item->canonical??null)}}"
+                   placeholder="{{__('canonical')}}"
+                   class="form-control">
+        </div>
     </div>
     <div class="col-md-6">
-        <h5>
-            {{__("Categories")}}
-        </h5>
+        <h6 class="fw-bold mb-2">{{__("Categories")}}</h6>
         <ul class="group-control">
             {!!showCatNestedControl($cats,old('cat',isset($item)?$item->categories()->pluck('id')->toArray():[]))!!}
         </ul>
     </div>
-</div>
 
-
-<div>
-
-    <div class="form-group">
-        <label for="canonical" class="my-2">
-            {{__('Canonical')}}
-        </label>
-        <input type="text" id="canonical" name="canonical"
-               value="{{old('canonical',$item->canonical??null)}}"
-               placeholder="{{__('canonical')}}"
-               class="form-control">
-    </div>
-    <div class="form-group">
-        <label for="table">
-            {{__('Description Table')}}
-        </label>
-        <textarea name="table" class="ckeditorx @error('table') is-invalid @enderror"
-                  placeholder="{{__('Description Table')}}"
-                  id="table"
-                  rows="8">{{old('table',$item->table??null)}}</textarea>
+    <div class="col-12">
+        <div class="form-group">
+            <label for="table" class="fw-semibold">{{__('Description Table')}}</label>
+            <textarea name="table" class="ckeditorx @error('table') is-invalid @enderror"
+                      placeholder="{{__('Description Table')}}"
+                      id="table"
+                      rows="6">{{old('table',$item->table??null)}}</textarea>
+        </div>
     </div>
 </div>
-<hr>
-<h4 class="my-4">
-    {{__("Discounts")}}
-    <a href="{{route('admin.discount.create')}}?product_id={{$item->id??null}}" class="btn btn-light float-end">
+
+<hr class="my-4">
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <h5 class="mb-0">{{__("Discounts")}}</h5>
+    <a href="{{route('admin.discount.create')}}?product_id={{$item->id??null}}" class="btn btn-outline-primary btn-sm">
         <i class="ri-add-line"></i>
         {{__("Add new discount")}}
     </a>
-</h4>
-<table class="table" id="discounts">
+</div>
+<table class="table table-sm align-middle" id="discounts">
     <tr>
-        <th>
-            {{__("Title")}}
-        </th>
-        <th>
-            {{__("Type")}}
-        </th>
-        <th>
-            {{__("Amount")}}
-        </th>
-        <th>
-            {{__("Discount code")}}
-        </th>
-        <th>
-            {{__("Expire date")}}
-        </th>
-        <th>
-            -
-        </th>
+        <th>{{__("Title")}}</th>
+        <th>{{__("Type")}}</th>
+        <th>{{__("Amount")}}</th>
+        <th>{{__("Discount code")}}</th>
+        <th>{{__("Expire date")}}</th>
+        <th>-</th>
     </tr>
     @if(isset($item))
         @foreach($item->discounts as $dis)
             <tr>
-                <td>
-                    {{$dis->title}}
-                </td>
-                <td>
-                    {{$dis->type}}
-                </td>
+                <td>{{$dis->title}}</td>
+                <td>{{$dis->type}}</td>
                 <td>
                     {{number_format($dis->amount)}}
-                    @if($dis->type == "PERCENT")
-                        %
-                    @endif
+                    @if($dis->type == "PERCENT") % @endif
                 </td>
-                <td>
-                    {{$dis->code}}
-                </td>
-                <td>
-                    {{$dis->expire?->ldate('Y-m-d H:i:s')??'-'}}
-                </td>
-                <td>
-                    <a href="{{ route('admin.discount.destroy',$dis->id) }}" class="btn btn-danger" data-id="{{$dis->id}}">
+                <td>{{$dis->code}}</td>
+                <td>{{$dis->expire?->ldate('Y-m-d H:i:s')??'-'}}</td>
+                <td class="text-nowrap">
+                    <a href="{{ route('admin.discount.destroy',$dis->id) }}" class="btn btn-danger btn-sm" data-id="{{$dis->id}}">
                         <span class="ri-close-line"></span>
                     </a>
-                    <a href="{{route('admin.discount.edit',$dis->id)}}" class="btn btn-primary ms-1">
+                    <a href="{{route('admin.discount.edit',$dis->id)}}" class="btn btn-primary btn-sm ms-1">
                         <i class="ri-edit-line"></i>
                     </a>
                 </td>
@@ -136,78 +77,33 @@
     @endif
 </table>
 
+<hr class="my-4">
 
-
-{{--<div class="row">--}}
-{{--    <div class="col-md-6">--}}
-{{--        <div class="form-group mt-4">--}}
-{{--            <label for="title">--}}
-{{--                {{__('Title')}}--}}
-{{--            </label>--}}
-{{--            <input name="discount[type]" type="text" id="title"--}}
-{{--                   class="form-control @error('discount.type') is-invalid @enderror"--}}
-{{--                   placeholder="{{__('Title')}}" value="{{old('discount.type')}}"/>--}}
-{{--        </div>--}}
-{{--        <div class="form-group mt-4">--}}
-{{--            <label for="type">--}}
-{{--                {{__('Type')}}--}}
-{{--            </label>--}}
-{{--            <select name="discount[type]" id="type"--}}
-{{--                    class="form-control @error('type') is-invalid @enderror">--}}
-{{--                @foreach(\App\Models\Discount::$doscount_type as $k => $v)--}}
-{{--                    <option--}}
-{{--                        value="{{ $v }}" {{ old("discount",\App\Models\Discount::$doscount_type[0]) == $v ? "selected" : "" }}>{{ __($v) }}</option>--}}
-{{--                @endforeach--}}
-{{--            </select>--}}
-{{--        </div>--}}
-{{--        <div class="form-group mt-4">--}}
-{{--            <label for="amount">--}}
-{{--                {{__('Amount')}}--}}
-{{--            </label>--}}
-
-{{--            <currency-input xname="discount[amount]" xid="amount" xtitle="{{__('Amount')}}"--}}
-{{--                            @error('amount')--}}
-{{--                            :err="true"--}}
-{{--                            @enderror :xvalue="{{old('discount.amount')}}"></currency-input>--}}
-{{--        </div>--}}
-{{--        <div class="form-group mt-4">--}}
-{{--            <label for="expire">--}}
-{{--                {{__('Expire  date')}}--}}
-{{--            </label>--}}
-{{--            <vue-datetime-picker-input--}}
-{{--                :xmin="{{strtotime('yesterday')}}"--}}
-{{--                xid="dp" xname="discount[expire]" xshow="datetime" xtitle="Expire date" def-tab="1"--}}
-{{--                :timepicker="true"--}}
-{{--            ></vue-datetime-picker-input>--}}
-{{--        </div>--}}
-{{--    </div>--}}
-{{--    <div class="col-6 mt-3">--}}
-{{--        <div class="form-group">--}}
-{{--            <label for="body">--}}
-{{--                {{__('Description')}}--}}
-{{--            </label>--}}
-{{--            <textarea name="body" class="ckeditorx form-control @error('body') is-invalid @enderror"--}}
-{{--                      placeholder="{{__('Description')}}"--}}
-{{--                      rows="4">{{old('body',$item->body??null)}}</textarea>--}}
-
-{{--        </div>--}}
-{{--    </div>--}}
-
-{{--</div>--}}
-<hr>
-<div class="mt-4 position-relative">
-    <h3>
-        {{__("Attachments")}}
-    </h3>
-    <br>
+<div class="mt-2 position-relative">
+    <h5 class="mb-3">{{__("Attachments")}}</h5>
     @if(isset($item))
-    <fast-attaching
-        :attachments='@json($item->attachs)'
-        xlang="{{config('app.locale')}}"
-        upload-url="{{route('admin.attachment.attaching')}}"
-        detach-url="{{route('admin.attachment.detach','')}}/"
-        model="{{get_class($item)}}"
-        id="{{$item->id}}"
-    ></fast-attaching>
+        <fast-attaching
+            :attachments='@json($item->attachs)'
+            xlang="{{config('app.locale')}}"
+            upload-url="{{route('admin.attachment.attaching')}}"
+            detach-url="{{route('admin.attachment.detach','')}}/"
+            model="{{get_class($item)}}"
+            id="{{$item->id}}"
+        ></fast-attaching>
     @endif
+</div>
+
+<hr class="my-4">
+
+<div>
+    <h5 class="mb-3">{{__("Additional data")}}</h5>
+    <meta-input
+        props-api-link="{{route('v1.category.prop','')}}/"
+        @if(isset($item))
+            :metaz='@json($item->getAllMeta())'
+            :quantitiez='@json($item->quantities)'
+            product-id="{{$item->id}}"
+            :imgz='@json($item->getMedia()->toArray())'
+        @endif
+    ></meta-input>
 </div>

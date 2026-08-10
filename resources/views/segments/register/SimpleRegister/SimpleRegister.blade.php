@@ -7,7 +7,7 @@
                 </div>
                 <div class="register-header-meta">
                     <h3>{{$title ?? __("Sign-up")}}</h3>
-                    <p>{{__("Register or Reset password")}}</p>
+                    <p>{{__("Fill essential fields to create your account")}}</p>
                 </div>
             </div>
             <form action="/blah" method="post" class="safe-form" id="email-register">
@@ -16,12 +16,36 @@
                 <input type="hidden" class="safe-url" data-url="{{route('client.sign-up-now')}}">
                 <div class="register-content">
                     <div class="form-group mb-3">
-                        <label for="email">
-                            {{__("Email")}}
-                        </label>
+                        <label for="name">{{__("Name")}}</label>
+                        <div class="input-with-icon">
+                            <span class="input-icon"><i class="ri-user-line"></i></span>
+                            <input type="text" id="name" required name="name" value="{{old('name')}}"
+                                   placeholder="{{__("Name")}}" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="mobile">{{__("Mobile")}}</label>
+                        <div class="input-with-icon">
+                            <span class="input-icon"><i class="ri-smartphone-line"></i></span>
+                            <input type="tel" id="mobile" required name="mobile" value="{{old('mobile')}}"
+                                   placeholder="09xxxxxxxxx" class="form-control" dir="ltr">
+                        </div>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="email">{{__("Email")}}</label>
                         <div class="input-with-icon">
                             <span class="input-icon"><i class="ri-mail-line"></i></span>
-                            <input type="email" id="email" required name="email" value="{{old('email')}}" placeholder="{{__("Email")}}" class="form-control">
+                            <input type="email" id="email" required name="email" value="{{old('email')}}"
+                                   placeholder="{{__("Email")}}" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="address">{{__("Address")}}</label>
+                        <div class="input-with-icon">
+                            <span class="input-icon"><i class="ri-map-pin-line"></i></span>
+                            <textarea id="address" required name="address" rows="3"
+                                      placeholder="{{__("Full delivery address")}}"
+                                      class="form-control">{{old('address')}}</textarea>
                         </div>
                     </div>
 
@@ -40,4 +64,3 @@
         </div>
     </div>
 </section>
-

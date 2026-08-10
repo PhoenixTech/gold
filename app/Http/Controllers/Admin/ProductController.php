@@ -2,42 +2,35 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
 use App\Http\Controllers\XController;
 use App\Http\Requests\ProductSaveRequest;
-use App\Models\Access;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Quantity;
+use App\Services\ProductPriceCalculator;
 use Illuminate\Http\Request;
-use App\Helper;
-use function App\Helpers\hasCreateRoute;
 
 class ProductController extends XController
 {
-
     // protected  $_MODEL_ = Product::class;
     // protected  $SAVE_REQUEST = ProductSaveRequest::class;
 
     protected $cols = ['name', 'metal_type', 'target_group', 'weight', 'category_id', 'stock_quantity', 'status'];
+
     protected $extra_cols = ['id', 'slug', 'image_index'];
 
     protected $searchable = ['name', 'slug', 'description', 'excerpt', 'sku', 'table'];
 
     protected $listView = 'admin.products.product-list';
+
     protected $formView = 'admin.products.product-form';
 
     protected $buttons = [
-        'edit' =>
-            ['title' => "Edit", 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
-        'show' =>
-            ['title' => "Detail", 'class' => 'btn-outline-secondary', 'icon' => 'ri-eye-line'],
-        'destroy' =>
-            ['title' => "Remove", 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-close-line'],
-        'category' =>
-            ['title' => "Edit category", 'class' => 'btn-outline-info edit-category-btn', 'icon' => 'ri-list-check-3'],
+        'edit' => ['title' => 'Edit', 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
+        'show' => ['title' => 'Detail', 'class' => 'btn-outline-secondary', 'icon' => 'ri-eye-line'],
+        'destroy' => ['title' => 'Remove', 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-close-line'],
+        'category' => ['title' => 'Edit category', 'class' => 'btn-outline-info edit-category-btn', 'icon' => 'ri-list-check-3'],
     ];
-
 
     public function __construct()
     {
@@ -45,14 +38,14 @@ class ProductController extends XController
     }
 
     /**
-     * @param $product Product
-     * @param $request  ProductSaveRequest
+     * @param  $product  Product
+     * @param  $request  ProductSaveRequest
      * @return Product
      */
     public function save($product, $request)
     {
 
-//        dd($request->all());
+        //        dd($request->all());
         $product->name = $request->input('name');
         $product->slug = $this->getSlug($product, 'slug', 'name');
 
@@ -75,7 +68,7 @@ class ProductController extends XController
         $product->price = $request->input('price', 0);
         $product->buy_price = $request->input('buy_price', 0);
 
-        if (!$request->has('quantity')) {
+        if (! $request->has('quantity')) {
             $product->price = $request->input('price', 0);
             $product->stock_quantity = $request->input('stock_quantity');
         }
@@ -107,48 +100,51 @@ class ProductController extends XController
         foreach ($request->file('image', []) as $image) {
             try {
                 $product->addMedia($image)
-                    ->preservingOriginal() //middle method
-                    ->toMediaCollection(); //finishing method
+                    ->preservingOriginal() // middle method
+                    ->toMediaCollection(); // finishing method
             } catch (FileDoesNotExist $e) {
             } catch (FileIsTooBig $e) {
             }
         }
 
         if ($request->has('meta')) {
-//            dd($request->input('meta'));
+            //            dd($request->input('meta'));
             $product->syncMeta(json_decode($request->get('meta', '[]'), true));
         }
-        $toRemoveQ = $product->quantities()->pluck('id')->toArray();
-        if ($request->has('q')) {
-            $qz = json_decode($request->input('q'));
-            foreach ($qz as $qi) {
-                if ($qi->id == null) {
-                    $q = new Quantity();
-                } else {
-                    $q = Quantity::whereId($qi->id)->first();
-                    unset($toRemoveQ[array_search($q->id, $toRemoveQ)]); // remove for to remove IDz
-                }
-                $q->image = $qi->image;
-                $q->count = $qi->count;
-                $q->price = $qi->price;
-                $q->product_id = $product->id;
-                $q->data = json_encode($qi->data);
-                $q->save();
-            }
-            $product->quantities()->whereIn('id', $toRemoveQ)->delete();
+        $calculator = app(ProductPriceCalculator::class);
 
-            if ($product->quantities()->count() > 0) {
-                $product->stock_quantity = $product->quantities()->sum('count');
-                $product->price = $product->quantities()->min('price');
+        if ($request->has('stock_items')) {
+            $this->syncStockItems($product, $request->input('stock_items'), $calculator);
+        } else {
+            $toRemoveQ = $product->quantities()->pluck('id')->toArray();
+            if ($request->has('q')) {
+                $qz = json_decode($request->input('q'));
+                foreach ($qz as $qi) {
+                    if ($qi->id == null) {
+                        $q = new Quantity;
+                    } else {
+                        $q = Quantity::whereId($qi->id)->first();
+                        unset($toRemoveQ[array_search($q->id, $toRemoveQ)]); // remove for to remove IDz
+                    }
+                    $q->image = $qi->image;
+                    $q->count = $qi->count;
+                    $q->price = $qi->price;
+                    $q->product_id = $product->id;
+                    $q->data = json_encode($qi->data);
+                    if (isset($qi->data->weight)) {
+                        $q->weight = $qi->data->weight;
+                    }
+                    $q->save();
+                }
+                $product->quantities()->whereIn('id', $toRemoveQ)->delete();
             }
-            $product->save();
         }
 
+        $calculator->repriceProduct($product->fresh(['quantities']));
 
-        return $product;
+        return $product->fresh();
 
     }
-
 
     /**
      * Show the form for creating a new resource.
@@ -157,6 +153,7 @@ class ProductController extends XController
     {
         //
         $cats = Category::all(['id', 'name', 'parent_id']);
+
         return view($this->formView, compact('cats'));
     }
 
@@ -168,13 +165,14 @@ class ProductController extends XController
         //
 
         $cats = Category::all(['id', 'name', 'parent_id']);
+
         return view($this->formView, compact('item', 'cats'));
     }
 
     public function bulk(Request $request)
     {
 
-//        dd($request->all());
+        //        dd($request->all());
         $data = explode('.', $request->input('action'));
         $action = $data[0];
         $ids = $request->input('id');
@@ -183,14 +181,14 @@ class ProductController extends XController
                 $msg = __(':COUNT items deleted successfully', ['COUNT' => count($ids)]);
                 $this->_MODEL_::destroy($ids);
                 break;
-            /**restore*/
+                /**restore*/
             case 'restore':
                 $msg = __(':COUNT items restored successfully', ['COUNT' => count($ids)]);
                 foreach ($ids as $id) {
                     $this->_MODEL_::withTrashed()->find($id)->restore();
                 }
                 break;
-            /*restore**/
+                /* restore* */
             case 'publish':
                 $this->_MODEL_::whereIn('id', $request->input('id'))->update(['status' => 1]);
                 $msg = __(':COUNT items published successfully', ['COUNT' => count($ids)]);
@@ -200,7 +198,7 @@ class ProductController extends XController
                 $msg = __(':COUNT items drafted successfully', ['COUNT' => count($ids)]);
                 break;
             default:
-                $msg = __('Unknown bulk action : :ACTION', ["ACTION" => $action]);
+                $msg = __('Unknown bulk action : :ACTION', ['ACTION' => $action]);
         }
 
         return $this->do_bulk($msg, $action, $ids);
@@ -210,7 +208,6 @@ class ProductController extends XController
     {
         return parent::delete($item);
     }
-
 
     public function update(Request $request, Product $item)
     {
@@ -223,10 +220,10 @@ class ProductController extends XController
         return parent::restoreing(Product::withTrashed()->where('id', $item)->first());
     }
 
-    /*restore**/
+    /* restore* */
 
     /**
-     * @param $id Product's id
+     * @param  $id  Product's id
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|\Illuminate\Foundation\Application|\Illuminate\View\View
      */
     public function categoryEdit($id)
@@ -234,12 +231,11 @@ class ProductController extends XController
 
         $product = Product::find($id);
         $cats = Category::all(['id', 'name', 'parent_id']);
+
         return view('admin.products.category-edit', compact('product', 'cats'));
     }
 
     /**
-     * @param Product $item
-     * @param Request $request
      * @return array|\Illuminate\Http\RedirectResponse
      */
     public function categorySave(Product $item, Request $request)
@@ -250,6 +246,59 @@ class ProductController extends XController
             return ['OK' => true, 'message' => __('Categories saved successfully')];
         } else {
             return redirect()->back()->with(['message' => __('Categories saved successfully')]);
+        }
+    }
+
+    /**
+     * Sync unique stock pieces (weight + optional code) onto Quantity rows.
+     */
+    protected function syncStockItems(Product $product, string $payload, ProductPriceCalculator $calculator): void
+    {
+        $items = json_decode($payload, true);
+        if (! is_array($items)) {
+            return;
+        }
+
+        $keepIds = [];
+
+        foreach ($items as $item) {
+            $id = $item['id'] ?? null;
+            $weight = isset($item['weight']) ? (float) $item['weight'] : 0;
+
+            if ($weight <= 0) {
+                if (! empty($id)) {
+                    $keepIds[] = (int) $id;
+                }
+
+                continue;
+            }
+
+            $quantity = $id ? Quantity::query()->where('product_id', $product->id)->whereKey($id)->first() : null;
+            if ($quantity === null) {
+                $quantity = new Quantity;
+                $quantity->product_id = $product->id;
+                $quantity->count = 1;
+            }
+
+            $isSold = array_key_exists('count', $item) && (int) $item['count'] <= 0;
+            $quantity->weight = $weight;
+            $quantity->code = isset($item['code']) && $item['code'] !== '' ? (string) $item['code'] : null;
+            $quantity->count = $isSold ? 0 : 1;
+            $quantity->image = $item['image'] ?? $quantity->image;
+            $quantity->data = json_encode(array_filter([
+                'weight' => $weight,
+                'code' => $quantity->code,
+            ], fn ($value) => $value !== null && $value !== ''));
+            $quantity->price = $calculator->calculate($product, $weight);
+            $quantity->save();
+
+            $keepIds[] = $quantity->id;
+        }
+
+        if ($keepIds === []) {
+            $product->quantities()->delete();
+        } else {
+            $product->quantities()->whereNotIn('id', $keepIds)->delete();
         }
     }
 }

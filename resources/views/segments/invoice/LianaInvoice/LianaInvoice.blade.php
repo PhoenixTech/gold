@@ -27,11 +27,11 @@
                 </div>
                 <div class="liana-meta-item">
                     <span class="liana-meta-label"><i class="ri-user-3-line"></i> {{__("Customer")}}</span>
-                    <b>{{$invoice->customer->name}}</b>
+                    <b>{{$invoice->customer->name ?? __('Customer')}}</b>
                 </div>
                 <div class="liana-meta-item">
                     <span class="liana-meta-label"><i class="ri-phone-line"></i> {{__("Customer mobile")}}</span>
-                    <b dir="ltr">{{$invoice->customer->mobile}}</b>
+                    <b dir="ltr">{{$invoice->customer->mobile ?? '-'}}</b>
                 </div>
             </div>
 
@@ -50,15 +50,24 @@
                         @foreach($invoice->orders as $k => $order)
                             <tr>
                                 <td data-label="#">{{$k + 1}}</td>
-                                <td data-label="{{__('Product')}}">{{$order->product->name}}</td>
+                                <td data-label="{{__('Product')}}">{{$order->product->name ?? '-'}}</td>
                                 <td data-label="{{__('Count')}}">{{number_format($order->count)}}</td>
                                 <td data-label="{{__('Quantity')}}">
-                                    @if( ($order->quantity->meta??null) == null)
-                                        -
-                                    @else
-                                        @foreach($order->quantity->meta as $m)
-                                            <span>{!! $m['human_value']??'-' !!}</span>
+                                    @if($order->quantity)
+                                        @if($order->quantity->weight !== null)
+                                            <span>{{ __('Weight') }}: {{ number_format((float) $order->quantity->weight, 3) }} g</span>
+                                        @endif
+                                        @if($order->quantity->code)
+                                            <span>{{ __('Code') }}: {{ $order->quantity->code }}</span>
+                                        @endif
+                                        @foreach(($order->quantity->meta ?? []) as $m)
+                                            <span>{!! $m['human_value'] ?? '-' !!}</span>
                                         @endforeach
+                                        @if($order->quantity->weight === null && ! $order->quantity->code && empty($order->quantity->meta))
+                                            -
+                                        @endif
+                                    @else
+                                        -
                                     @endif
                                 </td>
                                 <td data-label="{{__('Price')}}" class="liana-price">
@@ -92,9 +101,37 @@
                 <div class="liana-address">
                     <i class="ri-map-pin-2-line"></i>
                     {{__("Address")}}:
-                    {{$invoice->address->state->name}}, {{$invoice->address->city->name}}, {{$invoice->address->address}}
-                    , {{$invoice->address->zip}}
+                    @php
+                        $address = $invoice->address;
+                        $addressParts = array_filter([
+                            $address?->state?->name,
+                            $address?->city?->name,
+                            $address?->address,
+                            $address?->zip,
+                        ], fn ($part) => $part !== null && trim((string) $part) !== '');
+                    @endphp
+                    {{ $addressParts ? implode('، ', $addressParts) : __('No address registered.') }}
                 </div>
+                @php
+                    $cardPayment = $invoice->payments->firstWhere('type', 'CARD');
+                    $bank = \App\Http\Controllers\CardController::ensureBankSettings();
+                @endphp
+                @if($cardPayment)
+                    <hr>
+                    <div class="liana-dyn">
+                        <strong>{{__("Card-to-card details")}}</strong>
+                        <p class="mb-1">{{__("Order registered. Please pay by card-to-card and wait for confirmation.")}}</p>
+                        @if($bank['bank_account_name'])
+                            <div>{{__("Account name")}}: <b>{{ $bank['bank_account_name'] }}</b></div>
+                        @endif
+                        @if($bank['bank_card_number'])
+                            <div>{{__("Card number")}}: <b dir="ltr">{{ $bank['bank_card_number'] }}</b></div>
+                        @endif
+                        @if($bank['bank_sheba'])
+                            <div>{{__("SHEBA")}}: <b dir="ltr">{{ $bank['bank_sheba'] }}</b></div>
+                        @endif
+                    </div>
+                @endif
                 @if(trim(getSetting($data->area_name.'_'.$data->part.'_desc')) != '')
                     <hr>
                     <div class="liana-dyn">

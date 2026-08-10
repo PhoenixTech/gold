@@ -22,8 +22,8 @@ class ProductSaveRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'min:5', 'max:128', "unique:products,name," . $this->id],
-            'sku' => ['nullable', 'string', 'min:1', 'max:128', "unique:products,sku," . $this->id],
+            'name' => ['required', 'string', 'min:5', 'max:128', 'unique:products,name,'.$this->id],
+            'sku' => ['nullable', 'string', 'min:1', 'max:128', 'unique:products,sku,'.$this->id],
             'body' => ['nullable', 'string', 'min:5'],
             'excerpt' => ['required', 'string', 'min:5'],
             'active' => ['nullable', 'boolean'],
@@ -39,6 +39,7 @@ class ProductSaveRequest extends FormRequest
             'min_stock_level' => ['nullable', 'integer', 'min:0'],
             'target_group' => ['nullable', 'string', 'in:men,women,children,unisex'],
             'metal_type' => ['nullable', 'string', 'in:gold,silver'],
+            'stock_items' => ['nullable', 'string'],
             'image.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'canonical' => ['nullable', 'url', 'min:5', 'max:128'],
         ];

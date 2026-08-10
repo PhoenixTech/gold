@@ -13,17 +13,17 @@ return new class extends Migration
     {
         Schema::create('props', function (Blueprint $table) {
             $table->id();
-            $table->string('name',90)->unique();
+            $table->string('name', 90)->unique();
             $table->text('label');
-            $table->string('width',300)->default('col-md-6');
+            $table->string('width', 300)->default('col-md-6');
             $table->boolean('required')->default(false);
             $table->boolean('searchable')->default(true);
-            $table->string('type',60);
-            $table->text('unit')->nullable()->default('');
+            $table->string('type', 60);
+            $table->text('unit')->nullable();
             $table->unsignedInteger('sort')->default(null)->nullable();
             $table->longText('options')->nullable();
             $table->boolean('priceable')->default(false);
-            $table->string('icon',128)->nullable()->default(null);
+            $table->string('icon', 128)->nullable()->default(null);
             $table->timestamps();
             $table->softDeletes();
         });

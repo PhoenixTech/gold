@@ -5,7 +5,6 @@ namespace App\Http\Resources;
 use App\Models\Quantity;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Http\Resources\Json\ResourceCollection;
 
 class QunatityCollection extends JsonResource
 {
@@ -19,14 +18,23 @@ class QunatityCollection extends JsonResource
         /**
          * @var $this Quantity
          */
+        $image = null;
+        if ($this->image !== null && isset($this->product->getMedia()[$this->image])) {
+            $image = $this->product->getMedia()[$this->image]->getUrl('product-image');
+        } else {
+            $image = $this->product->imgUrl();
+        }
+
         return [
             'id' => $this->id,
             'product_name' => $this->product->name,
             'count' => $this->count,
-            'data'=> json_decode($this->data),
+            'weight' => $this->weight,
+            'code' => $this->code,
+            'data' => json_decode($this->data),
             'meta' => $this->meta,
-            'price'=>  $this->price,
-            'image' => $this->product->getMedia()[$this->image]->getUrl('product-image'),
+            'price' => $this->price,
+            'image' => $image,
         ];
     }
 }

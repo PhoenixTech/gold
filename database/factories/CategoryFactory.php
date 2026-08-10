@@ -16,8 +16,15 @@ class CategoryFactory extends Factory
      */
     public function definition(): array
     {
+        $name = $this->faker->unique()->words(2, true);
+
         return [
-            //
+            'name' => $name,
+            'slug' => sluger($name).'-'.$this->faker->unique()->numerify('###'),
+            'subtitle' => null,
+            'description' => null,
+            'sort' => 0,
+            'hide' => false,
         ];
     }
 }

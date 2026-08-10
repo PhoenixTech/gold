@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Contracts\Payment;
 use App\Http\Requests\ContactSubmitRequest;
 use App\Mail\AuthMail;
+use App\Models\Address;
 use App\Models\Attachment;
 use App\Models\Category;
 use App\Models\Clip;
@@ -28,16 +29,14 @@ use Spatie\Tags\Tag;
 
 class ClientController extends Controller
 {
-
     public function __construct()
     {
 
-
         $this->middleware(function ($request, $next) {
 
-//            if (!auth()->check()){
-//                abort(403);
-//            }
+            //            if (!auth()->check()){
+            //                abort(403);
+            //            }
             if ($request->attributes->get('set_lang') != true) {
                 app()->setLocale(config('app.locale'));
                 \Session::remove('locate');
@@ -58,6 +57,7 @@ class ClientController extends Controller
         $area = 'index';
         $title = config('app.name');
         $subtitle = getSetting('subtitle');
+
         return view('client.welcome', compact('area', 'title', 'subtitle'));
     }
 
@@ -66,7 +66,7 @@ class ClientController extends Controller
 
         $post = Post::where('slug', $slug)->firstOrFail();
 
-        if ($post->status = 0 && !auth()->check()) {
+        if ($post->status = 0 && ! auth()->check()) {
             return abort(403);
         }
         $area = 'post';
@@ -78,6 +78,7 @@ class ClientController extends Controller
             $post->mainGroup->name => $post->mainGroup->webUrl(),
             $post->title => null,
         ];
+
         return view('client.post', compact('area', 'post', 'title', 'subtitle', 'breadcrumb'));
     }
 
@@ -86,7 +87,7 @@ class ClientController extends Controller
 
         $clip = Clip::where('slug', $slug)->firstOrFail();
 
-        if ($clip->status = 0 && !auth()->check()) {
+        if ($clip->status = 0 && ! auth()->check()) {
             return abort(403);
         }
         $area = 'clip';
@@ -97,14 +98,15 @@ class ClientController extends Controller
             $clip->title => null,
         ];
         $model = $clip;
-        return view('client.default-list', compact('area', 'clip', 'title', 'subtitle', 'breadcrumb','model'));
+
+        return view('client.default-list', compact('area', 'clip', 'title', 'subtitle', 'breadcrumb', 'model'));
     }
 
     public function gallery($slug)
     {
 
         $gallery = Gallery::where('slug', $slug)->firstOrFail();
-        if ($gallery->status = 0 && !auth()->check()) {
+        if ($gallery->status = 0 && ! auth()->check()) {
             return abort(403);
         }
         $area = 'gallery';
@@ -115,57 +117,62 @@ class ClientController extends Controller
             __('Galleries') => gallariesUrl(),
             $gallery->title => null,
         ];
+
         return view('client.gallery', compact('area', 'gallery', 'title', 'subtitle', 'breadcrumb'));
     }
 
     public function posts()
     {
         $area = 'posts-list';
-        $title = __("Posts list");
+        $title = __('Posts list');
         $subtitle = '';
         $posts = Post::where('status', 1)
             ->orderByDesc('id')->paginate($this->paginate);
+
         return view('client.default-list', compact('area', 'posts', 'title', 'subtitle'));
     }
 
     public function products()
     {
         $area = 'products-list';
-        $title = __("Products list");
+        $title = __('Products list');
         $subtitle = '';
         $products = Product::where('status', 1)
             ->orderByDesc('id')->paginate($this->paginate);
+
         return view('client.default-list', compact('area', 'products', 'title', 'subtitle'));
     }
-
 
     public function galleries()
     {
         $area = 'galleries-list';
-        $title = __("Galleries list");
+        $title = __('Galleries list');
         $subtitle = '';
         $galleries = Gallery::where('status', 1)
             ->orderByDesc('id')->paginate($this->paginate);
+
         return view('client.default-list', compact('area', 'galleries', 'title', 'subtitle'));
     }
 
     public function clips()
     {
         $area = 'clips-list';
-        $title = __("Video clips list");
+        $title = __('Video clips list');
         $subtitle = '';
         $clips = Clip::where('status', 1)
             ->orderByDesc('id')->paginate($this->paginate);
+
         return view('client.default-list', compact('area', 'clips', 'title', 'subtitle'));
     }
 
     public function attachments()
     {
         $area = 'attachments-list';
-        $title = __("Attachments list");
+        $title = __('Attachments list');
         $subtitle = '';
         $attachs = Attachment::where('is_fillable', 1)
             ->orderByDesc('id')->paginate($this->paginate);
+
         return view('client.default-list', compact('area', 'attachs', 'title', 'subtitle'));
     }
 
@@ -181,21 +188,22 @@ class ClientController extends Controller
             $attachment->title => null,
         ];
         $model = $attachment;
-        return view('client.default-list', compact('area', 'attachment', 'title', 'subtitle', 'breadcrumb','model'));
+
+        return view('client.default-list', compact('area', 'attachment', 'title', 'subtitle', 'breadcrumb', 'model'));
     }
 
     public function tag($slug)
     {
 
-        $tag = Tag::where('slug->' . config('app.locale'), 'like', $slug)->first();
+        $tag = Tag::where('slug->'.config('app.locale'), 'like', $slug)->first();
         $posts = Post::withAnyTags([$tag])->where('status', 1)->paginate(100);
         $products = Product::withAnyTags([$tag])->where('status', 1)->paginate(100);
         $clips = Clip::withAnyTags([$tag])->where('status', 1)->paginate(100);
-        $title = __('Tag') . ': ' . $tag->name;
+        $title = __('Tag').': '.$tag->name;
         $subtitle = '';
+
         return view('client.tag', compact('tag', 'posts', 'products', 'clips', 'title', 'subtitle'));
     }
-
 
     public function submitComment(Request $request)
     {
@@ -206,8 +214,8 @@ class ClientController extends Controller
             'parent_id' => ['nullable', 'integer'],
         ]);
 
-        $comment = new Comment();
-        if (!auth()->check() && !auth('customer')->check()) {
+        $comment = new Comment;
+        if (! auth()->check() && ! auth('customer')->check()) {
             $request->validate([
                 'name' => ['required', 'string', 'min:2'],
                 'email' => ['required', 'email'],
@@ -243,7 +251,7 @@ class ClientController extends Controller
     {
 
         if (isGuestMaxAttemptTry('search', 5, 1)) {
-            return  abort(403);
+            return abort(403);
         }
 
         guestLog('search');
@@ -252,7 +260,7 @@ class ClientController extends Controller
         if (mb_strlen($q) < 3) {
             return abort(403, __('Search word is too short'));
         }
-        $q = '%' . $q . '%';
+        $q = '%'.$q.'%';
         $posts = Post::where('status', 1)->where(function ($query) use ($q) {
             $query->where('title', 'LIKE', $q)
                 ->orWhere('subtitle', 'LIKE', $q)
@@ -267,10 +275,11 @@ class ClientController extends Controller
             $query->where('title', 'LIKE', $q)
                 ->orWhere('body', 'LIKE', $q);
         })->paginate(100);
-        $title = __('Search for') . ': ' . $request->input('q');
+        $title = __('Search for').': '.$request->input('q');
         $subtitle = '';
         $noIndex = true;
-        return view('client.tag', compact('posts', 'products', 'clips', 'title', 'subtitle','noIndex'));
+
+        return view('client.tag', compact('posts', 'products', 'clips', 'title', 'subtitle', 'noIndex'));
     }
 
     public function group($slug)
@@ -295,6 +304,7 @@ class ClientController extends Controller
             ];
 
         }
+
         return view('client.group', compact('area', 'posts', 'title', 'subtitle', 'group', 'breadcrumb'));
     }
 
@@ -302,7 +312,7 @@ class ClientController extends Controller
     {
 
         $product = Product::where('slug', $slug)->firstOrFail();
-        if ($product->status = 0 && !auth()->check()) {
+        if ($product->status = 0 && ! auth()->check()) {
             return abort(403);
         }
         $area = 'product';
@@ -316,6 +326,7 @@ class ClientController extends Controller
             $breadcrumb[$product->category->parent->name] = $product->category->parent->webUrl();
         }
         $breadcrumb[$product->name] = null;
+
         return view('client.product', compact('area', 'product', 'title', 'subtitle', 'breadcrumb'));
     }
 
@@ -355,7 +366,6 @@ class ClientController extends Controller
             $query = $query->orderByDesc('id');
         }
 
-
         if ($request->has('meta')) {
             foreach ($category->props()->where('searchable', 1)->get() as $prop) {
                 if (isset($request->input('meta')[$prop->name]) && $request->input('meta')[$prop->name] != '' && $request->input('meta')[$prop->name] != '[]') {
@@ -363,7 +373,7 @@ class ClientController extends Controller
                         case 'checkbox':
                             if ($prop->priceable) {
                                 $id = Quantity::where('count', '>', 0)
-                                    ->where('data', 'LIKE', '%"' . $prop->name . '":%')
+                                    ->where('data', 'LIKE', '%"'.$prop->name.'":%')
                                     ->pluck('product_id')->toArray();
                                 $query->whereIn('id', $id);
                             } else {
@@ -376,7 +386,7 @@ class ClientController extends Controller
                         case 'color':
                             if ($prop->priceable) {
                                 $id = Quantity::where('count', '>', 0)
-                                    ->where('data', 'LIKE', '%"' . $prop->name . '":"' . $request->meta[$prop->name] . '"%')
+                                    ->where('data', 'LIKE', '%"'.$prop->name.'":"'.$request->meta[$prop->name].'"%')
                                     ->pluck('product_id')->toArray();
 
                                 $id = array_merge($id, $query->whereMeta($prop->name, $request->input('meta')[$prop->name])->pluck('id')->toArray());
@@ -387,7 +397,7 @@ class ClientController extends Controller
                             }
                             break;
                         case 'text':
-                            $query->whereMeta($prop->name, 'LIKE', '%' . $request->input('meta')[$prop->name] . '%');
+                            $query->whereMeta($prop->name, 'LIKE', '%'.$request->input('meta')[$prop->name].'%');
                             break;
                         case 'multi':
                         case 'singlemulti':
@@ -396,7 +406,7 @@ class ClientController extends Controller
                                 $metas = json_decode($request->meta[$prop->name], true);
                                 $q->where(function ($query) use ($metas) {
                                     foreach ($metas as $meta) {
-                                        $query->orWhere('data', 'LIKE', '%' . $meta . '%');
+                                        $query->orWhere('data', 'LIKE', '%'.$meta.'%');
                                     }
                                 });
                                 $query->whereIn('id', $q->pluck('product_id')->toArray());
@@ -405,7 +415,7 @@ class ClientController extends Controller
                                 $metas = json_decode($request->meta[$prop->name], true);
                                 $q->where(function ($query) use ($metas) {
                                     foreach ($metas as $meta) {
-                                        $query->orWhere('value', 'LIKE', '%' . $meta . '%');
+                                        $query->orWhere('value', 'LIKE', '%'.$meta.'%');
                                     }
                                 });
 
@@ -416,7 +426,6 @@ class ClientController extends Controller
                 }
             }
         }
-
 
         $products = $query->paginate($this->paginate);
 
@@ -433,6 +442,7 @@ class ClientController extends Controller
             ];
 
         }
+
         return view('client.category', compact('area', 'products', 'title', 'subtitle', 'category', 'breadcrumb'));
     }
 
@@ -440,99 +450,144 @@ class ClientController extends Controller
     {
         $attachment = Attachment::where('slug', $slug)->firstOrFail();
         $attachment->increment('downloads');
-        $file = (storage_path() . '/app/public/attachments/' . $attachment->file);
+        $file = (storage_path().'/app/public/attachments/'.$attachment->file);
         if (file_exists($file)) {
             return response()->download($file);
         }
     }
 
-
     public function compare()
     {
         $area = 'compare';
-        $title = __("Compare products");
+        $title = __('Compare products');
         $subtitle = '';
         $ids = json_decode(\Cookie::get('compares'), true);
         $products = Product::whereIn('id', $ids)->where('status', 1)->get();
+
         return view('client.default-list', compact('area', 'products', 'title', 'subtitle'));
     }
 
     public function contact()
     {
         $area = 'contact-us';
-        $title = __("Contact us");
+        $title = __('Contact us');
         $subtitle = '';
+
         return view('client.default-list', compact('area', 'title', 'subtitle'));
     }
 
     public function sendContact(ContactSubmitRequest $request)
     {
-        $con = new  Contact();
+        $con = new Contact;
         $con->name = $request->full_name;
         $con->email = $request->email;
         $con->mobile = $request->phone;
         $con->subject = $request->subject;
         $con->body = $request->bodya;
         $con->save();
+
         return redirect()->back()->with(['message' => __('Your message has been successfully sent.')]);
     }
-
 
     public function signOut()
     {
         auth('customer')->logout();
-        return redirect()->route('client.sign-in')->with(['message' => __("Signed out successfully")]);
+
+        return redirect()->route('client.sign-in')->with(['message' => __('Signed out successfully')]);
     }
 
-    public function signIn()
+    public function signIn(Request $request)
     {
-        $area = 'login';
-        $title = __("sign in");
-        $subtitle = __('Sign in as customer');
-        return view('client.default-list', compact('area', 'title', 'subtitle'));
-    }
-
-    public function signUp()
-    {
-        if (config('app.sms.sign')){
-            return  abort(403);
+        if ($request->filled('redirect')) {
+            session(['url.intended' => $request->input('redirect')]);
         }
-        $area = 'register';
-        $title = __("sign up");
-        $subtitle = __('Sign up as customer');
+
+        $area = 'login';
+        $title = __('sign in');
+        $subtitle = __('Sign in as customer');
+
         return view('client.default-list', compact('area', 'title', 'subtitle'));
     }
+
+    public function signUp(Request $request)
+    {
+        if (config('app.sms.sign')) {
+            return abort(403);
+        }
+
+        if ($request->filled('redirect')) {
+            session(['url.intended' => $request->input('redirect')]);
+        }
+
+        $area = 'register';
+        $title = __('sign up');
+        $subtitle = __('Sign up as customer');
+
+        return view('client.default-list', compact('area', 'title', 'subtitle'));
+    }
+
     public function signUpNow(Request $request)
     {
-        if (config('app.sms.sign')){
-            return  abort(403);
+        if (config('app.sms.sign')) {
+            return abort(403);
         }
 
         $request->validate([
-            'email' => ['required','email']
+            'name' => ['required', 'string', 'min:2', 'max:255'],
+            'mobile' => ['required', 'string', 'regex:/^09\d{9}$/', 'unique:customers,mobile'],
+            'email' => ['required', 'email', 'unique:customers,email'],
+            'address' => ['required', 'string', 'min:10'],
+        ], [
+            'mobile.regex' => __('Mobile number format is invalid'),
         ]);
 
+        $wantsJson = $this->wantsJsonResponse($request);
+
         if (isGuestMaxAttemptTry('email', 1, 5)) {
-           return  redirect()->back()->withErrors( __('You try attempts, Try it a few minutes'));
+            $msg = __('You try attempts, Try it a few minutes');
+
+            return $wantsJson
+                ? errors([], 429, $msg)
+                : redirect()->back()->withErrors($msg);
         }
 
         guestLog('email');
 
         $passwd = generateUniqueID(12);
         Mail::to($request->input('email'))->send(new AuthMail($passwd));
-        $c = Customer::where('email', $request->email);
-        if ($c->count() > 0) {
-            $customer = $c->first();
-            $msg = __('Your account password has been changed successfully.');
-        }else{
-            $customer = new Customer();
-            $customer->email = $request->email;
-            $msg = __('Your account has been created successfully.');
-        }
+
+        $customer = new Customer;
+        $customer->name = $request->input('name');
+        $customer->mobile = $request->input('mobile');
+        $customer->email = $request->input('email');
         $customer->password = bcrypt($passwd);
         $customer->save();
 
-        return  redirect()->back()->with(['message' => $msg . __("Please check your email to find password, Don't forget check spam/junk too, If you find our email in spam folder, Please mark it `Not spam`")]);
+        $address = new Address;
+        $address->customer_id = $customer->id;
+        $address->address = $request->input('address');
+        $address->save();
+
+        auth('customer')->login($customer);
+        $customer->load('addresses');
+
+        $msg = __('Your account has been created successfully.');
+        $emailHint = __("Please check your email to find password, Don't forget check spam/junk too, If you find our email in spam folder, Please mark it `Not spam`");
+
+        if ($wantsJson) {
+            return success([
+                'profile_complete' => $customer->isCheckoutReady(),
+                'addresses' => $customer->addresses,
+                'customer' => [
+                    'name' => $customer->name,
+                    'mobile' => $customer->mobile,
+                    'email' => $customer->email,
+                ],
+            ], $msg.' '.$emailHint);
+        }
+
+        return redirect()->intended(route('client.card'))
+            ->with(['message' => $msg.' '.$emailHint]);
     }
 
     public function singInDo(Request $request)
@@ -543,26 +598,53 @@ class ClientController extends Controller
             'password' => 'required|string|min:6',
         ]);
 
+        $wantsJson = $this->wantsJsonResponse($request);
+
         if (isGuestMaxAttemptTry('login', $max)) {
-            return redirect()->back()->withErrors([__('You try more than :COUNT attempts, Try it later', ["COUNT" => $max])]);
+            $msg = __('You try more than :COUNT attempts, Try it later', ['COUNT' => $max]);
+
+            return $wantsJson
+                ? errors([], 429, $msg)
+                : redirect()->back()->withErrors([$msg]);
         }
 
         guestLog('login');
         $customer = Customer::where('email', $request->input('email'));
         if ($customer->count() == 0) {
-            return redirect()->back()->withErrors([__('Email or password is incorrect')]);
+            $msg = __('Email or password is incorrect');
+
+            return $wantsJson
+                ? errors([], 422, $msg)
+                : redirect()->back()->withErrors([$msg]);
         }
 
         $customer = $customer->first();
 
         if (\Hash::check($request->input('password'), $customer->password)) {
             auth('customer')->login($customer);
-            $profileIncomplete = ($customer->name == null || trim($customer->name) == '');
-            $target = $profileIncomplete ? route('client.profile') . '#profile' : route('client.profile');
-            return redirect()->to($target)->with(['message' => __('Signed in successfully')]);
-        } else {
-            return redirect()->back()->withErrors([__('Email or password is incorrect'), __('If you forget your password call us')]);
+            $customer->load('addresses');
+
+            if ($wantsJson) {
+                return success([
+                    'profile_complete' => $customer->isCheckoutReady(),
+                    'addresses' => $customer->addresses,
+                    'customer' => [
+                        'name' => $customer->name,
+                        'mobile' => $customer->mobile,
+                        'email' => $customer->email,
+                    ],
+                ], __('Signed in successfully'));
+            }
+
+            return redirect()->intended(route('client.card'))
+                ->with(['message' => __('Signed in successfully')]);
         }
+
+        $msg = __('Email or password is incorrect');
+
+        return $wantsJson
+            ? errors([], 422, $msg)
+            : redirect()->back()->withErrors([$msg, __('If you forget your password call us')]);
     }
 
     public function sendSms(Request $request)
@@ -583,7 +665,7 @@ class ClientController extends Controller
             $args = [
                 'receptor' => $request->input('tel'),
                 'template' => trim(getSetting('sign')),
-                'token' => $code
+                'token' => $code,
             ];
         } else {
             $args = [
@@ -593,9 +675,9 @@ class ClientController extends Controller
 
         sendingSMS(getSetting('sign'), $request->input('tel'), $args);
 
-        Log::info('auth code: ' . $code);
+        Log::info('auth code: '.$code);
         if ($customer->count() == 0) {
-            $customer = new Customer();
+            $customer = new Customer;
             $customer->mobile = $request->input('tel');
             $customer->code = $code;
             $customer->save();
@@ -621,7 +703,7 @@ class ClientController extends Controller
         ]);
 
         if (isGuestMaxAttemptTry('login', $max)) {
-            return redirect()->back()->withErrors([__('You try more than :COUNT attempts, Try it later', ["COUNT" => $max])]);
+            return redirect()->back()->withErrors([__('You try more than :COUNT attempts, Try it later', ['COUNT' => $max])]);
         }
 
         guestLog('login');
@@ -640,17 +722,26 @@ class ClientController extends Controller
         $customer->save();
 
         auth('customer')->login($customer);
-        $profileIncomplete = ($customer->name == null || trim($customer->name) == '');
-        $redirectUrl = $profileIncomplete ? route('client.profile') . '#profile' : route('client.profile');
+        $customer->load('addresses');
+        $profileComplete = $customer->isCheckoutReady();
+        $redirectUrl = $profileComplete
+            ? (session()->pull('url.intended') ?: route('client.card'))
+            : route('client.card');
 
         return [
             'OK' => true,
             'message' => __('You are logged in successfully'),
             'redirect' => $redirectUrl,
+            'profile_complete' => $profileComplete,
+            'addresses' => $customer->addresses,
+            'customer' => [
+                'name' => $customer->name,
+                'mobile' => $customer->mobile,
+                'email' => $customer->email,
+            ],
         ];
 
     }
-
 
     public function sitemap()
     {
@@ -668,67 +759,72 @@ class ClientController extends Controller
         }
 
         if ($latestCategory) {
-            if (!$latestUpdate || $latestCategory->updated_at > $latestUpdate) {
+            if (! $latestUpdate || $latestCategory->updated_at > $latestUpdate) {
                 $latestUpdate = $latestCategory->updated_at;
             }
         }
-        $xmlContent = '<?xml version="1.0" encoding="utf-8" ?>' . PHP_EOL;
-        $xmlContent .= view('website.sitemaps.sitemap',compact('latestUpdate'))->render(); // Render the view and append to XML content
+        $xmlContent = '<?xml version="1.0" encoding="utf-8" ?>'.PHP_EOL;
+        $xmlContent .= view('website.sitemaps.sitemap', compact('latestUpdate'))->render(); // Render the view and append to XML content
 
         // Return the XML response
         return response($xmlContent, 200)
             ->header('Content-Type', 'text/xml');
     }
+
     public function sitemapGroupCategory()
     {
 
-
-        $xmlContent = '<?xml version="1.0" encoding="utf-8" ?>' . PHP_EOL;
+        $xmlContent = '<?xml version="1.0" encoding="utf-8" ?>'.PHP_EOL;
         $xmlContent .= view('website.sitemaps.sitemap-groups-category')->render(); // Render the view and append to XML content
 
         // Return the XML response
         return response($xmlContent, 200)
             ->header('Content-Type', 'text/xml');
     }
+
     public function sitemapPosts()
     {
-        $xmlContent = '<?xml version="1.0" encoding="utf-8" ?>' . PHP_EOL;
+        $xmlContent = '<?xml version="1.0" encoding="utf-8" ?>'.PHP_EOL;
         $xmlContent .= view('website.sitemaps.sitemap-posts')->render(); // Render the view and append to XML content
 
         // Return the XML response
         return response($xmlContent, 200)
             ->header('Content-Type', 'text/xml');
     }
+
     public function sitemapProducts()
     {
-        $xmlContent = '<?xml version="1.0" encoding="utf-8" ?>' . PHP_EOL;
+        $xmlContent = '<?xml version="1.0" encoding="utf-8" ?>'.PHP_EOL;
         $xmlContent .= view('website.sitemaps.sitemap-products')->render(); // Render the view and append to XML content
 
         // Return the XML response
         return response($xmlContent, 200)
             ->header('Content-Type', 'text/xml');
     }
+
     public function sitemapClips()
     {
-        $xmlContent = '<?xml version="1.0" encoding="utf-8" ?>' . PHP_EOL;
+        $xmlContent = '<?xml version="1.0" encoding="utf-8" ?>'.PHP_EOL;
         $xmlContent .= view('website.sitemaps.sitemap-clips')->render(); // Render the view and append to XML content
 
         // Return the XML response
         return response($xmlContent, 200)
             ->header('Content-Type', 'text/xml');
     }
+
     public function sitemapGalleries()
     {
-        $xmlContent = '<?xml version="1.0" encoding="utf-8" ?>' . PHP_EOL;
+        $xmlContent = '<?xml version="1.0" encoding="utf-8" ?>'.PHP_EOL;
         $xmlContent .= view('website.sitemaps.sitemap-gallries')->render(); // Render the view and append to XML content
 
         // Return the XML response
         return response($xmlContent, 200)
             ->header('Content-Type', 'text/xml');
     }
+
     public function sitemapAttachments()
     {
-        $xmlContent = '<?xml version="1.0" encoding="utf-8" ?>' . PHP_EOL;
+        $xmlContent = '<?xml version="1.0" encoding="utf-8" ?>'.PHP_EOL;
         $xmlContent .= view('website.sitemaps.sitemap-attachments')->render(); // Render the view and append to XML content
 
         // Return the XML response
@@ -739,7 +835,7 @@ class ClientController extends Controller
     public function lang(Request $request)
     {
 
-        $uri = '/' . $request->path();
+        $uri = '/'.$request->path();
         // Iterate through all the defined routes
         $r = null;
         $n = '';
@@ -753,7 +849,7 @@ class ClientController extends Controller
             $uri2 = str_replace('/', '\\/', $route->uri());
             $uri2 = preg_replace('/\{[a-z]*\}/m', '.*', $uri2);
             // Check if the route matches the given URI
-            if (preg_match('/' . $uri2 . '/', $uri)) {
+            if (preg_match('/'.$uri2.'/', $uri)) {
                 $r = $route->action['controller'];
                 $n = $route->uri();
                 break;
@@ -772,6 +868,7 @@ class ClientController extends Controller
             }
         }
         $args[] = $request;
+
         return $this->$method(...$args);
     }
 
@@ -780,20 +877,19 @@ class ClientController extends Controller
         return $this->welcome();
     }
 
-
     public function pay($hash)
     {
 
         $invoice = Invoice::where('hash', $hash)->first();
-//        dd($invoice->created_at->timestamp , (time() - 3600));
+        //        dd($invoice->created_at->timestamp , (time() - 3600));
 
-        if (!in_array($invoice->status, ['PENDING', 'CANCELED', 'FAILED']) || $invoice->created_at->timestamp < (time() - 3600)) {
+        if (! in_array($invoice->status, ['PENDING', 'CANCELED', 'FAILED']) || $invoice->created_at->timestamp < (time() - 3600)) {
             return redirect()->back()->withErrors(__('This payment method is not available.'));
         }
         $activeGateway = config('xshop.payment.active_gateway');
         /** @var Payment $gateway */
-        $gateway = app($activeGateway . '-gateway');
-        logger()->info('pay controller', ["active_gateway" => $activeGateway, "invoice" => $invoice->toArray(),]);
+        $gateway = app($activeGateway.'-gateway');
+        logger()->info('pay controller', ['active_gateway' => $activeGateway, 'invoice' => $invoice->toArray()]);
 
         if ($invoice->isCompleted()) {
             return redirect()->back()->with('message', __('Invoice payed.'));
@@ -804,17 +900,18 @@ class ClientController extends Controller
         try {
             $response = $gateway->request((($invoice->total_price - $invoice->credit_price) * config('app.currency.factor')), $callbackUrl);
             $payment = $invoice->storePaymentRequest($response['order_id'], (($invoice->total_price - $invoice->credit_price) * config('app.currency.factor')), $response['token'] ?? null, null, $gateway->getName());
-            session(["payment_id" => $payment->id]);
+            session(['payment_id' => $payment->id]);
             \Session::save();
 
             return $gateway->goToBank();
         } catch (\Throwable $exception) {
             $invoice->status = 'FAILED';
             $invoice->save();
-            \Log::error("Payment REQUEST exception: " . $exception->getMessage());
+            \Log::error('Payment REQUEST exception: '.$exception->getMessage());
             \Log::warning($exception->getTraceAsString());
             $result = false;
             $message = __('error in payment. contact admin.');
+
             return redirect()->back()->withErrors($message);
         }
     }
@@ -826,7 +923,6 @@ class ClientController extends Controller
             'rateable_id' => ['required', 'integer'],
             'rateable_type' => ['required', 'string'],
         ]);
-
 
         //        return $request->all();
 
@@ -843,7 +939,6 @@ class ClientController extends Controller
         $changed = false;
         foreach ($request->rate as $k => $rt) {
 
-
             $r = Rate::where('rateable_type', $request->rateable_type)
                 ->where('rateable_id', $request->rateable_id)
                 ->where('rater_type', Customer::class)
@@ -853,7 +948,7 @@ class ClientController extends Controller
                 $rate = $r->first();
                 $changed = true;
             } else {
-                $rate = new Rate();
+                $rate = new Rate;
             }
             if ($rt > 0 && $rt <= 5) {
                 $rate->rater_type = Customer::class;
@@ -872,38 +967,52 @@ class ClientController extends Controller
                 'message' => __('Your rate updated'),
             ];
         }
+
         return [
             'OK' => true,
             'message' => __('Your rate registered'),
         ];
     }
 
-
-    public function postRss(){
+    public function postRss()
+    {
         // Fetch the latest posts from the database
         $posts = Post::orderBy('created_at', 'desc')->take(10)->get(); // Adjust the number of posts as needed
 
-        $xmlContent = '<?xml version="1.0" encoding="UTF-8" ?>' . PHP_EOL;
-        $xmlContent .= view('website.rss.post',compact('posts'))->render(); // Render the view and append to XML content
+        $xmlContent = '<?xml version="1.0" encoding="UTF-8" ?>'.PHP_EOL;
+        $xmlContent .= view('website.rss.post', compact('posts'))->render(); // Render the view and append to XML content
 
         // Return the XML response
         return response($xmlContent, 200)
             ->header('Content-Type', 'text/xml');
     }
-    public function productRss(){
+
+    public function productRss()
+    {
         // Fetch the latest products from the database
         $products = Product::orderBy('created_at', 'desc')->take(10)->get(); // Adjust the number of posts as needed
 
-        $xmlContent = '<?xml version="1.0" encoding="UTF-8" ?>' . PHP_EOL;
-        $xmlContent .= view('website.rss.product',compact('products'))->render(); // Render the view and append to XML content
+        $xmlContent = '<?xml version="1.0" encoding="UTF-8" ?>'.PHP_EOL;
+        $xmlContent .= view('website.rss.product', compact('products'))->render(); // Render the view and append to XML content
 
         // Return the XML response
         return response($xmlContent, 200)
             ->header('Content-Type', 'text/xml');
     }
 
-    public function underConstruction(){
-        $title = __('Under Construction') . ' - ' . config('app.name');
+    public function underConstruction()
+    {
+        $title = __('Under Construction').' - '.config('app.name');
+
         return view('client.under-construction', compact('title'));
+    }
+
+    protected function wantsJsonResponse(Request $request): bool
+    {
+        return $request->expectsJson()
+            || $request->ajax()
+            || $request->boolean('embed')
+            || str_contains(strtolower((string) $request->header('Accept', '')), 'json')
+            || str_contains(strtolower((string) $request->header('Content-Type', '')), 'json');
     }
 }

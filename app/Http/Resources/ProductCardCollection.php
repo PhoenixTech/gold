@@ -5,7 +5,6 @@ namespace App\Http\Resources;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Http\Resources\Json\ResourceCollection;
 
 class ProductCardCollection extends JsonResource
 {
@@ -21,14 +20,14 @@ class ProductCardCollection extends JsonResource
          */
         return [
 
-            'id'=> $this->id,
+            'id' => $this->id,
             'slug' => $this->slug,
             'name' => $this->name,
             'price' => $this->price,
             'image' => $this->imgUrl(),
             'meta' => $this->fullMeta(),
             'max' => $this->stock_quantity,
-            'qz' => QunatityCollection::collection($this->quantities),
+            'qz' => QunatityCollection::collection($this->availableQuantities),
         ];
     }
 }

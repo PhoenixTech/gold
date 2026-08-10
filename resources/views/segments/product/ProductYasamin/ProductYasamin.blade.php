@@ -50,19 +50,20 @@
             </div>
             <br>
             @php
-                $rawPrice = $product->quantities()->count() > 0 ? $product->quantities()->min('price') : $product->price;
+                $rawPrice = $product->lowestAvailablePrice();
                 $hasNoPrice = ($rawPrice == 0 || $rawPrice == '' || $rawPrice == null);
+                $availableStockItems = $product->availableQuantities()->get();
             @endphp
 
             @if($product->stock_status == 'IN_STOCK' && !$hasNoPrice)
 
-                @if($product->quantities()->count()>0)
+                @if($availableStockItems->count()>0)
                     <quantities-add-to-card
-                        :qz='@json($product->quantities)'
+                        :qz='@json($availableStockItems)'
                         :props='@json(usableProp($product->category->props))'
                         currency="{{config('app.currency.symbol')}}"
                         card-link="{{ route('client.product-card-toggle',$product->slug) }}"
-                        :translate='@json(['add-to-card' => __('Add to card')])'
+                        :translate='@json(['add-to-card' => __('Add to card'), 'weight' => __('Weight'), 'code' => __('Code')])'
                         @if($product->hasDiscount())
                             :discount='@json($product->activeDiscounts()->first())'
                         @endif

@@ -12,8 +12,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function showStep(stepIndex) {
+        const isLabeledTabs = stepsContainer?.classList.contains('product-form-tabs');
+
         steps.forEach((step, index) => {
-            step.classList.toggle('active', index <= stepIndex);
+            // Labeled product tabs highlight only the current section;
+            // classic circle steps keep completed steps marked active.
+            const shouldActivate = isLabeledTabs ? index === stepIndex : index <= stepIndex;
+            step.classList.toggle('active', shouldActivate);
         });
 
         stepTabs.forEach((tab, index) => {
