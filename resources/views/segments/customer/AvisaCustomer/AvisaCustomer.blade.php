@@ -1,4 +1,19 @@
 <section id='AvisaCustomer' class=' live-setting' data-live="{{$data->area_name.'_'.$data->part}}" data-profile-incomplete="{{ (auth('customer')->user()->name == null || trim(auth('customer')->user()->name) == '' || auth('customer')->user()->email == null || trim(auth('customer')->user()->email) == '' || auth('customer')->user()->addresses()->count() == 0) ? 'true' : 'false' }}">
+@php
+    $awaitingReceiptInvoices = auth('customer')->user()
+        ->invoices()
+        ->where('status', \App\Models\Invoice::AWAITING_PAYMENT)
+        ->whereHas('payments', function ($query) {
+            $query->where('type', 'CARD')->where('status', \App\Models\Payment::PENDING);
+        })
+        ->withCount('paymentReceipts')
+        ->orderByDesc('id')
+        ->get();
+    $needUploadInvoices = $awaitingReceiptInvoices->where('payment_receipts_count', 0);
+    $waitingConfirmInvoices = $awaitingReceiptInvoices->where('payment_receipts_count', '>', 0);
+    $activeBankAccount = \App\Models\BankAccount::activeAccount();
+    $activeBank = \App\Http\Controllers\CardController::activeBankDisplay();
+@endphp
 <div class="{{gfx()['container']}}">
         <button class="avisa-menu-btn d-lg-none" id="avisa-menu-btn" type="button" aria-label="Menu">
             <i class="ri-menu-3-line"></i>
@@ -34,6 +49,15 @@
                             <span class="avisa-nav-icon"><i class="ri-file-list-3-line"></i></span>
                             <span class="avisa-nav-label">{{__("Invoices")}}</span>
                             <span class="avisa-nav-count">{{number_format(auth('customer')->user()->invoices()->count())}}</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#card-payment">
+                            <span class="avisa-nav-icon"><i class="ri-bank-card-line"></i></span>
+                            <span class="avisa-nav-label">{{__("Card payment")}}</span>
+                            @if($needUploadInvoices->count() > 0)
+                                <span class="avisa-nav-count">{{ number_format($needUploadInvoices->count()) }}</span>
+                            @endif
                         </a>
                     </li>
                     <li>
@@ -75,6 +99,60 @@
             <div class="col-lg-9" id="tabs-content">
 
                 @include('components.err')
+                @if($needUploadInvoices->count() > 0)
+                    <div class="alert alert-warning mt-4 avisa-receipt-alert d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="ri-upload-cloud-2-line fs-4"></i>
+                            <div>
+                                <h6 class="alert-heading mb-1 fw-bold">{{ __('Payment receipt required') }}</h6>
+                                <p class="mb-1">
+                                    {{ __('You have :count offline invoice(s) waiting for a payment receipt upload.', ['count' => $needUploadInvoices->count()]) }}
+                                </p>
+                                <ul class="mb-0 ps-3">
+                                    @foreach($needUploadInvoices->take(3) as $pendingInv)
+                                        <li>
+                                            #{{ $pendingInv->id }} —
+                                            {{ number_format($pendingInv->total_price) }} {{ config('app.currency.symbol') }}
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach($needUploadInvoices->take(2) as $pendingInv)
+                                <button type="button"
+                                        class="btn btn-sm btn-warning text-dark fw-bold"
+                                        data-receipt-modal-open
+                                        data-upload-url="{{ route('client.invoice.receipts.store', $pendingInv) }}"
+                                        data-invoice-label="#{{ $pendingInv->id }} — {{ number_format($pendingInv->total_price) }} {{ config('app.currency.symbol') }}">
+                                    <i class="ri-upload-2-line"></i>
+                                    {{ __('Upload receipt') }}
+                                </button>
+                            @endforeach
+                            <a href="#card-payment" class="btn btn-sm btn-outline-warning avisa-alert-action">
+                                {{ __('How to pay') }}
+                            </a>
+                            <a href="#invoices" class="btn btn-sm btn-outline-warning avisa-alert-action">
+                                {{ __('View invoices') }}
+                            </a>
+                        </div>
+                    </div>
+                @elseif($waitingConfirmInvoices->count() > 0)
+                    <div class="alert alert-info mt-4 avisa-receipt-alert d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="ri-time-line fs-4"></i>
+                            <div>
+                                <h6 class="alert-heading mb-1 fw-bold">{{ __('Waiting for payment confirmation') }}</h6>
+                                <p class="mb-0">
+                                    {{ __('Your receipt was received. We are reviewing your offline payment.') }}
+                                </p>
+                            </div>
+                        </div>
+                        <a href="{{ route('client.invoice', $waitingConfirmInvoices->first()) }}" class="btn btn-sm btn-outline-primary">
+                            {{ __('View invoice') }}
+                        </a>
+                    </div>
+                @endif
                 @if(cardCount() > 0)
                     <div class="alert alert-info mt-4">
                         <a href="{{ route('client.card') }}" class="btn btn-primary float-end">
@@ -209,7 +287,9 @@
                                     <a href="#invoices" class="widget-link avisa-alert-action">{{__("View All")}} <i class="ri-arrow-left-s-line"></i></a>
                                 </div>
                                 <div class="widget-body p-0">
-                                    @php($recentInvoices = auth('customer')->user()->invoices()->orderByDesc('id')->take(4)->get())
+                                    @php
+                                        $recentInvoices = auth('customer')->user()->invoices()->with(['payments', 'paymentReceipts'])->orderByDesc('id')->take(4)->get();
+                                    @endphp
                                     @if($recentInvoices->count() > 0)
                                         <div class="table-responsive">
                                             <table class="table avisa-summary-table align-middle mb-0">
@@ -227,10 +307,21 @@
                                                             <td>#{{$inv->id}}</td>
                                                             <td><b>{{number_format($inv->total_price)}} {{config('app.currency.symbol')}}</b></td>
                                                             <td><span class="inv-badge inv-{{$inv->status}}">{{__($inv->status)}}</span></td>
-                                                            <td class="text-end">
+                                                            <td class="text-end avisa-row-actions">
                                                                 <a href="{{ route('client.invoice',$inv->hash) }}" class="avisa-icon-btn" title="{{__('View')}}">
                                                                     <i class="ri-eye-line"></i>
                                                                 </a>
+                                                                @if($inv->needsReceiptUpload())
+                                                                    <button type="button"
+                                                                            class="avisa-upload-receipt-btn"
+                                                                            title="{{ __('Upload receipt') }}"
+                                                                            data-receipt-modal-open
+                                                                            data-upload-url="{{ route('client.invoice.receipts.store', $inv) }}"
+                                                                            data-invoice-label="#{{ $inv->id }} — {{ number_format($inv->total_price) }} {{ config('app.currency.symbol') }}">
+                                                                        <i class="ri-upload-2-line"></i>
+                                                                        {{ __('Upload receipt') }}
+                                                                    </button>
+                                                                @endif
                                                             </td>
                                                         </tr>
                                                     @endforeach
@@ -253,7 +344,9 @@
                                     <a href="#tickets" class="widget-link avisa-alert-action">{{__("View All")}} <i class="ri-arrow-left-s-line"></i></a>
                                 </div>
                                 <div class="widget-body">
-                                    @php($recentTickets = auth('customer')->user()->main_tickets()->orderByDesc('id')->take(3)->get())
+                                    @php
+                                        $recentTickets = auth('customer')->user()->main_tickets()->orderByDesc('id')->take(3)->get();
+                                    @endphp
                                     @if($recentTickets->count() > 0)
                                         <div class="avisa-ticket-mini-list">
                                             @foreach($recentTickets as $ticket)
@@ -296,21 +389,46 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach(auth('customer')->user()->invoices()->orderByDesc('id')->get() as $i => $inv)
-                                        <tr>
+                                    @foreach(auth('customer')->user()->invoices()->with(['payments', 'paymentReceipts'])->orderByDesc('id')->get() as $i => $inv)
+                                        <tr class="{{ $inv->needsReceiptUpload() && $inv->paymentReceipts->isEmpty() ? 'avisa-invoice-needs-receipt' : '' }}">
                                             <td data-label="#"> {{$i+1}} </td>
                                             <td data-label="{{__('Total price')}}">
                                                 <b>{{number_format($inv->total_price)}} {{config('app.currency.symbol')}}</b>
                                             </td>
                                             <td data-label="{{__('Status')}}">
                                                 <span class="inv-badge inv-{{$inv->status}}">{{__($inv->status)}}</span>
+                                                @if($inv->needsReceiptUpload() && $inv->paymentReceipts->isEmpty())
+                                                    <div class="avisa-receipt-hint">
+                                                        <i class="ri-error-warning-line"></i>
+                                                        {{ __('Receipt required') }}
+                                                    </div>
+                                                @elseif($inv->needsReceiptUpload())
+                                                    <div class="avisa-receipt-hint is-waiting">
+                                                        <i class="ri-time-line"></i>
+                                                        {{ __('Under review') }}
+                                                    </div>
+                                                @endif
                                             </td>
                                             <td data-label="{{__('Actions')}}" class="avisa-row-actions">
                                                 <a href="{{ route('client.invoice',$inv->hash) }}"
                                                    class="avisa-icon-btn" title="{{__('View')}}">
                                                     <i class="ri-eye-line"></i>
                                                 </a>
-                                                @if( in_array($inv->status, ['PENDING', 'CANCELED', 'FAILED'] ) && $inv->created_at->timestamp >  (time() - 3600) )
+                                                @if($inv->needsReceiptUpload())
+                                                    <button type="button"
+                                                            class="avisa-upload-receipt-btn"
+                                                            data-receipt-modal-open
+                                                            data-upload-url="{{ route('client.invoice.receipts.store', $inv) }}"
+                                                            data-invoice-label="#{{ $inv->id }} — {{ number_format($inv->total_price) }} {{ config('app.currency.symbol') }}">
+                                                        <i class="ri-upload-2-line"></i>
+                                                        {{ __('Upload receipt') }}
+                                                    </button>
+                                                    <a href="{{ route('client.invoice', $inv->hash) }}#receipt-upload"
+                                                       class="avisa-icon-btn"
+                                                       title="{{ __('Open invoice upload') }}">
+                                                        <i class="ri-external-link-line"></i>
+                                                    </a>
+                                                @elseif( in_array($inv->status, ['PENDING', 'CANCELED', 'FAILED'] ) && $inv->created_at->timestamp >  (time() - 3600) )
                                                     <a href="{{route('client.pay',$inv->hash)}}"
                                                        class="avisa-pay-btn">
                                                         <i class="ri-secure-payment-line"></i>
@@ -323,6 +441,142 @@
                                 </tbody>
                             </table>
                         </div>
+                    </div>
+                </div>
+                <div class="tab" id="card-payment">
+                    <div class="avisa-panel avisa-card-payment">
+                        <div class="avisa-panel-head mb-3">
+                            <h4>
+                                <i class="ri-bank-card-line"></i>
+                                {{ __('Card payment guide') }}
+                            </h4>
+                        </div>
+
+                        <div class="avisa-card-payment__intro">
+                            <i class="ri-information-line"></i>
+                            <div>
+                                <strong>{{ __('Offline card-to-card payment') }}</strong>
+                                <p>{{ __('For offline invoices, transfer the amount to the active shop card below, then upload the payment receipt from your invoice.') }}</p>
+                            </div>
+                        </div>
+
+                        <ol class="avisa-card-payment__steps">
+                            <li>
+                                <span>1</span>
+                                <div>
+                                    <strong>{{ __('Transfer the amount') }}</strong>
+                                    <small>{{ __('Use the active bank account details below') }}</small>
+                                </div>
+                            </li>
+                            <li>
+                                <span>2</span>
+                                <div>
+                                    <strong>{{ __('Upload the receipt') }}</strong>
+                                    <small>{{ __('Open the invoice and upload a photo or PDF of the transfer') }}</small>
+                                </div>
+                            </li>
+                            <li>
+                                <span>3</span>
+                                <div>
+                                    <strong>{{ __('Wait for confirmation') }}</strong>
+                                    <small>{{ __('We will review and confirm your payment') }}</small>
+                                </div>
+                            </li>
+                        </ol>
+
+                        <div class="avisa-card-payment__bank">
+                            <div class="avisa-card-payment__bank-head">
+                                <i class="ri-bank-line"></i>
+                                <strong>{{ __('Active shop card') }}</strong>
+                                @if($activeBankAccount)
+                                    <span class="avisa-card-payment__live">{{ __('Active') }}</span>
+                                @endif
+                            </div>
+
+                            @if($activeBankAccount)
+                                <dl class="avisa-card-payment__rows">
+                                    @if($activeBank['bank_name'] ?? null)
+                                        <div>
+                                            <dt>{{ __('Bank name') }}</dt>
+                                            <dd>{{ $activeBank['bank_name'] }}</dd>
+                                        </div>
+                                    @endif
+                                    @if($activeBank['account_holder_name'] ?? null)
+                                        <div>
+                                            <dt>{{ __('Account holder name') }}</dt>
+                                            <dd>{{ $activeBank['account_holder_name'] }}</dd>
+                                        </div>
+                                    @endif
+                                    @if($activeBank['card_number'] ?? null)
+                                        <div>
+                                            <dt>{{ __('Card number') }}</dt>
+                                            <dd dir="ltr">{{ $activeBank['card_number'] }}</dd>
+                                        </div>
+                                    @endif
+                                    @if($activeBank['account_number'] ?? null)
+                                        <div>
+                                            <dt>{{ __('Account number') }}</dt>
+                                            <dd dir="ltr">{{ $activeBank['account_number'] }}</dd>
+                                        </div>
+                                    @endif
+                                    @if($activeBank['iban'] ?? null)
+                                        <div>
+                                            <dt>{{ __('IBAN') }}</dt>
+                                            <dd dir="ltr">{{ $activeBank['iban'] }}</dd>
+                                        </div>
+                                    @endif
+                                </dl>
+                            @else
+                                <div class="avisa-card-payment__empty">
+                                    <i class="ri-error-warning-line"></i>
+                                    <p>{{ __('No active bank account is configured yet. Please contact support.') }}</p>
+                                </div>
+                            @endif
+                        </div>
+
+                        @if($awaitingReceiptInvoices->count() > 0)
+                            <div class="avisa-card-payment__pending">
+                                <div class="avisa-card-payment__pending-head">
+                                    <strong>{{ __('Your offline invoices') }}</strong>
+                                    <span>{{ number_format($awaitingReceiptInvoices->count()) }}</span>
+                                </div>
+                                <ul class="avisa-card-payment__pending-list">
+                                    @foreach($awaitingReceiptInvoices as $pendingInv)
+                                        <li>
+                                            <div>
+                                                <b>#{{ $pendingInv->id }}</b>
+                                                <span>{{ number_format($pendingInv->total_price) }} {{ config('app.currency.symbol') }}</span>
+                                                @if($pendingInv->payment_receipts_count > 0)
+                                                    <small class="is-waiting">{{ __('Under review') }}</small>
+                                                @else
+                                                    <small>{{ __('Receipt required') }}</small>
+                                                @endif
+                                            </div>
+                                            <div class="avisa-card-payment__pending-actions">
+                                                @if($pendingInv->payment_receipts_count === 0)
+                                                    <button type="button"
+                                                            class="avisa-upload-receipt-btn"
+                                                            data-receipt-modal-open
+                                                            data-upload-url="{{ route('client.invoice.receipts.store', $pendingInv) }}"
+                                                            data-invoice-label="#{{ $pendingInv->id }} — {{ number_format($pendingInv->total_price) }} {{ config('app.currency.symbol') }}">
+                                                        <i class="ri-upload-2-line"></i>
+                                                        {{ __('Upload receipt') }}
+                                                    </button>
+                                                @endif
+                                                <a href="{{ route('client.invoice', $pendingInv) }}#receipt-upload" class="avisa-icon-btn" title="{{ __('View invoice') }}">
+                                                    <i class="ri-eye-line"></i>
+                                                </a>
+                                            </div>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @else
+                            <div class="avisa-hint mt-3 mb-0">
+                                <i class="ri-checkbox-circle-line"></i>
+                                {{ __('You have no offline invoices waiting for payment right now.') }}
+                            </div>
+                        @endif
                     </div>
                 </div>
                 <div class="tab" id="profile">
@@ -481,7 +735,9 @@
                                 <i class="ri-bank-card-2-line"></i>
                                 {{number_format($cr->amount)}} {{config('app.currency.symbol')}}
                             </div>
-                            @php($data = json_decode($cr->data))
+                            @php
+                                $data = json_decode($cr->data);
+                            @endphp
                             @if(isset($data->message))
                                 <div class="avisa-credit-note">
                                     <i class="ri-chat-3-line"></i>
@@ -591,6 +847,37 @@
                     </div>
                 </div>
 
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="avisa-receipt-modal" tabindex="-1" aria-labelledby="avisa-receipt-modal-label" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content avisa-receipt-modal">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title" id="avisa-receipt-modal-label">{{ __('Upload payment receipt') }}</h5>
+                        <small class="text-muted" data-receipt-modal-title></small>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" data-receipt-modal-close aria-label="{{ __('Close') }}"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="avisa-receipt-modal__intro">
+                        {{ __('This is an offline payment. After transferring the money, upload a clear receipt photo or PDF.') }}
+                    </p>
+                    @php
+                        $modalInvoice = $needUploadInvoices->first()
+                            ?? $awaitingReceiptInvoices->first()
+                            ?? auth('customer')->user()->invoices()->latest('id')->first();
+                    @endphp
+                    @if($modalInvoice)
+                        @include('components.payment-receipt-uploader', [
+                            'invoice' => $modalInvoice,
+                            'inputId' => 'avisa-modal-receipts',
+                            'formId' => 'avisa-modal-receipt-form',
+                        ])
+                    @endif
+                </div>
             </div>
         </div>
     </div>

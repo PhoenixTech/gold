@@ -213,6 +213,7 @@ Route::prefix(config('app.panel.prefix'))->name('admin.')->group(
                         Route::get('edit/{item}', [\App\Http\Controllers\Admin\InvoiceController::class, 'edit'])->name('edit');
                         Route::get('show/{item}', [\App\Http\Controllers\Admin\InvoiceController::class, 'show'])->name('show');
                         Route::post('update/{item}', [\App\Http\Controllers\Admin\InvoiceController::class, 'update'])->name('update');
+                        Route::post('confirm-payment/{item}', [\App\Http\Controllers\Admin\InvoiceController::class, 'confirmPayment'])->name('confirm-payment');
                         Route::get('delete/{item}', [\App\Http\Controllers\Admin\InvoiceController::class, 'destroy'])->name('destroy');
                         Route::get('restore/{item}', [\App\Http\Controllers\Admin\InvoiceController::class, 'restore'])->name('restore');
                         Route::get('remove/ordere/{order}', [\App\Http\Controllers\Admin\InvoiceController::class, 'removeOrder'])->name('remove-order');
@@ -375,6 +376,19 @@ Route::prefix(config('app.panel.prefix'))->name('admin.')->group(
                         Route::post('bulk', [\App\Http\Controllers\Admin\TransportController::class, 'bulk'])->name('bulk');
                         Route::get('trashed', [\App\Http\Controllers\Admin\TransportController::class, 'trashed'])->name('trashed');
                     });
+                Route::prefix('bank-accounts')->name('bank-account.')->group(
+                    function () {
+                        Route::get('', [\App\Http\Controllers\Admin\BankAccountController::class, 'index'])->name('index');
+                        Route::get('create', [\App\Http\Controllers\Admin\BankAccountController::class, 'create'])->name('create');
+                        Route::post('store', [\App\Http\Controllers\Admin\BankAccountController::class, 'store'])->name('store');
+                        Route::get('edit/{item}', [\App\Http\Controllers\Admin\BankAccountController::class, 'edit'])->name('edit');
+                        Route::post('update/{item}', [\App\Http\Controllers\Admin\BankAccountController::class, 'update'])->name('update');
+                        Route::get('delete/{item}', [\App\Http\Controllers\Admin\BankAccountController::class, 'destroy'])->name('destroy');
+                        Route::get('restore/{item}', [\App\Http\Controllers\Admin\BankAccountController::class, 'restore'])->name('restore');
+                        Route::get('activate/{item}', [\App\Http\Controllers\Admin\BankAccountController::class, 'activate'])->name('activate');
+                        Route::post('bulk', [\App\Http\Controllers\Admin\BankAccountController::class, 'bulk'])->name('bulk');
+                        Route::get('trashed', [\App\Http\Controllers\Admin\BankAccountController::class, 'trashed'])->name('trashed');
+                    });
                 Route::prefix('users')->name('user.')->group(
                     function () {
                         Route::get('', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('index');
@@ -435,6 +449,9 @@ Route::middleware([\App\Http\Middleware\VisitorCounter::class])
         Route::post('/ticket/answer/{ticket}', [\App\Http\Controllers\CustomerController::class, 'ticketAnswer'])->name('ticket.answer');
         Route::get('/ticket/{ticket}', [\App\Http\Controllers\CustomerController::class, 'showTicket'])->name('ticket.show');
         Route::get('/invoice/{invoice}', [\App\Http\Controllers\CustomerController::class, 'invoice'])->name('invoice');
+        Route::post('/invoice/{invoice}/receipts', [\App\Http\Controllers\PaymentReceiptController::class, 'store'])
+            ->middleware('auth:customer')
+            ->name('invoice.receipts.store');
         Route::get('/products', [ClientController::class, 'products'])->name('products');
         Route::get('/attachments', [ClientController::class, 'attachments'])->name('attachments');
         Route::get('/attachment/{attachment}', [ClientController::class, 'attachment'])->name('attachment');

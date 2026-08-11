@@ -138,7 +138,15 @@ class CustomerController extends Controller
             //            'imageTransparent' => true,
         ]);
         $qr = new QRCode($options);
-        $invoice->loadMissing(['customer', 'address.state', 'address.city', 'orders.product', 'orders.quantity', 'payments']);
+        $invoice->loadMissing([
+            'customer',
+            'address.state',
+            'address.city',
+            'orders.product',
+            'orders.quantity',
+            'payments',
+            'paymentReceipts',
+        ]);
 
         return view('client.invoice', compact('area', 'title', 'subtitle', 'invoice', 'qr'));
     }

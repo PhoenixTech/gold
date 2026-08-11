@@ -7,12 +7,16 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
     }
     const profileAlert = document.getElementById('avisa-alert-profile');
+    const receiptAlerts = document.querySelectorAll('.avisa-receipt-alert');
 
     function updateAlertVisibility(targetHash) {
         const hash = targetHash || window.location.hash || '#summary';
         if (profileAlert) {
             profileAlert.style.setProperty('display', (hash === '#profile' || hash === '#addresses') ? 'none' : 'flex', 'important');
         }
+        receiptAlerts.forEach(function (alert) {
+            alert.style.setProperty('display', hash === '#card-payment' ? 'none' : 'flex', 'important');
+        });
     }
 
     const close = function () {

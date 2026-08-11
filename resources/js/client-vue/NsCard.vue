@@ -237,8 +237,10 @@
 
                     <div v-if="paymentMethod === 'card'" class="bank-box">
                         <h5>{{ t('bank-info', 'اطلاعات کارت‌به‌کارت') }}</h5>
+                        <p v-if="bankName"><span>{{ t('bank-name', 'بانک') }}:</span> <strong>{{ bankName }}</strong></p>
                         <p v-if="bankAccountName"><span>{{ t('account-name', 'به‌نام') }}:</span> <strong>{{ bankAccountName }}</strong></p>
                         <p v-if="bankCardNumber"><span>{{ t('card-number', 'شماره کارت') }}:</span> <strong dir="ltr">{{ bankCardNumber }}</strong></p>
+                        <p v-if="bankAccountNumber"><span>{{ t('account-number', 'شماره حساب') }}:</span> <strong dir="ltr">{{ bankAccountNumber }}</strong></p>
                         <p v-if="bankSheba"><span>{{ t('sheba', 'شبا') }}:</span> <strong dir="ltr">{{ bankSheba }}</strong></p>
                         <p class="muted">{{ t('card-wait-hint', 'پس از ثبت سفارش، مبلغ را واریز کنید تا سفارش تایید شود.') }}</p>
                     </div>
@@ -351,7 +353,9 @@ export default {
         transports: [],
         canPay: false,
         defTransport: null,
+        bankName: '',
         bankCardNumber: '',
+        bankAccountNumber: '',
         bankSheba: '',
         bankAccountName: '',
         translate: {},
@@ -452,7 +456,9 @@ export default {
             this.profileComplete = !!data.profileComplete;
             this.canPay = !!data.canPay;
             this.symbol = data.symbol || '$';
+            this.bankName = data.bankName || '';
             this.bankCardNumber = data.bankCardNumber || '';
+            this.bankAccountNumber = data.bankAccountNumber || '';
             this.bankSheba = data.bankSheba || '';
             this.bankAccountName = data.bankAccountName || '';
             this.defTransport = data.defTransport ?? null;

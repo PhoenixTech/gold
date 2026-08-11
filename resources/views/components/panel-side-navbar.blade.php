@@ -7,7 +7,7 @@
             </a>
         </li>
 
-        @if(  auth()->user()->hasAnyAccesses(['customer','invoice','discount','rate']) )
+        @if(  auth()->user()->hasAnyAccesses(['customer','invoice','discount','rate','bank-account']) )
             <li>
                 <a href="#card" class="dsb-item">
                     <i class="ri-shopping-cart-line"></i>
@@ -20,6 +20,14 @@
                             <a href="{{ route('admin.invoice.index') }}">
                                 <i class="ri-file-list-3-fill"></i>
                                 {{__('Invoices')}}
+                            </a>
+                        </li>
+                    @endif
+                    @if(  auth()->user()->hasAnyAccess( 'bank-account' ))
+                        <li>
+                            <a href="{{ route('admin.bank-account.index') }}">
+                                <i class="ri-bank-card-line"></i>
+                                {{__('Bank accounts')}}
                             </a>
                         </li>
                     @endif

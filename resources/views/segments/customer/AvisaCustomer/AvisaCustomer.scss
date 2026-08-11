@@ -909,6 +909,12 @@
             color: var(--xshop-warning);
         }
 
+        &.inv-AWAITING_PAYMENT {
+            background: color-mix(in srgb, var(--xshop-warning) 18%, var(--xshop-background));
+            color: var(--xshop-warning);
+            box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--xshop-warning) 35%, transparent);
+        }
+
         &.inv-CANCELED, &.inv-FAILED {
             background: color-mix(in srgb, var(--xshop-danger) 14%, var(--xshop-background));
             color: var(--xshop-danger);
@@ -971,6 +977,467 @@
             background: var(--xshop-secondary);
             border-color: var(--xshop-secondary);
             color: var(--xshop-diff2);
+        }
+    }
+
+    .avisa-upload-receipt-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+        padding: .5rem .8rem;
+        border-radius: 11px;
+        border: 1px solid var(--xshop-warning);
+        background: color-mix(in srgb, var(--xshop-warning) 16%, var(--xshop-background));
+        color: color-mix(in srgb, var(--xshop-warning) 80%, #000);
+        font-size: 12.5px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all .18s ease;
+
+        &:hover {
+            background: var(--xshop-warning);
+            color: #1a1a1a;
+        }
+    }
+
+    .avisa-receipt-hint {
+        margin-top: .35rem;
+        display: inline-flex;
+        align-items: center;
+        gap: .3rem;
+        font-size: 11.5px;
+        font-weight: 700;
+        color: var(--xshop-warning);
+
+        &.is-waiting {
+            color: var(--xshop-info);
+        }
+    }
+
+    .avisa-invoice-needs-receipt {
+        background: color-mix(in srgb, var(--xshop-warning) 7%, transparent);
+    }
+
+    .avisa-receipt-alert {
+        border-radius: 1rem;
+    }
+
+    .avisa-receipt-modal {
+        border-radius: 1rem;
+        overflow: hidden;
+
+        &__intro {
+            font-size: 13.5px;
+            line-height: 1.7;
+            color: color-mix(in srgb, var(--xshop-text) 70%, transparent);
+            margin-bottom: 1rem;
+        }
+
+        .receipt-uploader {
+            display: grid;
+            gap: .85rem;
+            padding: 1rem;
+            border-radius: .95rem;
+            border: 1px solid color-mix(in srgb, var(--xshop-warning) 40%, transparent);
+            background: color-mix(in srgb, var(--xshop-warning) 8%, var(--xshop-background));
+        }
+
+        .receipt-uploader__head {
+            display: flex;
+            gap: .75rem;
+            align-items: flex-start;
+        }
+
+        .receipt-uploader__icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            background: color-mix(in srgb, var(--xshop-warning) 20%, #fff);
+            color: var(--xshop-warning);
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .receipt-uploader__title {
+            display: block;
+            font-size: 14.5px;
+            margin-bottom: .2rem;
+        }
+
+        .receipt-uploader__hint {
+            font-size: 12.5px;
+            line-height: 1.7;
+            color: color-mix(in srgb, var(--xshop-text) 68%, transparent);
+        }
+
+        .receipt-uploader__error {
+            color: var(--xshop-danger);
+            font-size: 12.5px;
+        }
+
+        .receipt-uploader__submit {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .45rem;
+            width: 100%;
+            padding: .75rem 1rem;
+            border: 0;
+            border-radius: .8rem;
+            background: var(--xshop-primary);
+            color: var(--xshop-diff2);
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+
+            &:disabled {
+                opacity: .45;
+                cursor: not-allowed;
+            }
+        }
+
+        .receipt-dropzone {
+            display: block;
+            cursor: pointer;
+            position: relative;
+            border: 2px dashed color-mix(in srgb, var(--xshop-primary) 45%, transparent);
+            border-radius: .9rem;
+            background: var(--xshop-background);
+            padding: 1.25rem 1rem;
+            text-align: center;
+
+            &:hover,
+            &.is-dragover,
+            &:focus-within {
+                border-color: var(--xshop-primary);
+                background: color-mix(in srgb, var(--xshop-primary) 6%, var(--xshop-background));
+            }
+        }
+
+        .receipt-dropzone__input {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            overflow: hidden;
+        }
+
+        .receipt-dropzone__visual {
+            display: grid;
+            gap: .35rem;
+            justify-items: center;
+
+            > i {
+                font-size: 28px;
+                color: var(--xshop-primary);
+            }
+        }
+
+        .receipt-dropzone__cta {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .receipt-dropzone__meta {
+            font-size: 12px;
+            color: color-mix(in srgb, var(--xshop-text) 55%, transparent);
+        }
+
+        .receipt-file-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            gap: .45rem;
+        }
+
+        .receipt-file-list__item {
+            display: grid;
+            grid-template-columns: 44px 1fr auto;
+            gap: .65rem;
+            align-items: center;
+            padding: .45rem .55rem;
+            border-radius: .7rem;
+            background: var(--xshop-background);
+            border: 1px solid color-mix(in srgb, var(--xshop-primary) 20%, transparent);
+        }
+
+        .receipt-file-list__thumb {
+            width: 44px;
+            height: 44px;
+            border-radius: .55rem;
+            object-fit: cover;
+            display: grid;
+            place-items: center;
+            background: color-mix(in srgb, var(--xshop-primary) 10%, #fff);
+            color: var(--xshop-primary);
+            font-size: 20px;
+            overflow: hidden;
+        }
+
+        .receipt-file-list__meta {
+            min-width: 0;
+
+            strong {
+                display: block;
+                font-size: 12.5px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            small {
+                color: color-mix(in srgb, var(--xshop-text) 55%, transparent);
+                font-size: 11px;
+            }
+        }
+
+        .receipt-file-list__remove {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 1px solid color-mix(in srgb, var(--xshop-danger) 35%, transparent);
+            background: transparent;
+            color: var(--xshop-danger);
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+        }
+    }
+}
+
+#AvisaCustomer {
+
+    // ---- Card payment guide ----
+    .avisa-card-payment {
+        &__intro {
+            display: flex;
+            gap: .75rem;
+            align-items: flex-start;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: .95rem;
+            border: 1px solid color-mix(in srgb, var(--xshop-warning) 40%, transparent);
+            background: color-mix(in srgb, var(--xshop-warning) 10%, var(--xshop-background));
+
+            > i {
+                font-size: 22px;
+                color: var(--xshop-warning);
+                margin-top: .1rem;
+            }
+
+            strong {
+                display: block;
+                margin-bottom: .25rem;
+                font-size: 14.5px;
+            }
+
+            p {
+                margin: 0;
+                font-size: 13px;
+                line-height: 1.7;
+                color: color-mix(in srgb, var(--xshop-text) 70%, transparent);
+            }
+        }
+
+        &__steps {
+            list-style: none;
+            margin: 0 0 1.1rem;
+            padding: 0;
+            display: grid;
+            gap: .55rem;
+
+            @media (min-width: 768px) {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            li {
+                display: flex;
+                gap: .65rem;
+                align-items: flex-start;
+                padding: .75rem .85rem;
+                border-radius: .85rem;
+                border: 1px solid color-mix(in srgb, var(--xshop-primary) 24%, transparent);
+                background: color-mix(in srgb, var(--xshop-primary) 4%, var(--xshop-background));
+
+                > span {
+                    width: 26px;
+                    height: 26px;
+                    border-radius: 50%;
+                    display: grid;
+                    place-items: center;
+                    flex-shrink: 0;
+                    font-size: 12px;
+                    font-weight: 800;
+                    color: var(--xshop-diff2);
+                    background: var(--xshop-primary);
+                }
+
+                strong {
+                    display: block;
+                    font-size: 13px;
+                    margin-bottom: .15rem;
+                }
+
+                small {
+                    font-size: 11.5px;
+                    color: color-mix(in srgb, var(--xshop-text) 60%, transparent);
+                }
+            }
+        }
+
+        &__bank {
+            border: 1px solid color-mix(in srgb, var(--xshop-primary) 28%, transparent);
+            border-radius: 1rem;
+            overflow: hidden;
+            background: var(--xshop-background);
+            margin-bottom: 1rem;
+        }
+
+        &__bank-head {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            padding: .8rem 1rem;
+            background: color-mix(in srgb, var(--xshop-primary) 8%, var(--xshop-background));
+            border-bottom: 1px solid color-mix(in srgb, var(--xshop-primary) 18%, transparent);
+            color: var(--xshop-primary);
+            font-size: 14px;
+        }
+
+        &__live {
+            margin-inline-start: auto;
+            padding: .15rem .55rem;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--xshop-success);
+            background: color-mix(in srgb, var(--xshop-success) 14%, transparent);
+        }
+
+        &__rows {
+            margin: 0;
+            padding: .35rem 0;
+
+            > div {
+                display: flex;
+                justify-content: space-between;
+                gap: 1rem;
+                padding: .65rem 1rem;
+                border-bottom: 1px solid color-mix(in srgb, var(--xshop-primary) 10%, transparent);
+
+                &:last-child {
+                    border-bottom: 0;
+                }
+            }
+
+            dt {
+                margin: 0;
+                font-size: 12.5px;
+                color: color-mix(in srgb, var(--xshop-text) 55%, transparent);
+            }
+
+            dd {
+                margin: 0;
+                font-size: 14px;
+                font-weight: 700;
+                text-align: end;
+                overflow-wrap: anywhere;
+            }
+        }
+
+        &__empty {
+            display: flex;
+            gap: .55rem;
+            align-items: flex-start;
+            padding: 1rem;
+            color: var(--xshop-danger);
+
+            p {
+                margin: 0;
+                font-size: 13.5px;
+                line-height: 1.7;
+            }
+        }
+
+        &__pending {
+            border: 1px solid color-mix(in srgb, var(--xshop-warning) 35%, transparent);
+            border-radius: 1rem;
+            overflow: hidden;
+            background: color-mix(in srgb, var(--xshop-warning) 6%, var(--xshop-background));
+        }
+
+        &__pending-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: .75rem 1rem;
+            border-bottom: 1px solid color-mix(in srgb, var(--xshop-warning) 22%, transparent);
+
+            span {
+                display: inline-grid;
+                place-items: center;
+                min-width: 28px;
+                height: 28px;
+                padding: 0 .45rem;
+                border-radius: 999px;
+                background: var(--xshop-warning);
+                color: #1a1a1a;
+                font-size: 12px;
+                font-weight: 800;
+            }
+        }
+
+        &__pending-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+
+            li {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 1rem;
+                padding: .85rem 1rem;
+                border-bottom: 1px solid color-mix(in srgb, var(--xshop-warning) 16%, transparent);
+
+                &:last-child {
+                    border-bottom: 0;
+                }
+
+                b {
+                    display: block;
+                    font-size: 14px;
+                }
+
+                span {
+                    display: block;
+                    font-size: 13px;
+                    font-weight: 700;
+                    color: var(--xshop-text);
+                }
+
+                small {
+                    display: inline-block;
+                    margin-top: .2rem;
+                    font-size: 11.5px;
+                    font-weight: 700;
+                    color: var(--xshop-warning);
+
+                    &.is-waiting {
+                        color: var(--xshop-info);
+                    }
+                }
+            }
+        }
+
+        &__pending-actions {
+            display: flex;
+            align-items: center;
+            gap: .45rem;
+            flex-shrink: 0;
         }
     }
 }

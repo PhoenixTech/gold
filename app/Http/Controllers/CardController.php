@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Contracts\Payment;
 use App\Models\Address;
+use App\Models\BankAccount;
 use App\Models\Customer;
 use App\Models\Discount;
 use App\Models\Invoice;
@@ -11,7 +12,6 @@ use App\Models\Order;
 use App\Models\Payment as PaymentModel;
 use App\Models\Product;
 use App\Models\Quantity;
-use App\Models\Setting;
 use App\Models\Transport;
 use App\Services\ProductPriceCalculator;
 use Illuminate\Http\Request;
@@ -156,15 +156,27 @@ class CardController extends Controller
         $total = 0;
         $calculator = app(ProductPriceCalculator::class);
         $paymentMethod = $request->input('payment_method');
+        $activeBankAccount = null;
+
+        if ($paymentMethod === 'card') {
+            $activeBankAccount = BankAccount::activeAccount();
+            if ($activeBankAccount === null) {
+                throw ValidationException::withMessages([
+                    'payment_method' => __('No active bank account is configured. Please contact support.'),
+                ]);
+            }
+        }
 
         try {
-            $invoice = DB::transaction(function () use ($request, &$total, $calculator, $customer) {
+            $invoice = DB::transaction(function () use ($request, &$total, $calculator, $customer, $paymentMethod) {
                 $invoice = new Invoice;
                 $invoice->customer_id = $customer->id;
                 $invoice->count = array_sum($request->count);
                 $invoice->address_id = $request->address_id;
                 $invoice->desc = $request->desc;
-                $invoice->status = Invoice::PENDING;
+                $invoice->status = $paymentMethod === 'card'
+                    ? Invoice::AWAITING_PAYMENT
+                    : Invoice::PENDING;
 
                 $transport = Transport::query()->findOrFail($request->input('transport_id'));
                 $invoice->transport_id = $transport->id;
@@ -271,6 +283,7 @@ class CardController extends Controller
             $payment = $invoice->payments()->latest('id')->first();
             if ($payment) {
                 $payment->status = PaymentModel::PENDING;
+                $payment->meta = array_merge($payment->meta ?? [], $activeBankAccount->toPaymentMeta());
                 $payment->save();
             }
 
@@ -444,31 +457,27 @@ class CardController extends Controller
         ], __('Profile updated successfully'));
     }
 
+    /**
+     * @return array{bank_name: string|null, account_holder_name: string|null, card_number: string|null, account_number: string|null, iban: string|null}
+     */
+    public static function activeBankDisplay(): array
+    {
+        return BankAccount::displayPayload();
+    }
+
+    /**
+     * @deprecated Use activeBankDisplay() / BankAccount instead.
+     */
     public static function ensureBankSettings(): array
     {
-        $defaults = [
-            'bank_card_number' => ['title' => __('Bank card number'), 'value' => ''],
-            'bank_sheba' => ['title' => __('Bank SHEBA'), 'value' => ''],
-            'bank_account_name' => ['title' => __('Bank account name'), 'value' => ''],
+        $bank = self::activeBankDisplay();
+
+        return [
+            'bank_card_number' => (string) ($bank['card_number'] ?? ''),
+            'bank_sheba' => (string) ($bank['iban'] ?? ''),
+            'bank_account_name' => (string) ($bank['account_holder_name'] ?? ''),
+            'bank_name' => (string) ($bank['bank_name'] ?? ''),
+            'bank_account_number' => (string) ($bank['account_number'] ?? ''),
         ];
-
-        $result = [];
-        foreach ($defaults as $key => $cfg) {
-            $setting = Setting::query()->firstOrNew(['key' => $key]);
-            if (! $setting->exists) {
-                $setting->section = 'General';
-                $setting->type = 'TEXT';
-                $setting->title = $cfg['title'];
-                $setting->ltr = $key !== 'bank_account_name';
-                $setting->size = 4;
-                $setting->value = $cfg['value'];
-                $setting->raw = $cfg['value'];
-                $setting->is_basic = true;
-                $setting->save();
-            }
-            $result[$key] = (string) ($setting->value ?: $setting->raw ?: '');
-        }
-
-        return $result;
     }
 }

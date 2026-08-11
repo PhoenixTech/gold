@@ -53,6 +53,12 @@
                     </li>
                     <li class="mb-2">
                         <a href="{{route('admin.customer.show',$item->customer->id)}}">
+                            {{__("Awaiting Payment")}}
+                            : {{number_format($item->customer->invoices()->where('status', 'AWAITING_PAYMENT')->count())}}
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="{{route('admin.customer.show',$item->customer->id)}}">
                             {{__("Failed Invoices")}}
                             : {{number_format($item->customer->invoices()->whereIn('status',[ 'PENDING', 'CANCELED', 'FAILED'])->count())}}
                         </a>
@@ -148,6 +154,55 @@
                     </div>
 
                 </div>
+            </div>
+
+            @php
+                $cardPayment = $item->payments->firstWhere('type', 'CARD');
+                $canConfirmPayment = $item->status === \App\Models\Invoice::AWAITING_PAYMENT
+                    && $cardPayment
+                    && $cardPayment->status === \App\Models\Payment::PENDING;
+            @endphp
+
+            <div class="general-form mt-3">
+                <h1>{{__("Payment receipts")}}</h1>
+                @if($item->paymentReceipts->count())
+                    <ul class="list-group mb-3">
+                        @foreach($item->paymentReceipts as $receipt)
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <a href="{{ $receipt->url() }}" target="_blank" rel="noopener">
+                                        {{ $receipt->original_name }}
+                                    </a>
+                                    <div class="small text-muted">
+                                        {{ $receipt->created_at }}
+                                        @if($receipt->size)
+                                            — {{ number_format($receipt->size / 1024, 1) }} KB
+                                        @endif
+                                    </div>
+                                </div>
+                                @if($receipt->isImage())
+                                    <a href="{{ $receipt->url() }}" target="_blank" rel="noopener">
+                                        <img src="{{ $receipt->url() }}" alt="{{ $receipt->original_name }}"
+                                             style="max-height: 64px; max-width: 96px; object-fit: cover;">
+                                    </a>
+                                @endif
+                            </li>
+                        @endforeach
+                    </ul>
+                @else
+                    <p class="text-muted">{{__("No payment receipts uploaded yet.")}}</p>
+                @endif
+
+                @if($canConfirmPayment)
+                    <form action="{{ route('admin.invoice.confirm-payment', $item) }}" method="post"
+                          onsubmit="return confirm('{{__("Confirm this payment and mark the invoice as PAID?")}}');">
+                        @csrf
+                        <button type="submit" class="btn btn-success">
+                            <i class="ri-check-double-line"></i>
+                            {{__("Confirm payment")}}
+                        </button>
+                    </form>
+                @endif
             </div>
         </div>
 

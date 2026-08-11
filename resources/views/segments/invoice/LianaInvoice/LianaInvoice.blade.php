@@ -2,12 +2,60 @@
     <div class="p-3">
         <div class="liana-card">
 
+            @php
+                $cardPayment = $invoice->cardPayment();
+                $bankMeta = $cardPayment?->meta ?? [];
+                $bank = [
+                    'bank_name' => $bankMeta['bank_name'] ?? null,
+                    'account_holder_name' => $bankMeta['account_holder_name'] ?? null,
+                    'card_number' => $bankMeta['card_number'] ?? null,
+                    'account_number' => $bankMeta['account_number'] ?? null,
+                    'iban' => $bankMeta['iban'] ?? null,
+                ];
+                if (! array_filter($bank)) {
+                    $bank = \App\Http\Controllers\CardController::activeBankDisplay();
+                }
+                $receipts = $invoice->paymentReceipts ?? collect();
+                $canUploadReceipts = $invoice->needsReceiptUpload();
+                $isOfflinePayment = $invoice->isOfflineCardPayment();
+                $hasUploadedReceipts = $receipts->isNotEmpty();
+                $isWaitingConfirmation = $canUploadReceipts && $hasUploadedReceipts;
+            @endphp
+
+            @if($canUploadReceipts)
+                <div class="liana-offline-alert no-print {{ $isWaitingConfirmation ? 'is-waiting' : '' }}" id="receipt-upload">
+                    <div class="liana-offline-alert__icon">
+                        <i class="{{ $isWaitingConfirmation ? 'ri-time-line' : 'ri-bank-card-line' }}"></i>
+                    </div>
+                    <div class="liana-offline-alert__body">
+                        <span class="liana-offline-alert__eyebrow">{{ __('Offline payment') }}</span>
+                        @if($isWaitingConfirmation)
+                            <strong>{{ __('Waiting for payment confirmation') }}</strong>
+                            <p>
+                                {{ __('Your receipt was received. We are reviewing your offline payment. Please wait for admin confirmation.') }}
+                            </p>
+                        @else
+                            <strong>{{ __('This invoice needs a payment receipt') }}</strong>
+                            <p>
+                                {{ __('Pay by card-to-card using the bank details below, then upload your receipt so we can confirm the order.') }}
+                            </p>
+                        @endif
+                    </div>
+                </div>
+            @endif
+
             <div class="liana-head">
                 <div class="liana-brand">
                     <img src="{{asset('upload/images/logo.png')}}" class="liana-logo" alt="">
                     <div class="liana-brand-meta">
                         <h3>{{config('app.name')}}</h3>
                         <span class="inv-badge inv-{{$invoice->status}}">{{__($invoice->status)}}</span>
+                        @if($isOfflinePayment)
+                            <span class="liana-pay-type">
+                                <i class="ri-exchange-funds-line"></i>
+                                {{ __('Card to card') }}
+                            </span>
+                        @endif
                     </div>
                 </div>
                 <div class="liana-qr">
@@ -112,26 +160,142 @@
                     @endphp
                     {{ $addressParts ? implode('، ', $addressParts) : __('No address registered.') }}
                 </div>
-                @php
-                    $cardPayment = $invoice->payments->firstWhere('type', 'CARD');
-                    $bank = \App\Http\Controllers\CardController::ensureBankSettings();
-                @endphp
-                @if($cardPayment)
-                    <hr>
-                    <div class="liana-dyn">
-                        <strong>{{__("Card-to-card details")}}</strong>
-                        <p class="mb-1">{{__("Order registered. Please pay by card-to-card and wait for confirmation.")}}</p>
-                        @if($bank['bank_account_name'])
-                            <div>{{__("Account name")}}: <b>{{ $bank['bank_account_name'] }}</b></div>
+
+                @if($isOfflinePayment)
+                    <div class="liana-payment-panel no-print">
+                        @include('components.err')
+
+                        <div class="liana-payment-panel__title">
+                            <i class="{{ $isWaitingConfirmation ? 'ri-time-line' : 'ri-exchange-funds-line' }}"></i>
+                            <div>
+                                @if($isWaitingConfirmation)
+                                    <strong>{{ __('Waiting for payment confirmation') }}</strong>
+                                    <p>{{ __('We received your upload. Please wait until an admin confirms the payment.') }}</p>
+                                @else
+                                    <strong>{{ __('Offline card-to-card payment') }}</strong>
+                                    <p>{{ __('This order is not paid online. Transfer the amount, then upload the receipt.') }}</p>
+                                @endif
+                            </div>
+                        </div>
+
+                        @if($canUploadReceipts)
+                            <ol class="liana-payment-steps">
+                                <li class="{{ $isWaitingConfirmation ? 'is-done' : '' }}">
+                                    <span>1</span>
+                                    <div>
+                                        <strong>{{ __('Transfer the amount') }}</strong>
+                                        <small>{{ __('Use the bank account details below') }}</small>
+                                    </div>
+                                </li>
+                                <li class="{{ $isWaitingConfirmation ? 'is-done' : 'is-current' }}">
+                                    <span>2</span>
+                                    <div>
+                                        <strong>{{ __('Upload the receipt') }}</strong>
+                                        <small>{{ __('Photo or PDF of your transfer') }}</small>
+                                    </div>
+                                </li>
+                                <li class="{{ $isWaitingConfirmation ? 'is-current' : '' }}">
+                                    <span>3</span>
+                                    <div>
+                                        <strong>{{ __('Wait for confirmation') }}</strong>
+                                        <small>{{ __('We will review and confirm your payment') }}</small>
+                                    </div>
+                                </li>
+                            </ol>
                         @endif
-                        @if($bank['bank_card_number'])
-                            <div>{{__("Card number")}}: <b dir="ltr">{{ $bank['bank_card_number'] }}</b></div>
+
+                        <div class="liana-bank-box">
+                            <div class="liana-bank-box__head">
+                                <i class="ri-bank-line"></i>
+                                <strong>{{ __('Deposit to this account') }}</strong>
+                            </div>
+                            <div class="liana-bank-box__amount">
+                                <span>{{ __('Amount to pay') }}</span>
+                                <b>{{ number_format($invoice->total_price) }} {{ config('app.currency.symbol') }}</b>
+                            </div>
+                            <dl class="liana-bank-box__rows">
+                                @if($bank['bank_name'] ?? null)
+                                    <div>
+                                        <dt>{{ __('Bank name') }}</dt>
+                                        <dd>{{ $bank['bank_name'] }}</dd>
+                                    </div>
+                                @endif
+                                @if($bank['account_holder_name'] ?? null)
+                                    <div>
+                                        <dt>{{ __('Account holder name') }}</dt>
+                                        <dd>{{ $bank['account_holder_name'] }}</dd>
+                                    </div>
+                                @endif
+                                @if($bank['card_number'] ?? null)
+                                    <div>
+                                        <dt>{{ __('Card number') }}</dt>
+                                        <dd dir="ltr">{{ $bank['card_number'] }}</dd>
+                                    </div>
+                                @endif
+                                @if($bank['account_number'] ?? null)
+                                    <div>
+                                        <dt>{{ __('Account number') }}</dt>
+                                        <dd dir="ltr">{{ $bank['account_number'] }}</dd>
+                                    </div>
+                                @endif
+                                @if($bank['iban'] ?? null)
+                                    <div>
+                                        <dt>{{ __('IBAN') }}</dt>
+                                        <dd dir="ltr">{{ $bank['iban'] }}</dd>
+                                    </div>
+                                @endif
+                            </dl>
+                        </div>
+
+                        @if($receipts->count())
+                            <div class="liana-receipts">
+                                <strong>{{ __('Uploaded receipts') }}</strong>
+                                <ul>
+                                    @foreach($receipts as $receipt)
+                                        <li>
+                                            <a href="{{ $receipt->url() }}" target="_blank" rel="noopener">
+                                                <i class="{{ $receipt->isImage() ? 'ri-image-line' : 'ri-file-pdf-2-line' }}"></i>
+                                                {{ $receipt->original_name }}
+                                            </a>
+                                            <small>{{ $receipt->created_at?->diffForHumans() }}</small>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                                @if($canUploadReceipts)
+                                    <p class="liana-receipts__note">
+                                        @if($isWaitingConfirmation)
+                                            {{ __('We received your upload. Please wait until an admin confirms the payment.') }}
+                                        @else
+                                            {{ __('Receipt received. You can upload more files if needed while we review your payment.') }}
+                                        @endif
+                                    </p>
+                                @endif
+                            </div>
                         @endif
-                        @if($bank['bank_sheba'])
-                            <div>{{__("SHEBA")}}: <b dir="ltr">{{ $bank['bank_sheba'] }}</b></div>
+
+                        @if($canUploadReceipts && ! $isWaitingConfirmation)
+                            @include('components.payment-receipt-uploader', ['invoice' => $invoice])
+                        @elseif($canUploadReceipts && $isWaitingConfirmation)
+                            <div class="liana-payment-waiting">
+                                <i class="ri-time-line"></i>
+                                <div>
+                                    <strong>{{ __('Receipt uploaded successfully') }}</strong>
+                                    <p>{{ __('Your file is under review. You can still add another receipt if needed.') }}</p>
+                                </div>
+                            </div>
+                            <details class="liana-receipt-more">
+                                <summary>{{ __('Upload another receipt') }}</summary>
+                                @include('components.payment-receipt-uploader', ['invoice' => $invoice])
+                            </details>
+                        @elseif($invoice->status === \App\Models\Invoice::PAID)
+                            <div class="liana-payment-done">
+                                <i class="ri-checkbox-circle-line"></i>
+                                {{ __('Payment confirmed') }}
+                            </div>
                         @endif
                     </div>
                 @endif
+
                 @if(trim(getSetting($data->area_name.'_'.$data->part.'_desc')) != '')
                     <hr>
                     <div class="liana-dyn">

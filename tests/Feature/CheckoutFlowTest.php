@@ -4,8 +4,10 @@ namespace Tests\Feature;
 
 use App\Mail\AuthMail;
 use App\Models\Address;
+use App\Models\BankAccount;
 use App\Models\Category;
 use App\Models\Customer;
+use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\Product;
 use App\Models\Quantity;
@@ -228,6 +230,12 @@ class CheckoutFlowTest extends TestCase
 
     public function test_card_to_card_checkout_creates_pending_payment(): void
     {
+        BankAccount::factory()->active()->create([
+            'bank_name' => 'Melli',
+            'account_holder_name' => 'Shop Holder',
+            'card_number' => '6037991111222233',
+        ]);
+
         $customer = Customer::factory()->create([
             'name' => 'Buyer',
             'mobile' => '0912000'.rand(1000, 9999),
@@ -281,17 +289,24 @@ class CheckoutFlowTest extends TestCase
             'customer_id' => $customer->id,
             'address_id' => $address->id,
             'transport_id' => $transport->id,
-            'status' => 'PENDING',
+            'status' => Invoice::AWAITING_PAYMENT,
         ]);
         $this->assertDatabaseHas('payments', [
             'type' => 'CARD',
             'status' => Payment::PENDING,
         ]);
+
+        $payment = Payment::query()->where('type', 'CARD')->latest('id')->first();
+        $this->assertNotNull($payment);
+        $this->assertSame('Melli', $payment->meta['bank_name'] ?? null);
+        $this->assertSame('6037991111222233', $payment->meta['card_number'] ?? null);
         $this->assertSame(0, $quantity->fresh()->count);
     }
 
     public function test_invoice_page_renders_with_address_without_state_city(): void
     {
+        BankAccount::factory()->active()->create();
+
         $customer = Customer::factory()->create([
             'name' => 'Buyer',
             'mobile' => '09121110000',

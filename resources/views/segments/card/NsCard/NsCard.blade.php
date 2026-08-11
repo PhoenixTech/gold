@@ -1,5 +1,5 @@
 @php
-    $bank = \App\Http\Controllers\CardController::ensureBankSettings();
+    $bank = \App\Http\Controllers\CardController::activeBankDisplay();
     $customer = auth('customer')->user();
     $isLoggedIn = auth('customer')->check();
     $profileComplete = $isLoggedIn && $customer->isCheckoutReady();
@@ -20,9 +20,11 @@
         'profileComplete' => $profileComplete,
         'canPay' => $canPay,
         'symbol' => config('app.currency.symbol'),
-        'bankCardNumber' => $bank['bank_card_number'],
-        'bankSheba' => $bank['bank_sheba'],
-        'bankAccountName' => $bank['bank_account_name'],
+        'bankName' => $bank['bank_name'],
+        'bankCardNumber' => $bank['card_number'],
+        'bankAccountNumber' => $bank['account_number'],
+        'bankSheba' => $bank['iban'],
+        'bankAccountName' => $bank['account_holder_name'],
         'cardLink' => route('client.product-card-toggle', '').'/',
         'discountLink' => route('client.card.discount', '').'/',
         'productLink' => route('client.product', '').'/',
