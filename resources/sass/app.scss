@@ -1,5 +1,5 @@
 // Fonts
-@import 'vazirmatn/Vazirmatn-font-face.css';
+@import 'fonts';
 @import "remixicon/fonts/remixicon.css";
 @import "vue-toast-notification/dist/theme-bootstrap.css";
 // Variables
@@ -12,12 +12,15 @@
 *{
     padding: 0;
     margin: 0;
-    font-family: 'Vazirmatn', sans-serif;
+    font-family: 'Yekan Bakh VF', 'Yekan Bakh', sans-serif;
 }
+
 html {
+    font-size: 14px;
     scroll-behavior: smooth;
 }
 body{
+    font-size: 0.875rem;
     min-height: 100vh;
     overflow-x: hidden;
     cursor: default;

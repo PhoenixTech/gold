@@ -31,6 +31,7 @@
                             </template>
                             <template v-if="i == 'font'">
                                 <select v-model="values[i]" class="form-control">
+                                    <option value="Yekan Bakh VF"> Yekan Bakh VF</option>
                                     <option value="Vazir"> Vazir</option>
                                 </select>
                             </template>

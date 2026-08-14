@@ -38,13 +38,8 @@ import './panel/fast-attachment.js';
 // chartjs.defaults.defaultFontFamily = "Vazir";
 // chartjs.defaults.defaultFontSize = 18;
 
-// chartjs.defaults.backgroundColor = '#0097ff';
 chartjs.defaults.borderColor = 'rgba(0, 0, 0, 0.08)';
 chartjs.defaults.color = '#334155';
-chartjs.defaults.font.family = 'Vazirmatn, Vazir, sans-serif';
-// chartjs.defaults.font.size = '14';
-// chartjs.defaults.font.weight = '100';
-
 
 window.chartjs = chartjs;
 window.isPaintedChart = false;

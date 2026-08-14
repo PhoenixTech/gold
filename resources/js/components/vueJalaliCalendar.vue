@@ -261,7 +261,7 @@ export default {
     background: #fff;
     direction: rtl;
     user-select: none;
-    font-family: 'Vazir', 'Vazirmatn', sans-serif;
+    font-family: 'Yekan Bakh VF', 'Yekan Bakh', sans-serif;
 }
 
 

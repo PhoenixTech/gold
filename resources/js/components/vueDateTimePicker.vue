@@ -930,7 +930,7 @@ export default {
     user-select: none;
     color: black;
     padding: 5px;
-    font-family: 'Vazir', 'Vazirmatn', sans-serif;
+    font-family: 'Yekan Bakh VF', 'Yekan Bakh', sans-serif;
 }
 
 #picker table {
