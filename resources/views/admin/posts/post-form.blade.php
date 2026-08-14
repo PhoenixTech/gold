@@ -153,7 +153,7 @@
                             <label for="body">
                                 {{__('Post Text')}}
                             </label>
-                            <textarea name="body" class="ckeditorx seo-analyze form-control @error('body') is-invalid @enderror"
+                            <textarea name="body" class="quill-editor seo-analyze form-control @error('body') is-invalid @enderror"
                                       placeholder="{{__('Post Text')}}"
                                       rows="8">{{old('body',$item->body??null)}}</textarea>
                             {{--                                    @trix(\App\Post::class, 'body')--}}

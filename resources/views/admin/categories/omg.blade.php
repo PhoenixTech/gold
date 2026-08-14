@@ -10,7 +10,7 @@
                 <label for="table">
                     {{__('Category Table')}}
                 </label>
-                <textarea name="table" class="ckeditorx @error('table') is-invalid @enderror"
+                <textarea name="table" class="quill-editor @error('table') is-invalid @enderror"
                           placeholder="{{__('Description Table')}}"
                           id="table"
                           rows="8">{{old('table',$item->table??"<ul> <li> Mobile </li> <li> Desktop </li> </ul>")}}</textarea>

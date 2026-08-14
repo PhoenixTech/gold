@@ -23,7 +23,7 @@ import './panel/raw.js';
 import './panel/navbar.js';
 import './panel/list-checkboxs.js';
 import './panel/general-events.js';
-import './panel/editor-handle.js';
+import { initQuillEditors } from './panel/editor-handle.js';
 import './panel/step-controller.js';
 import './panel/product-upload-controller.js';
 import './panel/setting-section-controller.js';
@@ -152,6 +152,10 @@ app.use(ToastPlugin);
 app.use(store);
 app.mount('#app');
 
+initQuillEditors();
+window.addEventListener('load', initQuillEditors);
+
 window.app = app;
 window.$toast = $toast;
 window.store = store;
+window.initQuillEditors = initQuillEditors;

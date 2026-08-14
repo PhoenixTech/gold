@@ -99,7 +99,7 @@
                             <label for="body">
                                 {{__('Description')}}
                             </label>
-                            <textarea name="body" class="ckeditorx form-control @error('body') is-invalid @enderror"
+                            <textarea name="body" class="quill-editor form-control @error('body') is-invalid @enderror"
                                       placeholder="{{__('Description')}}"
                                       rows="8">{{old('body',$item->body??null)}}</textarea>
                             {{--                                    @trix(\App\Post::class, 'body')--}}

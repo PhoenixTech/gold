@@ -94,7 +94,7 @@
     <div class="col-12">
         <div class="form-group">
             <label for="description" class="fw-semibold">{{__('Description Text')}}</label>
-            <textarea name="desc" class="form-control ckeditorx seo-analyze @error('description') is-invalid @enderror"
+            <textarea name="desc" class="form-control quill-editor seo-analyze @error('description') is-invalid @enderror"
                       placeholder="{{__('Description Text')}}"
                       id="description"
                       rows="8">{{old('description',$item->description??null)}}</textarea>

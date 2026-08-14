@@ -60,7 +60,7 @@
                     {{__("Post reply")}}
                 </label>
             </h4>
-            <textarea type="" id="bodya" name="bodya" rows="10" placeholder="{{__("Reply message...")}}" class="form-control ckeditorx"></textarea>
+            <textarea type="" id="bodya" name="bodya" rows="10" placeholder="{{__("Reply message...")}}" class="form-control quill-editor"></textarea>
         </div>
         <button type="submit"  class="btn btn-primary w-100 my-4" >
             {{__('Reply')}}

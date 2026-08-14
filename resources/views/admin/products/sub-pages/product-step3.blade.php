@@ -27,7 +27,7 @@
     <div class="col-12">
         <div class="form-group">
             <label for="table" class="fw-semibold">{{__('Description Table')}}</label>
-            <textarea name="table" class="ckeditorx @error('table') is-invalid @enderror"
+            <textarea name="table" class="quill-editor @error('table') is-invalid @enderror"
                       placeholder="{{__('Description Table')}}"
                       id="table"
                       rows="6">{{old('table',$item->table??null)}}</textarea>

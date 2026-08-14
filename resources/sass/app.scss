@@ -68,3 +68,60 @@ main {
 @import "panel/item-list";
 @import "panel/steps";
 @import "../views/segments/customer/AvisaCustomer/AvisaCustomer.scss";
+
+.ql-editor {
+    min-height: 200px;
+    font-size: 0.95rem;
+}
+
+[dir="rtl"] {
+    .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="1"]::before,
+    .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="1"]::before {
+        content: 'تیتر ۱ (H1)';
+    }
+    .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="2"]::before,
+    .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="2"]::before {
+        content: 'تیتر ۲ (H2)';
+    }
+    .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="3"]::before,
+    .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="3"]::before {
+        content: 'تیتر ۳ (H3)';
+    }
+    .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="4"]::before,
+    .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="4"]::before {
+        content: 'تیتر ۴ (H4)';
+    }
+    .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="5"]::before,
+    .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="5"]::before {
+        content: 'تیتر ۵ (H5)';
+    }
+    .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="6"]::before,
+    .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="6"]::before {
+        content: 'تیتر ۶ (H6)';
+    }
+    .ql-snow .ql-picker.ql-header .ql-picker-label:not([data-value])::before,
+    .ql-snow .ql-picker.ql-header .ql-picker-item:not([data-value])::before {
+        content: 'متن عادی';
+    }
+
+    .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="small"]::before,
+    .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="small"]::before {
+        content: 'کوچک';
+    }
+    .ql-snow .ql-picker.ql-size .ql-picker-label:not([data-value])::before,
+    .ql-snow .ql-picker.ql-size .ql-picker-item:not([data-value])::before {
+        content: 'عادی';
+    }
+    .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="large"]::before,
+    .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="large"]::before {
+        content: 'بزرگ';
+    }
+    .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="huge"]::before,
+    .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="huge"]::before {
+        content: 'خیلی بزرگ';
+    }
+}
+
+
+
+

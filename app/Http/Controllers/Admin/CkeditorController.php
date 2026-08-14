@@ -54,7 +54,15 @@ class CkeditorController extends Controller
 
 
             $CKEditorFuncNum = $request->input('CKEditorFuncNum');
-            $url =\Storage::url('upload/' . $filename);
+            $url = \Storage::url('upload/' . $filename);
+
+            if ($request->expectsJson() || $request->ajax() || !$request->has('CKEditorFuncNum')) {
+                return response()->json([
+                    'uploaded' => true,
+                    'fileName' => $filename,
+                    'url' => $url
+                ]);
+            }
 
             $msg = __('Image uploaded successfully');
             $response = "<script>window.parent.CKEDITOR.tools.callFunction($CKEditorFuncNum, '$url', '$msg')</script>";

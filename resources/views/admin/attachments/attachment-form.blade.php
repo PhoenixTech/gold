@@ -126,7 +126,7 @@
                                 {{__('Description')}}
                             </label>
                             <textarea rows="4" name="body" id="body"
-                                      class="ckeditorx form-control @error('body') is-invalid @enderror"
+                                      class="quill-editor form-control @error('body') is-invalid @enderror"
                                       placeholder="{{__('Description')}}">{{old('body',$item->body??null)}}</textarea>
                         </div>
                     </div>

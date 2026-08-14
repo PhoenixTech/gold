@@ -95,7 +95,7 @@
             @break
         @case('EDITOR')
             <textarea name="{{$setting->key}}" id="{{$setting->key}}"
-                      class="form-control ckeditorx"
+                      class="form-control quill-editor"
                       rows="5">{{old($setting->key, $setting->value)}}</textarea>
             @break
         @case('CHECKBOX')

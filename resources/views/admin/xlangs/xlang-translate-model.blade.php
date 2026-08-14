@@ -62,7 +62,7 @@
 
                                     <textarea
                                         @if(langIsRTL($lang->tag)) dir="rtl" @else dir="ltr" @endif
-                                    class="form-control @if($tr == 'body' || $tr == 'desc' || $tr == 'description' || $tr == 'table' || request()->has('editor')) ckeditorx @endif"
+                                    class="form-control @if($tr == 'body' || $tr == 'desc' || $tr == 'description' || $tr == 'table' || request()->has('editor')) quill-editor @endif"
                                         rows="4" id="{{$lang->tag}}{{$tr}}"
                                         name="data[{{$lang->tag}}][{{$tr}}]">{{gettype($model->getTranslation($tr,$lang->tag)) == 'string' ? $model->getTranslation($tr,$lang->tag):'' }}</textarea>
                                 @else
