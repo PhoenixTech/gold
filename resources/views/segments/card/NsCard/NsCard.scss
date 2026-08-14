@@ -1,5 +1,5 @@
 .NsCard {
-    padding: 3.5rem 0 3rem;
+    padding: 3rem 0 3.5rem;
     min-height: calc(100vh - 250px);
 
     .ri-checkbox-circle-line{
@@ -13,4 +13,168 @@
         position: relative;
         top: -6px;
     }
+
+    .empty-cart-wrapper {
+        max-width: 1140px;
+        margin: 0 auto;
+    }
+
+    .empty-cart-card {
+        background: #ffffff;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: max(var(--xshop-border-radius), 20px);
+        padding: 3.5rem 2rem;
+        box-shadow: 0 10px 35px rgba(0, 0, 0, 0.04);
+        position: relative;
+        overflow: hidden;
+
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--xshop-primary), var(--xshop-secondary, #3d3846));
+        }
+    }
+
+    .empty-cart-illustration {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 0.75rem;
+    }
+
+    .empty-cart-icon-bg {
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        background: rgba(219, 154, 0, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        color: var(--xshop-primary);
+        box-shadow: 0 10px 25px rgba(219, 154, 0, 0.18);
+        animation: emptyCartFloat 3s ease-in-out infinite;
+
+        .empty-main-icon {
+            font-size: 52px;
+            line-height: 1;
+        }
+
+        .empty-icon-sparkle {
+            position: absolute;
+            top: 4px;
+            right: 8px;
+            font-size: 22px;
+            color: var(--xshop-primary);
+            animation: sparkleGlow 2s ease-in-out infinite;
+        }
+    }
+
+    @keyframes emptyCartFloat {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-8px);
+        }
+    }
+
+    @keyframes sparkleGlow {
+        0%, 100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+        50% {
+            transform: scale(1.25);
+            opacity: 0.75;
+        }
+    }
+
+    .empty-cart-title {
+        color: var(--xshop-text, #111111);
+        font-size: 1.45rem;
+    }
+
+    .empty-cart-desc {
+        max-width: 560px;
+        font-size: 0.95rem;
+        line-height: 1.8;
+    }
+
+    .empty-cta-btn {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+    }
+
+    .category-explore-card {
+        background: #ffffff;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: max(var(--xshop-border-radius), 14px);
+        transition: all 0.25s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+
+        .category-img-box {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            background: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+
+            img {
+                width: 36px;
+                height: 36px;
+                object-fit: contain;
+                transition: transform 0.3s ease;
+            }
+        }
+
+        &:hover {
+            transform: translateY(-4px);
+            border-color: var(--xshop-primary);
+            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.07);
+
+            .category-img-box img {
+                transform: scale(1.15);
+            }
+
+            .category-name {
+                color: var(--xshop-primary) !important;
+            }
+        }
+    }
+
+    .empty-cart-perks {
+        background: #f8fafc !important;
+        border: 1px solid rgba(0, 0, 0, 0.06) !important;
+
+        .perk-icon {
+            font-size: 32px;
+            display: inline-block;
+            transition: transform 0.2s ease;
+        }
+
+        .perk-item:hover .perk-icon {
+            transform: scale(1.15);
+        }
+    }
+
+    .hover-primary:hover {
+        color: var(--xshop-primary) !important;
+    }
+
+    .hover-underline:hover {
+        text-decoration: underline !important;
+    }
 }
+
