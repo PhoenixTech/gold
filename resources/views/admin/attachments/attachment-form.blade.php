@@ -13,10 +13,10 @@
 
             @include('components.err')
             <div class="item-list mb-3">
-                <h3 class="p-3">
+                <h5 class="p-3">
                     <i class="ri-message-3-line"></i>
                     {{__("Tips")}}
-                </h3>
+                </h5>
                 <ul>
                     <li>
                         {{__("If you want to only attach to other staff members and do not want to appear in the website attachment list, uncheck `fillable`")}}
@@ -34,10 +34,10 @@
             </div>
             @if(isset($item))
                 <div class="item-list mb-3">
-                    <h3 class="p-3">
+                    <h5 class="p-3">
                         <i class="ri-file-info-line"></i>
                         {{__("File")}}
-                    </h3>
+                    </h5>
                     @if($item->file != null)
                         <div class="m-3">
                             <ul>
@@ -60,10 +60,10 @@
                     @endif
                 </div>
                 <div class="item-list mb-3">
-                    <h3 class="p-3">
+                    <h5 class="p-3">
                         <i class="ri-attachment-line"></i>
                         {{__("Attaching")}}
-                    </h3>
+                    </h5>
                     <div class="px-3 pb-4">
                         <morph-selector
                             :morphs='@json(\App\Models\Attachment::$mrohps)'
@@ -82,13 +82,13 @@
         <div class="col-lg-9 ps-xl-1 ps-xxl-1">
             <div class="general-form ">
 
-                <h1>
+                <h3>
                     @if(isset($item))
                         {{__("Edit attachment")}} [{{$item->title}}]
                     @else
                         {{__("Add new attachment")}}
                     @endif
-                </h1>
+                </h3>
 
                 <div class="row">
                     <div class="col-md-6 mt-3">

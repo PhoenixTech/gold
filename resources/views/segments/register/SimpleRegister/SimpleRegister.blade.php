@@ -6,7 +6,7 @@
                     <i class="ri-user-add-line"></i>
                 </div>
                 <div class="register-header-meta">
-                    <h3>{{$title ?? __("Sign-up")}}</h3>
+                    <h5>{{$title ?? __("Sign-up")}}</h5>
                     <p>{{__("Fill essential fields to create your account")}}</p>
                 </div>
             </div>

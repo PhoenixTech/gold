@@ -1,8 +1,8 @@
 <section class='AraMainGroups'>
     <div class="{{gfx()['container']}}">
-        <h1>
+        <h3>
             {{getSetting($data->area->name.'_'.$data->part.'_title')}}
-        </h1>
+        </h3>
         <p>
             {{getGroupBySetting($data->area->name.'_'.$data->part.'_group')->subtitle}}
         </p>
@@ -13,9 +13,9 @@
 
                         <img src="{{$group->imgUrl()}}" class="img-fluid" alt="">
                         <div class="ara-data">
-                            <h3>
+                            <h5>
                                 {{$group->name}}
-                            </h3>
+                            </h5>
                             <p>
                                 {{$group->subtitle}}
                             </p>

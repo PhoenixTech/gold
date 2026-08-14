@@ -22,7 +22,7 @@
     <div class="{{gfx()['container']}} content tag-page py-4">
         <!-- Page Title Header -->
         <div class="search-header text-center mb-4">
-            <h1 class="fs-2 fw-bold text-dark mb-2">{{$title}}</h1>
+            <h3 class="fs-2 fw-bold text-dark mb-2">{{$title}}</h3>
             @if(!empty($subtitle))
                 <p class="text-muted fs-15">{{$subtitle}}</p>
             @endif
@@ -74,11 +74,11 @@
                                         </a>
                                     </div>
                                     <div class="card-body p-3 d-flex flex-column flex-grow-1">
-                                        <h3 class="product-title fs-15 fw-bold mb-2">
+                                        <h5 class="product-title fs-15 fw-bold mb-2">
                                             <a href="{{$product->webUrl()}}" class="text-decoration-none text-dark hover-primary" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
                                                 {{$product->name}}
                                             </a>
-                                        </h3>
+                                        </h5>
                                         @if($product->excerpt)
                                             <p class="text-muted fs-13 mb-3" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
                                                 {{$product->excerpt}}
@@ -127,11 +127,11 @@
                                         </a>
                                     </div>
                                     <div class="card-body p-3.5 d-flex flex-column flex-grow-1">
-                                        <h3 class="post-card-title fs-16 fw-bold mb-2">
+                                        <h5 class="post-card-title fs-16 fw-bold mb-2">
                                             <a href="{{$post->webUrl()}}" class="text-decoration-none text-dark hover-primary" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
                                                 {{$post->title}}
                                             </a>
-                                        </h3>
+                                        </h5>
                                         @if($post->subtitle)
                                             <p class="card-text text-muted fs-14 mb-3 leading-relaxed" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
                                                 {{$post->subtitle}}
@@ -185,11 +185,11 @@
                                         </a>
                                     </div>
                                     <div class="card-body p-3.5 d-flex flex-column flex-grow-1">
-                                        <h3 class="clip-title fs-16 fw-bold mb-2">
+                                        <h5 class="clip-title fs-16 fw-bold mb-2">
                                             <a href="{{$clip->webUrl()}}" class="text-decoration-none text-dark hover-primary" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
                                                 {{$clip->title}}
                                             </a>
-                                        </h3>
+                                        </h5>
                                         <p class="text-muted fs-14 mb-3" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
                                             {{Str::limit(strip_tags($clip->body), 100)}}
                                         </p>

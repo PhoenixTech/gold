@@ -314,7 +314,7 @@ class ContentSEOAnalyzer {
                     </div>
                 </div>
                 <div class="seo-status">
-                    <h3>${ window.TR.SEOScore}: ${scoreStatus.text}</h3>
+                    <h5>${ window.TR.SEOScore}: ${scoreStatus.text}</h5>
                     <p>${window.TR.basedOnKeyword}</p>
                 </div>
             </div>

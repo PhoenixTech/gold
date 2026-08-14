@@ -1,8 +1,8 @@
 <section class="AutoPlayAttachment live-setting" data-live="{{$data->area_name.'_'.$data->part}}" >
     <div class="{{gfx()['container']}}">
-        <h1>
+        <h3>
             {{getSetting($data->area_name.'_'.$data->part.'_title')}}
-        </h1>
+        </h3>
         <div class="autoplay-clip-list">
             @php($group = \App\Models\Group::first())
             @foreach($group->attachs()->where('ext','mp4')->get() as $clip)

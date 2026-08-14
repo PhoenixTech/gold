@@ -1,8 +1,8 @@
 <section class='GradientTextLink py-4  live-setting' data-live="{{$data->area_name.'_'.$data->part}}">
     <div class="{{gfx()['container']}} py-4 text-center">
-        <h1>
+        <h3>
             {{getSetting($data->area_name.'_'.$data->part.'_title')}}
-        </h1>
+        </h3>
         <a class="btn btn-outline-invert" href="{{getSetting($data->area_name.'_'.$data->part.'_link')}}">
             {{getSetting($data->area_name.'_'.$data->part.'_btn')}}
         </a>

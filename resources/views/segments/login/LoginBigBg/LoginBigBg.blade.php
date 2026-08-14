@@ -6,7 +6,7 @@
                 <i class="ri-user-shared-2-line"></i>
             </div>
             <div class="login-header-meta">
-                <h3>{{$title ?? __("Sign-in")}}</h3>
+                <h5>{{$title ?? __("Sign-in")}}</h5>
                 <p>{{$subtitle ?? __('Sign in as customer')}}</p>
             </div>
         </div>

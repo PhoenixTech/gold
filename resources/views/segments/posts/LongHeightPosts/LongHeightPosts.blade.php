@@ -1,11 +1,11 @@
 <section class='LongHeightPosts  live-setting' data-live="{{$data->area_name.'_'.$data->part}}"
          style="background-image: url('{{asset('upload/images/'.$data->area_name.'.'.$data->part.'.jpg')}}')">
     <div class="{{gfx()['container']}}">
-        <h1>
+        <h3>
             <a href="{{getGroupBySetting($data->area_name.'_'.$data->part.'_group')->webUrl()}}">
                 {{getGroupBySetting($data->area_name.'_'.$data->part.'_group')->name}}
             </a>
-        </h1>
+        </h3>
 
 
         <div class="row">
@@ -28,11 +28,11 @@
             @endforeach
         </div>
 
-        <h3>
+        <h5>
             <a href="" class="btn btn-outline-primary float-end">
                 {{getSetting($data->area_name.'_'.$data->part.'_btn')}}
             </a>
             {{getGroupBySetting($data->area_name.'_'.$data->part.'_group')->subtitle}}
-        </h3>
+        </h5>
     </div>
 </section>

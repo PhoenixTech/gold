@@ -2,9 +2,9 @@
         <div class="{{gfx()['container']}} py-3">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <h1>
+                    <h3>
                         {{$category->name}}
-                    </h1>
+                    </h3>
                     {{$category->description}}
                 </div>
                 <div class="col-md-6">

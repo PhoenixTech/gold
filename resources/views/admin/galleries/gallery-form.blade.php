@@ -13,10 +13,10 @@
 
             @include('components.err')
             <div class="item-list mb-3">
-                <h3 class="p-3">
+                <h5 class="p-3">
                     <i class="ri-message-3-line"></i>
                     {{__("Tips")}}
-                </h3>
+                </h5>
                 <ul>
                     <li>
                         {{__("You can add images after create gallery")}}
@@ -31,10 +31,10 @@
             </div>
             @if (isset($item))
                 <div class="item-list mb-3">
-                    <h3 class="p-3">
+                    <h5 class="p-3">
                         <i class="ri-image-2-line"></i>
                         {{__("Index image")}}
-                    </h3>
+                    </h5>
                     <div class="pb-4">
                         <img src="{{$item->imgUrl()}}" data-open-file="#image" class="img-fluid" alt="{{$item->title}}">
                     </div>
@@ -53,13 +53,13 @@
         <div class="col-lg-9 ps-xl-1 ps-xxl-1">
             <div class="general-form ">
 
-                <h1>
+                <h3>
                     @if(isset($item))
                         {{__("Edit gallery")}} [{{$item->title}}]
                     @else
                         {{__("Add new gallery")}}
                     @endif
-                </h1>
+                </h3>
 
                 <div class="row">
                     <div class="col-md-12 mt-3">

@@ -3,10 +3,10 @@
         @if(count($category->parallelCategories()) > 0)
             <div class="parallel-categories-wrapper">
                 <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
-                    <h3 class="fs-4 fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                    <h5 class="fs-4 fw-bold text-dark mb-0 d-flex align-items-center gap-2">
                         <i class="ri-grid-fill text-primary"></i>
                         <span>{{getSetting($data->area_name.'_'.$data->part.'_title') ?: __('Other categories')}}</span>
-                    </h3>
+                    </h5>
                 </div>
 
                 <div class="row g-3 g-md-4">

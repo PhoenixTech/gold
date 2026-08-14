@@ -1,8 +1,8 @@
 <section class='AutoPlayClips live-setting' data-live="{{$data->area_name.'_'.$data->part}}">
     <div class="{{gfx()['container']}}">
-        <h1>
+        <h3>
             {{getSetting($data->area_name.'_'.$data->part.'_title')}}
-        </h1>
+        </h3>
         <div class="autoplay-clip-list">
         @foreach(\App\Models\Clip::where('status',1)->orderByDesc('id')->limit(4)->get() as $clip)
             <div class="autoplay-clip-item">

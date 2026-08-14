@@ -8,9 +8,9 @@
                 <div class="avisa-hero-user">
                     <img src="{{auth()->user()->avatar()}}" alt="avatar" class="avisa-hero-avatar">
                     <div>
-                        <h3 class="avisa-hero-title">
+                        <h5 class="avisa-hero-title">
                             {{__("Welcome back")}}, {{auth()->user()->name}}! 👋
-                        </h3>
+                        </h5>
                         <p class="avisa-hero-sub text-muted mb-0">
                             <i class="ri-mail-line me-1"></i> {{auth()->user()->email}}
                             @if(auth()->user()->role)
@@ -57,7 +57,7 @@
                     </div>
                     <div class="stat-details">
                         <span class="stat-label">{{__("Need process orders")}}</span>
-                        <h3 class="stat-value">{{number_format(\App\Models\Invoice::where('status','PAID')->count())}}</h3>
+                        <h5 class="stat-value">{{number_format(\App\Models\Invoice::where('status','PAID')->count())}}</h5>
                     </div>
                 </div>
             </div>
@@ -68,7 +68,7 @@
                     </div>
                     <div class="stat-details">
                         <span class="stat-label">{{__("Pending tickets")}}</span>
-                        <h3 class="stat-value">{{number_format(\App\Models\Ticket::where('status','PENDING')->count())}}</h3>
+                        <h5 class="stat-value">{{number_format(\App\Models\Ticket::where('status','PENDING')->count())}}</h5>
                     </div>
                 </div>
             </div>
@@ -79,7 +79,7 @@
                     </div>
                     <div class="stat-details">
                         <span class="stat-label">{{__("Monthly Visitors")}}</span>
-                        <h3 class="stat-value">{{number_format($all_visitor)}}</h3>
+                        <h5 class="stat-value">{{number_format($all_visitor)}}</h5>
                     </div>
                 </div>
             </div>
@@ -90,7 +90,7 @@
                     </div>
                     <div class="stat-details">
                         <span class="stat-label">{{__("Mobile Visitors")}}</span>
-                        <h3 class="stat-value">{{number_format($mobiles_count)}}</h3>
+                        <h5 class="stat-value">{{number_format($mobiles_count)}}</h5>
                     </div>
                 </div>
             </div>

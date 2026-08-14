@@ -1,8 +1,8 @@
 <section class='ProductsSlider live-setting' data-live='{{$data->area_name.'_'.$data->part}}' >
     <div class="{{gfx()['container']}}">
-        <h1>
+        <h3>
             {{getSetting($part->area_name . '_' . $part->part.'_title')}}
-        </h1>
+        </h3>
 
         <div class="products-slider">
             @foreach(getProductsQueryBySetting($part->area_name . '_' . $part->part.'_query') as $product)

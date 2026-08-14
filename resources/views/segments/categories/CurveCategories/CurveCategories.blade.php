@@ -7,9 +7,9 @@
     <div>
         {{--        class="{{gfx()['container']}}"--}}
 
-        <h1 class="text-center">
+        <h3 class="text-center">
             {{getSetting($part->area_name . '_' . $part->part.'_title')}}
-        </h1>
+        </h3>
         <div id="curve-slider-cat-container">
 
             <div id="crc-nxt" class="sld-btn">

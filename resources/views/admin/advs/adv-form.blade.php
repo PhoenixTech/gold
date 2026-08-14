@@ -13,10 +13,10 @@
 
             @include('components.err')
             <div class="item-list mb-3">
-                <h3 class="p-3">
+                <h5 class="p-3">
                     <i class="ri-message-3-line"></i>
                     {{__("Tips")}}
-                </h3>
+                </h5>
                 <ul>
                     <li>
                         {{__("Max click zero is unlimited")}}
@@ -28,10 +28,10 @@
             </div>
             @if (isset($item))
                 <div class="item-list mb-3">
-                    <h3 class="p-3">
+                    <h5 class="p-3">
                         <i class="ri-image-2-line"></i>
                         {{__("Image")}}
-                    </h3>
+                    </h5>
                     <div class="pb-4">
                         <img src="{{$item->imgUrl()}}" class="img-fluid" alt="{{$item->title}}">
                     </div>
@@ -42,13 +42,13 @@
         <div class="col-lg-9 ps-xl-1 ps-xxl-1">
             <div class="general-form ">
 
-                <h1>
+                <h3>
                     @if(isset($item))
                         {{__("Edit adv")}} [{{$item->title}}]
                     @else
                         {{__("Add new adv")}}
                     @endif
-                </h1>
+                </h3>
 
                 <div class="row">
                     <div class="col-md-6 mt-3">

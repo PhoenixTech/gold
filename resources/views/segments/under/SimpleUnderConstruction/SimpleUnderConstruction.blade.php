@@ -1,8 +1,8 @@
 <section class="SimpleUnderConstruction live-setting" data-live="{{$data->area_name.'_'.$data->part}}" >
    <div class="container">
-       <h1>
+       <h3>
            {{$title}}
-       </h1>
+       </h3>
        <h2>
            {{getSetting('desc')}}
        </h2>

@@ -3,10 +3,10 @@
         <div class="row">
             <div class="col-xl-3">
                 <div class="item-list mb-3">
-                    <h3 class="p-3">
+                    <h5 class="p-3">
                         <i class="ri-brush-2-line"></i>
                         GFX
-                    </h3>
+                    </h5>
                     <template v-for="(v,i) in values">
                         <div v-if="v != undefined" class="p-2 item-gfx">
                             <div class="float-end"

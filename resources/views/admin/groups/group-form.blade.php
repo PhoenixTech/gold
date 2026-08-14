@@ -12,10 +12,10 @@
         <div class="col-lg-3">
             @include('components.err')
             <div class="item-list mb-3">
-                <h3 class="p-3">
+                <h5 class="p-3">
                     <i class="ri-message-3-line"></i>
                     {{__("Tips")}}
-                </h3>
+                </h5>
                 <ul>
                     <li>
                         {{__("You can leave the slug empty; it will be generated automatically.")}}
@@ -25,18 +25,18 @@
 
             @if(isset($item))
                 <div class="item-list mb-3">
-                    <h3 class="p-3">
+                    <h5 class="p-3">
                         <i class="ri-image-2-line"></i>
                         {{__('Feature image')}}
-                    </h3>
+                    </h5>
                     <img src="{{$item->imgUrl()}}" data-open-file="#image" alt="{{$item->name}}" class="img-fluid">
 
                 </div>
                 <div class="item-list mb-3">
-                    <h3 class="p-3">
+                    <h5 class="p-3">
                         <i class="ri-image-2-line"></i>
                         {{__('Background image')}}
-                    </h3>
+                    </h5>
                     <img src="{{$item->bgUrl()}}" data-open-file="#bg" alt="{{$item->name}}" class="img-fluid">
 
                 </div>
@@ -70,13 +70,13 @@
         <div class="col-lg-9 ps-xl-1 ps-xxl-1">
             <div class="general-form ">
 
-                <h1>
+                <h3>
                     @if(isset($item))
                         {{__("Edit group")}} [{{$item->name}}] <a href="{{route('admin.area.design.model',['group','Group',$item->id])}}" class="btn btn-secondary"> <i class="ri-palette-line"></i> </a>
                     @else
                         {{__("Add new group")}}
                     @endif
-                </h1>
+                </h3>
 
                 <div class="row">
 

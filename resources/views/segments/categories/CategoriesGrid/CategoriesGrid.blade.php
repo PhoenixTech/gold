@@ -1,8 +1,8 @@
 <section class='CategoriesGrid live-setting' data-live="{{$data->area_name.'_'.$data->part}}">
     <div class="{{gfx()['container']}}">
-        <h1>
+        <h3>
             {{getSetting($data->area_name.'_'.$data->part.'_title')}}
-        </h1>
+        </h3>
         <div class="row cat-grid-list">
             @foreach( getCategorySubCatsBySetting($data->area_name.'_'.$data->part.'_category',getSetting($data->area_name.'_'.$data->part.'_limit')) as $category )
                 <div class="col-md p-0">
@@ -10,9 +10,9 @@
                         <a href="{{$category->webUrl()}}">
                             <img src="{{$category->imgUrl()}}" alt="{{$category->name}}"
                                  title="{{$category->name}}" loading="lazy" >
-                            <h3 class="py-3">
+                            <h5 class="py-3">
                                 {{$category->name}}
-                            </h3>
+                            </h5>
                         </a>
                     </div>
                 </div>

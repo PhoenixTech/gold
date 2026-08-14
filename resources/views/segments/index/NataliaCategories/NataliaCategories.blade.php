@@ -4,9 +4,9 @@
         <div class="row nata-content">
             <div class="col-md-6 pt-5 slider-content">
                 <div class="text-center">
-                    <h1>
+                    <h3>
                         {{getSetting($data->area_name.'_'.$data->part.'_title')}}
-                    </h1>
+                    </h3>
                     <h2>
                         {{getSetting($data->area_name.'_'.$data->part.'_subtitle')}}
                     </h2>

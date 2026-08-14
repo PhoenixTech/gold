@@ -13,10 +13,10 @@
 
             @include('components.err')
             <div class="item-list mb-3">
-                <h3 class="p-3">
+                <h5 class="p-3">
                     <i class="ri-message-3-line"></i>
                     {{__("Tips")}}
-                </h3>
+                </h5>
                 <ul>
                     <li>
                         {{__("Recommends")}}
@@ -24,19 +24,19 @@
                 </ul>
             </div>
             <div class="item-list mb-3">
-                <h3 class="p-3">
+                <h5 class="p-3">
                     <i class="ri-remixicon-line"></i>
                     {{__("Icon")}}
-                </h3>
+                </h5>
                 <div class="p-1 text-center pb-4">
                     <remix-icon-picker xname="icon" xvalue="{{old('icon',$item->icon??null)}}"></remix-icon-picker>
                 </div>
             </div>
             <div class="item-list mb-3">
-                <h3 class="p-3">
+                <h5 class="p-3">
                     <i class="ri-list-check"></i>
                     {{__("Categories")}}
-                </h3>
+                </h5>
                 <div>
                     <ul class="group-control">
                         {!!showCatNestedControl($cats,old('cat',isset($item)?$item->categories()->pluck('id')->toArray():[]))!!}
@@ -48,13 +48,13 @@
         <div class="col-lg-9 ps-xl-1 ps-xxl-1">
             <div class="general-form ">
 
-                <h1>
+                <h3>
                     @if(isset($item))
                         {{__("Edit prop")}} [{{$item->name}}]
                     @else
                         {{__("Add new prop")}}
                     @endif
-                </h1>
+                </h3>
                 <div class="row">
                     <div class="col-md-6 mt-3">
                         <div class="form-group">

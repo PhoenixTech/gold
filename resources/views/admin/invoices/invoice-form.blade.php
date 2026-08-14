@@ -13,10 +13,10 @@
 
             @include('components.err')
             <div class="item-list mb-3">
-                <h3 class="p-3">
+                <h5 class="p-3">
                     <i class="ri-message-3-line"></i>
                     {{__("Tips")}}
-                </h3>
+                </h5>
                 <ul>
                     <li>
                         {{__("If you cancel this, You must increase credit yourself.")}}
@@ -30,10 +30,10 @@
                 </ul>
             </div>
             <div class="item-list mb-3">
-                <h3 class="p-3">
+                <h5 class="p-3">
                     <i class="ri-user-line"></i>
                     {{__("Customer")}}
-                </h3>
+                </h5>
                 <ul>
                     <li class="mb-2">
                         <a href="{{route('admin.customer.show',$item->customer->id)}}">
@@ -68,10 +68,10 @@
 
             @if( $item->desc != null && trim($item->desc) != '')
             <div class="item-list mb-3">
-                <h3 class="p-3">
+                <h5 class="p-3">
                     <i class="ri-message-line"></i>
                     {{__("Description")}}
-                </h3>
+                </h5>
                     <p class="px-4">
                         {{$item->desc}}
                     </p>
@@ -82,13 +82,13 @@
         <div class="col-lg-9 ps-xl-1 ps-xxl-1">
             <div class="general-form ">
 
-                <h1>
+                <h3>
                     @if(isset($item))
                         {{__("Edit invoice")}} [{{$item->id}}]
                     @else
                         {{__("Add new invoice")}}
                     @endif
-                </h1>
+                </h3>
 
                 <div class="row">
                     <div class="col-md-6 mt-3">
@@ -164,7 +164,7 @@
             @endphp
 
             <div class="general-form mt-3">
-                <h1>{{__("Payment receipts")}}</h1>
+                <h3>{{__("Payment receipts")}}</h3>
                 @if($item->paymentReceipts->count())
                     <ul class="list-group mb-3">
                         @foreach($item->paymentReceipts as $receipt)

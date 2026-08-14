@@ -1,10 +1,10 @@
 <section class='PostIndexImage live-setting' data-live="{{$data->area_name.'_'.$data->part}}">
     <div class="{{gfx()['container']}}">
-        <h1>
+        <h3>
             <a href="{{getGroupBySetting($data->area_name.'_'.$data->part.'_group')?->webUrl()}}">
                 {{getGroupBySetting($data->area_name.'_'.$data->part.'_group')?->name}}
             </a>
-        </h1>
+        </h3>
         <p class="text-muted">
             {{getGroupBySetting($data->area_name.'_'.$data->part.'_group')?->description}}
         </p>
@@ -13,9 +13,9 @@
                 <div class="col-lg-3 col-md-6">
                     <div class="post-img-index">
                         <img src="{{$post->imgUrl()}}" alt="{{$post->title}}" class="img-fluid" loading="lazy">
-                        <h3>
+                        <h5>
                             {{$post->title}}
-                        </h3>
+                        </h5>
                         <p class="text-muted">
                             {{$post->subtitle}}
                         </p>

@@ -1,9 +1,9 @@
 <section class='GalleriesList  live-setting' data-live="{{$data->area_name.'_'.$data->part}}">
 
     <div class="{{gfx()['container']}}">
-        <h1>
+        <h3>
             {{$title}}
-        </h1>
+        </h3>
         <div class="row">
             @foreach($galleries as $gallery)
                 <div class="col-md-6 p-1">

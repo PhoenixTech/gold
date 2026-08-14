@@ -13,10 +13,10 @@
 
             @include('components.err')
             <div class="item-list mb-3">
-                <h3 class="p-3">
+                <h5 class="p-3">
                     <i class="ri-message-3-line"></i>
                     {{__("Tips")}}
-                </h3>
+                </h5>
                 <ul>
                     <li>
                         {{__("Recommends")}}
@@ -25,20 +25,20 @@
             </div>
             @if(isset($item))
                 <div class="item-list mb-3">
-                    <h3 class="p-3">
+                    <h5 class="p-3">
                         <i class="ri-message-3-line"></i>
                         {{__("Preview")}}
-                    </h3>
+                    </h5>
                     <div class="p2 pb-5">
                         <img src="{{$item->imgUrl()}}" data-open-file="#cover" class="img-fluid" alt="image">
                     </div>
                 </div>
             @endif
             <div class="item-list mb-3">
-                <h3 class="p-3">
+                <h5 class="p-3">
                     <i class="ri-message-3-line"></i>
                     {{__("Slider data")}}
-                </h3>
+                </h5>
                 <div class="p2 pb-3">
                     <slider-data @if(isset($item)) :dataz='{{$item->data}}' @endif></slider-data>
                 </div>
@@ -47,13 +47,13 @@
         <div class="col-lg-9 ps-xl-1 ps-xxl-1">
             <div class="general-form ">
 
-                <h1>
+                <h3>
                     @if(isset($item))
                         {{__("Edit slider")}} [{{$item->id}}]
                     @else
                         {{__("Add new slider")}}
                     @endif
-                </h1>
+                </h3>
 
                 <div class="row">
                     <div class="col-md-12 mt-3">

@@ -1,8 +1,8 @@
 <section class='DorClip content live-setting' data-live="{{$data->area_name.'_'.$data->part}}">
     <div class="{{gfx()['container']}}">
-        <h1>
+        <h3>
             {{$title}}
-        </h1>
+        </h3>
         <div id="video-preview-botz">
             <video controls src="{{$clip->fileUrl()}}" poster="{{$clip->imgUrl()}}" preload="none"></video>
         </div>

@@ -25,9 +25,9 @@
         <div id="v-cats" class="text-center">
             @foreach(getMainCategory() as $category)
                 <div class="v-item" id="v-cat-{{$category->id}}">
-                    <h3 class="mb-3">
+                    <h5 class="mb-3">
                         {{$category->name}}
-                    </h3>
+                    </h5>
                     <h4 class="text-muted mb-4">
                         {{$category->subtitle}}
                     </h4>

@@ -22,9 +22,9 @@
 
     <div class="content">
         <div class="{{gfx()['container']}}">
-            <h1>
+            <h3>
                 {{getSetting($data->area_name.'_'.$data->part.'_title')}}
-            </h1>
+            </h3>
             <ul class="tal-tab-control">
                 @foreach(getCategorySubCatsBySetting($data->area_name.'_'.$data->part.'_category') as $k => $cat)
                     <li data-id=".cat{{$cat->id}}" @if($k == 0 ) class="active" @endif>

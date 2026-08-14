@@ -18,7 +18,7 @@
             <div class="checkout-main">
                 <!-- Cart -->
                 <section v-show="currentKey === 'cart'" class="checkout-panel">
-                    <h3>{{ t('cart', 'سبد خرید') }}</h3>
+                    <h5>{{ t('cart', 'سبد خرید') }}</h5>
                     <ul class="piece-list">
                         <li v-for="(item, i) in lines" :key="item.id + '-' + i" class="piece-row">
                             <input type="hidden" :name="`product_id[${i}]`" :value="item.id">
@@ -60,7 +60,7 @@
 
                 <!-- Account -->
                 <section v-show="currentKey === 'account'" class="checkout-panel">
-                    <h3>{{ t('account', 'حساب کاربری') }}</h3>
+                    <h5>{{ t('account', 'حساب کاربری') }}</h5>
 
                     <template v-if="!loggedIn">
                         <div v-if="!smsSign" class="auth-tabs">
@@ -155,7 +155,7 @@
 
                 <!-- Delivery -->
                 <section v-show="currentKey === 'delivery'" class="checkout-panel">
-                    <h3>{{ t('transport', 'ارسال') }}</h3>
+                    <h5>{{ t('transport', 'ارسال') }}</h5>
 
                     <h4>{{ t('sent-to', 'ارسال به') }}</h4>
                     <div v-if="!localAddresses.length" class="inline-address auth-form">
@@ -195,7 +195,7 @@
 
                 <!-- Payment -->
                 <section v-show="currentKey === 'payment'" class="checkout-panel">
-                    <h3>{{ t('payment', 'پرداخت') }}</h3>
+                    <h5>{{ t('payment', 'پرداخت') }}</h5>
 
                     <div class="brief-invoice">
                         <div><span>{{ t('products-total', 'جمع کالاها') }}</span><strong>{{ priceing(productsTotalAfterDiscount) }}</strong></div>

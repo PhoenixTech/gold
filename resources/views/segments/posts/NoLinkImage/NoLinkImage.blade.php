@@ -7,9 +7,9 @@
                     <div class=" no-link-item mb-4">
 
                         <img src="{{$post->orgUrl()}}" class="float-start me-2" alt=" {{$post->title}}" loading="lazy">
-                        <h3>
+                        <h5>
                             {{$post->title}}
-                        </h3>
+                        </h5>
                         <p>
                             {{$post->subtitle}}
                         </p>

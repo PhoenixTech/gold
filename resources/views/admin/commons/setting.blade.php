@@ -10,10 +10,10 @@
                 <div class="col-xl-3">
                     @include('components.err')
                     <div class="item-list mb-3">
-                        <h3 class="p-3">
+                        <h5 class="p-3">
                             <i class="ri-message-3-line"></i>
                             {{__("Tips")}}
-                        </h3>
+                        </h5>
                         <ul>
                             <li>
                                 {{__("Recommends")}}
@@ -28,10 +28,10 @@
                     </div>
 
                     <div class="item-list mb-3">
-                        <h3 class="p-3">
+                        <h5 class="p-3">
                             <i class="ri-file-2-line"></i>
                             {{__("Sections")}}
-                        </h3>
+                        </h5>
                         <div class="p-2">
 
                             <div class="section-group">
@@ -44,10 +44,10 @@
                         </div>
                     </div>
                     <div class="item-list mb-3">
-                        <h3 class="p-3">
+                        <h5 class="p-3">
                             <i class="ri-add-line"></i>
                             {{__("Add new setting")}}
-                        </h3>
+                        </h5>
                         @if(auth()->user()->hasRole('developer'))
                             <form class="p-2 m-3 mt-0" method="post" action="{{route('admin.setting.store')}}">
                                 @csrf

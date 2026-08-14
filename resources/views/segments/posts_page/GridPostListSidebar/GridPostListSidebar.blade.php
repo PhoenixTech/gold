@@ -24,11 +24,11 @@
                                 </div>
 
                                 <div class="card-body p-3.5 d-flex flex-column flex-grow-1">
-                                    <h3 class="post-card-title fs-16 fw-bold mb-2">
+                                    <h5 class="post-card-title fs-16 fw-bold mb-2">
                                         <a href="{{$post->webUrl()}}" class="text-decoration-none text-dark hover-primary line-clamp-2">
                                             {{$post->title}}
                                         </a>
-                                    </h3>
+                                    </h5>
 
                                     @if($post->subtitle)
                                         <p class="card-text text-muted fs-14 mb-3 line-clamp-2 leading-relaxed">

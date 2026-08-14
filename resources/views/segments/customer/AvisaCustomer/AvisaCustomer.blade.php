@@ -207,9 +207,9 @@
                             <div class="avisa-hero-user">
                                 <img src="{{auth('customer')->user()->avatar()}}" alt="avatar" class="avisa-hero-avatar" onclick="document.querySelector('#avatar')?.click();">
                                 <div>
-                                    <h3 class="avisa-hero-title">
+                                    <h5 class="avisa-hero-title">
                                         {{__("Welcome back")}}, {{auth('customer')->user()->name ?: __('Customer')}}! 👋
-                                    </h3>
+                                    </h5>
                                     <p class="avisa-hero-sub text-muted mb-0">
                                         <i class="ri-phone-line me-1"></i> {{auth('customer')->user()->mobile}}
                                         @if(auth('customer')->user()->created_at)
@@ -239,7 +239,7 @@
                                 </div>
                                 <div class="stat-details">
                                     <span class="stat-label">{{__("Invoices")}}</span>
-                                    <h3 class="stat-value">{{number_format(auth('customer')->user()->invoices()->count())}}</h3>
+                                    <h5 class="stat-value">{{number_format(auth('customer')->user()->invoices()->count())}}</h5>
                                 </div>
                             </div>
                         </div>
@@ -250,7 +250,7 @@
                                 </div>
                                 <div class="stat-details">
                                     <span class="stat-label">{{__("Credits")}}</span>
-                                    <h3 class="stat-value">{{number_format(auth('customer')->user()->credit)}} <small>{{config('app.currency.symbol')}}</small></h3>
+                                    <h5 class="stat-value">{{number_format(auth('customer')->user()->credit)}} <small>{{config('app.currency.symbol')}}</small></h5>
                                 </div>
                             </div>
                         </div>
@@ -261,7 +261,7 @@
                                 </div>
                                 <div class="stat-details">
                                     <span class="stat-label">{{__("Tickets")}}</span>
-                                    <h3 class="stat-value">{{number_format(auth('customer')->user()->tickets()->count())}}</h3>
+                                    <h5 class="stat-value">{{number_format(auth('customer')->user()->tickets()->count())}}</h5>
                                 </div>
                             </div>
                         </div>
@@ -272,7 +272,7 @@
                                 </div>
                                 <div class="stat-details">
                                     <span class="stat-label">{{__("Addresses")}}</span>
-                                    <h3 class="stat-value">{{number_format(auth('customer')->user()->addresses()->count())}}</h3>
+                                    <h5 class="stat-value">{{number_format(auth('customer')->user()->addresses()->count())}}</h5>
                                 </div>
                             </div>
                         </div>
@@ -704,9 +704,9 @@
                     <div class="avisa-grid">
                         <div class="grid-item">
                             <i class="ri-bank-card-2-line"></i>
-                            <h3>
+                            <h5>
                                 {{__("Credits")}}
-                            </h3>
+                            </h5>
                             <h2>
                                 {{number_format(auth('customer')->user()->credit)}}
                                 {{config('app.currency.symbol')}}

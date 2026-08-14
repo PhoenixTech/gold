@@ -1,8 +1,8 @@
 <section class='PostsSlider live-setting' data-live="{{$data->area_name.'_'.$data->part}}">
     <div class="{{gfx()['container']}}">
-        <h1>
+        <h3>
             {{getSetting($data->area_name.'_'.$data->part.'_title')}}
-        </h1>
+        </h3>
 
     </div>
 
@@ -17,9 +17,9 @@
 
                         <a href="{{$post->webUrl()}}">
                             <img src="{{$post->orgUrl()}}" alt=" {{$post->title}}" loading="lazy">
-                            <h3>
+                            <h5>
                                 {{$post->title}}
-                            </h3>
+                            </h5>
                         </a>
                     </div>
                 </div>

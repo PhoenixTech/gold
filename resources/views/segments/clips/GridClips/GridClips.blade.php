@@ -6,9 +6,9 @@
                     <i class="ri-file-video-line"></i>
                     <a href="{{$clip->webUrl()}}">
                         <img src="{{$clip->imgUrl()}}" alt="{{$clip->title}}">
-                        <h3>
+                        <h5>
                             {{$clip->title}}
-                        </h3>
+                        </h5>
                     </a>
                     {{--                <img src="{{$clip->imgUrl()}}" alt="">--}}
                 </div>

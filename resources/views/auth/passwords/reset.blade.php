@@ -25,7 +25,7 @@
                             <i class="ri-lock-password-line"></i>
                         </div>
                         <div class="login-header-meta">
-                            <h3>{{ __('Reset Password') }}</h3>
+                            <h5>{{ __('Reset Password') }}</h5>
                             <p>{{ __('Set a new password for your account') }}</p>
                         </div>
                     </div>

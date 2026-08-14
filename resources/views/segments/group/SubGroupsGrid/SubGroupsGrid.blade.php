@@ -2,9 +2,9 @@
     <div class="{{gfx()['container']}}">
         @if($group->children()->count() > 0)
             <div>
-                <h3 class="text-center">
+                <h5 class="text-center">
                     {{__("Sub groups")}}
-                </h3>
+                </h5>
                 <div class="row">
                     @foreach($group->children as $subGroup)
                         <div class="col-md">

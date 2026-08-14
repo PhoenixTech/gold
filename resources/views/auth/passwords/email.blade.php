@@ -25,7 +25,7 @@
                             <i class="ri-key-2-line"></i>
                         </div>
                         <div class="login-header-meta">
-                            <h3>{{ __('Reset Password') }}</h3>
+                            <h5>{{ __('Reset Password') }}</h5>
                             <p>{{ __('Enter your email to receive a password reset link') }}</p>
                         </div>
                     </div>

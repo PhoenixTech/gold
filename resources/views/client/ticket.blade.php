@@ -10,9 +10,9 @@
                 <i class="ri-arrow-go-back-line"></i>
                 {{__("Back to profile")}}
             </a>
-            <h1>
+            <h3>
                 {{$ticket->title}}
-            </h1>
+            </h3>
             <div class="clearfix"></div>
             <div class="overflow-hidden">
 

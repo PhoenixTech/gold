@@ -1,8 +1,8 @@
 <section class='DenaAttachList content live-setting' data-live="{{$data->area_name.'_'.$data->part}}">
     <div class="{{gfx()['container']}}">
-        <h1>
+        <h3>
             {{$title}}
-        </h1>
+        </h3>
         <p class="text-muted">
             {{getSetting($data->area_name.'_'.$data->part.'_title')}}
         </p>
@@ -16,11 +16,11 @@
                     <span class="dena-size">
                         {{formatFileSize($attach->size)}}
                     </span>
-                    <h3>
+                    <h5>
                         <a href="{{$attach->webUrl()}}">
                         {{$attach->title}}
                         </a>
-                    </h3>
+                    </h5>
                     <p class="text-muted">
                         {{$attach->subtitle}}
                     </p>

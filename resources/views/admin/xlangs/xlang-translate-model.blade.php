@@ -10,9 +10,9 @@
 
     <div class="general-form mb-3">
 
-        <h1>
+        <h3>
             {{__("Translate model")}}: {{($model->{$translates[0]})}}
-        </h1>
+        </h3>
 
         <h4 class="lang-support p-3">
             {{__("Main language content")}}:({{config('app.xlang.main')}})
@@ -47,9 +47,9 @@
         @csrf
         @foreach($langs as $lang)
             <div class="general-form mb-3">
-                <h1 class="lang-support">
+                <h3 class="lang-support">
                     {{__("Translate model")}}: {{$lang->name}} ({{$lang->tag}})
-                </h1>
+                </h3>
                 @foreach($translates as $tr)
                     <div class="form-group px-3 pt-2">
                         <label for="{{$lang->tag}}{{$tr}}">

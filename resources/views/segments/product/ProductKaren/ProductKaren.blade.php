@@ -40,9 +40,9 @@
                 </nav>
 
 
-                <h1>
+                <h3>
                     {{$product->name}}
-                </h1>
+                </h3>
                 <div class="description">
                     <p>
                         {{$product->excerpt}}
@@ -214,9 +214,9 @@
                 @endforeach
             </table>
         </div>
-        <h3 class="mt-4">
+        <h5 class="mt-4">
             {{__("Related products")}}
-        </h3>
+        </h5>
         <div id="rel-products" class="mb-2">
             @foreach($product->category->products()->where('status',1)->limit(10)->get() as $p)
                 <div class="item">

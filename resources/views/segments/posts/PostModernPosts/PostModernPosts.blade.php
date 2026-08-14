@@ -1,8 +1,8 @@
 <section class='PostModernPosts live-setting' data-live="{{$data->area_name.'_'.$data->part}}" >
     <div class="{{gfx()['container']}}">
-        <h1>
+        <h3>
             {{getSetting($data->area_name.'_'.$data->part.'_title')}}
-        </h1>
+        </h3>
 
         <div class="row">
 

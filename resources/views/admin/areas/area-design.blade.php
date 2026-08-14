@@ -10,9 +10,9 @@
     <form action="{{route('admin.area.update',$area->name)}}" method="post">
         @csrf
         <div class="general-form mb-5">
-            <h1>
+            <h3>
                 {{__("Design :AREA",['AREA' => $area->name])}} <i class="{{$area->icon}}"></i>
-            </h1>
+            </h3>
 
             @if(strpos($area->name,'default') !== 0  )
 

@@ -13,10 +13,10 @@
             <div class="item-list mb-3">
                 @include('components.err')
 
-                <h3 class="p-3">
+                <h5 class="p-3">
                     <i class="ri-message-3-line"></i>
                     {{__("Tips")}}
-                </h3>
+                </h5>
                 <ul>
                     <li>
                         {{__("If you want to change the password, choose both the same. Otherwise, leave the password field blank.")}}
@@ -32,10 +32,10 @@
                 </ul>
             </div>
             <div class="item-list mb-3">
-                <h3 class="p-3">
+                <h5 class="p-3">
                     <i class="ri-user-3-line"></i>
                     {{__("Avatar")}}
-                </h3>
+                </h5>
                 <img @if(isset($item)) src="{{$item->avatar()}}" @else src="{{asset('assets/default/unknown.svg')}}" @endif  class="img-fluid mb-3" alt="" data-open-file="#avatar-input">
                 <input type="file" name="avatar" id="avatar-input"  accept="image/jpeg">
             </div>
@@ -43,13 +43,13 @@
         <div class="col-lg-9 ps-xl-1 ps-xxl-1">
             <div class="general-form ">
 
-                <h1>
+                <h3>
                     @if(isset($item))
                         {{__("Edit user")}} [{{$item->name}}]
                     @else
                         {{__("Add new user")}}
                     @endif
-                </h1>
+                </h3>
                 <div class="row">
                     <div class="col-md-6 col-xl-6 mt-3">
                         <div class="form-group">

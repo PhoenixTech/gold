@@ -13,10 +13,10 @@
 
             @include('components.err')
             <div class="item-list mb-3">
-                <h3 class="p-3">
+                <h5 class="p-3">
                     <i class="ri-message-3-line"></i>
                     {{__("Tips")}}
-                </h3>
+                </h5>
                 <ul>
                     <li>
                         {{__("Recommends")}}
@@ -24,10 +24,10 @@
                 </ul>
             </div>
             <div class="item-list mb-3">
-                <h3 class="p-3">
+                <h5 class="p-3">
                     <i class="ri-map-2-line"></i>
                     {{__("Change latitude and longitude")}}
-                </h3>
+                </h5>
                 <div class="p3">
                     <lat-lng dark-mode="true"
                              @if(isset($item))
@@ -43,13 +43,13 @@
         <div class="col-lg-9 ps-xl-1 ps-xxl-1">
             <div class="general-form ">
 
-                <h1>
+                <h3>
                     @if(isset($item))
                         {{__("Edit city")}} [{{$item->name}}]
                     @else
                         {{__("Add new city")}}
                     @endif
-                </h1>
+                </h3>
 
                 <div class="row">
                     <div class="col-md-6 mt-3">

@@ -10,9 +10,9 @@
     <form action="{{route('admin.area.update.model',[$model,$m->id])}}" method="post">
         @csrf
         <div class="general-form mb-5">
-            <h1>
+            <h3>
                 {{__("Design :AREA",['AREA' =>  $model . ' [' . $m->id.']'])}}
-            </h1>
+            </h3>
 
 
             <div class="form-group p-3">

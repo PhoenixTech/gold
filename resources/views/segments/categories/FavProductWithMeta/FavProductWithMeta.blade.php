@@ -5,9 +5,9 @@
         <h4 class="text-center text-muted">
             {{getSetting($data->area_name.'_'.$data->part.'_title')}}
         </h4>
-        <h1 class="text-center my-2">
+        <h3 class="text-center my-2">
             {{$productFav[0]->name}}
-        </h1>
+        </h3>
         <div class="row">
             @foreach($productFav[0]->fullMeta(4) as $meta)
 

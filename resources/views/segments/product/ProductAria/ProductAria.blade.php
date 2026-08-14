@@ -75,9 +75,9 @@
                     @endif
 
                     <!-- Title -->
-                    <h1 class="fs-2 fw-bold text-dark mb-3 pe-5">
+                    <h3 class="fs-2 fw-bold text-dark mb-3 pe-5">
                         {{$product->name}}
-                    </h1>
+                    </h3>
 
                     <!-- Price Block -->
                     <div class="price-box bg-light-subtle p-3 rounded-3 border d-flex align-items-center gap-3 mb-4">
@@ -250,10 +250,10 @@
         <!-- Related Products Section -->
         @if($product->category && $product->category->products()->where('status',1)->where('id', '<>', $product->id)->count() > 0)
             <div class="related-products-section mb-4">
-                <h3 class="fs-4 fw-bold text-dark mb-4 pb-2 border-bottom d-flex align-items-center gap-2">
+                <h5 class="fs-4 fw-bold text-dark mb-4 pb-2 border-bottom d-flex align-items-center gap-2">
                     <i class="ri-grid-fill text-primary"></i>
                     <span>{{__("Related products")}}</span>
-                </h3>
+                </h5>
                 <div class="row g-3 g-md-4">
                     @foreach($product->category->products()->where('status',1)->where('id', '<>', $product->id)->limit(4)->get() as $p)
                         <div class="col-6 col-md-4 col-lg-3">

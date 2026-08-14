@@ -1,8 +1,8 @@
 <section class='CompareProducts content live-setting' data-live="{{$data->area_name.'_'.$data->part}}">
     <div class="{{gfx()['container']}}">
-        <h1>
+        <h3>
             {{$title}}
-        </h1>
+        </h3>
         <div class="row">
             @foreach($products as $product)
                 <div class="col-md">

@@ -25,7 +25,7 @@
                             <i class="ri-user-shared-2-line"></i>
                         </div>
                         <div class="login-header-meta">
-                            <h3>{{ __('Login') }}</h3>
+                            <h5>{{ __('Login') }}</h5>
                             <p>{{ __('Sign in to your account') }}</p>
                         </div>
                     </div>

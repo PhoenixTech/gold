@@ -13,10 +13,10 @@
 
             @include('components.err')
             <div class="item-list mb-3">
-                <h3 class="p-3">
+                <h5 class="p-3">
                     <i class="ri-message-3-line"></i>
                     {{__("Tips")}}
-                </h3>
+                </h5>
                 <ul>
                     <li>
                         {{__("Add cover to better results")}}
@@ -28,10 +28,10 @@
             </div>
             @if(isset($item))
                 <div class="item-list mb-3">
-                    <h3 class="p-3">
+                    <h5 class="p-3">
                         <i class="ri-message-3-line"></i>
                         {{__("Preview")}}
-                    </h3>
+                    </h5>
                     <div class="p-2">
                             <video src="{{$item->fileUrl()}}" poster="{{$item->imgUrl()}}" controls
                                    style="max-width: 100%"></video>
@@ -50,13 +50,13 @@
         <div class="col-lg-9 ps-xl-1 ps-xxl-1">
             <div class="general-form ">
 
-                <h1>
+                <h3>
                     @if(isset($item))
                         {{__("Edit clip")}} [{{$item->title}}]
                     @else
                         {{__("Add new clip")}}
                     @endif
-                </h1>
+                </h3>
 
                 <div class="row">
                     <div class="col-md-12 mt-3">

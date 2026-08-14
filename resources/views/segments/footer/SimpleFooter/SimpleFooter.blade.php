@@ -5,9 +5,9 @@
             <div class="row">
                 <div class="col-md-4">
 
-                    <h3>
+                    <h5>
                         {{getSetting($data->area_name.'_'.$data->part.'_title1')}}
-                    </h3>
+                    </h5>
                     <ul>
                     @foreach( getGroupPostsBySetting($data->area_name.'_'.$data->part.'_group1',5) as $post )
                         <li>
@@ -19,9 +19,9 @@
                     </ul>
                 </div>
                 <div class="col-md-4">
-                    <h3>
+                    <h5>
                         {{getSetting($data->area_name.'_'.$data->part.'_title2')}}
-                    </h3>
+                    </h5>
                     <ul>
                         @foreach( getGroupPostsBySetting($data->area_name.'_'.$data->part.'_group2',5) as $post )
                             <li>

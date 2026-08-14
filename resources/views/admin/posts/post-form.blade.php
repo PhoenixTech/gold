@@ -13,10 +13,10 @@
 
             @include('components.err')
             <div class="item-list mb-3">
-                <h3 class="p-3">
+                <h5 class="p-3">
                     <i class="ri-message-3-line"></i>
                     {{__("Tips")}}
-                </h3>
+                </h5>
                 <ul>
                     <li>
                         {{__("Recommends")}}
@@ -25,20 +25,20 @@
             </div>
             @if (isset($item))
                 <div class="item-list mb-3">
-                    <h3 class="p-3">
+                    <h5 class="p-3">
                         <i class="ri-image-2-line"></i>
                         {{__("Index image")}}
-                    </h3>
+                    </h5>
                     <div data-open-file="#customFile">
                         <img src="{{$item->imgUrl()}}" class="img-fluid" alt="{{$item->title}}">
                     </div>
                 </div>
             @endif
             <div class="item-list mb-3">
-                <h3 class="p-3">
+                <h5 class="p-3">
                     <i class="ri-list-check"></i>
                     {{__("Groups")}}
-                </h3>
+                </h5>
                 <div>
                     <ul class="group-control">
                         {!!showCatNestedControl($cats,old('cat',isset($item)?$item->groups()->pluck('id')->toArray():[]))!!}
@@ -46,10 +46,10 @@
                 </div>
             </div>
             <div class="item-list mb-3">
-                <h3 class="p-3">
+                <h5 class="p-3">
                     <i class="ri-price-tag-3-line"></i>
                     {{__("Tags")}}
-                </h3>
+                </h5>
                 <div>
 {{--                    {{json_encode($item->tags->pluck('name')->toArray())}}--}}
                     <tag-input xname="tags" splitter=",,"
@@ -65,10 +65,10 @@
                 </div>
             </div>
             <div class="item-list mb-3">
-                <h3 class="p-3">
+                <h5 class="p-3">
                     <i class="ri-remixicon-line"></i>
                     {{__("Icon")}}
-                </h3>
+                </h5>
                 <div class="p-1 text-center pb-4">
                     <remix-icon-picker xname="icon" xvalue="{{old('icon',$item->icon??null)}}"></remix-icon-picker>
                 </div>
@@ -101,13 +101,13 @@
         <div class="col-lg-9 ps-xl-1 ps-xxl-1">
             <div class="general-form ">
 
-                <h1>
+                <h3>
                     @if(isset($item))
                         {{__("Edit post")}} [{{$item->title}}]
                     @else
                         {{__("Add new post")}}
                     @endif
-                </h1>
+                </h3>
 
                 <div class="row">
                     <div class="col-md-12 mt-3">

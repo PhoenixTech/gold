@@ -1,8 +1,8 @@
 <section class='MainCategoriesIcon live-setting' data-live="{{$data->area_name.'_'.$data->part}}">
     <div class="{{gfx()['container']}}">
-        <h1 class="text-center">
+        <h3 class="text-center">
             {{getSetting($part->area_name . '_' . $part->part.'_title')}}
-        </h1>
+        </h3>
         <div class="cat-icon-box">
             <div class="row">
                 @foreach(getMainCategory(getSetting($part->area_name . '_' . $part->part.'_limit')) as $category)

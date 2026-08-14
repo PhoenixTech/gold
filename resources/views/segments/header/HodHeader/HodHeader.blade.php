@@ -10,9 +10,9 @@
     <div class="{{gfx()['container']}}">
         <div class="row align-items-center">
             <div class="col-md">
-                <h1 class="mb-1">
+                <h3 class="mb-1">
                     {{$title}}
-                </h1>
+                </h3>
                 <h2 class="fs-6 opacity-75 mb-0 fw-normal">
                     {{$subtitle}}
                 </h2>

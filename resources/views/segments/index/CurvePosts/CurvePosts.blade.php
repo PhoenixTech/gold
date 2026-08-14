@@ -6,9 +6,9 @@
     </div>
     <div>
 
-        <h1 class="text-center">
+        <h3 class="text-center">
             {{getSetting($part->area_name . '_' . $part->part.'_title')}}
-        </h1>
+        </h3>
         <div id="curve-slider-post-container">
 
             <a href="{{getGroupBySetting($part->area_name . '_' . $part->part.'_group')->webUrl()}}" id="curve-all-posts" data-bs-custom-class="custom-tooltip"

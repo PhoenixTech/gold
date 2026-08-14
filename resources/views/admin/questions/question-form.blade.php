@@ -13,10 +13,10 @@
 
             @include('components.err')
             <div class="item-list mb-3">
-                <h3 class="p-3">
+                <h5 class="p-3">
                     <i class="ri-message-3-line"></i>
                     {{__("Tips")}}
-                </h3>
+                </h5>
                 <ul>
                     <li>
                         {{__("Recommends")}}
@@ -25,10 +25,10 @@
             </div>
             @if(isset($item))
                 <div class="item-list mb-3">
-                    <h3 class="p-3">
+                    <h5 class="p-3">
                         <i class="ri-info-i"></i>
                         {{__("Information")}}
-                    </h3>
+                    </h5>
                     <ul>
                         <li>
                             {{__("Added by:")}}
@@ -51,13 +51,13 @@
         <div class="col-lg-9 ps-xl-1 ps-xxl-1">
             <div class="general-form ">
 
-                <h1>
+                <h3>
                     @if(isset($item))
                         {{__("Edit question")}} [{{$item->id}}]
                     @else
                         {{__("Add new question")}}
                     @endif
-                </h1>
+                </h3>
 
                 <div class="row">
                     <div class="col-md-12 mt-3">

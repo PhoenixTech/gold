@@ -1,8 +1,8 @@
 <section class='InstantCategoriesSlider live-setting' data-live="{{$data->area_name.'_'.$data->part}}">
     <div class="{{gfx()['container']}}">
-        <h1>
+        <h3>
             {{getSetting($data->area_name.'_'.$data->part.'_title')}}
-        </h1>
+        </h3>
         <div id="instant-cats">
             @foreach(getCategorySubCatsBySetting($data->area_name.'_'.$data->part.'_category',10,'sort','ASC') as $category)
                 <div class="item slider-content">

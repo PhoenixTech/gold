@@ -34,11 +34,11 @@
 
         <!-- Card Body -->
         <div class="card-body p-3.5 d-flex flex-column flex-grow-1">
-            <h3 class="product-title fs-15 fw-bold mb-2">
+            <h5 class="product-title fs-15 fw-bold mb-2">
                 <a href="{{$product->webUrl()}}" class="text-decoration-none text-dark hover-primary" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
                     {{$product->name}}
                 </a>
-            </h3>
+            </h5>
 
             @if($product->excerpt)
                 <p class="text-muted fs-13 mb-3" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">

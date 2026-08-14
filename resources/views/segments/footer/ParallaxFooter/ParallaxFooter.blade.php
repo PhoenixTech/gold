@@ -4,17 +4,17 @@
         <div class="row">
 
             <div class="col-md-5">
-                <h3>
+                <h5>
                     {{config('app.name')}}
-                </h3>
+                </h5>
                 <p class="px-4">
                     {{getSetting($data->area_name.'_'.$data->part.'_text')}}
                 </p>
             </div>
             <div class="col-md-5">
-                <h3>
+                <h5>
                     {{getSetting($data->area_name.'_'.$data->part.'_title2')}}
-                </h3>
+                </h5>
                 <ul class="ps-5">
                     @foreach( getGroupPostsBySetting($data->area_name.'_'.$data->part.'_group',5) as $post )
                         <li>

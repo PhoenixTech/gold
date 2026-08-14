@@ -1,10 +1,10 @@
 <section class='PostsIconSimple py-4 live-setting' data-live="{{$data->area_name.'_'.$data->part}}">
     <div class="{{gfx()['container']}}">
-        <h1>
+        <h3>
             <a href="{{getGroupBySetting($data->area_name.'_'.$data->part)?->webUrl()}}">
                 {{getGroupBySetting($data->area_name.'_'.$data->part)?->name}}
             </a>
-        </h1>
+        </h3>
         <p>
            {{getGroupBySetting($data->area_name.'_'.$data->part)?->description}}
         </p>
@@ -12,9 +12,9 @@
             @foreach(getGroupPostsBySetting($data->area_name.'_'.$data->part, getSetting($data->area_name.'_'.$data->part.'_limit')) as $post)
             <div class="col-md-4">
                 <i class="{{$post->icon}}"></i>
-                <h3>
+                <h5>
                     {{$post->title}}
-                </h3>
+                </h5>
 
                 <p>
                    {{$post->subtitle}}

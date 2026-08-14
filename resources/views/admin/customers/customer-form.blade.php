@@ -13,10 +13,10 @@
 
             @include('components.err')
             <div class="item-list mb-3">
-                <h3 class="p-3">
+                <h5 class="p-3">
                     <i class="ri-message-3-line"></i>
                     {{__("Tips")}}
-                </h3>
+                </h5>
                 <ul>
                     <li>
                         {{__("Recommends")}}
@@ -25,18 +25,18 @@
             </div>
             @if(isset($item))
                 <div class="item-list mb-3">
-                    <h3 class="p-3">
+                    <h5 class="p-3">
                         <i class="ri-user-3-line"></i>
                         {{__("Avatar")}}
-                    </h3>
+                    </h5>
                     <img src="{{$item->avatar()}}" class="img-fluid mb-3" alt="" data-open-file="#avatar-input">
                     <input type="file" name="avatar" id="avatar-input"  accept="image/jpeg">
                 </div>
                 <div class="item-list mb-3">
-                    <h3 class="p-3">
+                    <h5 class="p-3">
                         <i class="ri-user-location-line"></i>
                         {{__("Addresses")}}
-                    </h3>
+                    </h5>
                     <address-input
                         list-link="{{route('admin.address.customer',$item->id)}}"
                         add-link="{{route('admin.address.store',$item->id)}}"
@@ -59,13 +59,13 @@
         </div>
         <div class="col-lg-9 ps-xl-1 ps-xxl-1">
             <div class="general-form ">
-                <h1>
+                <h3>
                     @if(isset($item))
                         {{__("Edit customer")}} [{{$item->name}}]
                     @else
                         {{__("Add new customer")}}
                     @endif
-                </h1>
+                </h3>
 
                 <div class="row">
                     <div class="col-md-4 mt-3">

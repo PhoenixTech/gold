@@ -1,21 +1,21 @@
 <section class='MeloContact live-setting' data-live="{{$data->area_name.'_'.$data->part}}">
     <div class="{{gfx()['container']}}">
 
-        <h1 class="text-center fw-light mb-3">
+        <h3 class="text-center fw-light mb-3">
             {{getSetting($data->area_name.'_'.$data->part.'_title')}}
-        </h1>
+        </h3>
         <div class="row">
             <div class="col-md-5">
                 <div class="pin-box p-3">
                     <i class="ri-mail-add-line icon"></i>
                     @if(getGroupBySetting($data->area_name.'_'.$data->part)?->posts()->where('status',1)->where('is_pinned',1)->count() == 0)
-                        <h3 class="p-4 text-center">
+                        <h5 class="p-4 text-center">
                             {{__("You must add a pinned post to :GROUP",['GROUP' => getGroupBySetting($data->area_name.'_'.$data->part)?->name])}}
-                        </h3>
+                        </h5>
                     @else
-                        <h3>
+                        <h5>
                             {{getGroupBySetting($data->area_name.'_'.$data->part)?->posts()->where('status',1)->where('is_pinned',1)->first()->title}}
-                        </h3>
+                        </h5>
                         {!! getGroupBySetting($data->area_name.'_'.$data->part)?->posts()->where('status',1)->where('is_pinned',1)->first()->body!!}
 
                         <ul class="social text-center">
@@ -113,11 +113,11 @@
                         <img src="{{$post->imgUrl()}}" alt="{{$post->title}}" class="img-fluid" loading="lazy">
                     </div>
                     <div class="col-md" dir="{{$dir}}">
-                        <h3>
+                        <h5>
                             <a href="{{$post->webUrl()}}">
                                 {{$post->title}}
                             </a>
-                        </h3>
+                        </h5>
                         <p>
                             {{$post->subtitle}}
                         </p>

@@ -1,8 +1,8 @@
 <section class='LatestProducts live-setting' data-live="{{$data->area_name.'_'.$data->part}}">
     <div class="{{gfx()['container']}}">
-        <h1>
+        <h3>
             {{__("Latest products")}}
-        </h1>
+        </h3>
         <div class="row">
             @foreach(\App\Models\Product::where('status',1)->orderByDesc('id')->limit(4)->get() as $product)
                 <div class="col-lg-3 col-md-6">

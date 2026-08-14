@@ -48,7 +48,7 @@
                 <div class="liana-brand">
                     <img src="{{asset('upload/images/logo.png')}}" class="liana-logo" alt="">
                     <div class="liana-brand-meta">
-                        <h3>{{config('app.name')}}</h3>
+                        <h5>{{config('app.name')}}</h5>
                         <span class="inv-badge inv-{{$invoice->status}}">{{__($invoice->status)}}</span>
                         @if($isOfflinePayment)
                             <span class="liana-pay-type">

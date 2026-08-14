@@ -8,9 +8,9 @@
     <img src="{{asset('upload/images/'.$data->area_name.'.'.$data->part.'1.png')}}" alt="[left]" class="left-img">
     <div class="content">
         <div class="{{gfx()['container']}}">
-            <h1>
+            <h3>
                 {{getSetting($data->area_name.'_'.$data->part.'_title')}}
-            </h1>
+            </h3>
             <div class="content2">
 
                 <ul class="pedi-tab-control">

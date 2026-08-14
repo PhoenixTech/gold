@@ -9,9 +9,9 @@
 
         @include('components.err')
         @if(count($settings) == 0)
-            <h3 class="text-center pt-2">
+            <h5 class="text-center pt-2">
                 {{__("There is nothing to show!")}}
-            </h3>
+            </h5>
         @else
             <div class="row">
                 @foreach($settings as $setting)
