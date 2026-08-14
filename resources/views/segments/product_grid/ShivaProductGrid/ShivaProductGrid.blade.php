@@ -44,12 +44,6 @@
                 </a>
             </h5>
 
-            @if($product->excerpt)
-                <p class="text-muted fs-13 mb-3" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
-                    {{$product->excerpt}}
-                </p>
-            @endif
-
             <!-- Price Row -->
             <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between flex-wrap gap-1">
                 @php

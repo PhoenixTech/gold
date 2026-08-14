@@ -42,12 +42,16 @@ class CardController extends Controller
 
         if ($product->availableQuantities()->exists()) {
             if ($quantity === null || $quantity === '') {
-                $msg = __('You need to select one stock piece');
-                if (request()->expectsJson() || request()->ajax()) {
-                    return errors([], 422, $msg);
-                }
+                if ($product->availableQuantities()->count() === 1) {
+                    $quantity = $product->availableQuantities()->first()->id;
+                } else {
+                    $msg = __('You need to select one stock piece');
+                    if (request()->expectsJson() || request()->ajax()) {
+                        return errors(['redirect' => $product->webUrl()], 422, $msg);
+                    }
 
-                return redirect()->back()->withErrors($msg);
+                    return redirect()->to($product->webUrl())->withErrors($msg);
+                }
             }
 
             $stockPiece = Quantity::query()
@@ -109,7 +113,7 @@ class CardController extends Controller
             $customer->save();
         }
 
-        if (\request()->ajax()) {
+        if (\request()->ajax() || \request()->expectsJson()) {
             return success(['count' => $count], $msg);
         }
 
