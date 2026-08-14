@@ -453,13 +453,16 @@ Route::middleware([\App\Http\Middleware\VisitorCounter::class])
             ->middleware('auth:customer')
             ->name('invoice.receipts.store');
         Route::get('/products', [ClientController::class, 'products'])->name('products');
+        Route::get('/products/{category}', [ClientController::class, 'category'])->name('category');
+        Route::get('/category/{category}', function ($category) {
+            return redirect()->to(route('client.category', $category), 301);
+        });
+        Route::get('/product/{product}', [ClientController::class, 'product'])->name('product');
         Route::get('/attachments', [ClientController::class, 'attachments'])->name('attachments');
         Route::get('/attachment/{attachment}', [ClientController::class, 'attachment'])->name('attachment');
-        Route::get('/tag/{slug}', [ClientController::class, 'tag'])->name('tag'); // wip
-        Route::get('/group/{slug}', [ClientController::class, 'group'])->name('group'); // wip
-        Route::get('/product/{product}', [ClientController::class, 'product'])->name('product');
+        Route::get('/tag/{slug}', [ClientController::class, 'tag'])->name('tag');
+        Route::get('/group/{slug}', [ClientController::class, 'group'])->name('group');
         Route::get('/video/{clip}', [ClientController::class, 'clip'])->name('clip');
-        Route::get('/category/{category}', [ClientController::class, 'category'])->name('category');
         Route::get('/gallery/{gallery}', [ClientController::class, 'gallery'])->name('gallery');
         Route::get('/search', [ClientController::class, 'search'])->name('search');
         Route::get('attach/download/{attachment}', [ClientController::class, 'attachDl'])->name('attach-dl');

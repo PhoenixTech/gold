@@ -2,7 +2,11 @@
     <div class="product-card card h-100 border-0 shadow-sm rounded-4 overflow-hidden d-flex flex-column transition-all">
         <!-- Card Image Header -->
         <div class="card-img-wrapper position-relative overflow-hidden bg-light" style="height: 220px;">
-            @if($product->category)
+            @if(!$product->isAvailable())
+                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill position-absolute top-0 start-0 m-2.5 z-2 fs-11 px-2.5 py-1">
+                    {{__("Not available")}}
+                </span>
+            @elseif($product->category)
                 <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill position-absolute top-0 start-0 m-2.5 z-2 fs-12 px-2.5 py-1">
                     {{$product->category->name}}
                 </span>
@@ -28,7 +32,7 @@
             </div>
 
             <a href="{{$product->webUrl()}}" class="d-block h-100 w-100">
-                <img src="{{$product->thumbUrl()}}" alt="{{$product->name}}" class="card-img-top h-100 w-100 object-fit-cover product-img-hover" loading="lazy">
+                <img src="{{$product->thumbUrl()}}" alt="{{$product->name}}" class="card-img-top h-100 w-100 object-fit-cover product-img-hover {{ !$product->isAvailable() ? 'opacity-75' : '' }}" loading="lazy">
             </a>
         </div>
 
@@ -51,17 +55,24 @@
                 @php
                     $rawPrice = $product->quantities()->count() > 0 ? $product->quantities()->min('price') : $product->price;
                     $hasNoPrice = ($rawPrice == 0 || $rawPrice == '' || $rawPrice == null);
+                    $isAvailable = $product->isAvailable() && !$hasNoPrice;
                 @endphp
 
                 <div class="product-prices d-flex flex-column">
-                    @if($product->hasDiscount())
-                        <span class="old-price text-muted text-decoration-line-through fs-12 ms-1">
-                            {{$product->oldPrice()}}
+                    @if($isAvailable)
+                        @if($product->hasDiscount())
+                            <span class="old-price text-muted text-decoration-line-through fs-12 ms-1">
+                                {{$product->oldPrice()}}
+                            </span>
+                        @endif
+                        <span class="price fw-bold text-primary fs-15">
+                            {{$product->getPrice()}}
+                        </span>
+                    @else
+                        <span class="price fw-medium text-muted fs-13">
+                            {{ $hasNoPrice ? __('Call us!') : __('Not available') }}
                         </span>
                     @endif
-                    <span class="price fw-bold text-primary fs-15">
-                        {{$product->getPrice()}}
-                    </span>
                 </div>
             </div>
         </div>
@@ -76,7 +87,7 @@
                 </a>
             @else
                 <button class="btn btn-light border text-muted btn-sm rounded-pill w-100 fw-semibold py-1.5 d-flex align-items-center justify-content-center gap-1.5" disabled>
-                    <i class="ri-shopping-bag-3-line"></i>
+                    <i class="ri-forbid-line text-muted"></i>
                     <span>
                         @if($hasNoPrice)
                             {{__("Call us!")}}

@@ -132,15 +132,108 @@ class ClientController extends Controller
         return view('client.default-list', compact('area', 'posts', 'title', 'subtitle'));
     }
 
-    public function products()
+    public function products(Request $request)
     {
         $area = 'products-list';
         $title = __('Products list');
         $subtitle = '';
-        $products = Product::where('status', 1)
-            ->orderByDesc('id')->paginate($this->paginate);
 
-        return view('client.default-list', compact('area', 'products', 'title', 'subtitle'));
+        $query = Product::query()->where('status', 1);
+
+        // Keyword Search
+        if ($request->filled('q')) {
+            $keyword = trim($request->input('q'));
+            $query->where(function ($q) use ($keyword) {
+                $q->where('name->' . config('app.locale'), 'like', "%{$keyword}%")
+                  ->orWhere('name', 'like', "%{$keyword}%")
+                  ->orWhere('excerpt->' . config('app.locale'), 'like', "%{$keyword}%")
+                  ->orWhere('excerpt', 'like', "%{$keyword}%")
+                  ->orWhere('description->' . config('app.locale'), 'like', "%{$keyword}%")
+                  ->orWhere('description', 'like', "%{$keyword}%");
+            });
+        }
+
+        // Category Filter
+        $activeCategory = null;
+        if ($request->filled('category')) {
+            $catSlug = $request->input('category');
+            $activeCategory = Category::where('slug', $catSlug)->orWhere('id', $catSlug)->first();
+            if ($activeCategory) {
+                $catIds = array_merge([$activeCategory->id], $activeCategory->children()->pluck('id')->toArray());
+                $query->where(function ($q) use ($catIds) {
+                    $q->whereIn('category_id', $catIds)
+                      ->orWhereHas('categories', function ($catQ) use ($catIds) {
+                          $catQ->whereIn('categories.id', $catIds);
+                      });
+                });
+            }
+        }
+
+        // In-stock Only Filter
+        if ($request->boolean('in_stock') || $request->input('only') === 'stock') {
+            $query->where(function ($q) {
+                $q->where('stock_status', 'IN_STOCK')
+                  ->orWhere('stock_quantity', '>', 0)
+                  ->orWhereHas('quantities', function ($qPiece) {
+                      $qPiece->where('count', '>', 0);
+                  });
+            });
+        }
+
+        // Discounted Only Filter
+        if ($request->boolean('has_discount')) {
+            $query->whereHas('activeDiscounts');
+        }
+
+        // Price Range Filters
+        if ($request->filled('min_price') && is_numeric($request->input('min_price'))) {
+            $query->where('price', '>=', (int) $request->input('min_price'));
+        }
+        if ($request->filled('max_price') && is_numeric($request->input('max_price'))) {
+            $query->where('price', '<=', (int) $request->input('max_price'));
+        }
+
+        // Sorting
+        $sort = $request->input('sort', 'latest');
+        switch ($sort) {
+            case 'cheap':
+                $query->where('price', '>', 0)->orderBy('price', 'asc');
+                break;
+            case 'expensive':
+                $query->orderByDesc('price');
+                break;
+            case 'fav':
+            case 'popular':
+                $query->orderByDesc('view');
+                break;
+            case 'sale':
+                $query->orderByDesc('sell');
+                break;
+            case 'oldest':
+                $query->orderBy('id', 'asc');
+                break;
+            case 'latest':
+            default:
+                $query->orderByDesc('id');
+                break;
+        }
+
+        $products = $query->paginate($this->paginate)->withQueryString();
+
+        $categories = Category::query()
+            ->where('hide', 0)
+            ->where(function ($q) {
+                $q->whereNull('parent_id')->orWhere('parent_id', 0);
+            })
+            ->with(['children' => function ($q) {
+                $q->where('hide', 0);
+            }])
+            ->withCount(['products' => function ($q) {
+                $q->where('status', 1);
+            }])
+            ->get();
+
+        return view('client.default-list', compact('area', 'products', 'title', 'subtitle', 'categories', 'activeCategory'));
     }
 
     public function galleries()
@@ -338,32 +431,66 @@ class ClientController extends Controller
         $subtitle = $category->subtitle;
         $query = $category->products()->where('status', 1);
 
-        if ($request->has('only')) {
-            $query->where('stock_quantity', '>', 0);
+        // Keyword Search inside Category
+        if ($request->filled('q')) {
+            $keyword = trim($request->input('q'));
+            $query->where(function ($q) use ($keyword) {
+                $q->where('name->' . config('app.locale'), 'like', "%{$keyword}%")
+                  ->orWhere('name', 'like', "%{$keyword}%")
+                  ->orWhere('excerpt->' . config('app.locale'), 'like', "%{$keyword}%")
+                  ->orWhere('excerpt', 'like', "%{$keyword}%")
+                  ->orWhere('description->' . config('app.locale'), 'like', "%{$keyword}%")
+                  ->orWhere('description', 'like', "%{$keyword}%");
+            });
         }
-        if ($request->has('sort') && $request->input('sort') != '') {
-            switch ($request->input('sort')) {
-                case 'oldest':
-                    $query = $query->orderBy('id');
-                    break;
-                case 'cheap':
-                    $query = $query->where('price', '<>', 0)->orderBy('price');
-                    break;
-                case 'expensive':
-                    $query = $query->orderByDesc('price');
-                    break;
-                case 'fav':
-                    $query = $query->orderByDesc('view');
-                    break;
-                case 'sale':
-                    $query = $query->orderByDesc('sell');
-                    break;
-                default:
-                    $query = $query->orderByDesc('id');
 
-            }
-        } else {
-            $query = $query->orderByDesc('id');
+        // In-stock Only Filter
+        if ($request->boolean('in_stock') || $request->input('only') === 'stock' || $request->input('only') == '1') {
+            $query->where(function ($q) {
+                $q->where('stock_status', 'IN_STOCK')
+                  ->orWhere('stock_quantity', '>', 0)
+                  ->orWhereHas('quantities', function ($qPiece) {
+                      $qPiece->where('count', '>', 0);
+                  });
+            });
+        }
+
+        // Discounted Only Filter
+        if ($request->boolean('has_discount')) {
+            $query->whereHas('activeDiscounts');
+        }
+
+        // Price Range Filters
+        if ($request->filled('min_price') && is_numeric($request->input('min_price'))) {
+            $query->where('price', '>=', (int) $request->input('min_price'));
+        }
+        if ($request->filled('max_price') && is_numeric($request->input('max_price'))) {
+            $query->where('price', '<=', (int) $request->input('max_price'));
+        }
+
+        // Sorting
+        $sort = $request->input('sort', 'latest');
+        switch ($sort) {
+            case 'cheap':
+                $query->where('price', '>', 0)->orderBy('price', 'asc');
+                break;
+            case 'expensive':
+                $query->orderByDesc('price');
+                break;
+            case 'fav':
+            case 'popular':
+                $query->orderByDesc('view');
+                break;
+            case 'sale':
+                $query->orderByDesc('sell');
+                break;
+            case 'oldest':
+                $query->orderBy('id', 'asc');
+                break;
+            case 'latest':
+            default:
+                $query->orderByDesc('id');
+                break;
         }
 
         if ($request->has('meta')) {
@@ -427,7 +554,7 @@ class ClientController extends Controller
             }
         }
 
-        $products = $query->paginate($this->paginate);
+        $products = $query->paginate($this->paginate)->withQueryString();
 
         if ($category->parent_id == null) {
             $breadcrumb = [
