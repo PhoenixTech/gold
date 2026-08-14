@@ -1,15 +1,51 @@
-import bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js';
+import { Modal } from 'bootstrap';
 
 function getReceiptModal() {
     return document.getElementById('avisa-receipt-modal');
 }
 
-function getReceiptModalInstance(modal) {
-    return bootstrap.Modal.getOrCreateInstance(modal, {
-        backdrop: true,
-        keyboard: true,
-        focus: true,
-    });
+function openReceiptModal(button) {
+    const modal = getReceiptModal();
+    if (!modal) {
+        console.warn('Receipt modal not found in DOM (#avisa-receipt-modal)');
+        return;
+    }
+
+    const form = modal.querySelector('[data-receipt-uploader]');
+    if (form && button.getAttribute('data-upload-url')) {
+        form.action = button.getAttribute('data-upload-url');
+    }
+    const title = modal.querySelector('[data-receipt-modal-title]');
+    if (title && button.getAttribute('data-invoice-label')) {
+        title.textContent = button.getAttribute('data-invoice-label');
+    }
+
+    // Try Bootstrap Modal instance first
+    try {
+        if (typeof Modal !== 'undefined') {
+            const instance = Modal.getOrCreateInstance(modal, {
+                backdrop: true,
+                keyboard: true,
+                focus: true,
+            });
+            instance.show();
+            return;
+        }
+    } catch (e) {
+        console.warn('Bootstrap Modal.getOrCreateInstance failed, using manual fallback:', e);
+    }
+
+    // Manual DOM fallback
+    modal.classList.add('show');
+    modal.style.display = 'block';
+    modal.removeAttribute('aria-hidden');
+    modal.setAttribute('aria-modal', 'true');
+    document.body.classList.add('modal-open');
+    if (!document.querySelector('.modal-backdrop')) {
+        const backdrop = document.createElement('div');
+        backdrop.className = 'modal-backdrop fade show';
+        document.body.appendChild(backdrop);
+    }
 }
 
 function closeReceiptModal() {
@@ -18,21 +54,33 @@ function closeReceiptModal() {
         return;
     }
 
-    const instance = bootstrap.Modal.getInstance(modal);
-    if (instance) {
-        instance.hide();
-        return;
+    try {
+        if (typeof Modal !== 'undefined') {
+            const instance = Modal.getInstance(modal);
+            if (instance) {
+                instance.hide();
+                return;
+            }
+        }
+    } catch (e) {
+        // Fallback
     }
 
     modal.classList.remove('show');
     modal.style.display = 'none';
     modal.setAttribute('aria-hidden', 'true');
+    modal.removeAttribute('aria-modal');
     document.body.classList.remove('modal-open');
     document.querySelectorAll('.modal-backdrop').forEach((backdrop) => backdrop.remove());
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+function initReceiptUploaderForms() {
     document.querySelectorAll('[data-receipt-uploader]').forEach((form) => {
+        if (form.dataset.receiptInitialized) {
+            return;
+        }
+        form.dataset.receiptInitialized = 'true';
+
         const input = form.querySelector('[data-receipt-input]');
         const dropzone = form.querySelector('[data-receipt-dropzone]');
         const list = form.querySelector('[data-receipt-file-list]');
@@ -76,7 +124,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 remove.className = 'receipt-file-list__remove';
                 remove.setAttribute('aria-label', 'Remove');
                 remove.innerHTML = '<i class="ri-close-line"></i>';
-                remove.addEventListener('click', () => {
+                remove.addEventListener('click', (e) => {
+                    e.stopPropagation();
                     const dt = new DataTransfer();
                     files.forEach((f, i) => {
                         if (i !== index) {
@@ -120,47 +169,45 @@ document.addEventListener('DOMContentLoaded', () => {
             renderFiles();
         });
     });
+}
 
-    const modal = getReceiptModal();
-    if (modal) {
-        modal.querySelectorAll('[data-bs-dismiss="modal"], [data-receipt-modal-close]').forEach((button) => {
-            button.addEventListener('click', (event) => {
-                event.preventDefault();
-                closeReceiptModal();
-            });
-        });
-
-        modal.addEventListener('click', (event) => {
-            if (event.target === modal) {
-                closeReceiptModal();
-            }
-        });
+// Global Event Delegation (guaranteed to catch all clicks regardless of when elements are created/mounted)
+document.addEventListener('click', (event) => {
+    const openButton = event.target.closest('[data-receipt-modal-open]');
+    if (openButton) {
+        event.preventDefault();
+        openReceiptModal(openButton);
+        initReceiptUploaderForms();
+        return;
     }
 
-    document.addEventListener('keydown', (event) => {
-        if (event.key !== 'Escape') {
-            return;
-        }
+    const closeButton = event.target.closest('[data-bs-dismiss="modal"], [data-receipt-modal-close]');
+    if (closeButton && event.target.closest('#avisa-receipt-modal')) {
+        event.preventDefault();
+        closeReceiptModal();
+        return;
+    }
+
+    if (event.target && event.target.id === 'avisa-receipt-modal') {
+        closeReceiptModal();
+    }
+});
+
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
         const openModal = getReceiptModal();
         if (openModal?.classList.contains('show')) {
             closeReceiptModal();
         }
-    });
-
-    document.querySelectorAll('[data-receipt-modal-open]').forEach((button) => {
-        button.addEventListener('click', (event) => {
-            event.preventDefault();
-            const receiptModal = getReceiptModal();
-            const form = receiptModal?.querySelector('[data-receipt-uploader]');
-            if (!receiptModal || !form) {
-                return;
-            }
-            form.action = button.getAttribute('data-upload-url') || form.action;
-            const title = receiptModal.querySelector('[data-receipt-modal-title]');
-            if (title) {
-                title.textContent = button.getAttribute('data-invoice-label') || '';
-            }
-            getReceiptModalInstance(receiptModal).show();
-        });
-    });
+    }
 });
+
+// Initialize on DOM ready and window load
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initReceiptUploaderForms);
+} else {
+    initReceiptUploaderForms();
+}
+window.addEventListener('load', initReceiptUploaderForms);
+
+export { openReceiptModal, closeReceiptModal, initReceiptUploaderForms };

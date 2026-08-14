@@ -868,15 +868,14 @@
                     @php
                         $modalInvoice = $needUploadInvoices->first()
                             ?? $awaitingReceiptInvoices->first()
-                            ?? auth('customer')->user()->invoices()->latest('id')->first();
+                            ?? auth('customer')->user()->invoices()->latest('id')->first()
+                            ?? new \App\Models\Invoice(['id' => 0]);
                     @endphp
-                    @if($modalInvoice)
-                        @include('components.payment-receipt-uploader', [
-                            'invoice' => $modalInvoice,
-                            'inputId' => 'avisa-modal-receipts',
-                            'formId' => 'avisa-modal-receipt-form',
-                        ])
-                    @endif
+                    @include('components.payment-receipt-uploader', [
+                        'invoice' => $modalInvoice,
+                        'inputId' => 'avisa-modal-receipts',
+                        'formId' => 'avisa-modal-receipt-form',
+                    ])
                 </div>
             </div>
         </div>
