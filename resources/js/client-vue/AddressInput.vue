@@ -84,11 +84,10 @@
 
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import {useToast} from 'vue-toast-notification';
+import bsToast from '../bs-toast.js';
 import axios from "axios";
 
-
-const $toast = useToast();
+const $toast = bsToast;
 
 export default {
     name: "address-input",

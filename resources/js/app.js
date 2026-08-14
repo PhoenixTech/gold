@@ -15,8 +15,7 @@
 import './bootstrap';
 
 import { createApp } from 'vue';
-import ToastPlugin from 'vue-toast-notification';
-import {useToast} from 'vue-toast-notification';
+import bsToast, { ToastPlugin } from './bs-toast.js';
 import store from "./components/libs/store.js";
 import chartjs from 'chart.js/auto';
 import './panel/raw.js';
@@ -51,9 +50,7 @@ window.isPaintedChart = false;
  */
 
 const app = createApp({});
-const $toast = useToast({
-    duration: 10000,
-});
+const $toast = bsToast;
 
 import ExampleComponent from './components/ExampleComponent.vue';
 app.component('example-component', ExampleComponent);

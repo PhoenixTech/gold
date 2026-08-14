@@ -1,14 +1,10 @@
 import { createApp } from 'vue';
-import ToastPlugin from 'vue-toast-notification';
-import {useToast} from 'vue-toast-notification';
+import bsToast, { ToastPlugin } from '../bs-toast.js';
 import store from "../client-vuex/client-store.js";
 import chartjs from 'chart.js/auto';
 
-
 const app = createApp({});
-const $toast = useToast({
-    duration: 10000,
-});
+const $toast = bsToast;
 
 import MetaFilter from '../client-vue/MetaFilter.vue';
 app.component('meta-filter', MetaFilter);
