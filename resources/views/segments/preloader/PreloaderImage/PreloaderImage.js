@@ -1,10 +1,13 @@
 let isHidePreloader = false;
 const hidePreloader= function (){
     if (!isHidePreloader){
-        document.querySelector('#website-preloader').style.opacity = 0;
-        setTimeout(()=>{
-            document.querySelector('#website-preloader').remove();
-        },510);
+        const el = document.querySelector('#website-preloader');
+        if (el) {
+            el.style.opacity = 0;
+            setTimeout(()=>{
+                if (el.parentNode) el.remove();
+            },510);
+        }
         isHidePreloader = true;
     }
 };

@@ -126,13 +126,6 @@
 </head>
 <body @yield('body-attr')>
 
-@php($preloader = hasPart('preloader'))
-
-<div id="website-preloader">
-    @if($preloader != null)
-        @include($preloader->getBlade())
-    @endif
-</div>
 <div id="app">
 @foreach(getParts('floats') as $part)
     @php($p = $part->getBladeWithData())

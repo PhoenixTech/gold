@@ -20,19 +20,19 @@ class GfxSeeder extends Seeder
                 'key'=>'background',
                 'label'=>'background color',
                 'system'=>'1',
-                'value'=> '#eeeeee'
+                'value'=> '#ffffff'
             ],
             [
                 'key'=>'primary',
                 'label'=>'Primary color',
                 'system'=>'1',
-                'value'=> '#03b2b5'
+                'value'=> '#db9a00'
             ],
             [
                 'key'=>'secondary',
                 'label'=>'Secondary color',
                 'system'=>'1',
-                'value'=> '#0064c2'
+                'value'=> '#3d3846'
             ],
             [
                 'key'=>'text',
