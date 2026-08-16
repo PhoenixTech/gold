@@ -1,4 +1,7 @@
-import bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js';
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+import * as bootstrap from 'bootstrap';
+
+window.bootstrap = bootstrap;
 
 /**
  * We'll load the axios HTTP library which allows us to easily issue requests

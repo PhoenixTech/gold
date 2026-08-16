@@ -114,3 +114,70 @@ window.addEventListener('load', function () {
     }
 
 });
+
+// Dedicated dropdown click handler for admin dashboard navbar & general dropdowns
+document.addEventListener('click', function (e) {
+    const dropdownToggle = e.target.closest('[data-bs-toggle="dropdown"]');
+    if (dropdownToggle) {
+        const parent = dropdownToggle.closest('.dropdown, .nav-item.dropdown');
+        if (parent) {
+            const menu = parent.querySelector('.dropdown-menu');
+            if (menu) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const willOpen = !menu.classList.contains('show');
+
+                // Close other open dropdowns
+                document.querySelectorAll('.dropdown-menu.show').forEach(function (m) {
+                    if (m !== menu) m.classList.remove('show');
+                });
+                document.querySelectorAll('[data-bs-toggle="dropdown"].show').forEach(function (t) {
+                    if (t !== dropdownToggle) {
+                        t.classList.remove('show');
+                        t.setAttribute('aria-expanded', 'false');
+                    }
+                });
+
+                if (willOpen) {
+                    menu.classList.add('show');
+                    dropdownToggle.classList.add('show');
+                    dropdownToggle.setAttribute('aria-expanded', 'true');
+                } else {
+                    menu.classList.remove('show');
+                    dropdownToggle.classList.remove('show');
+                    dropdownToggle.setAttribute('aria-expanded', 'false');
+                }
+            }
+        }
+        return;
+    }
+
+    // Close open dropdown menus when clicking outside
+    if (!e.target.closest('.dropdown-menu')) {
+        document.querySelectorAll('.dropdown-menu.show').forEach(function (m) {
+            m.classList.remove('show');
+        });
+        document.querySelectorAll('[data-bs-toggle="dropdown"].show').forEach(function (t) {
+            t.classList.remove('show');
+            t.setAttribute('aria-expanded', 'false');
+        });
+    }
+});
+
+// Mobile navbar toggler support for admin top navbar
+document.addEventListener('click', function (e) {
+    const toggler = e.target.closest('[data-bs-toggle="collapse"]');
+    if (toggler) {
+        const targetSelector = toggler.getAttribute('data-bs-target');
+        if (targetSelector) {
+            const targetEl = document.querySelector(targetSelector);
+            if (targetEl) {
+                e.preventDefault();
+                targetEl.classList.toggle('show');
+                const isExpanded = targetEl.classList.contains('show');
+                toggler.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+            }
+        }
+    }
+});

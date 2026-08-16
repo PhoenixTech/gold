@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-bs-theme="light">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" @if(langIsRTL(config('app.locale'))) dir="rtl" @else dir="ltr" @endif data-bs-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport"

@@ -213,6 +213,8 @@
 
 
 #panel-top-navbar {
+    position: relative;
+    z-index: 1030;
     background: rgba(255, 255, 255, 0.94);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);

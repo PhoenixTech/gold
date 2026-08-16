@@ -45,7 +45,7 @@
                 <!-- Mobile / Tablet Compact Market Rates Dropdown -->
                 <li class="nav-item d-lg-none">
                     <div class="dropdown">
-                        <button class="btn btn-sm btn-light border rounded-pill d-flex align-items-center gap-1 px-2.5 py-1" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="{{__('Live Rates')}}">
+                        <button class="btn btn-sm btn-light border rounded-pill d-flex align-items-center gap-1 px-2.5 py-1" type="button" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" title="{{__('Live Rates')}}">
                             <i class="ri-coins-line text-warning me-1"></i>
                             <span class="fw-bold fs-xs">{{number_format((int)getSetting('gold'))}}</span>
                             <i class="ri-chevron-down-s-line fs-xs text-muted"></i>
@@ -88,7 +88,7 @@
                 @else
                 <li class="nav-item dropdown">
                     <a id="navbarDropdown" class="nav-link dropdown-toggle user-nav-pill" href="#" role="button"
-                       data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                       data-bs-toggle="dropdown" data-bs-display="static" aria-haspopup="true" aria-expanded="false" v-pre>
                         <span class="user-avatar">
                             <i class="ri-user-3-fill"></i>
                         </span>
