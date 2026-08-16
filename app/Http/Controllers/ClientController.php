@@ -308,7 +308,7 @@ class ClientController extends Controller
         ]);
 
         $comment = new Comment;
-        if (! auth()->check() && ! auth('customer')->check()) {
+        if (! auth('web')->check() && ! auth('customer')->check()) {
             $request->validate([
                 'name' => ['required', 'string', 'min:2'],
                 'email' => ['required', 'email'],
@@ -317,14 +317,14 @@ class ClientController extends Controller
             $comment->email = $request->email;
             $comment->status = 0;
         } else {
-            if (auth()->check()) {
-                $comment->commentator_type = User::class;
-                $comment->commentator_id = auth()->id();
-                $comment->status = 1;
-            } else {
+            if (auth('customer')->check()) {
                 $comment->commentator_type = Customer::class;
                 $comment->commentator_id = auth('customer')->id();
                 $comment->status = 0;
+            } elseif (auth('web')->check()) {
+                $comment->commentator_type = User::class;
+                $comment->commentator_id = auth('web')->id();
+                $comment->status = 1;
             }
         }
 
@@ -336,6 +336,10 @@ class ClientController extends Controller
         $comment->commentable_id = $request->input('commentable_id');
         $comment->ip = request()->ip();
         $comment->save();
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return success($comment, __('Your comment has been submitted'));
+        }
 
         return redirect()->back()->with(['message' => __('Your comment has been submitted')]);
     }

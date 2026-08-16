@@ -171,8 +171,35 @@ class CustomerController extends Controller
             $fav = '0';
         }
 
-        if (\request()->ajax()) {
+        if (\request()->ajax() || \request()->wantsJson()) {
             return success($fav, $message);
+        } else {
+            return redirect()->back()->with(['message' => $message]);
+        }
+    }
+
+    public function ProductBookmarkToggle($slug)
+    {
+        $product = Product::where('slug', $slug)->firstOrFail();
+
+        if (! auth('customer')->check()) {
+            return errors([
+                __('You need to login first'),
+            ], 403, __('You need to login first'));
+        }
+
+        if (auth('customer')->user()->bookmarks()->where('product_id', $product->id)->count() == 0) {
+            auth('customer')->user()->bookmarks()->attach($product->id);
+            $message = __('Product added to bookmarks');
+            $bookmarked = '1';
+        } else {
+            auth('customer')->user()->bookmarks()->detach($product->id);
+            $message = __('Product removed from bookmarks');
+            $bookmarked = '0';
+        }
+
+        if (\request()->ajax() || \request()->wantsJson()) {
+            return success($bookmarked, $message);
         } else {
             return redirect()->back()->with(['message' => $message]);
         }

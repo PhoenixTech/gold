@@ -26,35 +26,40 @@ class Comment extends Model
 
     public function approved_children()
     {
-        return $this->hasMany(Comment::class, 'sub_comment_id')->where('status', 1);
+        return $this->hasMany(Comment::class, 'parent_id')->where('status', 1);
     }
 
     public function commentator()
     {
         if ($this->commentator_type == null) {
             return [
-                'name' => $this->name,
-                'email' => $this->email,
+                'name' => $this->name ?: __('Guest'),
+                'email' => $this->email ?: '',
                 'url' => '',
             ];
         }
 
         if ($this->commentator_type == Customer::class) {
-            $c = Customer::whereId($this->commentator_id)->first();
+            $c = Customer::find($this->commentator_id);
             return [
-                'name' => $c->name,
-                'email' => $c->email,
-                'url' => route('admin.customer.edit', $c->id)
+                'name' => $c?->name ?: ($this->name ?: __('Customer')),
+                'email' => $c?->email ?: ($this->email ?: ''),
+                'url' => $c ? route('admin.customer.edit', $c->id) : '',
             ];
         }
         if ($this->commentator_type == User::class) {
-            $c = User::whereId($this->commentator_id)->first();
+            $c = User::find($this->commentator_id);
             return [
-                'name' => $c->name,
-                'email' => $c->email,
-                'url' => route('admin.user.edit',$c->email)
+                'name' => $c?->name ?: ($this->name ?: __('Admin')),
+                'email' => $c?->email ?: ($this->email ?: ''),
+                'url' => $c ? route('admin.user.edit', $c->email) : '',
             ];
         }
 
+        return [
+            'name' => $this->name ?: __('User'),
+            'email' => $this->email ?: '',
+            'url' => '',
+        ];
     }
 }

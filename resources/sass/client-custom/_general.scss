@@ -230,3 +230,44 @@ section {
     border-radius: 7px;
     display: block;
 }
+
+// Global Quick Action Icon Toggle States
+.fav-btn {
+    cursor: pointer;
+    &[data-is-fav="1"] {
+        .ri-heart-line {
+            display: none !important;
+        }
+        .ri-heart-fill {
+            display: inline-block !important;
+        }
+    }
+    &[data-is-fav="0"], &[data-is-fav="-1"], &:not([data-is-fav="1"]) {
+        .ri-heart-fill {
+            display: none !important;
+        }
+        .ri-heart-line {
+            display: inline-block !important;
+        }
+    }
+}
+
+.bookmark-btn {
+    cursor: pointer;
+    &[data-is-bookmarked="1"] {
+        .ri-bookmark-line {
+            display: none !important;
+        }
+        .ri-bookmark-fill {
+            display: inline-block !important;
+        }
+    }
+    &[data-is-bookmarked="0"], &[data-is-bookmarked="-1"], &:not([data-is-bookmarked="1"]) {
+        .ri-bookmark-fill {
+            display: none !important;
+        }
+        .ri-bookmark-line {
+            display: inline-block !important;
+        }
+    }
+}

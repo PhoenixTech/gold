@@ -1722,4 +1722,81 @@
             margin-top: .1rem;
         }
     }
+
+    // ---- Profile Likes & Bookmarks Product Cards ----
+    .avisa-profile-product-card {
+        background: var(--xshop-background, #fff);
+        border: 1px solid color-mix(in srgb, var(--xshop-primary, #d4af37) 15%, transparent) !important;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+
+        &:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08) !important;
+        }
+
+        .hover-primary {
+            transition: color 0.2s ease;
+            &:hover {
+                color: var(--xshop-primary) !important;
+            }
+        }
+
+        .btn-white {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(4px);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            &:hover {
+                background: #fff;
+                transform: scale(1.1);
+            }
+        }
+
+        .fav-btn {
+            &[data-is-fav="1"] {
+                .ri-heart-line {
+                    display: none !important;
+                }
+                .ri-heart-fill {
+                    display: inline-block !important;
+                }
+            }
+            &[data-is-fav="0"], &[data-is-fav="-1"], &:not([data-is-fav="1"]) {
+                .ri-heart-fill {
+                    display: none !important;
+                }
+                .ri-heart-line {
+                    display: inline-block !important;
+                }
+            }
+        }
+
+        .bookmark-btn {
+            &[data-is-bookmarked="1"] {
+                .ri-bookmark-line {
+                    display: none !important;
+                }
+                .ri-bookmark-fill {
+                    display: inline-block !important;
+                }
+            }
+            &[data-is-bookmarked="0"], &[data-is-bookmarked="-1"], &:not([data-is-bookmarked="1"]) {
+                .ri-bookmark-fill {
+                    display: none !important;
+                }
+                .ri-bookmark-line {
+                    display: inline-block !important;
+                }
+            }
+        }
+    }
+
+    .empty-tab-state {
+        .empty-tab-icon-box {
+            transition: transform 0.3s ease;
+        }
+        &:hover .empty-tab-icon-box {
+            transform: scale(1.08);
+        }
+    }
 }

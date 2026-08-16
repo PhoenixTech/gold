@@ -23,6 +23,29 @@
                     {{$product->name}}
                 </h3>
             </div>
+            <div class="d-flex align-items-center flex-wrap gap-2 my-2 ps-2">
+                <a class="fav-btn btn btn-outline-danger btn-sm rounded-pill px-3 py-1.5 d-inline-flex align-items-center gap-1.5" data-slug="{{$product->slug}}" data-is-fav="{{$product->isFav()}}">
+                    <i class="ri-heart-line"></i>
+                    <i class="ri-heart-fill d-none"></i>
+                    <span>{{__("Like")}}</span>
+                </a>
+
+                <a class="bookmark-btn btn btn-outline-warning btn-sm rounded-pill px-3 py-1.5 d-inline-flex align-items-center gap-1.5" data-slug="{{$product->slug}}" data-is-bookmarked="{{$product->isBookmarked()}}">
+                    <i class="ri-bookmark-line"></i>
+                    <i class="ri-bookmark-fill d-none"></i>
+                    <span>{{__("Bookmark")}}</span>
+                </a>
+
+                <a href="#comments" class="comment-btn btn btn-outline-secondary btn-sm rounded-pill px-3 py-1.5 d-inline-flex align-items-center gap-1.5">
+                    <i class="ri-chat-3-line"></i>
+                    <span>{{__("Comments")}} ({{$product->approvedComments()->count()}})</span>
+                </a>
+
+                <button type="button" class="share-btn btn btn-outline-primary btn-sm rounded-pill px-3 py-1.5 d-inline-flex align-items-center gap-1.5" data-url="{{$product->webUrl()}}" data-title="{{$product->name}}">
+                    <i class="ri-share-forward-line"></i>
+                    <span>{{__("Share")}}</span>
+                </button>
+            </div>
             <div class="yac-product-data">
                 <rate-input xtitle="{{__("Rate")}}" xname="" :xvalue="{{$product->rate}}"></rate-input>
             </div>
@@ -137,6 +160,85 @@
                         </button>
                     </form>
                 @endif
+
+                <!-- Comments & Reviews Section -->
+                <div class="mt-4 pt-3 border-top" id="comments">
+                    <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                        <i class="ri-chat-3-line text-primary"></i>
+                        <span>{{__("Comments")}} ({{$product->approvedComments()->count()}})</span>
+                    </h5>
+
+                    @php
+                        $approvedComments = $product->approvedComments()->whereNull('parent_id')->with(['approved_children'])->orderByDesc('id')->get();
+                    @endphp
+
+                    @if($approvedComments->count() > 0)
+                        <div class="comments-list mb-4 d-flex flex-column gap-3">
+                            @foreach($approvedComments as $comment)
+                                @include('segments.post.SimplePost.inc.comment-detail', ['comment' => $comment])
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="text-center py-3 text-muted border rounded-3 bg-light mb-3">
+                            <i class="ri-chat-smile-3-line fs-3 d-block mb-1 text-secondary"></i>
+                            <p class="mb-0 fs-13">{{ __("No comments yet. Be the first to share your thoughts!") }}</p>
+                        </div>
+                    @endif
+
+                    <div class="comment-form-card border rounded-3 p-3 bg-light-subtle">
+                        <h6 class="fw-bold mb-3 d-flex align-items-center gap-2 fs-14">
+                            <i class="ri-edit-line text-primary"></i>
+                            <span>{{ __("Post your comment") }}</span>
+                        </h6>
+                        @include('components.err')
+                        <form id="comment-form" class="safe-form" method="post" action="{{ route('client.comment.submit') }}">
+                            <div class="safe-url" data-url="{{route('client.comment.submit')}}"></div>
+                            @csrf
+                            <input type="hidden" name="commentable_type" value="{{\App\Models\Product::class}}">
+                            <input type="hidden" name="commentable_id" value="{{$product->id}}">
+                            <input type="hidden" name="parent_id" id="parent_id" value="">
+
+                            <div class="row g-2">
+                                @if(auth()->check())
+                                    <div class="col-12">
+                                        <div class="alert alert-info py-1.5 px-3 mb-0 fs-13 d-flex align-items-center gap-2">
+                                            <i class="ri-user-line"></i>
+                                            <span>{{ __("Commenting as") }}: <strong>{{ auth()->user()->name }}</strong> ({{ __('Admin') }})</span>
+                                        </div>
+                                    </div>
+                                @elseif(auth('customer')->check())
+                                    <div class="col-12">
+                                        <div class="alert alert-info py-1.5 px-3 mb-0 fs-13 d-flex align-items-center gap-2">
+                                            <i class="ri-user-line"></i>
+                                            <span>{{ __("Commenting as") }}: <strong>{{ auth('customer')->user()->name ?: auth('customer')->user()->mobile }}</strong></span>
+                                        </div>
+                                    </div>
+                                @else
+                                    <div class="col-md-6">
+                                        <label for="yac-comment-name" class="form-label fs-13 fw-semibold">{{ __("Name") }} <span class="text-danger">*</span></label>
+                                        <input type="text" name="name" id="yac-comment-name" class="form-control form-control-sm rounded-3" placeholder="{{ __("Your name") }}" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="yac-comment-email" class="form-label fs-13 fw-semibold">{{ __("Email") }} <span class="text-danger">*</span></label>
+                                        <input type="email" name="email" id="yac-comment-email" class="form-control form-control-sm rounded-3" placeholder="name@example.com" required>
+                                    </div>
+                                @endif
+
+                                <div class="col-12">
+                                    <label for="yac-comment-message" class="form-label fs-13 fw-semibold">{{ __("Message") }} <span class="text-danger">*</span></label>
+                                    <textarea name="message" id="yac-comment-message" rows="3" class="form-control form-control-sm rounded-3" placeholder="{{ __("Write your review or question about this product...") }}" required></textarea>
+                                </div>
+
+                                <div class="col-12 text-end">
+                                    <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4 py-1.5 fw-semibold d-inline-flex align-items-center gap-2">
+                                        <i class="ri-send-plane-2-line"></i>
+                                        <span>{{ __("Submit comment") }}</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
 
 

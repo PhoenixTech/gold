@@ -80,6 +80,16 @@ class Customer extends Authenticatable
         return $this->belongsToMany(Product::class, 'customer_product');
     }
 
+    public function likes()
+    {
+        return $this->favorites();
+    }
+
+    public function bookmarks()
+    {
+        return $this->belongsToMany(Product::class, 'customer_bookmarks');
+    }
+
     public function comments()
     {
         return $this->morphMany(Comment::class, 'commentator');

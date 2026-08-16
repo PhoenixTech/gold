@@ -61,9 +61,30 @@
                         </a>
                     </li>
                     <li>
+                        <a href="#likes">
+                            <span class="avisa-nav-icon"><i class="ri-heart-3-line"></i></span>
+                            <span class="avisa-nav-label">{{__("Favorites")}}</span>
+                            <span class="avisa-nav-count">{{number_format(auth('customer')->user()->favorites()->count())}}</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#bookmarks">
+                            <span class="avisa-nav-icon"><i class="ri-bookmark-line"></i></span>
+                            <span class="avisa-nav-label">{{__("Bookmarks")}}</span>
+                            <span class="avisa-nav-count">{{number_format(auth('customer')->user()->bookmarks()->count())}}</span>
+                        </a>
+                    </li>
+                    <li>
                         <a href="#profile">
                             <span class="avisa-nav-icon"><i class="ri-user-3-line"></i></span>
                             <span class="avisa-nav-label">{{__("Profile")}}</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#addresses">
+                            <span class="avisa-nav-icon"><i class="ri-map-pin-line"></i></span>
+                            <span class="avisa-nav-label">{{__("Addresses")}}</span>
+                            <span class="avisa-nav-count">{{number_format(auth('customer')->user()->addresses()->count())}}</span>
                         </a>
                     </li>
                     <li>
@@ -230,9 +251,9 @@
                         </div>
                     </div>
 
-                    <!-- 4 Stat Summary Cards -->
+                    <!-- 6 Stat Summary Cards -->
                     <div class="row g-3 mb-4">
-                        <div class="col-lg-3 col-md-6">
+                        <div class="col-lg-2 col-md-4 col-6">
                             <div class="avisa-summary-stat-card card-invoice" onclick="document.querySelector('.tab-control a[href=\'#invoices\']')?.click();">
                                 <div class="stat-icon-wrapper">
                                     <i class="ri-file-list-3-line"></i>
@@ -243,7 +264,29 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-3 col-md-6">
+                        <div class="col-lg-2 col-md-4 col-6">
+                            <div class="avisa-summary-stat-card card-credit" onclick="document.querySelector('.tab-control a[href=\'#likes\']')?.click();">
+                                <div class="stat-icon-wrapper" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
+                                    <i class="ri-heart-3-line"></i>
+                                </div>
+                                <div class="stat-details">
+                                    <span class="stat-label">{{__("Favorites")}}</span>
+                                    <h5 class="stat-value">{{number_format(auth('customer')->user()->favorites()->count())}}</h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-6">
+                            <div class="avisa-summary-stat-card card-ticket" onclick="document.querySelector('.tab-control a[href=\'#bookmarks\']')?.click();">
+                                <div class="stat-icon-wrapper" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
+                                    <i class="ri-bookmark-line"></i>
+                                </div>
+                                <div class="stat-details">
+                                    <span class="stat-label">{{__("Bookmarks")}}</span>
+                                    <h5 class="stat-value">{{number_format(auth('customer')->user()->bookmarks()->count())}}</h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-6">
                             <div class="avisa-summary-stat-card card-credit" onclick="document.querySelector('.tab-control a[href=\'#credit\']')?.click();">
                                 <div class="stat-icon-wrapper">
                                     <i class="ri-wallet-3-line"></i>
@@ -254,7 +297,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-3 col-md-6">
+                        <div class="col-lg-2 col-md-4 col-6">
                             <div class="avisa-summary-stat-card card-ticket" onclick="document.querySelector('.tab-control a[href=\'#tickets\']')?.click();">
                                 <div class="stat-icon-wrapper">
                                     <i class="ri-customer-service-2-line"></i>
@@ -265,7 +308,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-3 col-md-6">
+                        <div class="col-lg-2 col-md-4 col-6">
                             <div class="avisa-summary-stat-card card-address" onclick="document.querySelector('.tab-control a[href=\'#addresses\']')?.click();">
                                 <div class="stat-icon-wrapper">
                                     <i class="ri-map-pin-line"></i>
@@ -844,6 +887,176 @@
             'save' => __('Save'),
             ])}}'
                         ></address-input>
+                    </div>
+                </div>
+
+                <div class="tab" id="likes">
+                    <div class="avisa-table-card">
+                        <div class="avisa-table-head d-flex align-items-center justify-content-between flex-wrap gap-2">
+                            <h4 class="mb-0">
+                                <i class="ri-heart-3-line text-danger me-2"></i>
+                                {{__("Liked products")}}
+                                <span class="badge bg-danger-subtle text-danger rounded-pill fs-12 px-2.5 py-1 ms-2">
+                                    {{ number_format(auth('customer')->user()->favorites()->count()) }}
+                                </span>
+                            </h4>
+                        </div>
+
+                        @php
+                            $likedProducts = auth('customer')->user()->favorites()->with(['category'])->get();
+                        @endphp
+
+                        @if($likedProducts->count() > 0)
+                            <div class="p-3 p-md-4">
+                                <div class="row g-3 g-md-4">
+                                    @foreach($likedProducts as $product)
+                                        <div class="col-sm-6 col-md-4 col-xl-3">
+                                            <div class="avisa-profile-product-card card h-100 border rounded-4 overflow-hidden shadow-sm d-flex flex-column">
+                                                <div class="position-relative bg-light" style="height: 180px;">
+                                                    <a href="{{ $product->webUrl() }}" class="d-block h-100 w-100">
+                                                        <img src="{{ $product->thumbUrl() }}" alt="{{ $product->name }}" class="h-100 w-100 object-fit-cover">
+                                                    </a>
+                                                    <a class="fav-btn btn btn-sm btn-white rounded-circle shadow-sm border p-0 position-absolute top-0 end-0 m-2 d-flex align-items-center justify-content-center"
+                                                       style="width: 32px; height: 32px;"
+                                                       data-slug="{{ $product->slug }}" data-is-fav="1"
+                                                       data-bs-custom-class="custom-tooltip"
+                                                       data-bs-toggle="tooltip" data-bs-placement="auto" title="{{ __('Remove from favorites') }}">
+                                                        <i class="ri-heart-line text-muted d-none"></i>
+                                                        <i class="ri-heart-fill text-danger"></i>
+                                                    </a>
+                                                    @if($product->category)
+                                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill position-absolute top-0 start-0 m-2 fs-11 px-2 py-0.5">
+                                                            {{ $product->category->name }}
+                                                        </span>
+                                                    @endif
+                                                </div>
+                                                <div class="card-body p-3 d-flex flex-column flex-grow-1">
+                                                    <h6 class="product-title fs-14 fw-bold mb-2">
+                                                        <a href="{{ $product->webUrl() }}" class="text-decoration-none text-dark hover-primary" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
+                                                            {{ $product->name }}
+                                                        </a>
+                                                    </h6>
+                                                    <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
+                                                        <span class="price fw-bold text-primary fs-14">
+                                                            {{ $product->getPrice() }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div class="card-footer bg-transparent border-0 p-3 pt-0">
+                                                    @if($product->stock_status == 'IN_STOCK')
+                                                        <a href="{{ route('client.product-card-toggle', $product->slug) }}" class="btn btn-outline-primary btn-sm rounded-pill w-100 fw-semibold add-to-card d-flex align-items-center justify-content-center gap-1">
+                                                            <i class="ri-shopping-bag-3-line"></i>
+                                                            <span>{{ __('Add to card') }}</span>
+                                                        </a>
+                                                    @else
+                                                        <button class="btn btn-light border text-muted btn-sm rounded-pill w-100 fw-semibold" disabled>
+                                                            {{ __('Not available') }}
+                                                        </button>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @else
+                            <div class="empty-tab-state text-center py-5 px-3">
+                                <div class="empty-tab-icon-box mb-3 mx-auto d-flex align-items-center justify-content-center rounded-circle bg-danger-subtle text-danger" style="width: 70px; height: 70px;">
+                                    <i class="ri-heart-3-line fs-1"></i>
+                                </div>
+                                <h5 class="fw-bold mb-2">{{ __("No liked products yet") }}</h5>
+                                <p class="text-muted fs-14 mb-4">{{ __("You have not added any products to your favorites. Explore our catalog to find items you love!") }}</p>
+                                <a href="{{ route('client.products') }}" class="btn btn-primary rounded-pill px-4 py-2 d-inline-flex align-items-center gap-2">
+                                    <i class="ri-shopping-basket-2-line"></i>
+                                    <span>{{ __("Explore Products") }}</span>
+                                </a>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="tab" id="bookmarks">
+                    <div class="avisa-table-card">
+                        <div class="avisa-table-head d-flex align-items-center justify-content-between flex-wrap gap-2">
+                            <h4 class="mb-0">
+                                <i class="ri-bookmark-line text-warning me-2"></i>
+                                {{__("Bookmarked products")}}
+                                <span class="badge bg-warning-subtle text-warning rounded-pill fs-12 px-2.5 py-1 ms-2">
+                                    {{ number_format(auth('customer')->user()->bookmarks()->count()) }}
+                                </span>
+                            </h4>
+                        </div>
+
+                        @php
+                            $bookmarkedProducts = auth('customer')->user()->bookmarks()->with(['category'])->get();
+                        @endphp
+
+                        @if($bookmarkedProducts->count() > 0)
+                            <div class="p-3 p-md-4">
+                                <div class="row g-3 g-md-4">
+                                    @foreach($bookmarkedProducts as $product)
+                                        <div class="col-sm-6 col-md-4 col-xl-3">
+                                            <div class="avisa-profile-product-card card h-100 border rounded-4 overflow-hidden shadow-sm d-flex flex-column">
+                                                <div class="position-relative bg-light" style="height: 180px;">
+                                                    <a href="{{ $product->webUrl() }}" class="d-block h-100 w-100">
+                                                        <img src="{{ $product->thumbUrl() }}" alt="{{ $product->name }}" class="h-100 w-100 object-fit-cover">
+                                                    </a>
+                                                    <a class="bookmark-btn btn btn-sm btn-white rounded-circle shadow-sm border p-0 position-absolute top-0 end-0 m-2 d-flex align-items-center justify-content-center"
+                                                       style="width: 32px; height: 32px;"
+                                                       data-slug="{{ $product->slug }}" data-is-bookmarked="1"
+                                                       data-bs-custom-class="custom-tooltip"
+                                                       data-bs-toggle="tooltip" data-bs-placement="auto" title="{{ __('Remove from bookmarks') }}">
+                                                        <i class="ri-bookmark-line text-muted d-none"></i>
+                                                        <i class="ri-bookmark-fill text-warning"></i>
+                                                    </a>
+                                                    @if($product->category)
+                                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill position-absolute top-0 start-0 m-2 fs-11 px-2 py-0.5">
+                                                            {{ $product->category->name }}
+                                                        </span>
+                                                    @endif
+                                                </div>
+                                                <div class="card-body p-3 d-flex flex-column flex-grow-1">
+                                                    <h6 class="product-title fs-14 fw-bold mb-2">
+                                                        <a href="{{ $product->webUrl() }}" class="text-decoration-none text-dark hover-primary" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
+                                                            {{ $product->name }}
+                                                        </a>
+                                                    </h6>
+                                                    <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
+                                                        <span class="price fw-bold text-primary fs-14">
+                                                            {{ $product->getPrice() }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div class="card-footer bg-transparent border-0 p-3 pt-0">
+                                                    @if($product->stock_status == 'IN_STOCK')
+                                                        <a href="{{ route('client.product-card-toggle', $product->slug) }}" class="btn btn-outline-primary btn-sm rounded-pill w-100 fw-semibold add-to-card d-flex align-items-center justify-content-center gap-1">
+                                                            <i class="ri-shopping-bag-3-line"></i>
+                                                            <span>{{ __('Add to card') }}</span>
+                                                        </a>
+                                                    @else
+                                                        <button class="btn btn-light border text-muted btn-sm rounded-pill w-100 fw-semibold" disabled>
+                                                            {{ __('Not available') }}
+                                                        </button>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @else
+                            <div class="empty-tab-state text-center py-5 px-3">
+                                <div class="empty-tab-icon-box mb-3 mx-auto d-flex align-items-center justify-content-center rounded-circle bg-warning-subtle text-warning" style="width: 70px; height: 70px;">
+                                    <i class="ri-bookmark-line fs-1"></i>
+                                </div>
+                                <h5 class="fw-bold mb-2">{{ __("No bookmarked products yet") }}</h5>
+                                <p class="text-muted fs-14 mb-4">{{ __("You have not bookmarked any products yet. Save products to easily find them later!") }}</p>
+                                <a href="{{ route('client.products') }}" class="btn btn-primary rounded-pill px-4 py-2 d-inline-flex align-items-center gap-2">
+                                    <i class="ri-shopping-basket-2-line"></i>
+                                    <span>{{ __("Explore Products") }}</span>
+                                </a>
+                            </div>
+                        @endif
                     </div>
                 </div>
 

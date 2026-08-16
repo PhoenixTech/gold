@@ -113,6 +113,21 @@ class Product extends Model implements HasMedia
         return $this->morphMany(Comment::class, 'commentable')->where('status', 1);
     }
 
+    public function likedBy()
+    {
+        return $this->belongsToMany(Customer::class, 'customer_product');
+    }
+
+    public function bookmarks()
+    {
+        return $this->belongsToMany(Customer::class, 'customer_bookmarks');
+    }
+
+    public function bookmarkedBy()
+    {
+        return $this->bookmarks();
+    }
+
     public function categories()
     {
         return $this->belongsToMany(Category::class);
@@ -355,7 +370,24 @@ class Product extends Model implements HasMedia
         if (! auth('customer')->check()) {
             return -1;
         }
-        if (\auth('customer')->user()->products()->where('product_id', $this->id)->exists()) {
+        if (\auth('customer')->user()->favorites()->where('product_id', $this->id)->exists()) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
+    public function isLiked()
+    {
+        return $this->isFav();
+    }
+
+    public function isBookmarked()
+    {
+        if (! auth('customer')->check()) {
+            return -1;
+        }
+        if (\auth('customer')->user()->bookmarks()->where('product_id', $this->id)->exists()) {
             return 1;
         } else {
             return 0;

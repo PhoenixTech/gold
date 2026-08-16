@@ -58,6 +58,33 @@
                             <i class="ri-heart-fill text-danger fs-18 d-none"></i>
                         </a>
 
+                        <a class="bookmark-btn btn btn-white rounded-circle shadow-sm border p-0 d-flex align-items-center justify-content-center"
+                           style="width: 38px; height: 38px;"
+                           data-slug="{{$product->slug}}" data-is-bookmarked="{{$product->isBookmarked()}}"
+                           data-bs-custom-class="custom-tooltip"
+                           data-bs-toggle="tooltip" data-bs-placement="auto" title="{{__("Add to / Remove from bookmarks")}}">
+                            <i class="ri-bookmark-line text-muted fs-18"></i>
+                            <i class="ri-bookmark-fill text-warning fs-18 d-none"></i>
+                        </a>
+
+                        <a href="#comments"
+                           class="comment-btn btn btn-white rounded-circle shadow-sm border p-0 d-flex align-items-center justify-content-center"
+                           style="width: 38px; height: 38px;"
+                           data-bs-custom-class="custom-tooltip"
+                           data-bs-toggle="tooltip" data-bs-placement="auto" title="{{__("Comments")}} ({{$product->approvedComments()->count()}})">
+                            <i class="ri-chat-3-line text-muted fs-18"></i>
+                        </a>
+
+                        <button type="button"
+                           class="share-btn btn btn-white rounded-circle shadow-sm border p-0 d-flex align-items-center justify-content-center"
+                           style="width: 38px; height: 38px;"
+                           data-url="{{$product->webUrl()}}"
+                           data-title="{{$product->name}}"
+                           data-bs-custom-class="custom-tooltip"
+                           data-bs-toggle="tooltip" data-bs-placement="auto" title="{{__("Share")}}">
+                            <i class="ri-share-forward-line text-muted fs-18"></i>
+                        </button>
+
                         <a class="compare-btn btn btn-white rounded-circle shadow-sm border p-0 d-flex align-items-center justify-content-center"
                            style="width: 38px; height: 38px;"
                            data-slug="{{$product->slug}}"
@@ -211,7 +238,7 @@
                 @endif
 
                 @if($product->fullMeta())
-                    <div class="accordion-item border-0 rounded-3 overflow-hidden border">
+                    <div class="accordion-item border-0 mb-3 rounded-3 overflow-hidden border">
                         <h2 class="accordion-header">
                             <button class="accordion-button collapsed fw-bold fs-16 bg-light text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#info" aria-expanded="false" aria-controls="info">
                                 <i class="ri-information-line text-primary me-2 fs-18"></i> {{__("Information")}}
@@ -244,6 +271,91 @@
                         </div>
                     </div>
                 @endif
+
+                <!-- Comments & Reviews Accordion Item -->
+                <div class="accordion-item border-0 rounded-3 overflow-hidden border" id="comments">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed fw-bold fs-16 bg-light text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#comments-collapse" aria-expanded="false" aria-controls="comments-collapse">
+                            <i class="ri-chat-3-line text-primary me-2 fs-18"></i> {{__("Comments")}} ({{$product->approvedComments()->count()}})
+                        </button>
+                    </h2>
+                    <div id="comments-collapse" class="accordion-collapse collapse" data-bs-parent="#product-detail">
+                        <div class="accordion-body p-3 p-md-4">
+                            @php
+                                $approvedComments = $product->approvedComments()->whereNull('parent_id')->with(['approved_children'])->orderByDesc('id')->get();
+                            @endphp
+
+                            <!-- Comments list -->
+                            @if($approvedComments->count() > 0)
+                                <div class="comments-list mb-4 d-flex flex-column gap-3">
+                                    @foreach($approvedComments as $comment)
+                                        @include('segments.post.SimplePost.inc.comment-detail', ['comment' => $comment])
+                                    @endforeach
+                                </div>
+                            @else
+                                <div class="text-center py-4 text-muted border rounded-3 bg-light mb-4">
+                                    <i class="ri-chat-smile-3-line fs-2 d-block mb-1 text-secondary"></i>
+                                    <p class="mb-0 fs-14">{{ __("No comments yet. Be the first to share your thoughts!") }}</p>
+                                </div>
+                            @endif
+
+                            <!-- Comment Submit Form -->
+                            <div class="comment-form-card border rounded-3 p-3 p-md-4 bg-light-subtle">
+                                <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                                    <i class="ri-edit-line text-primary"></i>
+                                    <span>{{ __("Post your comment") }}</span>
+                                </h6>
+                                @include('components.err')
+                                <form id="comment-form" class="safe-form" method="post" action="{{ route('client.comment.submit') }}">
+                                    <div class="safe-url" data-url="{{route('client.comment.submit')}}"></div>
+                                    @csrf
+                                    <input type="hidden" name="commentable_type" value="{{\App\Models\Product::class}}">
+                                    <input type="hidden" name="commentable_id" value="{{$product->id}}">
+                                    <input type="hidden" name="parent_id" id="parent_id" value="">
+
+                                    <div class="row g-3">
+                                        @if(auth()->check())
+                                            <div class="col-12">
+                                                <div class="alert alert-info py-2 px-3 mb-0 fs-14 d-flex align-items-center gap-2">
+                                                    <i class="ri-user-line"></i>
+                                                    <span>{{ __("Commenting as") }}: <strong>{{ auth()->user()->name }}</strong> ({{ __('Admin') }})</span>
+                                                </div>
+                                            </div>
+                                        @elseif(auth('customer')->check())
+                                            <div class="col-12">
+                                                <div class="alert alert-info py-2 px-3 mb-0 fs-14 d-flex align-items-center gap-2">
+                                                    <i class="ri-user-line"></i>
+                                                    <span>{{ __("Commenting as") }}: <strong>{{ auth('customer')->user()->name ?: auth('customer')->user()->mobile }}</strong></span>
+                                                </div>
+                                            </div>
+                                        @else
+                                            <div class="col-md-6">
+                                                <label for="comment-name" class="form-label fs-14 fw-semibold">{{ __("Name") }} <span class="text-danger">*</span></label>
+                                                <input type="text" name="name" id="comment-name" class="form-control rounded-3" placeholder="{{ __("Your name") }}" required>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="comment-email" class="form-label fs-14 fw-semibold">{{ __("Email") }} <span class="text-danger">*</span></label>
+                                                <input type="email" name="email" id="comment-email" class="form-control rounded-3" placeholder="name@example.com" required>
+                                            </div>
+                                        @endif
+
+                                        <div class="col-12">
+                                            <label for="comment-message" class="form-label fs-14 fw-semibold">{{ __("Message") }} <span class="text-danger">*</span></label>
+                                            <textarea name="message" id="comment-message" rows="4" class="form-control rounded-3" placeholder="{{ __("Write your review or question about this product...") }}" required></textarea>
+                                        </div>
+
+                                        <div class="col-12 text-end">
+                                            <button type="submit" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold d-inline-flex align-items-center gap-2">
+                                                <i class="ri-send-plane-2-line"></i>
+                                                <span>{{ __("Submit comment") }}</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 

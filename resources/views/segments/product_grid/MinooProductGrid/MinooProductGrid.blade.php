@@ -9,7 +9,7 @@
             @endif
 
             <!-- Quick Action Icons -->
-            <div class="card-quick-actions position-absolute top-0 end-0 m-2.5 z-2 d-flex flex-column gap-1.5">
+            <div class="card-quick-actions position-absolute top-0 end-0 m-2 z-2 d-flex flex-column gap-1">
                 <a class="fav-btn btn btn-sm btn-white rounded-circle shadow-sm border p-0 d-flex align-items-center justify-content-center"
                    style="width: 32px; height: 32px;"
                    data-slug="{{$product->slug}}" data-is-fav="{{$product->isFav()}}"
@@ -18,6 +18,30 @@
                     <i class="ri-heart-line text-muted"></i>
                     <i class="ri-heart-fill text-danger d-none"></i>
                 </a>
+                <a class="bookmark-btn btn btn-sm btn-white rounded-circle shadow-sm border p-0 d-flex align-items-center justify-content-center"
+                   style="width: 32px; height: 32px;"
+                   data-slug="{{$product->slug}}" data-is-bookmarked="{{$product->isBookmarked()}}"
+                   data-bs-custom-class="custom-tooltip"
+                   data-bs-toggle="tooltip" data-bs-placement="auto" title="{{__("Add to / Remove from bookmarks")}}">
+                    <i class="ri-bookmark-line text-muted"></i>
+                    <i class="ri-bookmark-fill text-warning d-none"></i>
+                </a>
+                <a href="{{$product->webUrl()}}#comments"
+                   class="comment-btn btn btn-sm btn-white rounded-circle shadow-sm border p-0 d-flex align-items-center justify-content-center"
+                   style="width: 32px; height: 32px;"
+                   data-bs-custom-class="custom-tooltip"
+                   data-bs-toggle="tooltip" data-bs-placement="auto" title="{{__("Comments")}} ({{$product->approvedComments()->count()}})">
+                    <i class="ri-chat-3-line text-muted"></i>
+                </a>
+                <button type="button"
+                   class="share-btn btn btn-sm btn-white rounded-circle shadow-sm border p-0 d-flex align-items-center justify-content-center"
+                   style="width: 32px; height: 32px;"
+                   data-url="{{$product->webUrl()}}"
+                   data-title="{{$product->name}}"
+                   data-bs-custom-class="custom-tooltip"
+                   data-bs-toggle="tooltip" data-bs-placement="auto" title="{{__("Share")}}">
+                    <i class="ri-share-forward-line text-muted"></i>
+                </button>
                 <a class="compare-btn btn btn-sm btn-white rounded-circle shadow-sm border p-0 d-flex align-items-center justify-content-center"
                    style="width: 32px; height: 32px;"
                    data-slug="{{$product->slug}}"
