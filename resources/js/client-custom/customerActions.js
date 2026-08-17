@@ -1,11 +1,14 @@
+import axios from 'axios';
+
+window.axios = axios;
+
 window.addEventListener('load', function () {
 
-    const favInput = document.querySelector('#api-fav-toggle');
-    const bookmarkInput = document.querySelector('#api-bookmark-toggle');
-    const compInput = document.querySelector('#api-compare-toggle');
-    const favUrl = favInput ? favInput.value : '/product/fav/toggle/';
-    const bookmarkUrl = bookmarkInput ? bookmarkInput.value : '/product/bookmark/toggle/';
-    const compUrl = compInput ? compInput.value : '/product/compare/toggle/';
+    function makeActionUrl(selector, fallback, slug) {
+        const input = document.querySelector(selector);
+        const base = (input && input.value ? input.value : fallback).replace(/\/+$/, '');
+        return base + '/' + encodeURIComponent(slug);
+    }
 
     // Robust Clipboard Copy Function (Works in HTTP, HTTPS, Desktop & Mobile)
     async function copyToClipboard(text) {
@@ -82,19 +85,25 @@ window.addEventListener('load', function () {
             if (!slug) return;
 
             try {
-                let resp = await axios.get(favUrl + slug);
-                if (resp.data.OK) {
+                const url = makeActionUrl('#api-fav-toggle', '/product/fav/toggle', slug);
+                let resp = await axios.get(url);
+                if (resp.data && resp.data.OK) {
                     const newVal = String(resp.data.data);
                     document.querySelectorAll(`.fav-btn[data-slug="${slug}"]`)?.forEach(b => {
                         b.setAttribute('data-is-fav', newVal);
                     });
                     window.$toast?.success(resp.data.message || "علاقه‌مندی به‌روزرسانی شد");
                 } else {
-                    window.$toast?.error(resp.data.message || "خطا در ثبت علاقه‌مندی");
+                    window.$toast?.error(resp.data?.message || "خطا در ثبت علاقه‌مندی");
                 }
             } catch (err) {
-                const msg = err.response?.data?.message || "لطفا ابتدا وارد حساب کاربری خود شوید";
-                window.$toast?.warning(msg);
+                const status = err.response?.status;
+                const msg = err.response?.data?.message || (status === 401 || status === 403 ? "لطفا ابتدا وارد حساب کاربری خود شوید" : "خطا در برقراری ارتباط با سرور");
+                if (status === 401 || status === 403) {
+                    window.$toast?.warning(msg);
+                } else {
+                    window.$toast?.error(msg);
+                }
             }
             return;
         }
@@ -109,19 +118,25 @@ window.addEventListener('load', function () {
             if (!slug) return;
 
             try {
-                let resp = await axios.get(bookmarkUrl + slug);
-                if (resp.data.OK) {
+                const url = makeActionUrl('#api-bookmark-toggle', '/product/bookmark/toggle', slug);
+                let resp = await axios.get(url);
+                if (resp.data && resp.data.OK) {
                     const newVal = String(resp.data.data);
                     document.querySelectorAll(`.bookmark-btn[data-slug="${slug}"]`)?.forEach(b => {
                         b.setAttribute('data-is-bookmarked', newVal);
                     });
                     window.$toast?.success(resp.data.message || "نشان‌شده‌ها به‌روزرسانی شد");
                 } else {
-                    window.$toast?.error(resp.data.message || "خطا در ثبت نشان‌شده‌ها");
+                    window.$toast?.error(resp.data?.message || "خطا در ثبت نشان‌شده‌ها");
                 }
             } catch (err) {
-                const msg = err.response?.data?.message || "لطفا ابتدا وارد حساب کاربری خود شوید";
-                window.$toast?.warning(msg);
+                const status = err.response?.status;
+                const msg = err.response?.data?.message || (status === 401 || status === 403 ? "لطفا ابتدا وارد حساب کاربری خود شوید" : "خطا در برقراری ارتباط با سرور");
+                if (status === 401 || status === 403) {
+                    window.$toast?.warning(msg);
+                } else {
+                    window.$toast?.error(msg);
+                }
             }
             return;
         }
@@ -136,15 +151,15 @@ window.addEventListener('load', function () {
             if (!slug) return;
 
             try {
-                let resp = await axios.get(compUrl + slug);
-                if (resp.data.OK) {
+                const url = makeActionUrl('#api-compare-toggle', '/product/compare/toggle', slug);
+                let resp = await axios.get(url);
+                if (resp.data && resp.data.OK) {
                     window.$toast?.success(resp.data.message);
                 } else {
-                    window.$toast?.error(resp.data.message || "خطا در افزودن به مقایسه");
+                    window.$toast?.error(resp.data?.message || "خطا در افزودن به مقایسه");
                 }
             } catch (err) {
-                const msg = err.response?.data?.message || "خطا در برقراری ارتباط";
-                window.$toast?.error(msg);
+                window.$toast?.error(err.response?.data?.message || "خطا در افزودن به مقایسه");
             }
             return;
         }

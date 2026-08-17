@@ -1,6 +1,9 @@
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import * as bootstrap from 'bootstrap';
-window.bootstrap = bootstrap;
+import axios from 'axios';
+
+window.bootstrap = { ...bootstrap };
+window.axios = axios;
 
 window.addEventListener('load', function () {
     const API_COOKIE_NAME = 'last_api_call';
