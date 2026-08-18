@@ -42,8 +42,9 @@
             <label for="sku" class="fw-semibold">{{__('SKU')}}</label>
             <input name="sku" type="text"
                    id="sku"
-                   class="form-control @error('sku') is-invalid @enderror"
-                   placeholder="{{__('SKU')}}"
+                   class="form-control bg-light @error('sku') is-invalid @enderror"
+                   placeholder="{{__('Auto-generated')}}"
+                   readonly
                    value="{{old('sku',$item->sku??null)}}"/>
         </div>
     </div>
@@ -110,3 +111,50 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const targetMap = { 'women': 'F', 'men': 'M', 'children': 'C', 'unisex': 'U' };
+    const metalMap = { 'silver': 'S', 'gold': 'G' };
+    const skuInput = document.getElementById('sku');
+    const targetSelect = document.getElementById('target_group');
+    const metalSelect = document.getElementById('metal_type');
+
+    function updateDynamicSku() {
+        if (!skuInput) return;
+        const targetVal = targetSelect ? targetSelect.value : 'women';
+        const metalVal = metalSelect ? metalSelect.value : 'gold';
+        const catHidden = document.querySelector('input[name="category_id"]');
+        const catSelect = document.getElementById('categoryId');
+        const catVal = parseInt((catHidden && catHidden.value) || (catSelect && catSelect.value) || '0', 10);
+
+        const t = targetMap[targetVal] || 'U';
+        const m = metalMap[metalVal] || 'G';
+        const c = String(catVal).padStart(2, '0');
+
+        let seq = '0001';
+        const curr = (skuInput.value || '').trim();
+        if (curr.length >= 8 && /^\d{4}$/.test(curr.slice(-4))) {
+            seq = curr.slice(-4);
+        }
+
+        skuInput.value = `${t}${m}${c}${seq}`;
+    }
+
+    if (targetSelect) targetSelect.addEventListener('change', updateDynamicSku);
+    if (metalSelect) metalSelect.addEventListener('change', updateDynamicSku);
+
+    const catSelect = document.getElementById('categoryId');
+    if (catSelect) catSelect.addEventListener('change', updateDynamicSku);
+
+    const catHidden = document.querySelector('input[name="category_id"]');
+    if (catHidden) {
+        const observer = new MutationObserver(updateDynamicSku);
+        observer.observe(catHidden, { attributes: true, attributeFilter: ['value'] });
+    }
+
+    if (!skuInput.value) {
+        updateDynamicSku();
+    }
+});
+</script>

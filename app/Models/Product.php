@@ -29,6 +29,41 @@ class Product extends Model implements HasMedia
         'qidz' => 'array',
     ];
 
+    protected static function booted()
+    {
+        static::saving(function (Product $product) {
+            if ($product->category_id) {
+                $product->sku = static::generateSku(
+                    $product->target_group,
+                    $product->metal_type,
+                    $product->category_id,
+                    $product->id
+                );
+            }
+        });
+    }
+
+    public static function generateSku(?string $targetGroup, ?string $metalType, ?int $categoryId, ?int $productId = null): string
+    {
+        $targets = ['women' => 'F', 'female' => 'F', 'f' => 'F', 'men' => 'M', 'male' => 'M', 'm' => 'M', 'children' => 'C', 'child' => 'C', 'c' => 'C'];
+        $t = $targets[strtolower((string) $targetGroup)] ?? 'U';
+        $m = strtolower((string) $metalType) === 'silver' ? 'S' : 'G';
+        $c = sprintf('%02d', (int) $categoryId);
+
+        if ($productId) {
+            $count = self::where('category_id', $categoryId)
+                ->where('id', '<=', $productId)
+                ->count();
+            $count = max(1, $count);
+        } else {
+            $count = self::where('category_id', $categoryId)->count() + 1;
+        }
+
+        $n = sprintf('%04d', $count);
+
+        return "{$t}{$m}{$c}{$n}";
+    }
+
     public function attachs()
     {
         return $this->morphMany(Attachment::class, 'attachable');

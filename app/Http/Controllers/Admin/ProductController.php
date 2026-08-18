@@ -15,7 +15,7 @@ class ProductController extends XController
     // protected  $_MODEL_ = Product::class;
     // protected  $SAVE_REQUEST = ProductSaveRequest::class;
 
-    protected $cols = ['name', 'metal_type', 'target_group', 'weight', 'category_id', 'stock_quantity', 'status'];
+    protected $cols = ['name', 'sku', 'metal_type', 'target_group', 'weight', 'category_id', 'stock_quantity', 'status'];
 
     protected $extra_cols = ['id', 'slug', 'image_index'];
 
@@ -75,11 +75,10 @@ class ProductController extends XController
         $product->average_rating = $request->input('average_rating', 0);
         $product->average_rating = $request->input('average_rating', 0);
         $product->rating_count = $request->input('rating_count', 0);
-        $product->on_sale = $request->input('on_sale', 1);
-        $product->sku = $request->input('sku', null);
+        $product->category_id = $request->input('category_id');
+        $product->sku = Product::generateSku($product->target_group, $product->metal_type, $product->category_id, $product->id);
         $product->virtual = $request->input('virtual', false);
         $product->downloadable = $request->input('downloadable', false);
-        $product->category_id = $request->input('category_id');
         $product->image_index = $request->input('index_image', 0);
         $product->user_id = auth()->id();
         $product->status = $request->input('status');

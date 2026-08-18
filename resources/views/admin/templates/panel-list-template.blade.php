@@ -314,6 +314,9 @@
                                                      @case('weight')
                                                          <span>{{ number_format($item->weight ?? 0, 3) }} {{__('g')}}</span>
                                                          @break
+                                                      @case('sku')
+                                                          <code class="fw-bold text-primary">{{ $item->sku ?: '-' }}</code>
+                                                          @break
                                                      @case('icon')
                                                          <i class="{{$item->$col}}"></i>
                                                          @break
