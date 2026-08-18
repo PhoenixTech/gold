@@ -161,10 +161,26 @@
                 $canConfirmPayment = $item->status === \App\Models\Invoice::AWAITING_PAYMENT
                     && $cardPayment
                     && $cardPayment->status === \App\Models\Payment::PENDING;
+                $offlineHours = \App\Models\Invoice::offlinePaymentHours();
+                $offlineDeadline = $item->offlinePaymentDeadline();
+                $offlineIsExpired = $item->isOfflinePaymentExpired();
             @endphp
 
             <div class="general-form mt-3">
                 <h3>{{__("Payment receipts")}}</h3>
+                @if($item->isOfflineCardPayment() && $item->status === \App\Models\Invoice::AWAITING_PAYMENT && $offlineDeadline)
+                    <div class="alert {{ $offlineIsExpired ? 'alert-danger' : 'alert-warning' }} py-2">
+                        <i class="ri-time-line"></i>
+                        @if($offlineIsExpired)
+                            <strong>{{ __('Offline payment deadline passed') }}</strong>
+                            <span>{{ __('Customer had :hours hours to upload a receipt. Deadline was :date.', ['hours' => $offlineHours, 'date' => $offlineDeadline->format('Y-m-d H:i')]) }}</span>
+                        @else
+                            <strong>{{ __('Offline payment deadline') }}</strong>
+                            <span>{{ __('Customer must upload a receipt within :hours hours of creating the invoice.', ['hours' => $offlineHours]) }}
+                                {{ __('Deadline:') }} <b dir="ltr">{{ $offlineDeadline->format('Y-m-d H:i') }}</b></span>
+                        @endif
+                    </div>
+                @endif
                 @if($item->paymentReceipts->count())
                     <ul class="list-group mb-3">
                         @foreach($item->paymentReceipts as $receipt)

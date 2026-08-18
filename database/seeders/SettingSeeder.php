@@ -48,6 +48,14 @@ class SettingSeeder extends Seeder
                     'size' => '6',
                 ],
                 [
+                    'title' => __('Offline payment deadline (hours)'),
+                    'key' => 'offline_payment_hours',
+                    'type' => 'NUMBER',
+                    'ltr' => true,
+                    'value' => '3',
+                    'size' => '4',
+                ],
+                [
                     'title' => __('Email'),
                     'key' => 'email',
                     'type' => 'TEXT',

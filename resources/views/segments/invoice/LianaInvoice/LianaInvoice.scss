@@ -342,6 +342,41 @@
         }
     }
 
+    .liana-offline-deadline {
+        display: flex;
+        align-items: flex-start;
+        gap: .5rem;
+        margin-top: .7rem;
+        padding: .6rem .75rem;
+        border-radius: .7rem;
+        font-size: 12.5px;
+        line-height: 1.6;
+        color: color-mix(in srgb, var(--xshop-text) 80%, transparent);
+        background: color-mix(in srgb, var(--xshop-warning) 12%, var(--xshop-background));
+        border: 1px solid color-mix(in srgb, var(--xshop-warning) 32%, transparent);
+
+        > i {
+            color: var(--xshop-warning);
+            font-size: 16px;
+            margin-top: .1rem;
+        }
+
+        b {
+            color: var(--xshop-warning);
+            font-variant-numeric: tabular-nums;
+        }
+
+        &.is-expired {
+            border-color: color-mix(in srgb, var(--xshop-danger, #dc3545) 45%, transparent);
+            background: color-mix(in srgb, var(--xshop-danger, #dc3545) 12%, var(--xshop-background));
+
+            > i,
+            b {
+                color: var(--xshop-danger, #dc3545);
+            }
+        }
+    }
+
     .liana-payment-panel {
         margin-top: 1rem;
         padding: 1rem;
@@ -372,6 +407,30 @@
                 font-size: 13px;
                 color: color-mix(in srgb, var(--xshop-text) 68%, transparent);
             }
+        }
+    }
+
+    .liana-payment-deadline {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        flex-wrap: wrap;
+        margin: 0 0 .85rem;
+        padding: .55rem .8rem;
+        border-radius: .7rem;
+        font-size: 12.5px;
+        color: color-mix(in srgb, var(--xshop-text) 78%, transparent);
+        background: color-mix(in srgb, var(--xshop-warning) 10%, var(--xshop-background));
+        border: 1px solid color-mix(in srgb, var(--xshop-warning) 30%, transparent);
+
+        > i {
+            color: var(--xshop-warning);
+        }
+
+        b {
+            margin-inline-start: auto;
+            font-variant-numeric: tabular-nums;
+            color: var(--xshop-warning);
         }
     }
 

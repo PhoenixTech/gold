@@ -23,6 +23,12 @@ class PaymentReceiptController extends Controller
                 ->withErrors(__('Receipts can only be uploaded while the invoice is awaiting payment.'));
         }
 
+        if ($invoice->isOfflinePaymentExpired()) {
+            return redirect()
+                ->back()
+                ->withErrors(__('The offline payment deadline for this invoice has passed. The invoice was failed, please contact support.'));
+        }
+
         $payment = $invoice->payments()
             ->where('type', 'CARD')
             ->latest('id')

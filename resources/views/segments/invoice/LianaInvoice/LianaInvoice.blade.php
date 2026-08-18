@@ -18,8 +18,14 @@
                 $receipts = $invoice->paymentReceipts ?? collect();
                 $canUploadReceipts = $invoice->needsReceiptUpload();
                 $isOfflinePayment = $invoice->isOfflineCardPayment();
+                $showOfflinePaymentHint = $isOfflinePayment
+                    && ! in_array($invoice->status, [\App\Models\Invoice::FAILED, \App\Models\Invoice::CANCELED]);
                 $hasUploadedReceipts = $receipts->isNotEmpty();
                 $isWaitingConfirmation = $canUploadReceipts && $hasUploadedReceipts;
+                $offlineHours = \App\Models\Invoice::offlinePaymentHours();
+                $offlineDeadline = $invoice->offlinePaymentDeadline();
+                $offlineIsExpired = $invoice->isOfflinePaymentExpired();
+                $offlineRemaining = $offlineDeadline ? max(0, (int) $offlineDeadline->diffInSeconds(now())) : 0;
             @endphp
 
             @if($canUploadReceipts)
@@ -39,6 +45,23 @@
                             <p>
                                 {{ __('Pay by card-to-card using the bank details below, then upload your receipt so we can confirm the order.') }}
                             </p>
+                            @if($offlineDeadline)
+                                <div class="liana-offline-deadline {{ $offlineIsExpired ? 'is-expired' : '' }}">
+                                    <i class="ri-timer-line"></i>
+                                    <span>
+                                        @if($offlineIsExpired)
+                                            <b>{{ __('Deadline passed — this invoice was failed.') }}</b>
+                                        @else
+                                            {{ __('Pay and upload your receipt within :hours hours.', ['hours' => $offlineHours]) }}
+                                            {{ __('Deadline:') }}
+                                            <b dir="ltr">{{ $offlineDeadline->format('Y-m-d H:i') }}</b>
+                                            (<span data-deadline-countdown
+                                                   data-deadline="{{ $offlineRemaining }}"
+                                                   data-expired-text="{{ __('Expired') }}">…</span>)
+                                        @endif
+                                    </span>
+                                </div>
+                            @endif
                         @endif
                     </div>
                 </div>
@@ -50,7 +73,7 @@
                     <div class="liana-brand-meta">
                         <h5>{{config('app.name')}}</h5>
                         <span class="inv-badge inv-{{$invoice->status}}">{{__($invoice->status)}}</span>
-                        @if($isOfflinePayment)
+                        @if($showOfflinePaymentHint)
                             <span class="liana-pay-type">
                                 <i class="ri-exchange-funds-line"></i>
                                 {{ __('Card to card') }}
@@ -161,7 +184,7 @@
                     {{ $addressParts ? implode('، ', $addressParts) : __('No address registered.') }}
                 </div>
 
-                @if($isOfflinePayment)
+                @if($showOfflinePaymentHint)
                     <div class="liana-payment-panel no-print">
                         @include('components.err')
 
@@ -179,6 +202,13 @@
                         </div>
 
                         @if($canUploadReceipts)
+                            @if($offlineDeadline && ! $offlineIsExpired)
+                                <div class="liana-payment-deadline">
+                                    <i class="ri-time-line"></i>
+                                    {{ __('Complete the transfer and upload the receipt before the deadline.') }}
+                                    <b dir="ltr">{{ $offlineDeadline->format('Y-m-d H:i') }}</b>
+                                </div>
+                            @endif
                             <ol class="liana-payment-steps">
                                 <li class="{{ $isWaitingConfirmation ? 'is-done' : '' }}">
                                     <span>1</span>
@@ -311,3 +341,29 @@
         </div>
     </div>
 </section>
+
+@once
+    <script>
+        (function () {
+            var els = document.querySelectorAll('[data-deadline-countdown]');
+            if (!els.length) return;
+            var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+            var render = function (el, s) {
+                var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+                el.textContent = h + ':' + pad(m) + ':' + pad(sec);
+            };
+            els.forEach(function (el) {
+                var total = parseInt(el.getAttribute('data-deadline'), 10) || 0;
+                render(el, total);
+                var timer = setInterval(function () {
+                    total = Math.max(0, total - 1);
+                    render(el, total);
+                    if (total <= 0) {
+                        clearInterval(timer);
+                        el.textContent = el.getAttribute('data-expired-text') || '';
+                    }
+                }, 1000);
+            });
+        })();
+    </script>
+@endonce

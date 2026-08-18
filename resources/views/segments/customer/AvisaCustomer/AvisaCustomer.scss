@@ -1022,6 +1022,25 @@
         border-radius: 1rem;
     }
 
+    .avisa-deadline-note {
+        display: inline-flex;
+        align-items: center;
+        gap: .3rem;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--xshop-warning);
+    }
+
+    .avisa-deadline-mini {
+        display: inline-flex;
+        align-items: center;
+        gap: .25rem;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--xshop-warning);
+        font-variant-numeric: tabular-nums;
+    }
+
     .avisa-receipt-modal {
         border-radius: 1rem;
         overflow: hidden;
@@ -1070,6 +1089,15 @@
             font-size: 12.5px;
             line-height: 1.7;
             color: color-mix(in srgb, var(--xshop-text) 68%, transparent);
+        }
+
+        .receipt-uploader__deadline {
+            margin-top: .3rem;
+            color: var(--xshop-warning);
+
+            b {
+                font-variant-numeric: tabular-nums;
+            }
         }
 
         .receipt-uploader__error {

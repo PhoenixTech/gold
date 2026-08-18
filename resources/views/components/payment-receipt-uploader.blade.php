@@ -5,6 +5,8 @@
 @php
     $inputId = $inputId ?? ('receipts-'.($invoice->id ?? 'form'));
     $formId = $formId ?? ('receipt-form-'.($invoice->id ?? 'form'));
+    $uploaderDeadline = $invoice->offlinePaymentDeadline();
+    $uploaderIsExpired = $invoice->isOfflinePaymentExpired();
 @endphp
 <form id="{{ $formId }}"
       class="receipt-uploader no-print"
@@ -22,6 +24,17 @@
             <p class="receipt-uploader__hint mb-0">
                 {{ __('After transferring the money, upload a clear photo or PDF of the receipt so we can confirm your payment.') }}
             </p>
+            @if($uploaderDeadline)
+                <p class="receipt-uploader__hint receipt-uploader__deadline mb-0">
+                    @if($uploaderIsExpired)
+                        <i class="ri-error-warning-line"></i>
+                        {{ __('The offline payment deadline has passed.') }}
+                    @else
+                        <i class="ri-time-line"></i>
+                        {{ __('You must pay and upload the receipt before :deadline.', ['deadline' => $uploaderDeadline->format('Y-m-d H:i')]) }}
+                    @endif
+                </p>
+            @endif
         </div>
     </div>
 

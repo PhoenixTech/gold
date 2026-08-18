@@ -128,12 +128,24 @@
                                 <h6 class="alert-heading mb-1 fw-bold">{{ __('Payment receipt required') }}</h6>
                                 <p class="mb-1">
                                     {{ __('You have :count offline invoice(s) waiting for a payment receipt upload.', ['count' => $needUploadInvoices->count()]) }}
+                                    <span class="avisa-deadline-note">
+                                        <i class="ri-time-line"></i>
+                                        {{ __('You have :hours hours to pay and upload the receipt.', ['hours' => \App\Models\Invoice::offlinePaymentHours()]) }}
+                                    </span>
                                 </p>
                                 <ul class="mb-0 ps-3">
                                     @foreach($needUploadInvoices->take(3) as $pendingInv)
+                                        @php
+                                            $invDeadline = $pendingInv->offlinePaymentDeadline();
+                                        @endphp
                                         <li>
                                             #{{ $pendingInv->id }} —
                                             {{ number_format($pendingInv->total_price) }} {{ config('app.currency.symbol') }}
+                                            @if($invDeadline)
+                                                <small class="avisa-deadline-mini" dir="ltr">
+                                                    {{ $invDeadline->format('Y-m-d H:i') }}
+                                                </small>
+                                            @endif
                                         </li>
                                     @endforeach
                                 </ul>
@@ -500,6 +512,10 @@
                             <div>
                                 <strong>{{ __('Offline card-to-card payment') }}</strong>
                                 <p>{{ __('For offline invoices, transfer the amount to the active shop card below, then upload the payment receipt from your invoice.') }}</p>
+                                <p class="mb-0 avisa-deadline-note">
+                                    <i class="ri-time-line"></i>
+                                    {{ __('You must pay and upload the receipt within :hours hours of creating the invoice.', ['hours' => \App\Models\Invoice::offlinePaymentHours()]) }}
+                                </p>
                             </div>
                         </div>
 
@@ -593,6 +609,15 @@
                                                     <small class="is-waiting">{{ __('Under review') }}</small>
                                                 @else
                                                     <small>{{ __('Receipt required') }}</small>
+                                                    @php
+                                                        $invDeadline = $pendingInv->offlinePaymentDeadline();
+                                                    @endphp
+                                                    @if($invDeadline)
+                                                        <small class="avisa-deadline-mini" dir="ltr">
+                                                            <i class="ri-time-line"></i>
+                                                            {{ $invDeadline->format('Y-m-d H:i') }}
+                                                        </small>
+                                                    @endif
                                                 @endif
                                             </div>
                                             <div class="avisa-card-payment__pending-actions">

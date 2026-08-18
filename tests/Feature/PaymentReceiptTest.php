@@ -158,7 +158,53 @@ class PaymentReceiptTest extends TestCase
         $this->assertSame(Payment::SUCCESS, $payment->fresh()->status);
     }
 
-    public function test_invoice_page_shows_active_bank_account_fields(): void
+    public function test_receipt_upload_is_blocked_after_deadline(): void
+    {
+        Storage::fake('public');
+        [$customer, $invoice] = $this->createAwaitingCardInvoice();
+
+        $invoice->forceFill(['created_at' => now()->subHours(4)])->save();
+
+        $response = $this->actingAs($customer, 'customer')->post(route('client.invoice.receipts.store', $invoice), [
+            'receipts' => [UploadedFile::fake()->image('receipt.jpg')],
+        ]);
+
+        $response->assertRedirect();
+        $this->assertSame(0, PaymentReceipt::query()->where('invoice_id', $invoice->id)->count());
+        $response->assertSessionHasErrors();
+    }
+
+    public function test_expire_offline_command_fails_overdue_invoices_without_receipts(): void
+    {
+        [$customer, $invoice, $payment] = $this->createAwaitingCardInvoice();
+
+        $invoice->forceFill(['created_at' => now()->subHours(4)])->save();
+        $payment->forceFill(['created_at' => now()->subHours(4)])->save();
+
+        $this->artisan('offline:expire')->assertSuccessful();
+
+        $this->assertSame(Invoice::FAILED, $invoice->fresh()->status);
+        $this->assertSame(Payment::FAIL, $payment->fresh()->status);
+    }
+
+    public function test_expire_offline_command_skips_invoices_with_receipts(): void
+    {
+        Storage::fake('public');
+        [$customer, $invoice, $payment] = $this->createAwaitingCardInvoice();
+
+        $this->actingAs($customer, 'customer')->post(route('client.invoice.receipts.store', $invoice), [
+            'receipts' => [UploadedFile::fake()->image('receipt.jpg')],
+        ])->assertRedirect();
+
+        $invoice->forceFill(['created_at' => now()->subHours(4)])->save();
+
+        $this->artisan('offline:expire')->assertSuccessful();
+
+        $this->assertSame(Invoice::AWAITING_PAYMENT, $invoice->fresh()->status);
+        $this->assertSame(Payment::PENDING, $payment->fresh()->status);
+    }
+
+    public function test_invoice_page_shows_offline_deadline(): void
     {
         [$customer, $invoice] = $this->createAwaitingCardInvoice();
         $invoice->load(['customer', 'address.state', 'address.city', 'orders.product', 'orders.quantity', 'payments', 'paymentReceipts']);
@@ -178,13 +224,34 @@ class PaymentReceiptTest extends TestCase
             ],
         ])->render();
 
-        $this->assertStringContainsString('Melli', $html);
-        $this->assertStringContainsString('Shop Holder', $html);
-        $this->assertStringContainsString('6037991111222233', $html);
-        $this->assertStringContainsString('IR120170000000123456789001', $html);
-        $this->assertStringContainsString(__('Awaiting Payment'), $html);
-        $this->assertStringContainsString(__('Offline payment'), $html);
-        $this->assertStringContainsString(__('Upload your payment receipt'), $html);
-        $this->assertStringContainsString(__('Choose files or drop them here'), $html);
+        $this->assertStringContainsString(__('Deadline:'), $html);
+        $this->assertStringContainsString(__('Pay and upload your receipt within :hours hours.', ['hours' => \App\Models\Invoice::offlinePaymentHours()]), $html);
+    }
+
+    public function test_invoice_page_hides_offline_payment_panel_for_failed_invoices(): void
+    {
+        [$customer, $invoice, $payment] = $this->createAwaitingCardInvoice();
+
+        $invoice->forceFill(['status' => Invoice::FAILED])->save();
+        $payment->forceFill(['status' => Payment::FAIL])->save();
+        $invoice->load(['customer', 'address.state', 'address.city', 'orders.product', 'orders.quantity', 'payments', 'paymentReceipts']);
+
+        $html = view('segments.invoice.LianaInvoice.LianaInvoice', [
+            'invoice' => $invoice,
+            'qr' => new class
+            {
+                public function render(string $url): string
+                {
+                    return 'data:image/svg+xml,'.rawurlencode('<svg></svg>');
+                }
+            },
+            'data' => (object) [
+                'area_name' => 'invoice',
+                'part' => 'LianaInvoice',
+            ],
+        ])->render();
+
+        $this->assertStringNotContainsString('liana-payment-panel', $html);
+        $this->assertStringNotContainsString('Card to card', $html);
     }
 }

@@ -66,6 +66,85 @@ class Invoice extends Model
         return $this->cardPayment() !== null;
     }
 
+    /**
+     * Number of hours a customer has to pay and upload a receipt for an offline invoice.
+     * Configurable via the dashboard setting "offline_payment_hours".
+     */
+    public static function offlinePaymentHours(): int
+    {
+        $hours = (int) getSetting('offline_payment_hours');
+
+        return $hours > 0 ? $hours : 3;
+    }
+
+    public function offlinePaymentDeadline(): ?\Carbon\Carbon
+    {
+        if ($this->created_at === null) {
+            return null;
+        }
+
+        return $this->created_at->copy()->addHours(self::offlinePaymentHours());
+    }
+
+    /**
+     * Whether this offline invoice exceeded its payment deadline without a receipt upload.
+     */
+    public function isOfflinePaymentExpired(): bool
+    {
+        if ($this->status !== self::AWAITING_PAYMENT || ! $this->isOfflineCardPayment()) {
+            return false;
+        }
+
+        $deadline = $this->offlinePaymentDeadline();
+        if ($deadline === null) {
+            return false;
+        }
+
+        return now()->gt($deadline);
+    }
+
+    /**
+     * Fail the offline payment and the invoice when the deadline passes without a receipt.
+     */
+    public function expireOfflinePayment(): bool
+    {
+        $payment = $this->cardPayment();
+
+        if ($payment !== null && $payment->status === Payment::PENDING) {
+            $payment->status = Payment::FAIL;
+            $payment->comment = 'Expired: no payment receipt uploaded within the offline payment deadline.';
+            $payment->save();
+        }
+
+        $this->status = self::FAILED;
+        $this->save();
+        $this->releaseReservedStock();
+
+        event(new InvoiceFailed($this, $payment ?? new Payment));
+
+        return true;
+    }
+
+    public function releaseReservedStock(): void
+    {
+        $calculator = app(\App\Services\ProductPriceCalculator::class);
+
+        foreach ($this->orders as $order) {
+            if (! $order->quantity_id) {
+                continue;
+            }
+
+            $quantity = \App\Models\Quantity::query()->find($order->quantity_id);
+            if ($quantity === null) {
+                continue;
+            }
+
+            $quantity->count = 1;
+            $quantity->save();
+            $calculator->syncProductAggregates($quantity->product);
+        }
+    }
+
     public function needsReceiptUpload(): bool
     {
         if ($this->status !== self::AWAITING_PAYMENT) {

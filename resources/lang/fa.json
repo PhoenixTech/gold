@@ -1045,5 +1045,22 @@
     "Your name": "نام شما",
     "Submit comment": "ثبت دیدگاه",
     "Your comment has been submitted": "دیدگاه شما با موفقیت ثبت شد",
-    "Link copied to clipboard!": "لینک در کلیپ‌بورد کپی شد!"
+    "Link copied to clipboard!": "لینک در کلیپ‌بورد کپی شد!",
+    "Offline payment deadline (hours)": "مهلت پرداخت آفلاین (ساعت)",
+    "Offline payment deadline": "مهلت پرداخت آفلاین",
+    "Offline payment deadline passed": "مهلت پرداخت آفلاین گذشته است",
+    "Deadline passed — this invoice was failed.": "مهلت گذشته است — این فاکتور ناموفق شد.",
+    "Deadline:": "مهلت:",
+    "Expired": "منقضی شده",
+    "Pay and upload your receipt within :hours hours.": "تا :hours ساعت فرصت دارید مبلغ را پرداخت کنید و رسید را بارگذاری نمایید.",
+    "Complete the transfer and upload the receipt before the deadline.": "پیش از پایان مهلت، انتقال وجه را انجام دهید و رسید را بارگذاری کنید.",
+    "The offline payment deadline has passed.": "مهلت پرداخت آفلاین گذشته است.",
+    "The offline payment deadline for this invoice has passed. The invoice was failed, please contact support.": "مهلت پرداخت آفلاین این فاکتور گذشته است. فاکتور ناموفق شد. لطفاً با پشتیبانی تماس بگیرید.",
+    "You must pay and upload the receipt before :deadline.": "باید پیش از :deadline مبلغ را پرداخت و رسید را بارگذاری کنید.",
+    "You have :hours hours to pay and upload the receipt.": "تا :hours ساعت فرصت دارید مبلغ را پرداخت و رسید را بارگذاری کنید.",
+    "You must pay and upload the receipt within :hours hours of creating the invoice.": "باید ظرف :hours ساعت از ایجاد فاکتور، مبلغ را پرداخت و رسید را بارگذاری کنید.",
+    "Transfer to shop card and upload the receipt within :hours hours": "انتقال به کارت فروشگاه و بارگذاری رسید ظرف :hours ساعت",
+    "After registering the order, you have :hours hours to transfer the amount and upload the receipt, otherwise the invoice will be failed.": "پس از ثبت سفارش، :hours ساعت فرصت دارید مبلغ را انتقال دهید و رسید را بارگذاری کنید؛ در غیر این صورت فاکتور ناموفق خواهد شد.",
+    "Customer had :hours hours to upload a receipt. Deadline was :date.": "مشتری :hours ساعت برای بارگذاری رسید فرصت داشت. مهلت تا :date بود.",
+    "Customer must upload a receipt within :hours hours of creating the invoice.": "مشتری باید ظرف :hours ساعت از ایجاد فاکتور، رسید را بارگذاری کند."
 }
