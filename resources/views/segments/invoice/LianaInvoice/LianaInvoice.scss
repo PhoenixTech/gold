@@ -255,9 +255,14 @@
     .inv-badge {
         font-size: 11.5px;
 
-        &.inv-AWAITING_PAYMENT {
+        &.inv-AWAITING_PAYMENT, &.inv-WAITING_RECEIPT {
             background: color-mix(in srgb, var(--xshop-warning) 18%, var(--xshop-background));
             color: var(--xshop-warning);
+        }
+
+        &.inv-WAITING_CONFIRMATION {
+            background: color-mix(in srgb, var(--xshop-info) 18%, var(--xshop-background));
+            color: var(--xshop-info);
         }
     }
 

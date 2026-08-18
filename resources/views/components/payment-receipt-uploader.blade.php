@@ -31,7 +31,7 @@
                         {{ __('The offline payment deadline has passed.') }}
                     @else
                         <i class="ri-time-line"></i>
-                        {{ __('You must pay and upload the receipt before :deadline.', ['deadline' => $uploaderDeadline->format('Y-m-d H:i')]) }}
+                        {{ __('You must pay and upload the receipt before :deadline.', ['deadline' => $uploaderDeadline->jdate('Y/m/d H:i')]) }}
                     @endif
                 </p>
             @endif

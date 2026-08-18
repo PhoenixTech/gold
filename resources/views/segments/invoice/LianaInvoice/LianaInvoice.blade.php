@@ -54,7 +54,7 @@
                                         @else
                                             {{ __('Pay and upload your receipt within :hours hours.', ['hours' => $offlineHours]) }}
                                             {{ __('Deadline:') }}
-                                            <b dir="ltr">{{ $offlineDeadline->format('Y-m-d H:i') }}</b>
+                                            <b>{{ $offlineDeadline->jdate('Y/m/d H:i') }}</b>
                                             (<span data-deadline-countdown
                                                    data-deadline="{{ $offlineRemaining }}"
                                                    data-expired-text="{{ __('Expired') }}">…</span>)
@@ -72,7 +72,7 @@
                     <img src="{{asset('upload/images/logo.png')}}" class="liana-logo" alt="">
                     <div class="liana-brand-meta">
                         <h5>{{config('app.name')}}</h5>
-                        <span class="inv-badge inv-{{$invoice->status}}">{{__($invoice->status)}}</span>
+                        <span class="inv-badge inv-{{$invoice->displayStatusKey()}}">{{ $invoice->statusLabel() }}</span>
                         @if($showOfflinePaymentHint)
                             <span class="liana-pay-type">
                                 <i class="ri-exchange-funds-line"></i>
@@ -206,7 +206,7 @@
                                 <div class="liana-payment-deadline">
                                     <i class="ri-time-line"></i>
                                     {{ __('Complete the transfer and upload the receipt before the deadline.') }}
-                                    <b dir="ltr">{{ $offlineDeadline->format('Y-m-d H:i') }}</b>
+                                    <b>{{ $offlineDeadline->jdate('Y/m/d H:i') }}</b>
                                 </div>
                             @endif
                             <ol class="liana-payment-steps">

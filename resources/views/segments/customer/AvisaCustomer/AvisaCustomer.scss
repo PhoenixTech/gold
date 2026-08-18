@@ -909,10 +909,16 @@
             color: var(--xshop-warning);
         }
 
-        &.inv-AWAITING_PAYMENT {
+        &.inv-AWAITING_PAYMENT, &.inv-WAITING_RECEIPT {
             background: color-mix(in srgb, var(--xshop-warning) 18%, var(--xshop-background));
             color: var(--xshop-warning);
             box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--xshop-warning) 35%, transparent);
+        }
+
+        &.inv-WAITING_CONFIRMATION {
+            background: color-mix(in srgb, var(--xshop-info) 16%, var(--xshop-background));
+            color: var(--xshop-info);
+            box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--xshop-info) 35%, transparent);
         }
 
         &.inv-CANCELED, &.inv-FAILED {

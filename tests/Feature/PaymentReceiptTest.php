@@ -13,6 +13,7 @@ use App\Models\Product;
 use App\Models\Quantity;
 use App\Models\Transport;
 use App\Models\User;
+use Database\Seeders\GfxSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -225,7 +226,116 @@ class PaymentReceiptTest extends TestCase
         ])->render();
 
         $this->assertStringContainsString(__('Deadline:'), $html);
-        $this->assertStringContainsString(__('Pay and upload your receipt within :hours hours.', ['hours' => \App\Models\Invoice::offlinePaymentHours()]), $html);
+        $this->assertStringContainsString(__('Pay and upload your receipt within :hours hours.', ['hours' => Invoice::offlinePaymentHours()]), $html);
+        $this->assertStringContainsString(Invoice::formatPersianDateTime($invoice->offlinePaymentDeadline()), $html);
+        $this->assertStringNotContainsString($invoice->offlinePaymentDeadline()->format('Y-m-d H:i'), $html);
+        $this->assertStringContainsString(__('WAITING_RECEIPT'), $html);
+    }
+
+    public function test_offline_invoice_without_receipt_is_waiting_receipt(): void
+    {
+        [, $invoice] = $this->createAwaitingCardInvoice();
+
+        $this->assertSame(Invoice::WAITING_RECEIPT, $invoice->fresh()->load('paymentReceipts')->displayStatusKey());
+    }
+
+    public function test_offline_invoice_with_receipt_is_waiting_confirmation(): void
+    {
+        Storage::fake('public');
+        [$customer, $invoice] = $this->createAwaitingCardInvoice();
+
+        $this->actingAs($customer, 'customer')->post(route('client.invoice.receipts.store', $invoice), [
+            'receipts' => [UploadedFile::fake()->image('receipt.jpg')],
+        ])->assertRedirect();
+
+        $this->assertSame(
+            Invoice::WAITING_CONFIRMATION,
+            $invoice->fresh()->load('paymentReceipts')->displayStatusKey()
+        );
+    }
+
+    public function test_admin_filter_statuses_replace_pending_with_offline_states(): void
+    {
+        $this->assertNotContains(Invoice::PENDING, Invoice::adminFilterStatuses());
+        $this->assertContains(Invoice::WAITING_RECEIPT, Invoice::adminFilterStatuses());
+        $this->assertContains(Invoice::WAITING_CONFIRMATION, Invoice::adminFilterStatuses());
+        $this->assertNotContains(Invoice::PENDING, Invoice::editableStatuses());
+    }
+
+    public function test_admin_invoice_edit_shows_next_step_and_persian_deadline(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        [, $invoice] = $this->createAwaitingCardInvoice();
+
+        Role::findOrCreate('admin', 'web');
+        $admin = User::factory()->create(['role' => 'ADMIN']);
+        $admin->assignRole('admin');
+
+        $response = $this->actingAs($admin)->get(route('admin.invoice.edit', $invoice));
+
+        $response->assertOk();
+        $response->assertSee(__('WAITING_RECEIPT'), false);
+        $response->assertSee(__('Shipping and tracking'), false);
+        $response->assertSee(__('Delivery address'), false);
+        $response->assertSee(Invoice::formatPersianDateTime($invoice->offlinePaymentDeadline()), false);
+        $response->assertDontSee($invoice->offlinePaymentDeadline()->format('Y-m-d H:i'), false);
+        $response->assertDontSee('value="PENDING"', false);
+    }
+
+    public function test_admin_can_filter_invoices_waiting_for_confirmation(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        Storage::fake('public');
+
+        [$customer, $withReceipt] = $this->createAwaitingCardInvoice();
+        $this->actingAs($customer, 'customer')->post(route('client.invoice.receipts.store', $withReceipt), [
+            'receipts' => [UploadedFile::fake()->image('receipt.jpg')],
+        ])->assertRedirect();
+
+        [, $withoutReceipt] = $this->createAwaitingCardInvoice();
+
+        $withReceipt->customer->name = 'Waiting Confirmation Buyer';
+        $withReceipt->customer->save();
+        $withoutReceipt->customer->name = 'Waiting Receipt Buyer';
+        $withoutReceipt->customer->save();
+
+        Role::findOrCreate('admin', 'web');
+        $admin = User::factory()->create(['role' => 'ADMIN']);
+        $admin->assignRole('admin');
+
+        $response = $this->actingAs($admin)->get(route('admin.invoice.index', [
+            'filter' => ['status' => Invoice::WAITING_CONFIRMATION],
+        ]));
+
+        $response->assertOk();
+        $response->assertSee('Waiting Confirmation Buyer', false);
+        $response->assertDontSee('Waiting Receipt Buyer', false);
+    }
+
+    public function test_admin_invoice_list_shows_jalali_created_at_instead_of_hash(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        app()->setLocale('fa');
+
+        [, $invoice] = $this->createAwaitingCardInvoice();
+        $invoice->customer->name = 'List Date Customer';
+        $invoice->customer->save();
+
+        Role::findOrCreate('admin', 'web');
+        $admin = User::factory()->create(['role' => 'ADMIN']);
+        $admin->assignRole('admin');
+
+        $response = $this->actingAs($admin)->get(route('admin.invoice.index'));
+
+        $response->assertOk();
+        $response->assertSee('List Date Customer', false);
+        $response->assertSee(__('created_at'), false);
+        $response->assertDontSee(__('hash'), false);
+        $response->assertSee(Invoice::formatPersianDateTime($invoice->created_at), false);
+        $response->assertDontSee($invoice->created_at->format('Y-m-d H:i'), false);
     }
 
     public function test_invoice_page_hides_offline_payment_panel_for_failed_invoices(): void

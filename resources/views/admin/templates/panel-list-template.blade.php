@@ -203,7 +203,11 @@
                                             <td>
                                                 <a href="{{getRoute('edit',$item->{$item->getRouteKeyName()})}}">
                                                     <b>
-                                                        {{strip_tags($item?->{$cols[0]}) }}
+                                                        @if(in_array($cols[0], ['created_at', 'updated_at', 'expire'], true))
+                                                            {{ $item->{$cols[0]}?->ldate('Y-m-d H:i') ?? '-' }}
+                                                        @else
+                                                            {{strip_tags($item?->{$cols[0]}) }}
+                                                        @endif
                                                     </b>
                                                 </a>
                                             </td>
@@ -219,7 +223,11 @@
                                                              $stIsPublished = ($stVal === '1' || strtolower($stVal) === 'published');
                                                              $stIsDraft = ($stVal === '0' || strtolower($stVal) === 'draft');
                                                          @endphp
-                                                         @if($stIsPublished)
+                                                         @if(method_exists($item, 'statusLabel'))
+                                                             <span class="{{ $item->statusBadgeClass() }}">
+                                                                 {{ $item->statusLabel() }}
+                                                             </span>
+                                                         @elseif($stIsPublished)
                                                              <span class="badge bg-success-subtle text-success border border-success-subtle">
                                                                  {{__("Published")}}
                                                              </span>

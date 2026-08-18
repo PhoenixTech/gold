@@ -161,8 +161,8 @@
                                             #{{ $pendingInv->id }} —
                                             {{ number_format($pendingInv->total_price) }} {{ config('app.currency.symbol') }}
                                             @if($invDeadline)
-                                                <small class="avisa-deadline-mini" dir="ltr">
-                                                    {{ $invDeadline->format('Y-m-d H:i') }}
+                                                <small class="avisa-deadline-mini">
+                                                    {{ $invDeadline->jdate('Y/m/d H:i') }}
                                                 </small>
                                             @endif
                                         </li>
@@ -366,7 +366,7 @@
                                                         <tr>
                                                             <td>#{{$inv->id}}</td>
                                                             <td><b>{{number_format($inv->total_price)}} {{config('app.currency.symbol')}}</b></td>
-                                                            <td><span class="inv-badge inv-{{$inv->status}}">{{__($inv->status)}}</span></td>
+                                                            <td><span class="inv-badge inv-{{$inv->displayStatusKey()}}">{{ $inv->statusLabel() }}</span></td>
                                                             <td class="text-end avisa-row-actions">
                                                                 <a href="{{ route('client.invoice',$inv->hash) }}" class="avisa-icon-btn" title="{{__('View')}}">
                                                                     <i class="ri-eye-line"></i>
@@ -456,7 +456,7 @@
                                                 <b>{{number_format($inv->total_price)}} {{config('app.currency.symbol')}}</b>
                                             </td>
                                             <td data-label="{{__('Status')}}">
-                                                <span class="inv-badge inv-{{$inv->status}}">{{__($inv->status)}}</span>
+                                                <span class="inv-badge inv-{{$inv->displayStatusKey()}}">{{ $inv->statusLabel() }}</span>
                                                 @if($inv->needsReceiptUpload() && $inv->paymentReceipts->isEmpty())
                                                     <div class="avisa-receipt-hint">
                                                         <i class="ri-error-warning-line"></i>
@@ -618,9 +618,9 @@
                                                          $invDeadline = $pendingInv->offlinePaymentDeadline();
                                                      @endphp
                                                      @if($invDeadline)
-                                                         <small class="avisa-deadline-mini" dir="ltr">
+                                                         <small class="avisa-deadline-mini">
                                                              <i class="ri-time-line"></i>
-                                                             {{ $invDeadline->format('Y-m-d H:i') }}
+                                                             {{ $invDeadline->jdate('Y/m/d H:i') }}
                                                          </small>
                                                      @endif
                                                  @endif

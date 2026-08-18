@@ -16,10 +16,15 @@ class Setting extends Model
 
     public static $settingTypes = ['TEXT', 'NUMBER', 'LONGTEXT', 'CODE', 'EDITOR',
         'CATEGORY', 'GROUP', 'CHECKBOX', 'FILE', 'COLOR', 'SELECT', 'MENU', 'LOCATION',
-        'ICON','DATE','DATETIME','TIME','PRODUCT_QUERY','POST_QUERY',"CATEGORY_SET","GROUP_SET"];
+        'ICON', 'DATE', 'DATETIME', 'TIME', 'PRODUCT_QUERY', 'POST_QUERY', 'CATEGORY_SET', 'GROUP_SET'];
 
-    public function getData()
+    /**
+     * Extra attributes for the setting input (e.g. xmin/xmax for NUMBER fields).
+     *
+     * @return array<string, mixed>
+     */
+    public function getData(): array
     {
-        return json_decode($this->data, true);
+        return json_decode($this->data, true) ?? [];
     }
 }

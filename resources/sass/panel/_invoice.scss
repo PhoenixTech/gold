@@ -1,0 +1,145 @@
+.invoice-manage {
+    --invoice-gold: #db9a00;
+    --invoice-ink: #3d3846;
+
+    &__customer,
+    &__tips {
+        list-style: none;
+        margin: 0;
+        padding: 0 1rem 1rem;
+    }
+
+    &__customer li,
+    &__tips li {
+        padding: .55rem 0;
+        border-bottom: 1px solid rgba(61, 56, 70, .08);
+        display: flex;
+        justify-content: space-between;
+        gap: .75rem;
+    }
+
+    &__customer li:last-child,
+    &__tips li:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    &__customer a {
+        display: flex;
+        width: 100%;
+        justify-content: space-between;
+        gap: .75rem;
+        color: inherit;
+    }
+
+    &__customer span,
+    &__tips li {
+        color: #6f6a74;
+    }
+
+    &__now-main {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1.15rem 1.25rem;
+        border-inline-start: 4px solid var(--invoice-gold);
+    }
+
+    &__eyebrow {
+        display: block;
+        font-size: .75rem;
+        font-weight: 700;
+        letter-spacing: .04em;
+        color: var(--invoice-gold);
+        margin-bottom: .35rem;
+    }
+
+    &__title {
+        font-size: 1.35rem;
+        font-weight: 800;
+        color: var(--invoice-ink);
+        margin: 0 0 .35rem;
+    }
+
+    &__lead,
+    &__deadline {
+        color: #5c5662;
+    }
+
+    &__deadline {
+        margin-top: .65rem;
+        font-size: .92rem;
+    }
+
+    &__now-actions {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: .65rem;
+        min-width: 180px;
+    }
+
+    &__total {
+        text-align: end;
+
+        span {
+            display: block;
+            font-size: .75rem;
+            color: #6f6a74;
+        }
+
+        b {
+            font-size: 1.15rem;
+            color: var(--invoice-ink);
+        }
+    }
+
+    &__receipts {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: .75rem;
+    }
+
+    &__receipt {
+        display: flex;
+        align-items: center;
+        gap: .85rem;
+        padding: .65rem;
+        border: 1px solid rgba(61, 56, 70, .08);
+        border-radius: 12px;
+        color: inherit;
+        background: #faf8f4;
+
+        img {
+            width: 72px;
+            height: 72px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        i {
+            width: 72px;
+            height: 72px;
+            display: grid;
+            place-items: center;
+            font-size: 1.8rem;
+            color: var(--invoice-gold);
+            background: #fff;
+            border-radius: 8px;
+        }
+
+        span {
+            display: flex;
+            flex-direction: column;
+            gap: .2rem;
+            min-width: 0;
+        }
+
+        small {
+            color: #6f6a74;
+        }
+    }
+}

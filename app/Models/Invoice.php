@@ -26,11 +26,51 @@ class Invoice extends Model
 
     const PAID = 'PAID';
 
+    const WAITING_RECEIPT = 'WAITING_RECEIPT';
+
+    const WAITING_CONFIRMATION = 'WAITING_CONFIRMATION';
+
     protected $casts = [
         'meta' => 'array',
     ];
 
     public static $invoiceStatus = ['PENDING', 'AWAITING_PAYMENT', 'CANCELED', 'FAILED', 'PAID', 'PROCESSING', 'COMPLETED'];
+
+    /**
+     * Statuses shown in the admin filter. PENDING is a leftover online-payment
+     * state; offline invoices use waiting-for-receipt vs waiting-for-confirmation.
+     *
+     * @return list<string>
+     */
+    public static function adminFilterStatuses(): array
+    {
+        return [
+            self::WAITING_RECEIPT,
+            self::WAITING_CONFIRMATION,
+            self::PAID,
+            self::PROCESSING,
+            self::COMPLETED,
+            self::FAILED,
+            self::CANCELED,
+        ];
+    }
+
+    /**
+     * Statuses an admin can save on the invoice form.
+     *
+     * @return list<string>
+     */
+    public static function editableStatuses(): array
+    {
+        return [
+            self::AWAITING_PAYMENT,
+            self::PAID,
+            self::PROCESSING,
+            self::COMPLETED,
+            self::FAILED,
+            self::CANCELED,
+        ];
+    }
 
     public function getRouteKeyName()
     {
@@ -158,7 +198,68 @@ class Invoice extends Model
 
     public function isWaitingPaymentConfirmation(): bool
     {
-        return $this->needsReceiptUpload() && $this->paymentReceipts()->exists();
+        return $this->needsReceiptUpload() && $this->hasUploadedReceipt();
+    }
+
+    public function hasUploadedReceipt(): bool
+    {
+        if (array_key_exists('payment_receipts_count', $this->attributes)) {
+            return (int) $this->attributes['payment_receipts_count'] > 0;
+        }
+
+        if ($this->relationLoaded('paymentReceipts')) {
+            return $this->paymentReceipts->isNotEmpty();
+        }
+
+        return $this->paymentReceipts()->exists();
+    }
+
+    /**
+     * Human-facing status for offline payments. PENDING and AWAITING_PAYMENT
+     * both mean "not paid yet"; the receipt is what splits them.
+     */
+    public function displayStatusKey(): string
+    {
+        if (in_array($this->status, [self::AWAITING_PAYMENT, self::PENDING], true)) {
+            return $this->hasUploadedReceipt()
+                ? self::WAITING_CONFIRMATION
+                : self::WAITING_RECEIPT;
+        }
+
+        return (string) $this->status;
+    }
+
+    public function statusLabel(): string
+    {
+        return __($this->displayStatusKey());
+    }
+
+    public function statusBadgeClass(): string
+    {
+        return match ($this->displayStatusKey()) {
+            self::WAITING_RECEIPT => 'badge bg-warning-subtle text-warning border border-warning-subtle',
+            self::WAITING_CONFIRMATION => 'badge bg-primary-subtle text-primary border border-primary-subtle',
+            self::PAID => 'badge bg-success-subtle text-success border border-success-subtle',
+            self::PROCESSING => 'badge bg-info-subtle text-info border border-info-subtle',
+            self::COMPLETED => 'badge bg-success text-white',
+            self::FAILED => 'badge bg-danger-subtle text-danger border border-danger-subtle',
+            self::CANCELED => 'badge bg-secondary-subtle text-secondary border border-secondary-subtle',
+            default => 'badge bg-info-subtle text-info border border-info-subtle',
+        };
+    }
+
+    public static function formatPersianDateTime(?\Carbon\Carbon $date): ?string
+    {
+        if ($date === null || $date->timestamp === 0) {
+            return null;
+        }
+
+        return $date->jdate('Y/m/d H:i');
+    }
+
+    public function formattedDeadline(): ?string
+    {
+        return self::formatPersianDateTime($this->offlinePaymentDeadline());
     }
 
     public function successPayments()

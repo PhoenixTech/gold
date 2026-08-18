@@ -10,7 +10,7 @@
 @section('filter')
     <select name="filter[status]" class="form-select form-select-sm w-auto">
         <option value="">{{__("All statuses")}}</option>
-        @foreach(\App\Models\Invoice::$invoiceStatus as $st)
+        @foreach(\App\Models\Invoice::adminFilterStatuses() as $st)
             <option value="{{$st}}" @if(request()->input('filter.status') == $st) selected @endif>
                 {{__($st)}}
             </option>

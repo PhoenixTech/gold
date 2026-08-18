@@ -18,9 +18,9 @@ class InvoiceController extends XController
     // protected  $_MODEL_ = Invoice::class;
     // protected  $SAVE_REQUEST = InvoiceSaveRequest::class;
 
-    protected $cols = ['hash', 'customer_id', 'count', 'total_price', 'status'];
+    protected $cols = ['created_at', 'customer_id', 'count', 'total_price', 'status'];
 
-    protected $extra_cols = ['id'];
+    protected $extra_cols = ['id', 'hash'];
 
     protected $searchable = ['desc'];
 
@@ -73,6 +73,46 @@ class InvoiceController extends XController
 
     }
 
+    public function index()
+    {
+        $displayStatus = request()->input('filter.status');
+        $query = $this->makeSortAndFilterQuery($displayStatus)
+            ->with(['customer', 'paymentReceipts']);
+
+        return $this->showList($query);
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Builder<\App\Models\Invoice>
+     */
+    private function makeSortAndFilterQuery(mixed $displayStatus): \Illuminate\Database\Eloquent\Builder
+    {
+        $isReceiptFilter = in_array($displayStatus, [Invoice::WAITING_RECEIPT, Invoice::WAITING_CONFIRMATION], true);
+
+        if ($isReceiptFilter) {
+            $filters = request()->input('filter', []);
+            unset($filters['status']);
+            request()->merge(['filter' => $filters]);
+        }
+
+        $query = $this->makeSortAndFilter();
+
+        if ($isReceiptFilter) {
+            $query->whereIn('status', [Invoice::AWAITING_PAYMENT, Invoice::PENDING]);
+            if ($displayStatus === Invoice::WAITING_RECEIPT) {
+                $query->whereDoesntHave('paymentReceipts');
+            } else {
+                $query->whereHas('paymentReceipts');
+            }
+
+            request()->merge([
+                'filter' => array_merge(request()->input('filter', []), ['status' => $displayStatus]),
+            ]);
+        }
+
+        return $query;
+    }
+
     /**
      * Show the form for creating a new resource.
      */
@@ -119,7 +159,7 @@ class InvoiceController extends XController
 
         return redirect()
             ->route('admin.invoice.edit', $item)
-            ->with(['message' => __('Payment confirmed successfully. Invoice marked as PAID.')]);
+            ->with(['message' => __('Payment confirmed. The invoice is now paid.')]);
     }
 
     public function bulk(Request $request)
