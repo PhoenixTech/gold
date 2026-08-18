@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Events\InvoiceFailed;
 use App\Events\InvoiceSucceed;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -70,6 +71,54 @@ class Invoice extends Model
             self::FAILED,
             self::CANCELED,
         ];
+    }
+
+    /**
+     * @param  Builder<Invoice>  $query
+     * @return Builder<Invoice>
+     */
+    public function scopeAwaitingOfflinePayment(Builder $query): Builder
+    {
+        return $query->whereIn('status', [self::AWAITING_PAYMENT, self::PENDING]);
+    }
+
+    /**
+     * @param  Builder<Invoice>  $query
+     * @return Builder<Invoice>
+     */
+    public function scopeWaitingReceipt(Builder $query): Builder
+    {
+        return $query->awaitingOfflinePayment()->whereDoesntHave('paymentReceipts');
+    }
+
+    /**
+     * @param  Builder<Invoice>  $query
+     * @return Builder<Invoice>
+     */
+    public function scopeWaitingConfirmation(Builder $query): Builder
+    {
+        return $query->awaitingOfflinePayment()->whereHas('paymentReceipts');
+    }
+
+    /**
+     * @param  Builder<Invoice>  $query
+     * @return Builder<Invoice>
+     */
+    public function scopeNeedProcessing(Builder $query): Builder
+    {
+        return $query->where('status', self::PAID);
+    }
+
+    /**
+     * Paid or fulfilled invoices created this calendar month.
+     *
+     * @param  Builder<Invoice>  $query
+     * @return Builder<Invoice>
+     */
+    public function scopeSoldThisMonth(Builder $query): Builder
+    {
+        return $query->whereIn('status', [self::PAID, self::PROCESSING, self::COMPLETED])
+            ->where('created_at', '>=', now()->startOfMonth());
     }
 
     public function getRouteKeyName()

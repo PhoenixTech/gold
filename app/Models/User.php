@@ -12,9 +12,9 @@ use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasRoles, SoftDeletes, HasApiTokens;
+    use HasApiTokens, HasFactory, HasRoles, Notifiable, SoftDeletes;
 
-    static $roles = ['DEVELOPER', 'ADMIN', 'USER', 'SUSPENDED'];
+    public static $roles = ['DEVELOPER', 'ADMIN', 'USER', 'SUSPENDED'];
 
     /**
      * The attributes that are mass assignable.
@@ -65,6 +65,7 @@ class User extends Authenticatable
         if (Post::count() == 0) {
             return 100;
         }
+
         return $this->posts()->count() * 100 / Post::count();
     }
 
@@ -79,6 +80,7 @@ class User extends Authenticatable
         if (Product::count() == 0) {
             return 100;
         }
+
         return $this->products()->count() * 100 / Product::count();
     }
 
@@ -92,6 +94,7 @@ class User extends Authenticatable
         if (Ticket::count() == 0) {
             return 100;
         }
+
         return $this->tickets()->count() * 100 / Ticket::count();
     }
 
@@ -105,6 +108,7 @@ class User extends Authenticatable
         if (Comment::count() == 0) {
             return 100;
         }
+
         return $this->comments()->count() * 100 / Comment::count();
     }
 
@@ -126,7 +130,8 @@ class User extends Authenticatable
         if ($this->hasRole('admin') || $this->hasRole('developer')) {
             return true;
         }
-        return $this->accesses()->where('route', 'LIKE', '%.' . $name . '.%')->count() > 0;
+
+        return $this->accesses()->where('route', 'LIKE', '%.'.$name.'.%')->count() > 0;
     }
 
     public function hasAnyAccesses($array)
@@ -149,11 +154,12 @@ class User extends Authenticatable
         if ($this->hasRole('SUSPENDED')) {
             return false;
         }
+
         return $this->accesses()->where('route', $route)->count() > 0;
     }
 
-
-    public function evaluations(){
+    public function evaluations()
+    {
 
         return Evaluation::where(function ($query) {
             $query->whereNull('evaluationable_type')
@@ -161,19 +167,19 @@ class User extends Authenticatable
         })->orWhere(function ($query) {
             $query->where('evaluationable_type', User::class)
                 ->whereNull('evaluationable_id');
-        })->orWhere(function ($query ) {
+        })->orWhere(function ($query) {
             $query->where('evaluationable_type', User::class)
-                ->where('evaluationable_id',$this->id);
+                ->where('evaluationable_id', $this->id);
         })->get();
     }
 
-
-    public function avatar(){
-        if ($this->avatar == null || trim($this->avatar) == ''){
+    public function avatar(): string
+    {
+        $path = $this->attributes['avatar'] ?? null;
+        if ($path === null || trim((string) $path) === '') {
             return asset('assets/default/unknown.svg');
         }
 
-
-        return \Storage::url('users/' . $this->avatar);
+        return \Storage::url('users/'.$path);
     }
 }
