@@ -1229,13 +1229,11 @@ function cardItems(): array
         $lines[] = $line;
     }
 
-    return $lines;
+    return app(\App\Services\CartQuoteService::class)->applyToLines($lines);
 }
 
 /**
  * shopping card items count
- *
- * @return int
  */
 function cardCount(): int
 {

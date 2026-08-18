@@ -27,6 +27,74 @@ class Quantity extends Model
         return $this->belongsTo(Product::class);
     }
 
+    public static function pieceSku(string $productSku, int $number): string
+    {
+        return trim($productSku).'-'.sprintf('%04d', $number);
+    }
+
+    public static function pieceNumberFromCode(?string $code, string $productSku): ?int
+    {
+        $productSku = trim($productSku);
+        $code = trim((string) $code);
+        if ($productSku === '' || $code === '') {
+            return null;
+        }
+
+        if (! preg_match('/^'.preg_quote($productSku, '/').'-(\d+)$/', $code, $matches)) {
+            return null;
+        }
+
+        return (int) $matches[1];
+    }
+
+    /**
+     * @param  list<string|null>  $codes
+     */
+    public static function nextPieceNumber(array $codes, string $productSku): int
+    {
+        $max = 0;
+        foreach ($codes as $code) {
+            $number = self::pieceNumberFromCode(is_string($code) ? $code : null, $productSku);
+            if ($number !== null) {
+                $max = max($max, $number);
+            }
+        }
+
+        return $max + 1;
+    }
+
+    /**
+     * Fill empty piece codes as {productSku}-0001, {productSku}-0002, ...
+     *
+     * @param  list<array<string, mixed>>  $items
+     * @return list<array<string, mixed>>
+     */
+    public static function assignPieceSkus(array $items, string $productSku): array
+    {
+        $productSku = trim($productSku);
+        if ($productSku === '') {
+            return $items;
+        }
+
+        foreach ($items as $index => $item) {
+            $code = trim((string) ($item['code'] ?? ''));
+            if ($code !== '') {
+                $items[$index]['code'] = $code;
+
+                continue;
+            }
+
+            $used = array_map(
+                fn (array $row): string => trim((string) ($row['code'] ?? '')),
+                $items
+            );
+            $number = max(self::nextPieceNumber($used, $productSku), $index + 1);
+            $items[$index]['code'] = self::pieceSku($productSku, $number);
+        }
+
+        return $items;
+    }
+
     public function isAvailable(): bool
     {
         return $this->count > 0;

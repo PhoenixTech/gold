@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Contracts\Payment;
 use App\Models\Address;
 use App\Models\BankAccount;
 use App\Models\Customer;
@@ -13,6 +12,7 @@ use App\Models\Payment as PaymentModel;
 use App\Models\Product;
 use App\Models\Quantity;
 use App\Models\Transport;
+use App\Services\CartQuoteService;
 use App\Services\ProductPriceCalculator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -37,16 +37,7 @@ class CardController extends Controller
 
         if ($product->availableQuantities()->exists()) {
             if ($quantity === null) {
-                if ($product->availableQuantities()->count() === 1) {
-                    $quantity = $product->availableQuantities()->first()->id;
-                } else {
-                    $msg = __('You need to select one stock piece');
-                    if (request()->expectsJson() || request()->ajax()) {
-                        return errors(['redirect' => $product->webUrl()], 422, $msg);
-                    }
-
-                    return redirect()->to($product->webUrl())->withErrors($msg);
-                }
+                $quantity = $product->firstAvailableQuantity()?->id;
             }
 
             $stockPiece = Quantity::query()
@@ -98,6 +89,8 @@ class CardController extends Controller
             $customer->save();
         }
 
+        app(CartQuoteService::class)->forget();
+
         if (request()->ajax() || request()->expectsJson()) {
             return success(['count' => $count], $msg);
         }
@@ -131,7 +124,7 @@ class CardController extends Controller
             'quantity_id' => ['nullable', 'array'],
             'address_id' => ['required', 'exists:addresses,id'],
             'transport_id' => ['required', 'exists:transports,id'],
-            'payment_method' => ['required', 'in:online,card'],
+            'payment_method' => ['required', 'in:card'],
             'discount_id' => ['nullable', 'exists:discounts,id'],
             'desc' => ['nullable', 'string'],
         ]);
@@ -142,30 +135,26 @@ class CardController extends Controller
             ]);
         }
 
+        $quote = app(CartQuoteService::class);
+        $quote->assertValidForCheckout();
+
         $total = 0;
         $calculator = app(ProductPriceCalculator::class);
-        $paymentMethod = $request->input('payment_method');
-        $activeBankAccount = null;
-
-        if ($paymentMethod === 'card') {
-            $activeBankAccount = BankAccount::activeAccount();
-            if ($activeBankAccount === null) {
-                throw ValidationException::withMessages([
-                    'payment_method' => __('No active bank account is configured. Please contact support.'),
-                ]);
-            }
+        $activeBankAccount = BankAccount::activeAccount();
+        if ($activeBankAccount === null) {
+            throw ValidationException::withMessages([
+                'payment_method' => __('No active bank account is configured. Please contact support.'),
+            ]);
         }
 
         try {
-            $invoice = DB::transaction(function () use ($request, &$total, $calculator, $customer, $paymentMethod) {
+            $invoice = DB::transaction(function () use ($request, &$total, $calculator, $customer, $quote) {
                 $invoice = new Invoice;
                 $invoice->customer_id = $customer->id;
                 $invoice->count = array_sum($request->count);
                 $invoice->address_id = $request->address_id;
                 $invoice->desc = $request->desc;
-                $invoice->status = $paymentMethod === 'card'
-                    ? Invoice::AWAITING_PAYMENT
-                    : Invoice::PENDING;
+                $invoice->status = Invoice::AWAITING_PAYMENT;
 
                 $transport = Transport::query()->findOrFail($request->input('transport_id'));
                 $invoice->transport_id = $transport->id;
@@ -214,7 +203,7 @@ class CardController extends Controller
                         }
 
                         $order->quantity_id = $quantity->id;
-                        $order->price_total = $quantity->price * $order->count;
+                        $order->price_total = $quote->unitPrice($product, $quantity) * $order->count;
                         $order->data = $quantity->data;
                         $order->save();
 
@@ -223,14 +212,14 @@ class CardController extends Controller
                     } elseif ($quantityId !== null && $quantityId !== '') {
                         $quantity = Quantity::query()->whereKey($quantityId)->lockForUpdate()->firstOrFail();
                         $order->quantity_id = $quantity->id;
-                        $order->price_total = $quantity->price * $order->count;
+                        $order->price_total = $quote->unitPrice($product, $quantity) * $order->count;
                         $order->data = $quantity->data;
                         $order->save();
 
                         $quantity->markSold();
                         $calculator->syncProductAggregates($product->fresh());
                     } else {
-                        $order->price_total = $product->price * $order->count;
+                        $order->price_total = $quote->unitPrice($product, null) * $order->count;
                         $order->save();
                     }
 
@@ -262,55 +251,25 @@ class CardController extends Controller
 
         $payableAmount = (int) (($invoice->total_price - $invoice->credit_price) * config('app.currency.factor'));
 
-        if ($paymentMethod === 'card') {
-            $invoice->storePaymentRequest(
-                'CARD-'.$invoice->hash.'-'.time(),
-                $payableAmount,
-                null,
-                'CARD',
-                'card-to-card'
-            );
-            $payment = $invoice->payments()->latest('id')->first();
-            if ($payment) {
-                $payment->status = PaymentModel::PENDING;
-                $payment->meta = array_merge($payment->meta ?? [], $activeBankAccount->toPaymentMeta());
-                $payment->save();
-            }
-
-            self::clear();
-
-            return redirect()
-                ->route('client.invoice', $invoice->hash)
-                ->with('message', __('Order registered. Please pay by card-to-card and wait for confirmation.'));
+        $invoice->storePaymentRequest(
+            'CARD-'.$invoice->hash.'-'.time(),
+            $payableAmount,
+            null,
+            'CARD',
+            'card-to-card'
+        );
+        $payment = $invoice->payments()->latest('id')->first();
+        if ($payment) {
+            $payment->status = PaymentModel::PENDING;
+            $payment->meta = array_merge($payment->meta ?? [], $activeBankAccount->toPaymentMeta());
+            $payment->save();
         }
 
-        $activeGateway = config('xshop.payment.active_gateway');
-        /** @var Payment $gateway */
-        $gateway = app($activeGateway.'-gateway');
-        logger()->info('pay controller', ['active_gateway' => $activeGateway, 'invoice' => $invoice->toArray()]);
+        self::clear();
 
-        if ($invoice->isCompleted()) {
-            return redirect()->back()->with('message', __('Invoice payed.'));
-        }
-
-        $callbackUrl = route('pay.check', ['invoice_hash' => $invoice->hash, 'gateway' => $gateway->getName()]);
-        try {
-            $response = $gateway->request($payableAmount, $callbackUrl);
-            $invoice->storePaymentRequest($response['order_id'], $payableAmount, $response['token'] ?? null, 'ONLINE', $gateway->getName());
-            $payment = $invoice->payments()->latest('id')->first();
-            session(['payment_id' => $payment?->id]);
-            \Session::save();
-
-            return $gateway->goToBank();
-        } catch (\Throwable $exception) {
-            $invoice->status = 'FAILED';
-            $invoice->save();
-            $this->releaseStockPieces($invoice);
-            \Log::error('Payment REQUEST exception: '.$exception->getMessage());
-            \Log::warning($exception->getTraceAsString());
-
-            return redirect()->back()->withErrors(__('error in payment. contact admin.'));
-        }
+        return redirect()
+            ->route('client.invoice', $invoice->hash)
+            ->with('message', __('Order registered. Please pay by card-to-card and wait for confirmation.'));
     }
 
     public static function clear()
@@ -322,6 +281,7 @@ class CardController extends Controller
         }
         \Cookie::expire('card');
         \Cookie::expire('q');
+        app(CartQuoteService::class)->forget();
 
         return true;
     }

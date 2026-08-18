@@ -204,7 +204,10 @@ class CheckoutFlowTest extends TestCase
         $this->assertCount(1, $lines);
         $this->assertNotNull($lines[0]['q']);
         $this->assertSame($quantity->id, $lines[0]['q']['id']);
-        $this->assertSame(1_250_000, $lines[0]['price']);
+        $this->assertSame(
+            app(\App\Services\ProductPriceCalculator::class)->priceForQuantity($product, $quantity),
+            $lines[0]['price']
+        );
         $this->assertSame($quantity->id, $lines[0]['selected_quantity_id']);
 
         $this->seed(\Database\Seeders\GfxSeeder::class);

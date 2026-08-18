@@ -127,14 +127,15 @@
 
                     <!-- Stock Status & Add to Cart -->
                     @php
-                        $rawPrice = $product->lowestAvailablePrice();
+                        $offerPiece = $product->firstAvailableQuantity();
+                        $rawPrice = $offerPiece?->price ?? $product->lowestAvailablePrice();
                         $hasNoPrice = ($rawPrice == 0 || $rawPrice == '' || $rawPrice == null);
-                        $availableStockItems = $product->availableQuantities()->get();
+                        $availableStockItems = $offerPiece ? [$offerPiece] : [];
                     @endphp
 
                     <div class="add-to-cart-box mb-4">
                         @if($product->stock_status == 'IN_STOCK' && !$hasNoPrice)
-                            @if($availableStockItems->count() > 0)
+                            @if($offerPiece)
                                 <quantities-add-to-card
                                     :qz='@json($availableStockItems)'
                                     :props='@json(usableProp($product->category->props))'

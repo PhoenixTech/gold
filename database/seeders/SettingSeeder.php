@@ -56,6 +56,14 @@ class SettingSeeder extends Seeder
                     'size' => '4',
                 ],
                 [
+                    'title' => __('Cart quote duration (minutes)'),
+                    'key' => 'cart_quote_minutes',
+                    'type' => 'NUMBER',
+                    'ltr' => true,
+                    'value' => '30',
+                    'size' => '4',
+                ],
+                [
                     'title' => __('Email'),
                     'key' => 'email',
                     'type' => 'TEXT',

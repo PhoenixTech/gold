@@ -129,7 +129,7 @@ class ProductPriceCalculatorTest extends TestCase
 
         $this->assertSame($this->calculator->calculate($product, 1), $light->price);
         $this->assertSame($this->calculator->calculate($product, 3), $heavy->price);
-        $this->assertSame(min($light->price, $heavy->price), $product->price);
+        $this->assertSame($light->price, $product->price);
         $this->assertSame(2, $product->stock_quantity);
     }
 

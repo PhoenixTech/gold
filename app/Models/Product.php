@@ -189,13 +189,19 @@ class Product extends Model implements HasMedia
 
     public function availableQuantities()
     {
-        return $this->hasMany(Quantity::class)->where('count', '>', 0);
+        return $this->hasMany(Quantity::class)->where('count', '>', 0)->orderBy('id');
+    }
+
+    public function firstAvailableQuantity(): ?Quantity
+    {
+        return $this->availableQuantities()->first();
     }
 
     public function lowestAvailablePrice(): int
     {
-        if ($this->availableQuantities()->exists()) {
-            return (int) $this->availableQuantities()->min('price');
+        $piece = $this->firstAvailableQuantity();
+        if ($piece !== null) {
+            return (int) $piece->price;
         }
 
         return (int) ($this->price ?? 0);

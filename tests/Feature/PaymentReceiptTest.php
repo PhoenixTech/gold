@@ -188,6 +188,19 @@ class PaymentReceiptTest extends TestCase
         $this->assertSame(Payment::FAIL, $payment->fresh()->status);
     }
 
+    public function test_expire_offline_command_skips_invoices_still_inside_three_hour_window(): void
+    {
+        [$customer, $invoice, $payment] = $this->createAwaitingCardInvoice();
+
+        $invoice->forceFill(['created_at' => now()->subHours(2)])->save();
+        $payment->forceFill(['created_at' => now()->subHours(2)])->save();
+
+        $this->artisan('offline:expire')->assertSuccessful();
+
+        $this->assertSame(Invoice::AWAITING_PAYMENT, $invoice->fresh()->status);
+        $this->assertSame(Payment::PENDING, $payment->fresh()->status);
+    }
+
     public function test_expire_offline_command_skips_invoices_with_receipts(): void
     {
         Storage::fake('public');

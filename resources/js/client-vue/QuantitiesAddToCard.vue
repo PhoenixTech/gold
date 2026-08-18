@@ -171,7 +171,13 @@ export default {
             }
         },
         commafy: commafy,
-    }
+    },
+    mounted() {
+        const first = (Array.isArray(this.qz) ? this.qz : []).findIndex((q) => Number(q.count) > 0);
+        if (first >= 0) {
+            this.select(first);
+        }
+    },
 }
 </script>
 

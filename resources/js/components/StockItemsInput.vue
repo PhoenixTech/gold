@@ -1,99 +1,122 @@
 <template>
     <div class="stock-items-input">
-        <div class="d-flex align-items-center justify-content-between mb-3">
-            <div>
+        <div class="stock-toolbar">
+            <div class="stock-toolbar-copy">
                 <h5 class="mb-1">{{ title }}</h5>
                 <p class="text-muted small mb-0">{{ subtitle }}</p>
-                <p class="text-muted small mb-0 mt-1">
-                    <i class="ri-flashlight-line"></i>
-                    {{ liveHint }}
-                </p>
+                <div class="stock-counts">
+                    <span class="badge text-bg-light border">{{ items.length.toLocaleString('fa-IR') }}</span>
+                    <span class="badge text-bg-success">{{ availableCount.toLocaleString('fa-IR') }} {{ availableLabel }}</span>
+                    <span v-if="soldCount > 0" class="badge text-bg-secondary">{{ soldCount.toLocaleString('fa-IR') }} {{ soldLabel }}</span>
+                </div>
             </div>
-            <button type="button" class="btn btn-outline-primary btn-sm" @click="addItem">
-                <i class="ri-add-line"></i>
-                {{ addLabel }}
-            </button>
+            <div class="stock-toolbar-actions">
+                <div v-if="items.length > 4" class="stock-search">
+                    <i class="ri-search-line"></i>
+                    <input
+                        type="search"
+                        class="form-control form-control-sm"
+                        v-model="query"
+                        :placeholder="searchPlaceholder"
+                    >
+                </div>
+                <button type="button" class="btn btn-primary btn-sm" @click="addItem">
+                    <i class="ri-add-line"></i>
+                    {{ addLabel }}
+                </button>
+            </div>
         </div>
 
-        <div v-if="items.length === 0" class="alert alert-light border">
+        <div v-if="items.length === 0" class="alert alert-light border mb-0">
             {{ emptyLabel }}
         </div>
 
-        <div v-for="(item, index) in items" :key="item._key" class="card mb-2 border">
-            <div class="card-body py-3">
-                <div class="row g-2 align-items-end">
-                    <div class="col-md-3">
-                        <label class="form-label small mb-1">{{ weightLabel }}</label>
-                        <input
-                            type="number"
-                            step="0.001"
-                            min="0.001"
-                            class="form-control"
-                            v-model.number="item.weight"
-                            :disabled="item.count <= 0"
-                            @input="recalculateItem(item)"
-                        >
+        <div v-else class="stock-list" ref="list">
+            <div class="stock-table-head">
+                <span>{{ skuLabel }}</span>
+                <span>{{ weightLabel }}</span>
+                <span>{{ priceLabel }}</span>
+                <span>{{ statusLabel }}</span>
+                <span></span>
+                <span></span>
+            </div>
+
+            <div v-if="filteredItems.length === 0" class="stock-empty-filter">
+                {{ searchPlaceholder }}
+            </div>
+
+            <div
+                v-for="item in filteredItems"
+                :key="item._key"
+                class="stock-row"
+                :class="{ 'is-sold': item.count <= 0, 'is-new': item.isNew }"
+            >
+                <div class="stock-row-main">
+                    <input
+                        type="text"
+                        class="form-control form-control-sm bg-light font-monospace"
+                        :value="item.code"
+                        readonly
+                        dir="ltr"
+                    >
+                    <input
+                        type="number"
+                        step="0.001"
+                        min="0.001"
+                        class="form-control form-control-sm"
+                        v-model.number="item.weight"
+                        :disabled="item.count <= 0"
+                        @input="recalculateItem(item)"
+                    >
+                    <input
+                        type="text"
+                        class="form-control form-control-sm fw-semibold"
+                        :value="formatPrice(livePrice(item))"
+                        readonly
+                        disabled
+                    >
+                    <div>
+                        <span v-if="item.count > 0" class="badge text-bg-success">{{ availableLabel }}</span>
+                        <span v-else class="badge text-bg-secondary">{{ soldLabel }}</span>
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label small mb-1">{{ codeLabel }}</label>
-                        <input
-                            type="text"
-                            class="form-control"
-                            v-model="item.code"
-                            :disabled="item.count <= 0"
-                            :placeholder="codePlaceholder"
-                        >
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label small mb-1">{{ priceLabel }}</label>
-                        <input
-                            type="text"
-                            class="form-control fw-semibold"
-                            :value="formatPrice(livePrice(item))"
-                            readonly
-                            disabled
-                        >
-                        <small class="text-muted">{{ livePriceLabel }}</small>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label small mb-1">{{ statusLabel }}</label>
-                        <div>
-                            <span v-if="item.count > 0" class="badge text-bg-success">{{ availableLabel }}</span>
-                            <span v-else class="badge text-bg-secondary">{{ soldLabel }}</span>
-                        </div>
-                    </div>
-                    <div class="col-md-1 text-end">
-                        <button
-                            v-if="item.count > 0"
-                            type="button"
-                            class="btn btn-outline-danger btn-sm"
-                            @click="removeItem(index)"
-                            :title="removeLabel"
-                        >
-                            <i class="ri-delete-bin-line"></i>
-                        </button>
-                    </div>
+                    <button
+                        type="button"
+                        class="btn btn-sm btn-outline-secondary"
+                        :class="{ active: item.breakdownOpen }"
+                        :title="breakdownTitle"
+                        @click="item.breakdownOpen = !item.breakdownOpen"
+                    >
+                        <i class="ri-calculator-line"></i>
+                    </button>
+                    <button
+                        v-if="item.count > 0"
+                        type="button"
+                        class="btn btn-outline-danger btn-sm"
+                        @click="removeItem(item)"
+                        :title="removeLabel"
+                    >
+                        <i class="ri-delete-bin-line"></i>
+                    </button>
+                    <span v-else></span>
                 </div>
 
-                <div v-if="breakdown(item)" class="price-breakdown mt-3">
-                    <div class="small fw-semibold mb-2 text-secondary">
-                        <i class="ri-calculator-line"></i>
-                        {{ breakdownTitle }}
+                <div v-show="item.breakdownOpen" class="stock-row-breakdown">
+                    <div v-if="breakdown(item)" class="price-breakdown">
+                        <ol class="price-breakdown-list mb-0">
+                            <li v-for="(step, stepIndex) in breakdown(item).steps" :key="stepIndex">
+                                <span class="step-label">{{ step.label }}</span>
+                                <span class="step-math" dir="ltr">{{ step.math }}</span>
+                                <span class="step-value" dir="ltr">{{ step.value }}</span>
+                            </li>
+                        </ol>
+                        <div class="price-breakdown-total mt-2">
+                            <span>{{ finalLabel }}:</span>
+                            <strong dir="ltr">{{ formatPrice(breakdown(item).final) }}</strong>
+                        </div>
                     </div>
-                    <ol class="price-breakdown-list mb-0">
-                        <li v-for="(step, stepIndex) in breakdown(item).steps" :key="stepIndex">
-                            <span class="step-label">{{ step.label }}</span>
-                            <span class="step-math" dir="ltr">{{ step.math }}</span>
-                            <span class="step-value" dir="ltr">{{ step.value }}</span>
-                        </li>
-                    </ol>
-                    <div class="price-breakdown-total mt-2">
-                        <span>{{ finalLabel }}:</span>
-                        <strong dir="ltr">{{ formatPrice(breakdown(item).final) }}</strong>
+                    <div v-else class="alert alert-light border small mb-0">
+                        {{ needWeightHint }}
                     </div>
-                </div>
-                <div v-else class="alert alert-light border small mt-3 mb-0">
-                    {{ needWeightHint }}
                 </div>
             </div>
         </div>
@@ -101,6 +124,7 @@
         <input type="hidden" :name="xname" :value="payload">
     </div>
 </template>
+
 
 <script>
 let keySeed = 0;
@@ -124,6 +148,10 @@ export default {
         xvalue: {
             type: [Array, String],
             default: () => [],
+        },
+        productSku: {
+            type: String,
+            default: '',
         },
         goldPrice: {
             type: [Number, String],
@@ -153,6 +181,10 @@ export default {
             type: String,
             default: 'وزن (گرم)',
         },
+        skuLabel: {
+            type: String,
+            default: 'SKU',
+        },
         codeLabel: {
             type: String,
             default: 'کد',
@@ -181,10 +213,6 @@ export default {
             type: String,
             default: 'حذف',
         },
-        livePriceLabel: {
-            type: String,
-            default: 'قیمت محاسبه‌شده لحظه‌ای',
-        },
         liveHint: {
             type: String,
             default: 'بر اساس وزن فعلی و تنظیمات قیمت‌گذاری محاسبه می‌شود.',
@@ -209,6 +237,10 @@ export default {
             type: String,
             default: 'نقره',
         },
+        searchPlaceholder: {
+            type: String,
+            default: 'جستجوی SKU یا وزن',
+        },
     },
     data() {
         return {
@@ -222,7 +254,19 @@ export default {
             },
             formulaTick: 0,
             formEl: null,
+            query: '',
         };
+    },
+    watch: {
+        availableCount: {
+            immediate: true,
+            handler(value) {
+                const el = document.getElementById('stock_quantity');
+                if (el) {
+                    el.value = value;
+                }
+            },
+        },
     },
     computed: {
         payload() {
@@ -248,10 +292,34 @@ export default {
             this.formulaTick;
             return this.formula.metalType === 'silver' ? this.metalSilverLabel : this.metalGoldLabel;
         },
+        currentProductSku() {
+            this.formulaTick;
+            const fromForm = (this.readField('#sku') || '').trim();
+            return fromForm || String(this.productSku || '').trim();
+        },
+        availableCount() {
+            return this.items.filter((item) => item.count > 0).length;
+        },
+        soldCount() {
+            return this.items.length - this.availableCount;
+        },
+        filteredItems() {
+            const q = String(this.query || '').trim().toLowerCase();
+            if (!q) {
+                return this.items;
+            }
+
+            return this.items.filter((item) => {
+                const code = String(item.code || '').toLowerCase();
+                const weight = String(item.weight ?? '');
+                return code.includes(q) || weight.includes(q);
+            });
+        },
     },
     mounted() {
         this.formEl = this.$el.closest('form');
         this.syncFormulaFromForm();
+        this.ensurePieceSkus();
         this.recalculateAll();
 
         if (this.formEl) {
@@ -277,6 +345,7 @@ export default {
     methods: {
         onFormChanged() {
             this.syncFormulaFromForm();
+            this.ensurePieceSkus();
             this.recalculateAll();
         },
         readField(selector) {
@@ -407,23 +476,81 @@ export default {
                 count: row.count == null ? 1 : Number(row.count),
                 price: row.price ?? 0,
                 image: row.image ?? null,
-            }));
+                breakdownOpen: false,
+                isNew: false,
+            })).reverse();
+        },
+        parsePieceNumber(code) {
+            const sku = this.currentProductSku;
+            const value = String(code || '').trim();
+            if (!sku || !value.startsWith(`${sku}-`)) {
+                return 0;
+            }
+            const n = parseInt(value.slice(sku.length + 1), 10);
+            return Number.isFinite(n) ? n : 0;
+        },
+        pieceSku(number) {
+            const sku = this.currentProductSku;
+            if (!sku) {
+                return '';
+            }
+            return `${sku}-${String(number).padStart(4, '0')}`;
+        },
+        nextPieceNumber() {
+            let max = 0;
+            this.items.forEach((item) => {
+                max = Math.max(max, this.parsePieceNumber(item.code));
+            });
+            return Math.max(max, this.items.length) + 1;
+        },
+        ensurePieceSkus() {
+            const sku = this.currentProductSku;
+            if (!sku) {
+                return;
+            }
+            this.items.forEach((item, index) => {
+                const code = String(item.code || '').trim();
+                if (code !== '' && this.parsePieceNumber(code) > 0) {
+                    return;
+                }
+                if (code !== '' && !code.includes('[native code]')) {
+                    return;
+                }
+                let max = 0;
+                this.items.forEach((other) => {
+                    max = Math.max(max, this.parsePieceNumber(other.code));
+                });
+                item.code = this.pieceSku(Math.max(max, index) + 1);
+            });
         },
         addItem() {
+            this.query = '';
             const item = {
                 _key: ++keySeed,
                 id: null,
                 weight: null,
-                code: '',
+                code: this.pieceSku(this.nextPieceNumber()),
                 count: 1,
                 price: 0,
                 image: null,
+                breakdownOpen: false,
+                isNew: true,
             };
-            this.items.push(item);
+            this.items.unshift(item);
             this.recalculateItem(item);
+            this.$nextTick(() => {
+                this.$refs.list?.scrollTo({ top: 0, behavior: 'smooth' });
+                this.$el.querySelector('.stock-row input[type="number"]')?.focus();
+            });
+            window.setTimeout(() => {
+                item.isNew = false;
+            }, 1600);
         },
-        removeItem(index) {
-            this.items.splice(index, 1);
+        removeItem(item) {
+            const index = this.items.findIndex((row) => row._key === item._key);
+            if (index >= 0) {
+                this.items.splice(index, 1);
+            }
         },
         formatPrice(price) {
             if (price === null || price === undefined || price === '') {
@@ -445,6 +572,109 @@ export default {
 </script>
 
 <style scoped>
+.stock-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 4;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin: -.25rem -.25rem 1rem;
+    padding: .75rem .25rem .85rem;
+    background: #fff;
+    border-bottom: 1px solid rgba(0, 0, 0, .06);
+}
+
+.stock-counts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem;
+    margin-top: .5rem;
+}
+
+.stock-toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    flex-wrap: wrap;
+}
+
+.stock-search {
+    position: relative;
+    min-width: 180px;
+}
+
+.stock-search i {
+    position: absolute;
+    inset-inline-start: .6rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    pointer-events: none;
+}
+
+.stock-search input {
+    padding-inline-start: 1.85rem;
+}
+
+.stock-list {
+    max-height: min(62vh, 720px);
+    overflow: auto;
+    border: 1px solid rgba(0, 0, 0, .08);
+    border-radius: .75rem;
+    background: #fff;
+}
+
+.stock-table-head,
+.stock-row-main {
+    display: grid;
+    grid-template-columns: minmax(140px, 1.15fr) 118px minmax(120px, 1fr) 88px 40px 40px;
+    gap: .5rem;
+    align-items: center;
+}
+
+.stock-table-head {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: .55rem .75rem;
+    background: #f8fafc;
+    border-bottom: 1px solid rgba(0, 0, 0, .06);
+    color: #64748b;
+    font-size: .75rem;
+    font-weight: 700;
+}
+
+.stock-row {
+    border-bottom: 1px solid rgba(0, 0, 0, .05);
+    padding: .55rem .75rem;
+}
+
+.stock-row:last-child {
+    border-bottom: 0;
+}
+
+.stock-row.is-sold {
+    opacity: .72;
+    background: #f8fafc;
+}
+
+.stock-row.is-new {
+    background: #eff6ff;
+}
+
+.stock-row-breakdown {
+    padding-top: .65rem;
+}
+
+.stock-empty-filter {
+    padding: 1.25rem .75rem;
+    color: #64748b;
+    font-size: .85rem;
+}
+
 .price-breakdown {
     background: #f8fafc;
     border: 1px solid rgba(0, 0, 0, .06);
@@ -499,9 +729,14 @@ export default {
 }
 
 @media (max-width: 768px) {
+    .stock-table-head {
+        display: none;
+    }
+
+    .stock-row-main,
     .price-breakdown-list li {
         grid-template-columns: 1fr;
-        gap: .15rem;
+        gap: .35rem;
     }
 
     .step-value {
@@ -509,3 +744,4 @@ export default {
     }
 }
 </style>
+

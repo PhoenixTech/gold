@@ -258,6 +258,8 @@ class ProductController extends XController
             return;
         }
 
+        $items = Quantity::assignPieceSkus($items, (string) $product->sku);
+
         $keepIds = [];
 
         foreach ($items as $item) {

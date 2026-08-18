@@ -109,8 +109,6 @@ class ProductPriceCalculator
         /** @var Collection<int, Quantity> $available */
         $available = $product->quantities->where('count', '>', 0);
 
-        $prices = [];
-
         foreach ($product->quantities as $quantity) {
             if ((float) ($quantity->weight ?? 0) <= 0 && empty($quantity->data)) {
                 continue;
@@ -118,14 +116,11 @@ class ProductPriceCalculator
 
             $quantity->price = $this->priceForQuantity($product, $quantity);
             $quantity->save();
-
-            if ($quantity->count > 0) {
-                $prices[] = $quantity->price;
-            }
         }
 
         $product->stock_quantity = $available->sum('count');
-        $product->price = $prices === [] ? 0 : min($prices);
+        $firstAvailable = $available->sortBy('id')->first();
+        $product->price = $firstAvailable !== null ? (int) $firstAvailable->price : 0;
 
         $minPercent = (int) $this->settingValue('min', 105);
 
@@ -144,10 +139,10 @@ class ProductPriceCalculator
 
     public function syncProductAggregates(Product $product): Product
     {
-        $available = $product->quantities()->where('count', '>', 0);
+        $available = $product->quantities()->where('count', '>', 0)->orderBy('id');
 
         $product->stock_quantity = (int) $available->sum('count');
-        $product->price = (int) ($available->min('price') ?? 0);
+        $product->price = (int) ($available->clone()->value('price') ?? 0);
 
         if ($product->stock_quantity <= 0 || $product->price <= 0) {
             $product->stock_status = 'OUT_STOCK';

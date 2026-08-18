@@ -17,34 +17,6 @@
 @endphp
 
 <div class="row g-4">
-    <div class="col-12">
-        <stock-items-input
-            xname="stock_items"
-            :xvalue='@json($stockItems)'
-            :gold-price="{{ $goldPrice }}"
-            :silver-price="{{ $silverPrice }}"
-            title="{{__('Stock pieces')}}"
-            subtitle="{{__('Each row is one unique piece with its own weight and price.')}}"
-            add-label="{{__('Add piece')}}"
-            empty-label="{{__('No stock pieces yet.')}}"
-            weight-label="{{__('Weight (grams)')}}"
-            code-label="{{__('Code')}}"
-            code-placeholder="{{__('Optional')}}"
-            price-label="{{__('Price')}}"
-            status-label="{{__('Status')}}"
-            available-label="{{__('Available')}}"
-            sold-label="{{__('Sold')}}"
-            remove-label="{{__('Remove')}}"
-            live-price-label="{{__('Live calculated price')}}"
-            live-hint="{{__('Calculated from current weight and pricing settings.')}}"
-            breakdown-title="{{__('Price calculation breakdown')}}"
-            final-label="{{__('Final price')}}"
-            need-weight-hint="{{__('Enter weight to see calculation details.')}}"
-            metal-gold-label="{{__('Gold')}}"
-            metal-silver-label="{{__('Silver')}}"
-        ></stock-items-input>
-    </div>
-
     <div class="col-md-4">
         <div class="form-group">
             <label for="stock_quantity" class="fw-semibold">{{__('Stock quantity')}}</label>
@@ -76,4 +48,33 @@
             </select>
         </div>
     </div>
+
+    <div class="col-12">
+        <stock-items-input
+            xname="stock_items"
+            :xvalue='@json($stockItems)'
+            :product-sku='@json($item->sku ?? "")'
+            :gold-price="{{ $goldPrice }}"
+            :silver-price="{{ $silverPrice }}"
+            title="{{__('Stock pieces')}}"
+            subtitle="{{__('Each row is one unique piece with its own weight and price.')}}"
+            add-label="{{__('Add piece')}}"
+            empty-label="{{__('No stock pieces yet.')}}"
+            sku-label="{{__('Piece SKU')}}"
+            weight-label="{{__('Weight (grams)')}}"
+            price-label="{{__('Price')}}"
+            status-label="{{__('Status')}}"
+            available-label="{{__('Available')}}"
+            sold-label="{{__('Sold')}}"
+            remove-label="{{__('Remove')}}"
+            live-hint="{{__('Calculated from current weight and pricing settings.')}}"
+            breakdown-title="{{__('Price calculation breakdown')}}"
+            final-label="{{__('Final price')}}"
+            need-weight-hint="{{__('Enter weight to see calculation details.')}}"
+            metal-gold-label="{{__('Gold')}}"
+            metal-silver-label="{{__('Silver')}}"
+            search-placeholder="{{__('Search SKU or weight')}}"
+        ></stock-items-input>
+    </div>
 </div>
+

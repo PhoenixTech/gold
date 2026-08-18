@@ -5,8 +5,11 @@
     $profileComplete = $isLoggedIn && $customer->isCheckoutReady();
     $canPay = $profileComplete;
     $cartData = getCartData();
+    $cartQuote = app(\App\Services\CartQuoteService::class);
+    $cartItems = cardItems();
+    $quote = $cartQuote->current();
     $nsCardPayload = [
-        'items' => cardItems(),
+        'items' => $cartItems,
         'qs' => $cartData['qs'],
         'addresses' => $isLoggedIn ? $customer->addresses : [],
         'customer' => $isLoggedIn ? [
@@ -26,6 +29,9 @@
         'bankAccountNumber' => $bank['account_number'],
         'bankSheba' => $bank['iban'],
         'bankAccountName' => $bank['account_holder_name'],
+        'quoteExpiresAt' => $quote['expires_at'] ?? 0,
+        'quoteMinutes' => $quote['ttl_minutes'] ?? $cartQuote->ttlMinutes(),
+        'offlinePaymentHours' => \App\Models\Invoice::offlinePaymentHours(),
         'cardLink' => route('client.product-card-toggle', '').'/',
         'discountLink' => route('client.card.discount', '').'/',
         'productLink' => route('client.product', '').'/',
@@ -79,10 +85,23 @@
             'add-address' => __('Add address'),
             'products-total' => __('Products total'),
             'pay-method' => __('Payment method'),
-            'online-pay' => __('Online payment'),
-            'online-pay-hint' => __('Secure payment via bank gateway'),
             'card-pay' => __('Card to card'),
             'card-pay-hint' => __('Transfer to shop card and upload the receipt within :hours hours', ['hours' => \App\Models\Invoice::offlinePaymentHours()]),
+            'live-price-title' => __('Gold price is live'),
+            'live-price-hint' => __('Piece prices are calculated from the current gold rate. You have :minutes minutes to create the invoice.', ['minutes' => $quote['ttl_minutes'] ?? $cartQuote->ttlMinutes()]),
+            'quote-remaining' => __('Time remaining to create the invoice'),
+            'quote-expired' => __('Prices expired. Refreshing…'),
+            'quote-step' => __('Create invoice'),
+            'pay-step' => __('Card-to-card and receipt'),
+            'minutes-short' => __('minutes'),
+            'hours-short' => __('hours'),
+            'pieces' => __('pieces'),
+            'live-piece-price' => __('Live price'),
+            'copy' => __('Copy'),
+            'copied' => __('Copied'),
+            'copy-failed' => __('Could not copy'),
+            'aside-note' => __('After the invoice, you have :hours hours to pay and upload the receipt.', ['hours' => \App\Models\Invoice::offlinePaymentHours()]),
+            'bank-name' => __('Bank'),
             'bank-info' => __('Card-to-card details'),
             'account-name' => __('Account name'),
             'card-number' => __('Card number'),
@@ -218,8 +237,8 @@
                         <div class="col-6 col-md-3">
                             <div class="perk-item">
                                 <i class="ri-bank-card-line perk-icon text-warning"></i>
-                                <h6 class="fw-bold mt-2 mb-1">{{ __("Secure Online Payment") }}</h6>
-                                <p class="text-muted fs-12 mb-0">{{ __("Connected to official bank gateways") }}</p>
+                                <h6 class="fw-bold mt-2 mb-1">{{ __('Card to card') }}</h6>
+                                <p class="text-muted fs-12 mb-0">{{ __('Pay and upload your receipt within :hours hours.', ['hours' => \App\Models\Invoice::offlinePaymentHours()]) }}</p>
                             </div>
                         </div>
                         <div class="col-6 col-md-3">

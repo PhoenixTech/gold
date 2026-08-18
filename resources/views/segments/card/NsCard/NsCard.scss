@@ -20,11 +20,11 @@
     }
 
     .empty-cart-card {
-        background: #ffffff;
-        border: 1px solid rgba(0, 0, 0, 0.08);
+        background: #fffdf8;
+        border: 1px solid rgba(61, 46, 20, 0.1);
         border-radius: max(var(--xshop-border-radius), 20px);
         padding: 3.5rem 2rem;
-        box-shadow: 0 10px 35px rgba(0, 0, 0, 0.04);
+        box-shadow: 0 10px 35px rgba(61, 46, 20, 0.05);
         position: relative;
         overflow: hidden;
 
@@ -35,7 +35,7 @@
             left: 0;
             right: 0;
             height: 4px;
-            background: linear-gradient(90deg, var(--xshop-primary), var(--xshop-secondary, #3d3846));
+            background: linear-gradient(90deg, var(--xshop-primary), color-mix(in srgb, var(--xshop-primary) 40%, #3d2e14));
         }
     }
 
@@ -56,7 +56,8 @@
         position: relative;
         color: var(--xshop-primary);
         box-shadow: 0 10px 25px rgba(219, 154, 0, 0.18);
-        animation: emptyCartFloat 3s ease-in-out infinite;
+        animation: none;
+        box-shadow: 0 10px 25px rgba(219, 154, 0, 0.18);
 
         .empty-main-icon {
             font-size: 52px;
@@ -69,7 +70,7 @@
             right: 8px;
             font-size: 22px;
             color: var(--xshop-primary);
-            animation: sparkleGlow 2s ease-in-out infinite;
+            animation: none;
         }
     }
 
@@ -155,8 +156,8 @@
     }
 
     .empty-cart-perks {
-        background: #f8fafc !important;
-        border: 1px solid rgba(0, 0, 0, 0.06) !important;
+        background: #fbf6ee !important;
+        border: 1px solid rgba(61, 46, 20, 0.08) !important;
 
         .perk-icon {
             font-size: 32px;
