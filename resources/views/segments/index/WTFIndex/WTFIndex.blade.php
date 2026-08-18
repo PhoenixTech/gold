@@ -2,7 +2,7 @@
     <!-- Top Category Tabs Bar -->
     <div class="wtf-tabs-container bg-white border-top border-bottom shadow-sm mb-4">
         <div class="{{gfx()['container']}}">
-            <div id="wtf-main-btns" class="d-flex align-items-center justify-content-center overflow-auto py-3 gap-2 text-nowrap">
+            <div id="wtf-main-btns" class="wtf-main-btns py-3">
                 @foreach(getCategoriesSet($data->area_name.'_'.$data->part.'_categories') as $k => $mainCategory)
                     <button type="button" class="btn main-dir rounded-pill px-4 py-2 fw-bold fs-14 transition-all @if($k == 0) active @endif shadow-sm"
                             style="background: {{$mainCategory->bg_color}}; color: {{$mainCategory->color}};"

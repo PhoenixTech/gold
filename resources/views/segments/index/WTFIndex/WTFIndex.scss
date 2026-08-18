@@ -1,7 +1,12 @@
 .WTFIndex {
     .wtf-tabs-container {
         #wtf-main-btns {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .5rem;
             -webkit-overflow-scrolling: touch;
+
             &::-webkit-scrollbar {
                 display: none;
             }
@@ -16,6 +21,25 @@
                     opacity: 1;
                     transform: scale(1.05);
                     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15) !important;
+                }
+            }
+
+            @media (max-width: 767.98px) {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                width: 100%;
+
+                .main-dir {
+                    width: 100%;
+                    min-width: 0;
+                    text-align: center;
+                    white-space: nowrap;
+                    padding-inline: .55rem;
+
+                    &:hover,
+                    &.active {
+                        transform: none;
+                    }
                 }
             }
         }

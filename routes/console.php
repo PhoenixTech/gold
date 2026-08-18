@@ -10,4 +10,8 @@ Artisan::command('inspire', function () {
 
 Schedule::command('gold')->everyFiveMinutes();
 
+Schedule::command('gold:free')
+    ->everyTwoMinutes()
+    ->withoutOverlapping();
+
 Schedule::command('offline:expire')->everyFifteenMinutes();
