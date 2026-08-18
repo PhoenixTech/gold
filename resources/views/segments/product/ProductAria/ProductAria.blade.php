@@ -289,7 +289,7 @@
                             @if($approvedComments->count() > 0)
                                 <div class="comments-list mb-4 d-flex flex-column gap-3">
                                     @foreach($approvedComments as $comment)
-                                        @include('segments.post.SimplePost.inc.comment-detail', ['comment' => $comment])
+                                        @include('segments.product.ProductAria.inc.comment-detail', ['comment' => $comment])
                                     @endforeach
                                 </div>
                             @else

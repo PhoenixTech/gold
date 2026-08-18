@@ -2,58 +2,40 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Area extends Model
 {
-//    use HasFactory;
+    /**
+     * Segment folders that still exist on disk (active theme parts only).
+     *
+     * @var list<string>
+     */
     public static $allSegments = [
-        'ads',
         'attachment',
         'attachments',
         'attachments_page',
         'card',
-        'categories',
-//        'categories_page',
         'category',
-        'comments',
-        'contact',
         'clip',
-        'clips',
         'clips_page',
-        'comments',
         'compare',
+        'contact',
         'customer',
-        'floats',
         'footer',
-        'galleries',
         'galleries_page',
         'gallery',
-        'group',
-        'groups',
-//        'groups_page',
         'header',
         'index',
         'invoice',
         'login',
         'menu',
-        'other',
-        'parallax',
         'post',
-        'posts',
         'posts_page',
-        'preloader',
         'product',
-        'products',
         'product_grid',
         'products_page',
         'register',
-        'questions',
-        'search',
-        'slider',
-        'top',
-        'under'
     ];
 
     protected $casts = [
@@ -64,7 +46,6 @@ class Area extends Model
     {
         return json_decode($this->valid_segments, true);
     }
-
 
     public function getRouteKeyName()
     {
@@ -79,6 +60,7 @@ class Area extends Model
     public function defPart()
     {
         $p = $this->parts()->first();
-        return 'segments.' . $p->segment . '.' . $p->part . '.' . $p->part;
+
+        return 'segments.'.$p->segment.'.'.$p->part.'.'.$p->part;
     }
 }
