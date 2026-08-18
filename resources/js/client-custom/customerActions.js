@@ -10,14 +10,13 @@ window.addEventListener('load', function () {
         return base + '/' + encodeURIComponent(slug);
     }
 
-    // Robust Clipboard Copy Function (Works in HTTP, HTTPS, Desktop & Mobile)
     async function copyToClipboard(text) {
         if (navigator.clipboard && window.isSecureContext) {
             try {
                 await navigator.clipboard.writeText(text);
                 return true;
             } catch (e) {
-                // fallback to execCommand below
+                // Fallback below
             }
         }
         try {
@@ -38,6 +37,46 @@ window.addEventListener('load', function () {
         }
     }
 
+    async function handleProductToggle({ slug, btnSelector, actionSelector, fallbackUrl, attrName, successFallback }) {
+        try {
+            const url = makeActionUrl(actionSelector, fallbackUrl, slug);
+            const resp = await axios.get(url);
+            if (resp.data && resp.data.OK) {
+                const newVal = String(resp.data.data);
+                document.querySelectorAll(`${btnSelector}[data-slug="${slug}"]`)?.forEach(b => {
+                    b.setAttribute(attrName, newVal);
+                });
+                window.$toast?.success(resp.data.message || successFallback);
+            } else {
+                window.$toast?.error(resp.data?.message || "خطا در پردازش درخواست");
+            }
+        } catch (err) {
+            const status = err.response?.status;
+            const isAuthErr = status === 401 || status === 403;
+            const msg = err.response?.data?.message || (isAuthErr ? "لطفا ابتدا وارد حساب کاربری خود شوید" : "خطا در برقراری ارتباط با سرور");
+            if (isAuthErr) {
+                window.$toast?.warning(msg);
+            } else {
+                window.$toast?.error(msg);
+            }
+        }
+    }
+
+    function renderCommentAlert(form, type, message) {
+        const iconClass = type === 'success' ? 'ri-checkbox-circle-fill text-success' : 'ri-error-warning-fill text-danger';
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show comment-feedback-alert my-3 d-flex align-items-center gap-2`;
+        alertDiv.innerHTML = `
+            <i class="${iconClass} fs-5"></i>
+            <div>${message}</div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        form.prepend(alertDiv);
+        if (type === 'success') {
+            alertDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }
+
     // Delegated Global Click Listener
     document.addEventListener('click', async function (e) {
         // --- Share Button ---
@@ -49,23 +88,16 @@ window.addEventListener('load', function () {
             const shareUrl = shareBtn.getAttribute('data-url') || window.location.href;
             const shareTitle = shareBtn.getAttribute('data-title') || document.title;
 
-            // Try Native Web Share API first (Mobile)
             if (navigator.share) {
                 try {
-                    await navigator.share({
-                        title: shareTitle,
-                        url: shareUrl
-                    });
+                    await navigator.share({ title: shareTitle, url: shareUrl });
                     window.$toast?.success("اشتراک‌گذاری انجام شد");
                     return;
                 } catch (err) {
-                    if (err.name === 'AbortError') {
-                        return; // User canceled share sheet
-                    }
+                    if (err.name === 'AbortError') return;
                 }
             }
 
-            // Fallback to Clipboard Copy
             const copied = await copyToClipboard(shareUrl);
             if (copied) {
                 window.$toast?.success("لینک محصول با موفقیت در کلیپ‌بورد کپی شد");
@@ -80,30 +112,16 @@ window.addEventListener('load', function () {
         if (favBtn) {
             e.preventDefault();
             e.stopPropagation();
-
             const slug = favBtn.getAttribute('data-slug');
-            if (!slug) return;
-
-            try {
-                const url = makeActionUrl('#api-fav-toggle', '/product/fav/toggle', slug);
-                let resp = await axios.get(url);
-                if (resp.data && resp.data.OK) {
-                    const newVal = String(resp.data.data);
-                    document.querySelectorAll(`.fav-btn[data-slug="${slug}"]`)?.forEach(b => {
-                        b.setAttribute('data-is-fav', newVal);
-                    });
-                    window.$toast?.success(resp.data.message || "علاقه‌مندی به‌روزرسانی شد");
-                } else {
-                    window.$toast?.error(resp.data?.message || "خطا در ثبت علاقه‌مندی");
-                }
-            } catch (err) {
-                const status = err.response?.status;
-                const msg = err.response?.data?.message || (status === 401 || status === 403 ? "لطفا ابتدا وارد حساب کاربری خود شوید" : "خطا در برقراری ارتباط با سرور");
-                if (status === 401 || status === 403) {
-                    window.$toast?.warning(msg);
-                } else {
-                    window.$toast?.error(msg);
-                }
+            if (slug) {
+                await handleProductToggle({
+                    slug,
+                    btnSelector: '.fav-btn',
+                    actionSelector: '#api-fav-toggle',
+                    fallbackUrl: '/product/fav/toggle',
+                    attrName: 'data-is-fav',
+                    successFallback: 'علاقه‌مندی به‌روزرسانی شد',
+                });
             }
             return;
         }
@@ -113,30 +131,16 @@ window.addEventListener('load', function () {
         if (bookmarkBtn) {
             e.preventDefault();
             e.stopPropagation();
-
             const slug = bookmarkBtn.getAttribute('data-slug');
-            if (!slug) return;
-
-            try {
-                const url = makeActionUrl('#api-bookmark-toggle', '/product/bookmark/toggle', slug);
-                let resp = await axios.get(url);
-                if (resp.data && resp.data.OK) {
-                    const newVal = String(resp.data.data);
-                    document.querySelectorAll(`.bookmark-btn[data-slug="${slug}"]`)?.forEach(b => {
-                        b.setAttribute('data-is-bookmarked', newVal);
-                    });
-                    window.$toast?.success(resp.data.message || "نشان‌شده‌ها به‌روزرسانی شد");
-                } else {
-                    window.$toast?.error(resp.data?.message || "خطا در ثبت نشان‌شده‌ها");
-                }
-            } catch (err) {
-                const status = err.response?.status;
-                const msg = err.response?.data?.message || (status === 401 || status === 403 ? "لطفا ابتدا وارد حساب کاربری خود شوید" : "خطا در برقراری ارتباط با سرور");
-                if (status === 401 || status === 403) {
-                    window.$toast?.warning(msg);
-                } else {
-                    window.$toast?.error(msg);
-                }
+            if (slug) {
+                await handleProductToggle({
+                    slug,
+                    btnSelector: '.bookmark-btn',
+                    actionSelector: '#api-bookmark-toggle',
+                    fallbackUrl: '/product/bookmark/toggle',
+                    attrName: 'data-is-bookmarked',
+                    successFallback: 'نشان‌شده‌ها به‌روزرسانی شد',
+                });
             }
             return;
         }
@@ -146,13 +150,12 @@ window.addEventListener('load', function () {
         if (compBtn) {
             e.preventDefault();
             e.stopPropagation();
-
             const slug = compBtn.getAttribute('data-slug');
             if (!slug) return;
 
             try {
                 const url = makeActionUrl('#api-compare-toggle', '/product/compare/toggle', slug);
-                let resp = await axios.get(url);
+                const resp = await axios.get(url);
                 if (resp.data && resp.data.OK) {
                     window.$toast?.success(resp.data.message);
                 } else {
@@ -176,7 +179,7 @@ window.addEventListener('load', function () {
             cartBtn.classList.add('disabled');
 
             try {
-                let resp = await axios.get(targetUrl);
+                const resp = await axios.get(targetUrl);
                 if (resp.data.OK) {
                     window.$toast?.success(resp.data.message);
                     document.querySelectorAll('.card-count')?.forEach(function (el2) {
@@ -199,7 +202,6 @@ window.addEventListener('load', function () {
             } finally {
                 cartBtn.classList.remove('disabled');
             }
-            return;
         }
     });
 
@@ -217,7 +219,6 @@ window.addEventListener('load', function () {
             submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> در حال ارسال...';
         }
 
-        // Remove any existing inline feedback alerts
         commentForm.querySelectorAll('.comment-feedback-alert')?.forEach(a => a.remove());
 
         const targetUrl = commentForm.getAttribute('action') || commentForm.querySelector('.safe-url')?.getAttribute('data-url') || '/comment/submit';
@@ -229,32 +230,14 @@ window.addEventListener('load', function () {
                 const successMsg = resp.data.message || "دیدگاه شما با موفقیت ثبت شد و پس از بررسی نمایش داده خواهد شد.";
                 window.$toast?.success(successMsg);
 
-                // Clear comment message textarea
                 const messageInput = commentForm.querySelector('textarea[name="message"]');
                 if (messageInput) messageInput.value = '';
 
-                // Insert prominent success alert box above form
-                const alertDiv = document.createElement('div');
-                alertDiv.className = 'alert alert-success alert-dismissible fade show comment-feedback-alert my-3 d-flex align-items-center gap-2';
-                alertDiv.innerHTML = `
-                    <i class="ri-checkbox-circle-fill fs-5 text-success"></i>
-                    <div>${successMsg}</div>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                `;
-                commentForm.prepend(alertDiv);
-                alertDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                renderCommentAlert(commentForm, 'success', successMsg);
             } else {
                 const errorMsg = resp.data.message || "خطا در ثبت دیدگاه";
                 window.$toast?.error(errorMsg);
-
-                const alertDiv = document.createElement('div');
-                alertDiv.className = 'alert alert-danger alert-dismissible fade show comment-feedback-alert my-3 d-flex align-items-center gap-2';
-                alertDiv.innerHTML = `
-                    <i class="ri-error-warning-fill fs-5 text-danger"></i>
-                    <div>${errorMsg}</div>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                `;
-                commentForm.prepend(alertDiv);
+                renderCommentAlert(commentForm, 'danger', errorMsg);
             }
         } catch (err) {
             let errorMsg = err.response?.data?.message || "خطا در برقراری ارتباط با سرور";
@@ -265,15 +248,7 @@ window.addEventListener('load', function () {
                 }
             }
             window.$toast?.error(errorMsg);
-
-            const alertDiv = document.createElement('div');
-            alertDiv.className = 'alert alert-danger alert-dismissible fade show comment-feedback-alert my-3 d-flex align-items-center gap-2';
-            alertDiv.innerHTML = `
-                <i class="ri-error-warning-fill fs-5 text-danger"></i>
-                <div>${errorMsg}</div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            `;
-            commentForm.prepend(alertDiv);
+            renderCommentAlert(commentForm, 'danger', errorMsg);
         } finally {
             if (submitBtn) {
                 submitBtn.disabled = false;

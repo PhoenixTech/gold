@@ -206,6 +206,25 @@ class CheckoutFlowTest extends TestCase
         $this->assertSame($quantity->id, $lines[0]['q']['id']);
         $this->assertSame(1_250_000, $lines[0]['price']);
         $this->assertSame($quantity->id, $lines[0]['selected_quantity_id']);
+
+        $this->seed(\Database\Seeders\GfxSeeder::class);
+        $this->seed(\Database\Seeders\AreaSeeder::class);
+
+        $area = \App\Models\Area::where('name', 'card')->first();
+        $part = new \App\Models\Part;
+        $part->area_id = $area->id;
+        $part->segment = 'card';
+        $part->part = 'NsCard';
+        $part->data = '[]';
+        $part->sort = 1;
+        $part->save();
+
+        $response = $this->withCookie('card', json_encode([$product->id]))
+            ->withCookie('q', json_encode([$quantity->id]))
+            ->get(route('client.card'));
+
+        $response->assertOk();
+        $response->assertSee('ns-card', false);
     }
 
     public function test_incomplete_profile_cannot_checkout(): void

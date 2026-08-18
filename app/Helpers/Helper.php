@@ -1120,26 +1120,84 @@ function usableProp($props): array
 }
 
 /**
+ * Resolve raw cart product IDs and selected quantity IDs from cookies or customer model.
+ *
+ * @return array{cards: array<int, int>, qs: array<int, int|null>}
+ */
+function getCartData(): array
+{
+    $cards = [];
+    $qs = [];
+
+    $cookieCard = \Cookie::get('card') ?? (request()->hasCookie('card') ? request()->cookie('card') : null);
+    $cookieQ = \Cookie::get('q') ?? (request()->hasCookie('q') ? request()->cookie('q') : null);
+
+    if (is_array($cookieCard)) {
+        $cards = $cookieCard;
+    } elseif (is_string($cookieCard) && trim($cookieCard) !== '') {
+        $decoded = json_decode($cookieCard, true);
+        if (is_array($decoded)) {
+            $cards = $decoded;
+        } else {
+            $decoded = json_decode(urldecode($cookieCard), true);
+            if (is_array($decoded)) {
+                $cards = $decoded;
+            }
+        }
+    }
+
+    if (is_array($cookieQ)) {
+        $qs = $cookieQ;
+    } elseif (is_string($cookieQ) && trim($cookieQ) !== '') {
+        $decoded = json_decode($cookieQ, true);
+        if (is_array($decoded)) {
+            $qs = $decoded;
+        } else {
+            $decoded = json_decode(urldecode($cookieQ), true);
+            if (is_array($decoded)) {
+                $qs = $decoded;
+            }
+        }
+    }
+
+    if (empty($cards) && auth('customer')->check()) {
+        $customer = auth('customer')->user();
+        if ($customer && ! empty($customer->card)) {
+            $data = is_array($customer->card) ? $customer->card : json_decode($customer->card, true);
+            if (is_array($data)) {
+                if (isset($data['cards']) && is_array($data['cards'])) {
+                    $cards = $data['cards'];
+                    $qs = $data['quantities'] ?? [];
+                } else {
+                    $cards = $data;
+                }
+            }
+        }
+    }
+
+    return [
+        'cards' => array_values(array_filter((array) $cards, fn ($v) => $v !== null && $v !== '')),
+        'qs' => array_values((array) $qs),
+    ];
+}
+
+/**
  * shopping card items
  *
  * @return array<int, array<string, mixed>>
  */
-function cardItems()
+function cardItems(): array
 {
-    if (cardCount() == 0) {
-        return [];
-    }
+    $cart = getCartData();
+    $cardIds = $cart['cards'];
+    $quantityIds = $cart['qs'];
 
-    $cardIds = json_decode(\Cookie::get('card') ?: '[]', true) ?: [];
-    $quantityIds = json_decode(\Cookie::get('q') ?: '[]', true) ?: [];
-
-    if (! is_array($cardIds) || $cardIds === []) {
+    if (empty($cardIds)) {
         return [];
     }
 
     $products = Product::query()
         ->whereIn('id', array_values(array_unique($cardIds)))
-        ->where('status', 1)
         ->with(['availableQuantities'])
         ->get()
         ->keyBy('id');
@@ -1179,13 +1237,11 @@ function cardItems()
  *
  * @return int
  */
-function cardCount()
+function cardCount(): int
 {
-    if (! \Cookie::has('card')) {
-        return 0;
-    }
+    $cart = getCartData();
 
-    return count(json_decode(\Cookie::get('card'), true));
+    return count($cart['cards']);
 }
 
 /**

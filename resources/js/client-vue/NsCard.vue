@@ -41,7 +41,7 @@
                                         :code-label="t('code', 'کد')"
                                     ></q-preview>
                                 </template>
-                                <p v-else class="piece-missing">
+                                <p v-else-if="item.qz && item.qz.length > 0" class="piece-missing">
                                     {{ t('piece-missing', 'قطعه انتخاب نشده') }}
                                     —
                                     <a :href="productLink + item.slug">{{ t('choose-piece', 'انتخاب قطعه') }}</a>

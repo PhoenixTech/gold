@@ -4,9 +4,10 @@
     $isLoggedIn = auth('customer')->check();
     $profileComplete = $isLoggedIn && $customer->isCheckoutReady();
     $canPay = $profileComplete;
+    $cartData = getCartData();
     $nsCardPayload = [
         'items' => cardItems(),
-        'qs' => json_decode(\Cookie::get('q') ?: '[]', true) ?: [],
+        'qs' => $cartData['qs'],
         'addresses' => $isLoggedIn ? $customer->addresses : [],
         'customer' => $isLoggedIn ? [
             'name' => $customer->name,

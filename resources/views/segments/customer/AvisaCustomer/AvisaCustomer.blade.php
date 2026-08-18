@@ -1,6 +1,24 @@
-<section id='AvisaCustomer' class=' live-setting' data-live="{{$data->area_name.'_'.$data->part}}" data-profile-incomplete="{{ (auth('customer')->user()->name == null || trim(auth('customer')->user()->name) == '' || auth('customer')->user()->email == null || trim(auth('customer')->user()->email) == '' || auth('customer')->user()->addresses()->count() == 0) ? 'true' : 'false' }}">
 @php
-    $awaitingReceiptInvoices = auth('customer')->user()
+    $customer = auth('customer')->user();
+    $missingFields = [];
+    if (empty(trim((string) $customer->name))) {
+        $missingFields[] = __('Name');
+    }
+    if (empty(trim((string) $customer->email))) {
+        $missingFields[] = __('Email');
+    }
+    if ($customer->addresses()->count() === 0) {
+        $missingFields[] = __('Addresses');
+    }
+    $isProfileIncomplete = count($missingFields) > 0;
+
+    $invoicesCount = $customer->invoices()->count();
+    $favoritesCount = $customer->favorites()->count();
+    $bookmarksCount = $customer->bookmarks()->count();
+    $addressesCount = $customer->addresses()->count();
+    $ticketsCount = $customer->tickets()->count();
+
+    $awaitingReceiptInvoices = $customer
         ->invoices()
         ->where('status', \App\Models\Invoice::AWAITING_PAYMENT)
         ->whereHas('payments', function ($query) {
@@ -14,6 +32,7 @@
     $activeBankAccount = \App\Models\BankAccount::activeAccount();
     $activeBank = \App\Http\Controllers\CardController::activeBankDisplay();
 @endphp
+<section id='AvisaCustomer' class=' live-setting' data-live="{{$data->area_name.'_'.$data->part}}" data-profile-incomplete="{{ $isProfileIncomplete ? 'true' : 'false' }}">
 <div class="{{gfx()['container']}}">
         <button class="avisa-menu-btn d-lg-none" id="avisa-menu-btn" type="button" aria-label="Menu">
             <i class="ri-menu-3-line"></i>
@@ -24,13 +43,13 @@
             <div class="col-lg-3">
                 <div class="avisa-sidebar" id="avisa-sidebar">
                     <div class="avisa-user">
-                        <img src="{{auth('customer')->user()->avatar()}}"  alt="[avatar]" class="avisa-avatar" onclick="document.querySelector('#avatar').click();">
+                        <img src="{{$customer->avatar()}}"  alt="[avatar]" class="avisa-avatar" onclick="document.querySelector('#avatar').click();">
                         <div class="avisa-user-meta">
                             <small>
                                 {{__("Welcome back")}}
                             </small>
                             <strong>
-                                {{auth('customer')->user()->name}}
+                                {{$customer->name}}
                             </strong>
                         </div>
                         <button class="avisa-close-btn d-lg-none" id="avisa-close-btn" type="button" aria-label="Close">
@@ -48,7 +67,7 @@
                         <a href="#invoices">
                             <span class="avisa-nav-icon"><i class="ri-file-list-3-line"></i></span>
                             <span class="avisa-nav-label">{{__("Invoices")}}</span>
-                            <span class="avisa-nav-count">{{number_format(auth('customer')->user()->invoices()->count())}}</span>
+                            <span class="avisa-nav-count">{{number_format($invoicesCount)}}</span>
                         </a>
                     </li>
                     <li>
@@ -64,14 +83,14 @@
                         <a href="#likes">
                             <span class="avisa-nav-icon"><i class="ri-heart-3-line"></i></span>
                             <span class="avisa-nav-label">{{__("Favorites")}}</span>
-                            <span class="avisa-nav-count">{{number_format(auth('customer')->user()->favorites()->count())}}</span>
+                            <span class="avisa-nav-count">{{number_format($favoritesCount)}}</span>
                         </a>
                     </li>
                     <li>
                         <a href="#bookmarks">
                             <span class="avisa-nav-icon"><i class="ri-bookmark-line"></i></span>
                             <span class="avisa-nav-label">{{__("Bookmarks")}}</span>
-                            <span class="avisa-nav-count">{{number_format(auth('customer')->user()->bookmarks()->count())}}</span>
+                            <span class="avisa-nav-count">{{number_format($bookmarksCount)}}</span>
                         </a>
                     </li>
                     <li>
@@ -84,21 +103,21 @@
                         <a href="#addresses">
                             <span class="avisa-nav-icon"><i class="ri-map-pin-line"></i></span>
                             <span class="avisa-nav-label">{{__("Addresses")}}</span>
-                            <span class="avisa-nav-count">{{number_format(auth('customer')->user()->addresses()->count())}}</span>
+                            <span class="avisa-nav-count">{{number_format($addressesCount)}}</span>
                         </a>
                     </li>
                     <li>
                         <a href="#credit">
                             <span class="avisa-nav-icon"><i class="ri-bank-card-2-line"></i></span>
                             <span class="avisa-nav-label">{{__("Credit")}}</span>
-                            <span class="avisa-nav-count">{{number_format(auth('customer')->user()->credit)}}</span>
+                            <span class="avisa-nav-count">{{number_format($customer->credit)}}</span>
                         </a>
                     </li>
                     <li>
                         <a href="#tickets">
                             <span class="avisa-nav-icon"><i class="ri-customer-service-fill"></i></span>
                             <span class="avisa-nav-label">{{__("Tickets")}}</span>
-                            <span class="avisa-nav-count">{{number_format(auth('customer')->user()->tickets()->count())}}</span>
+                            <span class="avisa-nav-count">{{number_format($ticketsCount)}}</span>
                         </a>
                     </li>
                     <li>
@@ -198,20 +217,6 @@
                         <br>
                     </div>
                 @endif
-                @php
-                    $u = auth('customer')->user();
-                    $missingFields = [];
-                    if ($u->name == null || trim($u->name) == '') {
-                        $missingFields[] = __('Name');
-                    }
-                    if ($u->email == null || trim($u->email) == '') {
-                        $missingFields[] = __('Email');
-                    }
-                    if ($u->addresses()->count() == 0) {
-                        $missingFields[] = __('Addresses');
-                    }
-                    $isProfileIncomplete = count($missingFields) > 0;
-                @endphp
                 @if($isProfileIncomplete)
                     <div id="avisa-alert-profile" class="alert alert-danger mt-4 d-flex align-items-center justify-content-between flex-wrap gap-2 rounded-4">
                         <div class="d-flex align-items-center gap-2">
@@ -238,16 +243,16 @@
                     <div class="avisa-hero-card mb-4">
                         <div class="avisa-hero-body">
                             <div class="avisa-hero-user">
-                                <img src="{{auth('customer')->user()->avatar()}}" alt="avatar" class="avisa-hero-avatar" onclick="document.querySelector('#avatar')?.click();">
+                                <img src="{{$customer->avatar()}}" alt="avatar" class="avisa-hero-avatar" onclick="document.querySelector('#avatar')?.click();">
                                 <div>
                                     <h5 class="avisa-hero-title">
-                                        {{__("Welcome back")}}, {{auth('customer')->user()->name ?: __('Customer')}}! 👋
+                                        {{__("Welcome back")}}, {{$customer->name ?: __('Customer')}}! 👋
                                     </h5>
                                     <p class="avisa-hero-sub text-muted mb-0">
-                                        <i class="ri-phone-line me-1"></i> {{auth('customer')->user()->mobile}}
-                                        @if(auth('customer')->user()->created_at)
-                                            <span class="mx-2">•</span>
-                                            <i class="ri-calendar-line me-1"></i> {{__("Member since")}}: {{auth('customer')->user()->created_at->ldate('Y-m-d')}}
+                                        <i class="ri-phone-line me-1"></i> {{$customer->mobile}}
+                                        @if($customer->created_at)
+                                             <span class="mx-2">•</span>
+                                             <i class="ri-calendar-line me-1"></i> {{__("Member since")}}: {{$customer->created_at->ldate('Y-m-d')}}
                                         @endif
                                     </p>
                                 </div>
@@ -272,7 +277,7 @@
                                 </div>
                                 <div class="stat-details">
                                     <span class="stat-label">{{__("Invoices")}}</span>
-                                    <h5 class="stat-value">{{number_format(auth('customer')->user()->invoices()->count())}}</h5>
+                                    <h5 class="stat-value">{{number_format($invoicesCount)}}</h5>
                                 </div>
                             </div>
                         </div>
@@ -283,7 +288,7 @@
                                 </div>
                                 <div class="stat-details">
                                     <span class="stat-label">{{__("Favorites")}}</span>
-                                    <h5 class="stat-value">{{number_format(auth('customer')->user()->favorites()->count())}}</h5>
+                                    <h5 class="stat-value">{{number_format($favoritesCount)}}</h5>
                                 </div>
                             </div>
                         </div>
@@ -294,7 +299,7 @@
                                 </div>
                                 <div class="stat-details">
                                     <span class="stat-label">{{__("Bookmarks")}}</span>
-                                    <h5 class="stat-value">{{number_format(auth('customer')->user()->bookmarks()->count())}}</h5>
+                                    <h5 class="stat-value">{{number_format($bookmarksCount)}}</h5>
                                 </div>
                             </div>
                         </div>
@@ -305,7 +310,7 @@
                                 </div>
                                 <div class="stat-details">
                                     <span class="stat-label">{{__("Credits")}}</span>
-                                    <h5 class="stat-value">{{number_format(auth('customer')->user()->credit)}} <small>{{config('app.currency.symbol')}}</small></h5>
+                                    <h5 class="stat-value">{{number_format($customer->credit)}} <small>{{config('app.currency.symbol')}}</small></h5>
                                 </div>
                             </div>
                         </div>
@@ -316,7 +321,7 @@
                                 </div>
                                 <div class="stat-details">
                                     <span class="stat-label">{{__("Tickets")}}</span>
-                                    <h5 class="stat-value">{{number_format(auth('customer')->user()->tickets()->count())}}</h5>
+                                    <h5 class="stat-value">{{number_format($ticketsCount)}}</h5>
                                 </div>
                             </div>
                         </div>
@@ -327,7 +332,7 @@
                                 </div>
                                 <div class="stat-details">
                                     <span class="stat-label">{{__("Addresses")}}</span>
-                                    <h5 class="stat-value">{{number_format(auth('customer')->user()->addresses()->count())}}</h5>
+                                    <h5 class="stat-value">{{number_format($addressesCount)}}</h5>
                                 </div>
                             </div>
                         </div>
@@ -343,7 +348,7 @@
                                 </div>
                                 <div class="widget-body p-0">
                                     @php
-                                        $recentInvoices = auth('customer')->user()->invoices()->with(['payments', 'paymentReceipts'])->orderByDesc('id')->take(4)->get();
+                                        $recentInvoices = $customer->invoices()->with(['payments', 'paymentReceipts'])->orderByDesc('id')->take(4)->get();
                                     @endphp
                                     @if($recentInvoices->count() > 0)
                                         <div class="table-responsive">
@@ -400,7 +405,7 @@
                                 </div>
                                 <div class="widget-body">
                                     @php
-                                        $recentTickets = auth('customer')->user()->main_tickets()->orderByDesc('id')->take(3)->get();
+                                        $recentTickets = $customer->main_tickets()->orderByDesc('id')->take(3)->get();
                                     @endphp
                                     @if($recentTickets->count() > 0)
                                         <div class="avisa-ticket-mini-list">
@@ -444,7 +449,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach(auth('customer')->user()->invoices()->with(['payments', 'paymentReceipts'])->orderByDesc('id')->get() as $i => $inv)
+                                    @foreach($customer->invoices()->with(['payments', 'paymentReceipts'])->orderByDesc('id')->get() as $i => $inv)
                                         <tr class="{{ $inv->needsReceiptUpload() && $inv->paymentReceipts->isEmpty() ? 'avisa-invoice-needs-receipt' : '' }}">
                                             <td data-label="#"> {{$i+1}} </td>
                                             <td data-label="{{__('Total price')}}">
@@ -602,39 +607,39 @@
                                 <ul class="avisa-card-payment__pending-list">
                                     @foreach($awaitingReceiptInvoices as $pendingInv)
                                         <li>
-                                            <div>
-                                                <b>#{{ $pendingInv->id }}</b>
-                                                <span>{{ number_format($pendingInv->total_price) }} {{ config('app.currency.symbol') }}</span>
-                                                @if($pendingInv->payment_receipts_count > 0)
-                                                    <small class="is-waiting">{{ __('Under review') }}</small>
-                                                @else
-                                                    <small>{{ __('Receipt required') }}</small>
-                                                    @php
-                                                        $invDeadline = $pendingInv->offlinePaymentDeadline();
-                                                    @endphp
-                                                    @if($invDeadline)
-                                                        <small class="avisa-deadline-mini" dir="ltr">
-                                                            <i class="ri-time-line"></i>
-                                                            {{ $invDeadline->format('Y-m-d H:i') }}
-                                                        </small>
-                                                    @endif
-                                                @endif
-                                            </div>
-                                            <div class="avisa-card-payment__pending-actions">
-                                                @if($pendingInv->payment_receipts_count === 0)
-                                                    <button type="button"
-                                                            class="avisa-upload-receipt-btn"
-                                                            data-receipt-modal-open
-                                                            data-upload-url="{{ route('client.invoice.receipts.store', $pendingInv) }}"
-                                                            data-invoice-label="#{{ $pendingInv->id }} — {{ number_format($pendingInv->total_price) }} {{ config('app.currency.symbol') }}">
-                                                        <i class="ri-upload-2-line"></i>
-                                                        {{ __('Upload receipt') }}
-                                                    </button>
-                                                @endif
-                                                <a href="{{ route('client.invoice', $pendingInv) }}#receipt-upload" class="avisa-icon-btn" title="{{ __('View invoice') }}">
-                                                    <i class="ri-eye-line"></i>
-                                                </a>
-                                            </div>
+                                             <div>
+                                                 <b>#{{ $pendingInv->id }}</b>
+                                                 <span>{{ number_format($pendingInv->total_price) }} {{ config('app.currency.symbol') }}</span>
+                                                 @if($pendingInv->payment_receipts_count > 0)
+                                                     <small class="is-waiting">{{ __('Under review') }}</small>
+                                                 @else
+                                                     <small>{{ __('Receipt required') }}</small>
+                                                     @php
+                                                         $invDeadline = $pendingInv->offlinePaymentDeadline();
+                                                     @endphp
+                                                     @if($invDeadline)
+                                                         <small class="avisa-deadline-mini" dir="ltr">
+                                                             <i class="ri-time-line"></i>
+                                                             {{ $invDeadline->format('Y-m-d H:i') }}
+                                                         </small>
+                                                     @endif
+                                                 @endif
+                                             </div>
+                                             <div class="avisa-card-payment__pending-actions">
+                                                 @if($pendingInv->payment_receipts_count === 0)
+                                                     <button type="button"
+                                                             class="avisa-upload-receipt-btn"
+                                                             data-receipt-modal-open
+                                                             data-upload-url="{{ route('client.invoice.receipts.store', $pendingInv) }}"
+                                                             data-invoice-label="#{{ $pendingInv->id }} — {{ number_format($pendingInv->total_price) }} {{ config('app.currency.symbol') }}">
+                                                         <i class="ri-upload-2-line"></i>
+                                                         {{ __('Upload receipt') }}
+                                                     </button>
+                                                 @endif
+                                                 <a href="{{ route('client.invoice', $pendingInv) }}#receipt-upload" class="avisa-icon-btn" title="{{ __('View invoice') }}">
+                                                     <i class="ri-eye-line"></i>
+                                                 </a>
+                                             </div>
                                         </li>
                                     @endforeach
                                 </ul>
@@ -649,12 +654,12 @@
                 </div>
                 <div class="tab" id="profile">
                     <div class="avisa-profile-head">
-                        <img src="{{auth('customer')->user()->avatar()}}" alt="avatar"
+                        <img src="{{$customer->avatar()}}" alt="avatar"
                              class="avisa-profile-avatar"
                              onclick="document.querySelector('#avatar')?.click();">
                         <div class="avisa-profile-info">
-                            <h4>{{auth('customer')->user()->name ?: __('Customer')}}</h4>
-                            <span>{{auth('customer')->user()->mobile}}</span>
+                            <h4>{{$customer->name ?: __('Customer')}}</h4>
+                            <span>{{$customer->mobile}}</span>
                         </div>
                         <label class="avisa-upload-btn" for="avatar">
                             <i class="ri-image-add-line"></i>
@@ -683,7 +688,7 @@
                                         <input name="name" type="text"
                                                class="form-control @error('name') is-invalid @enderror"
                                                placeholder="{{__('Name')}}"
-                                               value="{{old('name',auth('customer')->user()->name??null)}}"/>
+                                               value="{{old('name', $customer->name)}}"/>
                                     </div>
                                 </div>
                                 <div class="col-md-4 mt-3">
@@ -694,7 +699,7 @@
                                         <input name="email" type="email"
                                                class="form-control @error('email') is-invalid @enderror"
                                                placeholder="{{__('Email')}}"
-                                               value="{{old('email',auth('customer')->user()->email??null)}}"/>
+                                               value="{{old('email', $customer->email)}}"/>
                                     </div>
                                 </div>
                                 <div class="col-md-4 mt-3">
@@ -705,7 +710,7 @@
                                         <input name="mobile" type="text" @if(config('app.sms.sign')) readonly
                                                @endif class="form-control @error('mobile') is-invalid @enderror"
                                                placeholder="{{__('Mobile')}}"
-                                               value="{{old('mobile',auth('customer')->user()->mobile??null)}}"
+                                               value="{{old('mobile', $customer->mobile)}}"
                                                min-length="10"/>
                                     </div>
                                 </div>
@@ -716,7 +721,7 @@
                                         </label>
                                         <input name="password" type="password"
                                                class="form-control @error('password') is-invalid @enderror"
-                                               placeholder="{{__('Password')}}" value="{{old('password',''??null)}}"/>
+                                               placeholder="{{__('Password')}}" value="{{old('password')}}"/>
                                     </div>
                                 </div>
                                 <div class="col-md-6 mt-3">
@@ -727,7 +732,7 @@
                                         <input name="password_confirmation" type="password"
                                                class="form-control @error('password_confirmation') is-invalid @enderror"
                                                placeholder="{{__('password repeat')}}"
-                                               value="{{old('password_confirmation',$item->password_confirmation??null)}}"/>
+                                               value="{{old('password_confirmation')}}"/>
                                     </div>
                                 </div>
                                 <div class="col-md-12 mt-3">
@@ -776,7 +781,7 @@
                                 {{__("Credits")}}
                             </h5>
                             <h2>
-                                {{number_format(auth('customer')->user()->credit)}}
+                                {{number_format($customer->credit)}}
                                 {{config('app.currency.symbol')}}
                             </h2>
 
@@ -785,7 +790,7 @@
                     <h5 class="my-3">
                         {{__("Credit history")}}
                     </h5>
-                    @foreach(auth('customer')->user()->credits as $cr)
+                    @foreach($customer->credits as $cr)
                         <div class="avisa-credit-item">
                             <div class="avisa-credit-top">
                                 <span class="avisa-credit-date">
@@ -836,7 +841,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach(auth('customer')->user()->main_tickets()->orderByDesc('id')->get() as $i =>  $ticket)
+                                    @foreach($customer->main_tickets()->orderByDesc('id')->get() as $i =>  $ticket)
                                         <tr>
                                             <td data-label="#"> {{$i+1}} </td>
                                             <td data-label="{{__('Title')}}">{{$ticket->title}}</td>
@@ -922,13 +927,13 @@
                                 <i class="ri-heart-3-line text-danger me-2"></i>
                                 {{__("Liked products")}}
                                 <span class="badge bg-danger-subtle text-danger rounded-pill fs-12 px-2.5 py-1 ms-2">
-                                    {{ number_format(auth('customer')->user()->favorites()->count()) }}
+                                    {{ number_format($favoritesCount) }}
                                 </span>
                             </h4>
                         </div>
 
                         @php
-                            $likedProducts = auth('customer')->user()->favorites()->with(['category'])->get();
+                            $likedProducts = $customer->favorites()->with(['category'])->get();
                         @endphp
 
                         @if($likedProducts->count() > 0)
@@ -1007,13 +1012,13 @@
                                 <i class="ri-bookmark-line text-warning me-2"></i>
                                 {{__("Bookmarked products")}}
                                 <span class="badge bg-warning-subtle text-warning rounded-pill fs-12 px-2.5 py-1 ms-2">
-                                    {{ number_format(auth('customer')->user()->bookmarks()->count()) }}
+                                    {{ number_format($bookmarksCount) }}
                                 </span>
                             </h4>
                         </div>
 
                         @php
-                            $bookmarkedProducts = auth('customer')->user()->bookmarks()->with(['category'])->get();
+                            $bookmarkedProducts = $customer->bookmarks()->with(['category'])->get();
                         @endphp
 
                         @if($bookmarkedProducts->count() > 0)
@@ -1106,7 +1111,7 @@
                     @php
                         $modalInvoice = $needUploadInvoices->first()
                             ?? $awaitingReceiptInvoices->first()
-                            ?? auth('customer')->user()->invoices()->latest('id')->first()
+                            ?? $customer->invoices()->latest('id')->first()
                             ?? new \App\Models\Invoice(['id' => 0]);
                     @endphp
                     @include('components.payment-receipt-uploader', [

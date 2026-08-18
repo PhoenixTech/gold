@@ -33,15 +33,10 @@ class CardController extends Controller
 
     public function productCardToggle(Product $product)
     {
-        $quantity = \request()->input('quantity', null);
-        if ($quantity !== null && $quantity !== '') {
-            $quantity = (int) $quantity;
-        } else {
-            $quantity = null;
-        }
+        $quantity = request()->filled('quantity') ? (int) request()->input('quantity') : null;
 
         if ($product->availableQuantities()->exists()) {
-            if ($quantity === null || $quantity === '') {
+            if ($quantity === null) {
                 if ($product->availableQuantities()->count() === 1) {
                     $quantity = $product->availableQuantities()->first()->id;
                 } else {
@@ -70,50 +65,40 @@ class CardController extends Controller
             }
         }
 
-        if (\Cookie::has('card')) {
-            $cards = json_decode(\Cookie::get('card'), true);
-            $qs = json_decode(\Cookie::get('q'), true);
-            if (in_array($product->id, $cards)) {
-                $found = false;
-                foreach ($cards as $i => $card) {
-                    if ($card == $product->id && $qs[$i] == $quantity) {
-                        $found = true;
-                        break;
-                    }
-                }
-                if ($found) {
-                    $msg = __('Product removed from card');
-                    unset($cards[$i]);
-                    unset($qs[$i]);
-                } else {
-                    $cards[] = $product->id;
-                    $qs[] = $quantity;
-                    $msg = __('Product added to card');
-                }
-            } else {
-                $cards[] = $product->id;
-                $qs[] = $quantity;
-                $msg = __('Product added to card');
+        $cart = getCartData();
+        $cards = $cart['cards'];
+        $qs = $cart['qs'];
+
+        $existingIndex = null;
+        foreach ($cards as $i => $cardId) {
+            if ((int) $cardId === (int) $product->id && ($qs[$i] ?? null) == $quantity) {
+                $existingIndex = $i;
+                break;
             }
-            $count = count($cards);
-            \Cookie::queue('card', json_encode($cards), 2000);
-            \Cookie::queue('q', json_encode($qs), 2000);
-        } else {
-            $count = 1;
-            $msg = __('Product added to card');
-            $qs = [$quantity];
-            $cards = [$product->id];
-            \Cookie::queue('card', json_encode($cards), 2000);
-            \Cookie::queue('q', json_encode($qs), 2000);
         }
 
-        if ($count > 0 && auth('customer')->check()) {
+        if ($existingIndex !== null) {
+            unset($cards[$existingIndex], $qs[$existingIndex]);
+            $cards = array_values($cards);
+            $qs = array_values($qs);
+            $msg = __('Product removed from card');
+        } else {
+            $cards[] = $product->id;
+            $qs[] = $quantity;
+            $msg = __('Product added to card');
+        }
+
+        $count = count($cards);
+        \Cookie::queue('card', json_encode($cards), 2000);
+        \Cookie::queue('q', json_encode($qs), 2000);
+
+        if (auth('customer')->check()) {
             $customer = auth('customer')->user();
-            $customer->card = json_encode(['cards' => $cards, 'quantities' => $qs]);
+            $customer->card = $count > 0 ? json_encode(['cards' => $cards, 'quantities' => $qs]) : null;
             $customer->save();
         }
 
-        if (\request()->ajax() || \request()->expectsJson()) {
+        if (request()->ajax() || request()->expectsJson()) {
             return success(['count' => $count], $msg);
         }
 
@@ -241,6 +226,7 @@ class CardController extends Controller
                         $order->price_total = $quantity->price * $order->count;
                         $order->data = $quantity->data;
                         $order->save();
+
                         $quantity->markSold();
                         $calculator->syncProductAggregates($product->fresh());
                     } else {
@@ -254,11 +240,9 @@ class CardController extends Controller
                 if ($invoice->discount_id) {
                     $discount = Discount::query()->whereKey($invoice->discount_id)->first();
                     if ($discount) {
-                        if ($discount->type === 'PERCENT') {
-                            $productsTotal = (int) (((100 - $discount->amount) * $productsTotal) / 100);
-                        } else {
-                            $productsTotal = max(0, $productsTotal - (int) $discount->amount);
-                        }
+                        $productsTotal = $discount->type === 'PERCENT'
+                            ? (int) (((100 - $discount->amount) * $productsTotal) / 100)
+                            : max(0, $productsTotal - (int) $discount->amount);
                     }
                 }
 
@@ -276,10 +260,12 @@ class CardController extends Controller
             return redirect()->back()->withErrors(__('error in payment. contact admin.'));
         }
 
+        $payableAmount = (int) (($invoice->total_price - $invoice->credit_price) * config('app.currency.factor'));
+
         if ($paymentMethod === 'card') {
             $invoice->storePaymentRequest(
                 'CARD-'.$invoice->hash.'-'.time(),
-                (int) (($invoice->total_price - $invoice->credit_price) * config('app.currency.factor')),
+                $payableAmount,
                 null,
                 'CARD',
                 'card-to-card'
@@ -309,8 +295,8 @@ class CardController extends Controller
 
         $callbackUrl = route('pay.check', ['invoice_hash' => $invoice->hash, 'gateway' => $gateway->getName()]);
         try {
-            $response = $gateway->request((($invoice->total_price - $invoice->credit_price) * config('app.currency.factor')), $callbackUrl);
-            $invoice->storePaymentRequest($response['order_id'], (($invoice->total_price - $invoice->credit_price) * config('app.currency.factor')), $response['token'] ?? null, 'ONLINE', $gateway->getName());
+            $response = $gateway->request($payableAmount, $callbackUrl);
+            $invoice->storePaymentRequest($response['order_id'], $payableAmount, $response['token'] ?? null, 'ONLINE', $gateway->getName());
             $payment = $invoice->payments()->latest('id')->first();
             session(['payment_id' => $payment?->id]);
             \Session::save();
@@ -397,22 +383,21 @@ class CardController extends Controller
     public function productCompareToggle($slug)
     {
         $product = Product::where('slug', $slug)->firstOrFail();
-        if (\Cookie::has('compares')) {
-            $compares = json_decode(\Cookie::get('compares'), true);
-            if (in_array($product->id, $compares)) {
-                $msg = __('Product removed from compare');
-                unset($compares[array_search($product->id, $compares)]);
-            } else {
-                $compares[] = $product->id;
-                $msg = __('Product added to compare');
-            }
-            \Cookie::queue('compares', json_encode($compares), 2000);
+        $compares = \Cookie::has('compares') ? (json_decode(\Cookie::get('compares'), true) ?: []) : [];
+
+        $index = array_search($product->id, $compares);
+        if ($index !== false) {
+            unset($compares[$index]);
+            $compares = array_values($compares);
+            $msg = __('Product removed from compare');
         } else {
+            $compares[] = $product->id;
             $msg = __('Product added to compare');
-            \Cookie::queue('compares', "[$product->id]", 2000);
         }
 
-        if (\request()->ajax()) {
+        \Cookie::queue('compares', json_encode($compares), 2000);
+
+        if (request()->ajax() || request()->expectsJson()) {
             return success(null, $msg);
         }
 

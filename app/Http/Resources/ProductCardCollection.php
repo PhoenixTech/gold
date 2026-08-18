@@ -23,7 +23,7 @@ class ProductCardCollection extends JsonResource
             'id' => $this->id,
             'slug' => $this->slug,
             'name' => $this->name,
-            'price' => $this->price,
+            'price' => $this->lowestAvailablePrice() ?: (int) ($this->price ?? 0),
             'image' => $this->imgUrl(),
             'meta' => $this->fullMeta(),
             'max' => $this->stock_quantity,

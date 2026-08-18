@@ -9,9 +9,12 @@ use Tests\TestCase;
 
 class CustomerTest extends TestCase
 {
+    use RefreshDatabase;
 
-    public function check(){
-        if (Customer::count() == 0){
+    public function check()
+    {
+        $this->seed([\Database\Seeders\GfxSeeder::class, \Database\Seeders\AreaSeeder::class]);
+        if (Customer::count() === 0) {
             Customer::factory(1)->create();
         }
     }
