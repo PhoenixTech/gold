@@ -11,9 +11,7 @@ class PartObsever
      */
     public function created(Part $part): void
     {
-        // run on add for new
-        $className= ucfirst($part->part);
-        $handle = "\\Resources\\Views\\Segments\\$className";
+        $handle = Part::segmentClass((string) $part->segment, (string) $part->part);
         $handle::onAdd($part);
     }
 
@@ -22,32 +20,29 @@ class PartObsever
      */
     public function updated(Part $part): void
     {
-        // remove old part  add new part
-
-        if ($part->isDirty('part')){
-            $p = clone $part;
-            $p->part = $part->getOriginal('part');
-            $classNameOld = ucfirst($part->getOriginal('part'));
-            $handleOld = "\\Resources\\Views\\Segments\\$classNameOld";
-            $handleOld::onRemove($p);
-
-            $className = $part->part;
-            $className= ucfirst($part->part);
-            $handle = "\\Resources\\Views\\Segments\\$className";
-            $handle::onAdd($part);
+        if (! $part->isDirty('part') && ! $part->isDirty('segment')) {
+            return;
         }
 
-    }
+        $oldSegment = (string) ($part->getOriginal('segment') ?? $part->segment);
+        $oldPart = (string) ($part->getOriginal('part') ?? $part->part);
+        $old = clone $part;
+        $old->segment = $oldSegment;
+        $old->part = $oldPart;
 
+        $handleOld = Part::segmentClass($oldSegment, $oldPart);
+        $handleOld::onRemove($old);
+
+        $handle = Part::segmentClass((string) $part->segment, (string) $part->part);
+        $handle::onAdd($part);
+    }
 
     /**
      * Handle the Part "deleted" event.
      */
     public function deleted(Part $part): void
     {
-        // remove part
-        $className= ucfirst($part->part);
-        $handle = "\\Resources\\Views\\Segments\\$className";
+        $handle = Part::segmentClass((string) $part->segment, (string) $part->part);
         $handle::onRemove($part);
     }
 
