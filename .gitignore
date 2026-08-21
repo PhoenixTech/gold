@@ -17,4 +17,7 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+/.agents
+/.cursor
+skills-lock.json
 package-lock.json

@@ -30,6 +30,7 @@
         <env name="SESSION_DRIVER" value="array"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="SMS_SING" value="false"/>
+        <env name="SMS_URL" value=""/>
         <env name="MINIFY_ENABLED" value="false"/>
     </php>
 </phpunit>

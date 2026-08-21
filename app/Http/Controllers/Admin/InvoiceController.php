@@ -31,6 +31,7 @@ class InvoiceController extends XController
     protected $buttons = [
         'edit' => ['title' => 'Edit', 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
         'show' => ['title' => 'Detail', 'class' => 'btn-outline-light', 'icon' => 'ri-eye-line'],
+        'print' => ['title' => 'Print', 'class' => 'btn-outline-secondary', 'icon' => 'ri-printer-line'],
         'destroy' => ['title' => 'Remove', 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-close-line'],
     ];
 
@@ -228,22 +229,63 @@ class InvoiceController extends XController
     }
     /* restore* */
 
-    public function show($hash)
+    public function show($item)
     {
+        $invoice = $item instanceof Invoice ? $item : Invoice::where('hash', $item)->firstOrFail();
+        $invoice->loadMissing([
+            'customer.addresses.state',
+            'customer.addresses.city',
+            'address.state',
+            'address.city',
+            'orders.product',
+            'orders.quantity',
+            'payments.receipts',
+            'paymentReceipts',
+            'transport',
+        ]);
 
-        $invoice = Invoice::where('hash', $hash)->firstOrFail();
-        $area = 'invoice';
-        $title = __('Invoice');
+        $title = __('Invoice').' #'.$invoice->hash;
         $subtitle = __('Invoice ID:').' '.$invoice->hash;
 
         $options = new QROptions([
             'version' => 5,
             'outputType' => QRCode::OUTPUT_MARKUP_SVG,
             'eccLevel' => QRCode::ECC_L,
-            //            'imageTransparent' => true,
         ]);
         $qr = new QRCode($options);
 
-        return view('client.invoice', compact('area', 'title', 'subtitle', 'invoice', 'qr'));
+        $autoPrint = request()->boolean('print', false);
+
+        return view('admin.invoices.invoice-show', compact('invoice', 'qr', 'title', 'subtitle', 'autoPrint'));
+    }
+
+    public function print($item)
+    {
+        $invoice = $item instanceof Invoice ? $item : Invoice::where('hash', $item)->firstOrFail();
+        $invoice->loadMissing([
+            'customer.addresses.state',
+            'customer.addresses.city',
+            'address.state',
+            'address.city',
+            'orders.product',
+            'orders.quantity',
+            'payments.receipts',
+            'paymentReceipts',
+            'transport',
+        ]);
+
+        $title = __('Print invoice').' - '.$invoice->hash;
+        $subtitle = __('Invoice ID:').' '.$invoice->hash;
+
+        $options = new QROptions([
+            'version' => 5,
+            'outputType' => QRCode::OUTPUT_MARKUP_SVG,
+            'eccLevel' => QRCode::ECC_L,
+        ]);
+        $qr = new QRCode($options);
+
+        $autoPrint = true;
+
+        return view('admin.invoices.invoice-show', compact('invoice', 'qr', 'title', 'subtitle', 'autoPrint'));
     }
 }

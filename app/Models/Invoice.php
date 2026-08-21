@@ -313,7 +313,7 @@ class Invoice extends Model
 
     public function successPayments()
     {
-        return $this->hasMany(Payment::class)->where('status', 'COMPLETED');
+        return $this->hasMany(Payment::class)->whereIn('status', ['SUCCESS', 'COMPLETED']);
     }
 
     public function payByBankUrl($gateway)
@@ -440,6 +440,11 @@ class Invoice extends Model
     public function address()
     {
         return $this->belongsTo(Address::class);
+    }
+
+    public function transport()
+    {
+        return $this->belongsTo(Transport::class);
     }
 
     public function evaluations()

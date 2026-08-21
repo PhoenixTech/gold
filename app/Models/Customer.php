@@ -50,6 +50,11 @@ class Customer extends Authenticatable
         return $this->hasMany(Address::class);
     }
 
+    public function isVisitor(): bool
+    {
+        return false;
+    }
+
     public function isCheckoutReady(): bool
     {
         $hasName = $this->name !== null && trim((string) $this->name) !== '';

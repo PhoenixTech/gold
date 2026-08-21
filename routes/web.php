@@ -212,6 +212,7 @@ Route::prefix(config('app.panel.prefix'))->name('admin.')->group(
                         //                        Route::post('store', [\App\Http\Controllers\Admin\InvoiceController::class, 'store'])->name('store');
                         Route::get('edit/{item}', [\App\Http\Controllers\Admin\InvoiceController::class, 'edit'])->name('edit');
                         Route::get('show/{item}', [\App\Http\Controllers\Admin\InvoiceController::class, 'show'])->name('show');
+                        Route::get('print/{item}', [\App\Http\Controllers\Admin\InvoiceController::class, 'print'])->name('print');
                         Route::post('update/{item}', [\App\Http\Controllers\Admin\InvoiceController::class, 'update'])->name('update');
                         Route::post('confirm-payment/{item}', [\App\Http\Controllers\Admin\InvoiceController::class, 'confirmPayment'])->name('confirm-payment');
                         Route::get('delete/{item}', [\App\Http\Controllers\Admin\InvoiceController::class, 'destroy'])->name('destroy');
