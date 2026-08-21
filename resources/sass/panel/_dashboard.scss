@@ -127,6 +127,18 @@
         box-shadow: 0 6px 15px -4px rgba(51, 65, 85, .5);
     }
 
+    .avisa-summary-stat-card.card-stock .stat-icon-wrapper {
+        background: linear-gradient(135deg, #059669, #047857);
+        color: #fff;
+        box-shadow: 0 6px 15px -4px rgba(5, 150, 105, .5);
+    }
+
+    .avisa-summary-stat-card.card-sold .stat-icon-wrapper {
+        background: linear-gradient(135deg, #6366f1, #4338ca);
+        color: #fff;
+        box-shadow: 0 6px 15px -4px rgba(99, 102, 241, .5);
+    }
+
     .dash-quick-links {
         list-style: none;
         margin: 0 0 1rem;

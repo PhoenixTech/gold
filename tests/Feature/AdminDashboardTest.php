@@ -8,6 +8,7 @@ use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\PaymentReceipt;
 use App\Models\Product;
+use App\Models\Quantity;
 use App\Models\Setting;
 use App\Models\Ticket;
 use App\Models\User;
@@ -166,6 +167,70 @@ class AdminDashboardTest extends TestCase
         ]), false);
     }
 
+    public function test_dashboard_shows_in_stock_and_sold_pieces_and_weights_breakdown(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        $this->actingAsAdmin();
+
+        $goldProduct = Product::factory()->create(['metal_type' => 'gold']);
+        $silverProduct = Product::factory()->create(['metal_type' => 'silver']);
+
+        // Gold product: 10 available pieces of 2.0g each (total 20g), 5 sold pieces of 3.0g each (total 15g)
+        for ($i = 0; $i < 10; $i++) {
+            Quantity::create([
+                'product_id' => $goldProduct->id,
+                'weight' => 2.000,
+                'count' => 1,
+                'price' => 1000000,
+            ]);
+        }
+        for ($i = 0; $i < 5; $i++) {
+            Quantity::create([
+                'product_id' => $goldProduct->id,
+                'weight' => 3.000,
+                'count' => 0,
+                'price' => 1500000,
+            ]);
+        }
+
+        // Silver product: 10 available pieces of 2.0g each (total 20g), 4 sold pieces of 2.5g each (total 10g)
+        for ($i = 0; $i < 10; $i++) {
+            Quantity::create([
+                'product_id' => $silverProduct->id,
+                'weight' => 2.000,
+                'count' => 1,
+                'price' => 200000,
+            ]);
+        }
+        for ($i = 0; $i < 4; $i++) {
+            Quantity::create([
+                'product_id' => $silverProduct->id,
+                'weight' => 2.500,
+                'count' => 0,
+                'price' => 250000,
+            ]);
+        }
+
+        $response = $this->get(route('home'));
+
+        $response->assertOk();
+        $response->assertSee('card-stock', false);
+        $response->assertSee('card-sold', false);
+
+        // In-stock card
+        $response->assertSee(__('In-stock inventory'), false);
+        // Total: 20 pieces, 40 grams
+        $response->assertSee('20', false);
+        $response->assertSee('40', false);
+
+        // Sold card
+        $response->assertSee(__('Sold items'), false);
+        // Total sold: 9 pieces, 25 grams
+        $response->assertSee('9', false);
+        $response->assertSee('25', false);
+    }
+
     public function test_dashboard_uses_persian_labels_for_shop_widgets(): void
     {
         $this->withoutVite();
@@ -186,5 +251,7 @@ class AdminDashboardTest extends TestCase
         $response->assertSee('آخرین صورت‌حساب‌ها', false);
         $response->assertSee('دسترسی سریع', false);
         $response->assertSee('هنوز به‌روز نشده', false);
+        $response->assertSee('موجودی انبار', false);
+        $response->assertSee('محصولات فروخته‌شده', false);
     }
 }

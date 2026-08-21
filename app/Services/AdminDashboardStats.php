@@ -6,6 +6,7 @@ use App\Models\BankAccount;
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Product;
+use App\Models\Quantity;
 use App\Models\Setting;
 use App\Models\Ticket;
 use App\Models\Visitor;
@@ -28,7 +29,9 @@ class AdminDashboardStats
      *     monthlyVisitors: int,
      *     bankAccount: ?BankAccount,
      *     recentInvoices: Collection<int, Invoice>,
-     *     today: string|null
+     *     today: string|null,
+     *     stockStats: array{total_count: int, total_weight: float, gold_count: int, gold_weight: float, silver_count: int, silver_weight: float},
+     *     soldStats: array{total_count: int, total_weight: float, gold_count: int, gold_weight: float, silver_count: int, silver_weight: float}
      * }
      */
     public function data(): array
@@ -48,7 +51,145 @@ class AdminDashboardStats
             'bankAccount' => BankAccount::activeAccount(),
             'recentInvoices' => Invoice::query()->with('customer')->latest('id')->limit(8)->get(),
             'today' => now()->ldate('Y/m/d'),
+            'stockStats' => $this->stockStats(),
+            'soldStats' => $this->soldStats(),
         ];
+    }
+
+    /**
+     * Calculate in-stock pieces and weight grouped by metal type.
+     *
+     * @return array{
+     *     total_count: int,
+     *     total_weight: float,
+     *     gold_count: int,
+     *     gold_weight: float,
+     *     silver_count: int,
+     *     silver_weight: float
+     * }
+     */
+    public function stockStats(): array
+    {
+        $quantityStats = Quantity::query()
+            ->join('products', 'quantities.product_id', '=', 'products.id')
+            ->whereNull('products.deleted_at')
+            ->where('quantities.count', '>', 0)
+            ->selectRaw("
+                LOWER(COALESCE(products.metal_type, 'gold')) as metal,
+                SUM(quantities.count) as total_count,
+                SUM(COALESCE(quantities.weight, 0) * quantities.count) as total_weight
+            ")
+            ->groupBy('metal')
+            ->get()
+            ->keyBy(fn ($row) => $row->metal === 'silver' ? 'silver' : 'gold');
+
+        $productStats = Product::query()
+            ->whereDoesntHave('quantities')
+            ->where('stock_status', 'IN_STOCK')
+            ->where('stock_quantity', '>', 0)
+            ->selectRaw("
+                LOWER(COALESCE(metal_type, 'gold')) as metal,
+                SUM(stock_quantity) as total_count,
+                SUM(COALESCE(weight, 0) * stock_quantity) as total_weight
+            ")
+            ->groupBy('metal')
+            ->get()
+            ->keyBy(fn ($row) => $row->metal === 'silver' ? 'silver' : 'gold');
+
+        $goldCount = (int) ($quantityStats->get('gold')?->total_count ?? 0)
+            + (int) ($productStats->get('gold')?->total_count ?? 0);
+        $goldWeight = (float) ($quantityStats->get('gold')?->total_weight ?? 0)
+            + (float) ($productStats->get('gold')?->total_weight ?? 0);
+
+        $silverCount = (int) ($quantityStats->get('silver')?->total_count ?? 0)
+            + (int) ($productStats->get('silver')?->total_count ?? 0);
+        $silverWeight = (float) ($quantityStats->get('silver')?->total_weight ?? 0)
+            + (float) ($productStats->get('silver')?->total_weight ?? 0);
+
+        return [
+            'total_count' => $goldCount + $silverCount,
+            'total_weight' => round($goldWeight + $silverWeight, 3),
+            'gold_count' => $goldCount,
+            'gold_weight' => round($goldWeight, 3),
+            'silver_count' => $silverCount,
+            'silver_weight' => round($silverWeight, 3),
+        ];
+    }
+
+    /**
+     * Calculate sold pieces and weight grouped by metal type.
+     *
+     * @return array{
+     *     total_count: int,
+     *     total_weight: float,
+     *     gold_count: int,
+     *     gold_weight: float,
+     *     silver_count: int,
+     *     silver_weight: float
+     * }
+     */
+    public function soldStats(): array
+    {
+        $quantityStats = Quantity::query()
+            ->join('products', 'quantities.product_id', '=', 'products.id')
+            ->whereNull('products.deleted_at')
+            ->where('quantities.count', '<=', 0)
+            ->selectRaw("
+                LOWER(COALESCE(products.metal_type, 'gold')) as metal,
+                COUNT(quantities.id) as total_count,
+                SUM(COALESCE(quantities.weight, 0)) as total_weight
+            ")
+            ->groupBy('metal')
+            ->get()
+            ->keyBy(fn ($row) => $row->metal === 'silver' ? 'silver' : 'gold');
+
+        $productStats = Product::query()
+            ->whereDoesntHave('quantities')
+            ->where('sell', '>', 0)
+            ->selectRaw("
+                LOWER(COALESCE(metal_type, 'gold')) as metal,
+                SUM(sell) as total_count,
+                SUM(COALESCE(weight, 0) * sell) as total_weight
+            ")
+            ->groupBy('metal')
+            ->get()
+            ->keyBy(fn ($row) => $row->metal === 'silver' ? 'silver' : 'gold');
+
+        $goldCount = (int) ($quantityStats->get('gold')?->total_count ?? 0)
+            + (int) ($productStats->get('gold')?->total_count ?? 0);
+        $goldWeight = (float) ($quantityStats->get('gold')?->total_weight ?? 0)
+            + (float) ($productStats->get('gold')?->total_weight ?? 0);
+
+        $silverCount = (int) ($quantityStats->get('silver')?->total_count ?? 0)
+            + (int) ($productStats->get('silver')?->total_count ?? 0);
+        $silverWeight = (float) ($quantityStats->get('silver')?->total_weight ?? 0)
+            + (float) ($productStats->get('silver')?->total_weight ?? 0);
+
+        return [
+            'total_count' => $goldCount + $silverCount,
+            'total_weight' => round($goldWeight + $silverWeight, 3),
+            'gold_count' => $goldCount,
+            'gold_weight' => round($goldWeight, 3),
+            'silver_count' => $silverCount,
+            'silver_weight' => round($silverWeight, 3),
+        ];
+    }
+
+    /**
+     * Format a weight in grams cleanly without trailing zeroes.
+     */
+    public static function formatWeight(float|int|string|null $weight): string
+    {
+        if ($weight === null || $weight === '') {
+            return '0';
+        }
+
+        $num = (float) $weight;
+        if ($num == 0.0) {
+            return '0';
+        }
+
+        return rtrim(rtrim(number_format($num, 3, '.', ''), '0'), '.');
     }
 
     /**

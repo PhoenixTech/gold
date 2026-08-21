@@ -96,6 +96,61 @@
         </div>
 
         <div class="row g-3 mb-4">
+            <div class="col-lg-6 col-md-6">
+                <a class="avisa-summary-stat-card card-stock" href="{{ route('admin.product.index') }}">
+                    <div class="stat-icon-wrapper">
+                        <i class="ri-archive-line"></i>
+                    </div>
+                    <div class="stat-details">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="stat-label mb-0">{{ __('In-stock inventory') }}</span>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                {{ number_format($stockStats['total_count']) }} {{ __('items') }} · {{ \App\Services\AdminDashboardStats::formatWeight($stockStats['total_weight']) }} {{ __('g') }}
+                            </span>
+                        </div>
+                        <h5 class="stat-value">
+                            {{ number_format($stockStats['total_count']) }}
+                            <small class="text-muted">{{ __('items') }}</small>
+                            <span class="mx-1 text-muted fw-normal">·</span>
+                            {{ \App\Services\AdminDashboardStats::formatWeight($stockStats['total_weight']) }}
+                            <small class="text-muted">{{ __('g') }}</small>
+                        </h5>
+                        <small class="stat-sub">
+                            <span class="me-2"><i class="ri-coins-line text-warning me-1"></i>{{ __('Gold') }}: {{ number_format($stockStats['gold_count']) }} {{ __('items') }} ({{ \App\Services\AdminDashboardStats::formatWeight($stockStats['gold_weight']) }} {{ __('g') }})</span>
+                            <span><i class="ri-vip-diamond-line text-secondary me-1"></i>{{ __('Silver') }}: {{ number_format($stockStats['silver_count']) }} {{ __('items') }} ({{ \App\Services\AdminDashboardStats::formatWeight($stockStats['silver_weight']) }} {{ __('g') }})</span>
+                        </small>
+                    </div>
+                </a>
+            </div>
+            <div class="col-lg-6 col-md-6">
+                <a class="avisa-summary-stat-card card-sold" href="{{ route('admin.invoice.index') }}">
+                    <div class="stat-icon-wrapper">
+                        <i class="ri-shopping-cart-check-line"></i>
+                    </div>
+                    <div class="stat-details">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="stat-label mb-0">{{ __('Sold items') }}</span>
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
+                                {{ number_format($soldStats['total_count']) }} {{ __('items') }} · {{ \App\Services\AdminDashboardStats::formatWeight($soldStats['total_weight']) }} {{ __('g') }}
+                            </span>
+                        </div>
+                        <h5 class="stat-value">
+                            {{ number_format($soldStats['total_count']) }}
+                            <small class="text-muted">{{ __('items') }}</small>
+                            <span class="mx-1 text-muted fw-normal">·</span>
+                            {{ \App\Services\AdminDashboardStats::formatWeight($soldStats['total_weight']) }}
+                            <small class="text-muted">{{ __('g') }}</small>
+                        </h5>
+                        <small class="stat-sub">
+                            <span class="me-2"><i class="ri-coins-line text-warning me-1"></i>{{ __('Gold') }}: {{ number_format($soldStats['gold_count']) }} {{ __('items') }} ({{ \App\Services\AdminDashboardStats::formatWeight($soldStats['gold_weight']) }} {{ __('g') }})</span>
+                            <span><i class="ri-vip-diamond-line text-secondary me-1"></i>{{ __('Silver') }}: {{ number_format($soldStats['silver_count']) }} {{ __('items') }} ({{ \App\Services\AdminDashboardStats::formatWeight($soldStats['silver_weight']) }} {{ __('g') }})</span>
+                        </small>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
             <div class="col-lg-3 col-md-6">
                 <a class="avisa-summary-stat-card card-credit" href="{{ route('admin.product.index') }}">
                     <div class="stat-icon-wrapper">
