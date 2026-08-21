@@ -389,6 +389,21 @@ Route::prefix(config('app.panel.prefix'))->name('admin.')->group(
                         Route::post('bulk', [\App\Http\Controllers\Admin\BankAccountController::class, 'bulk'])->name('bulk');
                         Route::get('trashed', [\App\Http\Controllers\Admin\BankAccountController::class, 'trashed'])->name('trashed');
                     });
+                Route::prefix('shop-visits')->name('shop-visit.')->group(
+                    function () {
+                        Route::get('', [\App\Http\Controllers\Admin\ShopVisitController::class, 'index'])->name('index');
+                        Route::get('export', [\App\Http\Controllers\Admin\ShopVisitController::class, 'export'])->name('export');
+                        Route::get('show/{item}', [\App\Http\Controllers\Admin\ShopVisitController::class, 'show'])->name('show');
+                        Route::get('delete/{item}', [\App\Http\Controllers\Admin\ShopVisitController::class, 'destroy'])->name('destroy');
+                        Route::post('bulk', [\App\Http\Controllers\Admin\ShopVisitController::class, 'bulk'])->name('bulk');
+                        Route::post('step-one', [\App\Http\Controllers\VisitorFormController::class, 'storeStepOne'])
+                            ->middleware('visitor')
+                            ->name('step-one');
+                        Route::post('step-two', [\App\Http\Controllers\VisitorFormController::class, 'storeStepTwo'])
+                            ->middleware('visitor')
+                            ->name('step-two');
+                    });
+
                 Route::prefix('users')->name('user.')->group(
                     function () {
                         Route::get('', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('index');

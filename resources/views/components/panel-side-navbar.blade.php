@@ -1,5 +1,13 @@
 <nav id="panel-navbar">
     <ul>
+        @if(auth()->user()->isVisitor())
+            <li>
+                <a href="{{ route('admin.home') }}" class="dsb-item">
+                    <i class="ri-file-edit-line"></i>
+                    <span class="nav-label">{{ __('Register shop') }}</span>
+                </a>
+            </li>
+        @else
         <li>
             <a href="{{route('client.welcome')}}" target="_blank" class="dsb-item">
                 <i class="ri-external-link-line"></i>
@@ -178,7 +186,7 @@
             </li>
         @endif
 
-        @if(auth()->user()->hasAnyAccesses(['user', 'state', 'city', 'adminlog', 'guestlog']))
+        @if(auth()->user()->hasAnyAccesses(['user', 'state', 'city', 'adminlog', 'guestlog', 'shop-visit']))
             <li>
                 <a href="#staff" class="dsb-item">
                     <i class="ri-shield-user-line"></i>
@@ -188,6 +196,9 @@
                 <ul id="staff">
                     @if(auth()->user()->hasAnyAccess('user'))
                         <li><a href="{{route('admin.user.index')}}"><i class="ri-user-line"></i>{{__("Staff")}}</a></li>
+                    @endif
+                    @if(auth()->user()->hasAnyAccess('shop-visit'))
+                        <li><a href="{{route('admin.shop-visit.index')}}"><i class="ri-walk-line"></i>{{__('Shop visits')}}</a></li>
                     @endif
                     @if(auth()->user()->hasAnyAccess('state'))
                         <li><a href="{{route('admin.state.index')}}"><i class="ri-map-line"></i>{{__("Provinces")}}</a></li>
@@ -215,6 +226,7 @@
                     <span class="nav-label">{{__("Settings")}}</span>
                 </a>
             </li>
+        @endif
         @endif
     </ul>
 </nav>

@@ -295,10 +295,16 @@
                                                             {{__("Removed")}}
                                                         @endif
                                                         @break
+                                                    @case('submitted_at')
+                                                        {{ $item->submittedAtLabel() }}
+                                                        @break
                                                     @case('expire')
                                                     @case('created_at')
                                                     @case('updated_at')
                                                         {{$item->$col?->ldate("Y-m-d H:i")??'-'}}
+                                                        @break
+                                                    @case('has_purchase')
+                                                        {{ $item->purchaseLabel() }}
                                                         @break
                                                      @case('metal_type')
                                                          <span class="badge @if(($item->metal_type ?? 'gold') == 'silver') bg-secondary text-white @else bg-warning text-dark @endif">

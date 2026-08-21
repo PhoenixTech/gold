@@ -74,10 +74,16 @@
                             <label for="role">
                                 {{__('Role')}}
                             </label>
+                            @php
+                                $roleItems = collect(\App\Models\User::$roles)->map(fn (string $role) => [
+                                    'name' => __($role),
+                                    'value' => $role,
+                                ])->values();
+                            @endphp
                             <searchable-select
-                                :items='{{arrayNormalizeVueCompatible(\App\Models\User::$roles, true)}}'
+                                :items='@json($roleItems)'
                                 title-field="name"
-                                value-field="name"
+                                value-field="value"
                                 xname="role"
                                 @error('role') :err="true" @enderror
                                 xvalue='{{old('role',$item->role??null)}}'

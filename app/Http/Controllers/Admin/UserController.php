@@ -2,15 +2,12 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
 use App\Http\Controllers\XController;
 use App\Http\Requests\UserSaveRequest;
 use App\Models\Access;
 use App\Models\User;
 use Illuminate\Http\Request;
-use App\Helper;
 use Spatie\Image\Image;
-use function App\Helpers\hasCreateRoute;
 
 class UserController extends XController
 {
@@ -18,53 +15,50 @@ class UserController extends XController
 
     protected $searchable = ['name', 'mobile', 'email'];
 
-
     protected const request = UserSaveRequest::class;
 
     protected $buttons = [
-        'edit' =>
-            ['title' => "Edit", 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
-        'show' =>
-            ['title' => "Detail", 'class' => 'btn-outline-light', 'icon' => 'ri-eye-line'],
-        'log' =>
-            ['title' => "Logs", 'class' => 'btn-outline-light', 'icon' => 'ri-file-list-2-line'],
-        'destroy' =>
-            ['title' => "Remove", 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-close-line'],
+        'edit' => ['title' => 'Edit', 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
+        'show' => ['title' => 'Detail', 'class' => 'btn-outline-light', 'icon' => 'ri-eye-line'],
+        'log' => ['title' => 'Logs', 'class' => 'btn-outline-light', 'icon' => 'ri-file-list-2-line'],
+        'destroy' => ['title' => 'Remove', 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-close-line'],
     ];
 
     public function save($user, $request)
     {
 
-//        dd($request->all());
-        if ($user->role == 'DEVELOPER' && !auth()->user()->hasRole('developer')) {
+        //        dd($request->all());
+        $role = User::normalizeRole($request->input('role'));
+
+        if ($user->role == 'DEVELOPER' && ! auth()->user()->hasRole('developer')) {
             abort(403);
         }
-        if (!auth()->user()->hasRole('developer') && $request->role == 'DEVELOPER') {
+        if (! auth()->user()->hasRole('developer') && $role == 'DEVELOPER') {
             abort(403);
         }
 
         $user->name = $request->input('name');
-        if (!config('app.demo')) {
+        if (! config('app.demo')) {
             $user->email = $request->input('email');
             if (trim($request->input('password')) != '') {
                 $user->password = bcrypt($request->input('password'));
             }
         }
         $user->mobile = $request->input('mobile');
-        $user->role = $request->input('role');
-        $user->syncRoles($request->input('role'));
+        $user->role = $role;
+        $user->syncRoles([strtolower((string) $role)]);
         $user->save();
         if ($request->has('acl')) {
             $user->accesses()->delete();
             foreach ($request->input('acl', []) as $route) {
-                $a = new Access();
+                $a = new Access;
                 $a->route = $route;
                 $a->user_id = $user->id;
                 $a->save();
                 $routes = explode('.', $route);
                 if ($routes[2] == 'store' || $routes[2] == 'update') {
                     $routes[2] = $routes[2] == 'store' ? 'create' : 'edit';
-                    $a = new Access();
+                    $a = new Access;
                     $a->route = implode('.', $routes);
                     $a->user_id = $user->id;
                     $a->save();
@@ -74,7 +68,7 @@ class UserController extends XController
         }
 
         if ($request->hasFile('avatar')) {
-            $name = time() . '.' . request()->avatar->getClientOriginalExtension();
+            $name = time().'.'.request()->avatar->getClientOriginalExtension();
             $user->avatar = $name;
             $request->file('avatar')->storeAs('public/users', $name);
             $format = $request->file('avatar')->guessExtension();
@@ -88,13 +82,13 @@ class UserController extends XController
                 ->crop(500, 500)
 //                ->nonQueued()
                 ->format($format);
-            $i->save(storage_path() . '/app/public/users/'. $user->avatar);
+            $i->save(storage_path().'/app/public/users/'.$user->avatar);
             $user->save();
         }
+
         return $user;
 
     }
-
 
     /**
      * Show the form for creating a new resource.
@@ -116,19 +110,22 @@ class UserController extends XController
             if (array_key_exists('as', $action)) {
                 $routeName = explode('.', $action['as']);
                 if (isset($routeName[2]) && $routeName[0] == 'admin') {
-                    if (!isset($routes[$routeName[1]])) {
+                    if (! isset($routes[$routeName[1]])) {
                         $routes[$routeName[1]] = [];
-                        if ($routeName[2] != 'edit' && $routeName[2] != 'create')
+                        if ($routeName[2] != 'edit' && $routeName[2] != 'create') {
                             $routes[$routeName[1]][] = $routeName[2];
+                        }
 
                     } else {
-                        if ($routeName[2] != 'edit' && $routeName[2] != 'create')
+                        if ($routeName[2] != 'edit' && $routeName[2] != 'create') {
                             $routes[$routeName[1]][] = $routeName[2];
+                        }
                     }
                 }
             }
         }
         unset($routes['home'], $routes['user'], $routes['ckeditor'], $routes['area'], $routes['lang'], $routes['gfx']);
+
         //
         return view($this->formView, compact('item', 'routes'));
     }
@@ -136,7 +133,7 @@ class UserController extends XController
     public function bulk(Request $request)
     {
 
-//        dd($request->all());
+        //        dd($request->all());
         $data = explode('.', $request->input('action'));
         $action = $data[0];
         $ids = $request->input('id');
@@ -161,7 +158,7 @@ class UserController extends XController
                 $msg = __(':COUNT users role changed to :NEWROLE successfully', ['COUNT' => count($ids), 'NEWROLE' => __($data[1])]);
                 break;
             default:
-                $msg = __('Unknown bulk action : :ACTION', ["ACTION" => $action]);
+                $msg = __('Unknown bulk action : :ACTION', ['ACTION' => $action]);
         }
 
         return $this->do_bulk($msg, $action, $ids);
@@ -171,7 +168,6 @@ class UserController extends XController
     {
         return parent::delete($item);
     }
-
 
     public function update(Request $request, User $item)
     {

@@ -1,3 +1,4 @@
+@if(! auth()->user()?->isVisitor())
 <nav id="panel-breadcrumb" aria-label="breadcrumb">
     <ol class="breadcrumb mb-0">
         <li class="breadcrumb-item">
@@ -15,3 +16,4 @@
         {{lastCrump()}}
     </ol>
 </nav>
+@endif

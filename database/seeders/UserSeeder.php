@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 
@@ -19,7 +18,7 @@ class UserSeeder extends Seeder
             [
                 'name' => 'WebDeveloper',
                 'email' => 'developer@example.com',
-                'role'=> 'DEVELOPER',
+                'role' => 'DEVELOPER',
             ]
         );
         // website admin
@@ -27,7 +26,7 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Admin',
                 'email' => 'admin@example.com',
-                'role'=> 'ADMIN',
+                'role' => 'ADMIN',
             ]
         );
         // website user
@@ -38,11 +37,18 @@ class UserSeeder extends Seeder
             ]
         );
 
+        // website visitor
+        User::factory()->create(
+            [
+                'name' => 'Visitor',
+                'email' => 'visitor@example.com',
+                'role' => 'VISITOR',
+            ]
+        );
+
         // add roles
         foreach (User::$roles as $role) {
-            $r = new Role();
-            $r->name = strtolower($role);
-            $r->save();
+            Role::findOrCreate(strtolower($role), 'web');
         }
 
         $developer = User::whereId(1)->first();
@@ -56,6 +62,10 @@ class UserSeeder extends Seeder
         $user = User::whereId(3)->first();
         $user->assignRole('user');
         $user->save();
+
+        $visitor = User::where('email', 'visitor@example.com')->first();
+        $visitor->assignRole('visitor');
+        $visitor->save();
 
     }
 }

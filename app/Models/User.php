@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -14,7 +15,22 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, HasRoles, Notifiable, SoftDeletes;
 
-    public static $roles = ['DEVELOPER', 'ADMIN', 'USER', 'SUSPENDED'];
+    public static $roles = ['DEVELOPER', 'ADMIN', 'USER', 'SUSPENDED', 'VISITOR'];
+
+    public static function normalizeRole(?string $role): ?string
+    {
+        if ($role === null || $role === '') {
+            return $role;
+        }
+
+        foreach (self::$roles as $key) {
+            if ($role === $key || $role === __($key)) {
+                return $key;
+            }
+        }
+
+        return $role;
+    }
 
     /**
      * The attributes that are mass assignable.
@@ -120,6 +136,16 @@ class User extends Authenticatable
     public function accesses()
     {
         return $this->hasMany(Access::class);
+    }
+
+    public function shopVisits(): HasMany
+    {
+        return $this->hasMany(ShopVisit::class);
+    }
+
+    public function isVisitor(): bool
+    {
+        return $this->role === 'VISITOR' || $this->hasRole('visitor');
     }
 
     public function hasAnyAccess($name)

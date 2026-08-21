@@ -25,7 +25,12 @@ return Application::configure(basePath: dirname(__DIR__))
             return route('login');
         });
 
+        $middleware->alias([
+            'visitor' => \App\Http\Middleware\EnsureVisitor::class,
+        ]);
+
         $middleware->web(append: [
+            \App\Http\Middleware\RestrictVisitorToPanel::class,
             \Fahlisaputra\Minify\Middleware\MinifyHtml::class,
             \Fahlisaputra\Minify\Middleware\MinifyCss::class,
             // MinifyJavascript breaks inline scripts (Laravel Boost logger, etc.)

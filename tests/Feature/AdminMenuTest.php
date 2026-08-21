@@ -54,6 +54,8 @@ class AdminMenuTest extends TestCase
         $this->assertStringContainsString(__('Website content'), $html);
         $this->assertStringContainsString(__('Appearance'), $html);
         $this->assertStringContainsString(__('Customer support'), $html);
+        $this->assertStringContainsString(__('Shop visits'), $html);
+        $this->assertStringContainsString(route('admin.shop-visit.index'), $html);
         $this->assertStringContainsString(__('Staff and logs'), $html);
         $this->assertStringContainsString(__('Settings'), $html);
 
@@ -81,6 +83,7 @@ class AdminMenuTest extends TestCase
         $this->assertStringContainsString('مشاهده وب‌سایت', $html);
         $this->assertStringContainsString('محتوای سایت', $html);
         $this->assertStringContainsString('پشتیبانی', $html);
+        $this->assertStringContainsString('ویزیت فروشگاه‌ها', $html);
         $this->assertStringNotContainsString('سبد خرید', $html);
     }
 }

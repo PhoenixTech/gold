@@ -21,6 +21,7 @@
 
             <!-- Right Side Of Navbar -->
             <ul class="navbar-nav ms-auto align-items-center gap-2 gap-md-3">
+                @if(!auth()->user()?->isVisitor())
                 <!-- Desktop Market Rates -->
                 <li class="nav-item d-none d-lg-block">
                     <div class="gold-nav-prices">
@@ -71,6 +72,7 @@
                         </div>
                     </div>
                 </li>
+                @endif
 
                 <!-- Authentication Links -->
                 @guest
@@ -110,12 +112,14 @@
                             </div>
                         </div>
 
+                        @unless(Auth::user()->isVisitor())
                         <a class="dropdown-item d-flex align-items-center gap-2 py-2 px-3" href="{{ url('/') }}" target="_blank">
                             <i class="ri-global-line text-primary"></i>
                             {{ __('View Website') }}
                         </a>
 
                         <div class="dropdown-divider"></div>
+                        @endunless
 
                         <a class="dropdown-item d-flex align-items-center gap-2 py-2 px-3 text-danger" href="{{ route('admin.logout') }}"
                            onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
