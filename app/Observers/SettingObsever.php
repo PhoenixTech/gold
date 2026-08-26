@@ -32,6 +32,10 @@ class SettingObsever
         if ($setting->key === 'silver') {
             app(ProductPriceCalculator::class)->repriceProducts('silver');
         }
+
+        if ($setting->key === 'min') {
+            app(ProductPriceCalculator::class)->repriceProducts();
+        }
     }
 
     /**

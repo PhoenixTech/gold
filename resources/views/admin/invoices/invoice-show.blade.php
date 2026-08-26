@@ -148,7 +148,7 @@
                             </div>
                             @if(isset($qr))
                                 <div class="invoice-qr-box flex-shrink-0">
-                                    <img src="{{ $qr->render(route('client.invoice', $invoice->hash)) }}" alt="QR Code" class="invoice-qr-img">
+                                    <img src="{{ $qr->render(route('client.invoice', $invoice->hash)) }}" alt="{{ __('QR Code') }}" class="invoice-qr-img">
                                 </div>
                             @endif
                         </div>

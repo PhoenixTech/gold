@@ -129,7 +129,7 @@
                               {{__("Type")}}
                         </label>
                         <props-type-input
-                            xtitle="Select type"
+                            xtitle="{{__('Select type')}}"
                             :is-required="true"
                             :xid="type"
                             xname="type"

@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title')
-    {{__("Design :AREA",['AREA' =>  $model . ' [' . $m->id.']'])}}
+    {{__("Design :AREA",['AREA' =>  __($model) . ' [' . $m->id.']'])}}
 @endsection
 
 @section('content')
@@ -11,7 +11,7 @@
         @csrf
         <div class="general-form mb-5">
             <h3>
-                {{__("Design :AREA",['AREA' =>  $model . ' [' . $m->id.']'])}}
+                {{__("Design :AREA",['AREA' =>  __($model) . ' [' . $m->id.']'])}}
             </h3>
 
 

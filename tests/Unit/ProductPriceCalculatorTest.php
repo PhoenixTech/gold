@@ -50,7 +50,7 @@ class ProductPriceCalculatorTest extends TestCase
         ]);
 
         $expected = $this->calculator->calculateFromParts(
-            (int) Setting::where('key', 'gold')->first()->value,
+            $this->calculator->baseMetalPrice($product),
             1.5,
             10,
             0.05,
@@ -61,7 +61,7 @@ class ProductPriceCalculatorTest extends TestCase
         $this->assertSame($expected, $this->calculator->calculate($product, 1.5));
         $this->assertNotSame(
             $this->calculator->calculateFromParts(
-                (int) Setting::where('key', 'gold')->first()->value,
+                $this->calculator->baseMetalPrice($product),
                 1.5,
                 99,
                 0.07,
@@ -82,8 +82,8 @@ class ProductPriceCalculatorTest extends TestCase
             'addon' => 0,
         ]);
 
-        $silver = (int) Setting::where('key', 'silver')->first()->value;
-        $gold = (int) Setting::where('key', 'gold')->first()->value;
+        $silver = $this->calculator->baseMetalPrice($product);
+        $gold = $this->calculator->baseMetalPrice($product->replicate()->fill(['metal_type' => 'gold']));
 
         $this->assertSame(
             $this->calculator->calculateFromParts($silver, 2, 10, 0.07, 0.09, 0),
@@ -131,6 +131,56 @@ class ProductPriceCalculatorTest extends TestCase
         $this->assertSame($this->calculator->calculate($product, 3), $heavy->price);
         $this->assertSame($light->price, $product->price);
         $this->assertSame(2, $product->stock_quantity);
+    }
+
+    public function test_minimum_percent_setting_is_applied_to_the_market_price_base(): void
+    {
+        $goldProduct = $this->makeProduct(['metal_type' => 'gold']);
+        $silverProduct = $this->makeProduct(['metal_type' => 'silver']);
+
+        $this->assertSame(2_100_000, $this->calculator->baseMetalPrice($goldProduct));
+        $this->assertSame(84_000, $this->calculator->baseMetalPrice($silverProduct));
+    }
+
+    public function test_updating_minimum_percent_setting_reprices_piece_prices(): void
+    {
+        $product = $this->makeProduct([
+            'metal_type' => 'gold',
+            'labor_charge_1' => 0,
+            'wage' => 0,
+            'profit' => 0,
+            'tax' => 0,
+            'buy_price' => 2_050_000,
+            'status' => 1,
+        ]);
+        $quantity = Quantity::factory()->create([
+            'product_id' => $product->id,
+            'weight' => 1,
+            'count' => 1,
+            'code' => 'S-'.uniqid(),
+        ]);
+
+        $this->calculator->repriceProduct($product->fresh(['quantities']));
+        $quantity->refresh();
+        $this->assertSame(2_100_000, $quantity->price);
+        $this->assertSame('IN_STOCK', $product->fresh()->stock_status);
+
+        $setting = Setting::query()->where('key', 'min')->firstOrFail();
+        $setting->update([
+            'value' => '100',
+            'raw' => '100',
+        ]);
+        $quantity->refresh();
+        $this->assertSame(2_000_000, $quantity->price);
+        $this->assertSame('IN_STOCK', $product->fresh()->stock_status);
+
+        $setting->update([
+            'value' => '105',
+            'raw' => '105',
+        ]);
+        $quantity->refresh();
+        $this->assertSame(2_100_000, $quantity->price);
+        $this->assertSame('IN_STOCK', $product->fresh()->stock_status);
     }
 
     public function test_sold_piece_is_excluded_from_product_min_price(): void

@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Http\Resources\CommentMarkupCollection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Plank\Metable\Metable;
 use Spatie\Image\Enums\AlignPosition;
@@ -161,6 +162,16 @@ class Product extends Model implements HasMedia
     public function bookmarkedBy()
     {
         return $this->bookmarks();
+    }
+
+    public function likedByUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'user_product_favorites');
+    }
+
+    public function bookmarkedByUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'user_product_bookmarks');
     }
 
     public function categories()
@@ -406,33 +417,35 @@ class Product extends Model implements HasMedia
         return number_format($price).' '.config('app.currency.symbol');
     }
 
-    public function isFav()
+    public function isFav(): int
     {
-        if (! auth('customer')->check()) {
-            return -1;
+        if (auth('customer')->check()) {
+            return auth('customer')->user()->favorites()->where('product_id', $this->id)->exists() ? 1 : 0;
         }
-        if (\auth('customer')->user()->favorites()->where('product_id', $this->id)->exists()) {
-            return 1;
-        } else {
-            return 0;
+
+        if (auth('web')->check()) {
+            return auth('web')->user()->favorites()->where('product_id', $this->id)->exists() ? 1 : 0;
         }
+
+        return -1;
     }
 
-    public function isLiked()
+    public function isLiked(): int
     {
         return $this->isFav();
     }
 
-    public function isBookmarked()
+    public function isBookmarked(): int
     {
-        if (! auth('customer')->check()) {
-            return -1;
+        if (auth('customer')->check()) {
+            return auth('customer')->user()->bookmarks()->where('product_id', $this->id)->exists() ? 1 : 0;
         }
-        if (\auth('customer')->user()->bookmarks()->where('product_id', $this->id)->exists()) {
-            return 1;
-        } else {
-            return 0;
+
+        if (auth('web')->check()) {
+            return auth('web')->user()->bookmarks()->where('product_id', $this->id)->exists() ? 1 : 0;
         }
+
+        return -1;
     }
 
     public function isAvailable()

@@ -44,7 +44,7 @@
                             </label>
                             <vue-datetime-picker-input
                                 :xmin="{{strtotime('yesterday')}}"
-                                xid="dp" xname="expire" xtitle="Expire date"  @if(app()->getLocale() != 'fa')  def-tab="1" xshow="datetime"  @else xshow="pdatetime"  @endif
+                                xid="dp" xname="expire" xtitle="{{__('Expire date')}}"  @if(app()->getLocale() != 'fa')  def-tab="1" xshow="datetime"  @else xshow="pdatetime"  @endif
                                 @if(isset($item)) :xvalue="{{strtotime($item->expire)}}" @endif
                                 :timepicker="true"
                             ></vue-datetime-picker-input>

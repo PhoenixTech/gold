@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\BankAccount;
 use App\Models\Customer;
 use App\Models\Invoice;
+use App\Models\Order;
 use App\Models\Product;
 use App\Models\Quantity;
 use App\Models\Setting;
@@ -54,6 +55,25 @@ class AdminDashboardStats
             'stockStats' => $this->stockStats(),
             'soldStats' => $this->soldStats(),
         ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function summary(): array
+    {
+        $data = $this->data();
+
+        return array_merge($data, [
+            'marketSettings' => $this->marketSettings(),
+            'salesSummary' => $this->salesSummary(),
+            'recentSales' => Invoice::query()
+                ->with('customer')
+                ->whereIn('status', $this->successfulInvoiceStatuses())
+                ->latest('id')
+                ->limit(6)
+                ->get(),
+        ]);
     }
 
     /**
@@ -172,6 +192,125 @@ class AdminDashboardStats
             'gold_weight' => round($goldWeight, 3),
             'silver_count' => $silverCount,
             'silver_weight' => round($silverWeight, 3),
+        ];
+    }
+
+    /**
+     * @return list<array{key: string, label: string, icon: string, value: string, suffix: string, updated_at: ?string}>
+     */
+    private function marketSettings(): array
+    {
+        $settings = Setting::query()
+            ->whereIn('key', [
+                'gold',
+                'gold24',
+                'silver',
+                'dollar',
+                'min',
+                'offline_payment_hours',
+                'cart_quote_minutes',
+            ])
+            ->get()
+            ->keyBy('key');
+
+        $items = [
+            'gold' => [
+                'label' => __('Gold 18K Price'),
+                'icon' => 'ri-coins-line',
+                'suffix' => config('app.currency.symbol'),
+            ],
+            'gold24' => [
+                'label' => __('Gold 24K Price'),
+                'icon' => 'ri-vip-diamond-line',
+                'suffix' => config('app.currency.symbol'),
+            ],
+            'silver' => [
+                'label' => __('Silver price'),
+                'icon' => 'ri-vip-diamond-line',
+                'suffix' => config('app.currency.symbol'),
+            ],
+            'dollar' => [
+                'label' => __('Dollar Rate'),
+                'icon' => 'ri-money-dollar-circle-line',
+                'suffix' => config('app.currency.symbol'),
+            ],
+            'min' => [
+                'label' => __('Minimum percent'),
+                'icon' => 'ri-percent-line',
+                'suffix' => '%',
+            ],
+            'offline_payment_hours' => [
+                'label' => __('Offline payment deadline'),
+                'icon' => 'ri-time-line',
+                'suffix' => __('hours'),
+            ],
+            'cart_quote_minutes' => [
+                'label' => __('Cart quote duration'),
+                'icon' => 'ri-timer-line',
+                'suffix' => __('minutes'),
+            ],
+        ];
+
+        $marketSettings = [];
+        foreach ($items as $key => $meta) {
+            $setting = $settings->get($key);
+            $value = $setting?->raw ?: $setting?->value;
+
+            $marketSettings[] = [
+                'key' => $key,
+                'label' => $meta['label'],
+                'icon' => $meta['icon'],
+                'value' => (string) ($value ?? 0),
+                'suffix' => $meta['suffix'],
+                'updated_at' => $setting?->updated_at
+                    ? Invoice::formatPersianDateTime($setting->updated_at)
+                    : null,
+            ];
+        }
+
+        return $marketSettings;
+    }
+
+    /**
+     * @return array{total_price: int, invoice_count: int, item_count: int, total_weight: float}
+     */
+    private function salesSummary(): array
+    {
+        $successfulInvoices = Invoice::query()->whereIn('status', $this->successfulInvoiceStatuses());
+        $totalWeight = 0.0;
+
+        $soldOrders = Order::query()
+            ->with([
+                'product:id,weight',
+                'quantity:id,weight',
+            ])
+            ->whereHas('invoice', function ($query): void {
+                $query->whereIn('status', $this->successfulInvoiceStatuses());
+            })
+            ->get(['id', 'product_id', 'quantity_id', 'count']);
+
+        foreach ($soldOrders as $order) {
+            $weight = $order->quantity?->weight ?? $order->product?->weight ?? 0;
+            $totalWeight += (float) $weight * (int) ($order->count ?: 1);
+        }
+
+        return [
+            'total_price' => (int) (clone $successfulInvoices)->sum('total_price'),
+            'invoice_count' => (int) (clone $successfulInvoices)->count(),
+            'item_count' => (int) (clone $successfulInvoices)->sum('count'),
+            'total_weight' => round($totalWeight, 3),
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function successfulInvoiceStatuses(): array
+    {
+        return [
+            Invoice::PAID,
+            Invoice::PROCESSING,
+            Invoice::COMPLETED,
         ];
     }
 

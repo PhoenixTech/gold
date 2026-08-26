@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Customer;
 use App\Models\Product;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -67,6 +68,58 @@ class CustomerBookmarkAndLikeTest extends TestCase
             ]);
 
         $this->assertFalse($customer->favorites()->where('product_id', $product->id)->exists());
+    }
+
+    public function test_admin_can_like_and_bookmark_product(): void
+    {
+        $admin = User::factory()->create(['role' => 'ADMIN']);
+        $product = Product::factory()->create();
+
+        $this->actingAs($admin, 'web')
+            ->getJson(route('client.product-fav-toggle', $product->slug))
+            ->assertOk()
+            ->assertJson([
+                'OK' => true,
+                'data' => '1',
+            ]);
+
+        $this->actingAs($admin, 'web')
+            ->getJson(route('client.product-bookmark-toggle', $product->slug))
+            ->assertOk()
+            ->assertJson([
+                'OK' => true,
+                'data' => '1',
+            ]);
+
+        $this->assertDatabaseHas('user_product_favorites', [
+            'user_id' => $admin->id,
+            'product_id' => $product->id,
+        ]);
+        $this->assertDatabaseHas('user_product_bookmarks', [
+            'user_id' => $admin->id,
+            'product_id' => $product->id,
+        ]);
+        $this->assertSame(1, $product->isFav());
+        $this->assertSame(1, $product->isBookmarked());
+    }
+
+    public function test_guest_receives_login_required_response_for_product_actions(): void
+    {
+        $product = Product::factory()->create();
+
+        $this->getJson(route('client.product-fav-toggle', $product->slug))
+            ->assertUnauthorized()
+            ->assertJson([
+                'OK' => false,
+                'message' => __('You need to login first'),
+            ]);
+
+        $this->getJson(route('client.product-bookmark-toggle', $product->slug))
+            ->assertUnauthorized()
+            ->assertJson([
+                'OK' => false,
+                'message' => __('You need to login first'),
+            ]);
     }
 
     public function test_guest_can_submit_product_comment(): void

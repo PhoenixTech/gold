@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\BankAccount;
 use App\Models\User;
+use Database\Seeders\GfxSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -71,5 +72,19 @@ class BankAccountTest extends TestCase
         $response->assertRedirect();
         $this->assertFalse($first->fresh()->is_active);
         $this->assertSame(1, BankAccount::query()->where('is_active', true)->count());
+    }
+
+    public function test_admin_bank_account_list_uses_a_persian_breadcrumb(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        app()->setLocale('fa');
+        $admin = $this->actingAsAdmin();
+
+        $response = $this->actingAs($admin)->get(route('admin.bank-account.index'));
+
+        $response->assertOk();
+        $response->assertSee('حساب‌های بانکی', false);
+        $response->assertDontSee('Bank-accounts', false);
     }
 }

@@ -96,7 +96,7 @@
                         </span>
                         <span class="user-name">{{ Auth::user()->name }}</span>
                         @if(Auth::user()->role)
-                            <span class="user-role-badge">{{ Auth::user()->role }}</span>
+                            <span class="user-role-badge">{{ __(Auth::user()->role) }}</span>
                         @endif
                         <i class="ri-chevron-down-s-line dropdown-arrow ms-1"></i>
                     </a>

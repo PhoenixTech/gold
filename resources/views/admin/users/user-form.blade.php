@@ -173,7 +173,7 @@
                                                                         @if($r == 'all' || $r == 'index' | $r == 'list')
                                                                             {{__("Show list")}}
                                                                         @else
-                                                                            {{__('!'.$r)}}
+                                                                            {{__($r)}}
                                                                         @endif
                                                                     </label>
                                                                 </div>

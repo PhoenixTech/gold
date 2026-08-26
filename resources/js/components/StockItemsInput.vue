@@ -161,6 +161,10 @@ export default {
             type: [Number, String],
             default: 0,
         },
+        minimumPercent: {
+            type: [Number, String],
+            default: 100,
+        },
         title: {
             type: String,
             default: 'قطعات موجودی',
@@ -284,9 +288,22 @@ export default {
         },
         metalUnitPrice() {
             this.formulaTick;
+            const marketPrice = this.marketMetalUnitPrice;
+            const minimumPercent = this.minimumPercentValue;
+
+            return Math.round((marketPrice * minimumPercent) / 100);
+        },
+        marketMetalUnitPrice() {
+            this.formulaTick;
             return this.formula.metalType === 'silver'
                 ? toNumber(this.silverPrice)
                 : toNumber(this.goldPrice);
+        },
+        minimumPercentValue() {
+            this.formulaTick;
+            const minimumPercent = toNumber(this.minimumPercent, 100);
+
+            return minimumPercent > 0 ? minimumPercent : 100;
         },
         metalName() {
             this.formulaTick;
@@ -382,13 +399,15 @@ export default {
             this.formulaTick;
 
             const weight = Number(item.weight || 0);
+            const marketMetalPrice = this.marketMetalUnitPrice;
+            const minimumPercent = this.minimumPercentValue;
             const metalPrice = this.metalUnitPrice;
             const feePercent = Number(this.formula.feePercent || 0);
             const profitPercent = Number(this.formula.profitPercent || 0);
             const taxPercent = Number(this.formula.taxPercent || 0);
             const addon = Number(this.formula.addon || 0);
 
-            if (!weight || weight <= 0 || !metalPrice) {
+            if (!weight || weight <= 0 || !marketMetalPrice || !metalPrice) {
                 return null;
             }
 
@@ -408,6 +427,11 @@ export default {
                     {
                         label: `نرخ روز ${this.metalName}`,
                         math: `${this.metalName} / گرم`,
+                        value: this.formatPrice(marketMetalPrice),
+                    },
+                    {
+                        label: `حداقل درصد سود ${this.formatPercent(minimumPercent)}`,
+                        math: `${this.formatPlain(marketMetalPrice)} × ${this.formatPercent(minimumPercent)}`,
                         value: this.formatPrice(p),
                     },
                     {

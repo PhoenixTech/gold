@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\BankAccount;
 use App\Models\Customer;
 use App\Models\Invoice;
+use App\Models\Order;
 use App\Models\Payment;
 use App\Models\PaymentReceipt;
 use App\Models\Product;
@@ -47,6 +48,83 @@ class AdminDashboardTest extends TestCase
     public function test_guest_is_redirected_from_the_dashboard(): void
     {
         $this->get(route('home'))->assertRedirect();
+        $this->get(route('admin.summary.index'))->assertRedirect();
+    }
+
+    public function test_summary_page_shows_overall_settings_sales_and_inventory(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        App::setLocale('fa');
+        $this->actingAsAdmin();
+
+        $customer = Customer::factory()->create(['name' => 'Summary Buyer']);
+        $product = Product::factory()->create([
+            'metal_type' => 'gold',
+            'weight' => 1.5,
+        ]);
+
+        $paidInvoice = $this->makeInvoice($customer, Invoice::PAID, 5_000_000);
+        $paidInvoice->count = 2;
+        $paidInvoice->save();
+
+        $paidOrder = new Order;
+        $paidOrder->invoice_id = $paidInvoice->id;
+        $paidOrder->product_id = $product->id;
+        $paidOrder->count = 2;
+        $paidOrder->price_total = 5_000_000;
+        $paidOrder->save();
+
+        $processingInvoice = $this->makeInvoice($customer, Invoice::PROCESSING, 2_000_000);
+        $processingInvoice->count = 1;
+        $processingInvoice->save();
+
+        $canceledInvoice = $this->makeInvoice($customer, Invoice::CANCELED, 100_000_000);
+        $canceledInvoice->count = 10;
+        $canceledInvoice->save();
+
+        foreach ([
+            'gold' => ['value' => '8500000', 'raw' => '8500000'],
+            'gold24' => ['value' => '9200000', 'raw' => '9200000'],
+            'silver' => ['value' => '120000', 'raw' => '120000'],
+            'dollar' => ['value' => '61000', 'raw' => '61000'],
+            'min' => ['value' => '105', 'raw' => '105'],
+            'offline_payment_hours' => ['value' => '3', 'raw' => '3'],
+            'cart_quote_minutes' => ['value' => '30', 'raw' => '30'],
+        ] as $key => $values) {
+            Setting::query()->updateOrCreate(
+                ['key' => $key],
+                array_merge([
+                    'section' => 'General',
+                    'type' => 'TEXT',
+                    'title' => $key,
+                    'active' => true,
+                    'ltr' => true,
+                ], $values)
+            );
+        }
+
+        $response = $this->get(route('admin.summary.index'));
+
+        $response->assertOk();
+        $response->assertSee('shop-summary', false);
+        $response->assertSee(__('Shop summary'), false);
+        $response->assertSee(__('Overall sales'), false);
+        $response->assertSee(__('Shop settings'), false);
+        $response->assertSee(__('Inventory overview'), false);
+        $response->assertSee(__('Cart quote duration'), false);
+        $response->assertSee(__('Summaries'), false);
+        $response->assertSee(number_format(7_000_000), false);
+        $response->assertSee(number_format(3), false);
+        $response->assertSee(number_format(2), false);
+        $response->assertSee(\App\Services\AdminDashboardStats::formatWeight(3.0), false);
+        $response->assertSee(number_format(9_200_000), false);
+        $response->assertSee(number_format(105), false);
+        $response->assertSee(__('Selling price must be at least :percent% of purchase price.', [
+            'percent' => number_format(105),
+        ]), false);
+        $response->assertSee('Summary Buyer', false);
+        $response->assertDontSee(number_format(100_000_000), false);
     }
 
     public function test_dashboard_shows_market_rates_with_update_times(): void

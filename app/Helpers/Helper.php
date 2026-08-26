@@ -319,13 +319,15 @@ function lastCrump()
     }
 
     if ($route == 'all' || $route == 'index' || $route == 'list') {
+        $resource = str_replace('-', ' ', $routes[count($routes) - 2]);
         echo '<li class="breadcrumb-item">
         <a>
             <i class="ri-list-check" ></i>
-            <span>'.__(Str::plural(ucfirst($routes[count($routes) - 2]))).'</span>
+            <span>'.__(Str::plural(ucfirst($resource))).'</span>
         </a>
     </li>';
     } else {
+        $resource = str_replace('-', ' ', $routes[count($routes) - 2]);
         $link = '#';
         $temp = $routes;
         array_pop($temp);
@@ -334,7 +336,7 @@ function lastCrump()
         echo '<li class="breadcrumb-item">
         <a href="'.$link.'">
             <i class="ri-list-check" ></i>
-            <span>'.__(ucfirst(Str::plural($routes[count($routes) - 2]))).'</span>
+            <span>'.__(ucfirst(Str::plural($resource))).'</span>
         </a>
     </li>';
         switch ($route) {
@@ -437,7 +439,7 @@ function getModelName($modelable_type, $modelable_id)
 {
     $r = explode('\\', $modelable_type);
 
-    return $r[count($r) - 1].':'.$modelable_id;
+    return __($r[count($r) - 1]).':'.$modelable_id;
 }
 
 /**
@@ -466,7 +468,7 @@ function getAction($act)
 {
     $r = explode('::', $act);
 
-    return ucfirst($r[count($r) - 1]);
+    return __(ucfirst($r[count($r) - 1]));
 
 }
 

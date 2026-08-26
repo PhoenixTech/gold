@@ -187,10 +187,25 @@ class ProductStockItemPricingTest extends TestCase
         $this->assertStringContainsString('stock-toolbar', $vue);
         $this->assertStringContainsString('stock-list', $vue);
         $this->assertStringNotContainsString('this.items.push(item)', $vue);
+        $this->assertStringContainsString('label: `نرخ روز ${this.metalName}`', $vue);
+        $this->assertStringContainsString('label: `حداقل درصد سود ${this.formatPercent(minimumPercent)}`', $vue);
 
         $blade = file_get_contents(resource_path('views/admin/products/sub-pages/product-step-stock.blade.php'));
         $this->assertNotFalse($blade);
         $this->assertTrue(strpos($blade, 'id="stock_quantity"') < strpos($blade, 'stock-items-input'));
+    }
+
+    public function test_stock_editor_passes_market_prices_and_minimum_percent_separately(): void
+    {
+        $product = $this->makeProduct(['metal_type' => 'gold']);
+
+        $html = view('admin.products.sub-pages.product-step-stock', [
+            'item' => $product,
+        ])->render();
+
+        $this->assertStringContainsString(':gold-price="2000000"', $html);
+        $this->assertStringContainsString(':silver-price="80000"', $html);
+        $this->assertStringContainsString(':minimum-percent="105"', $html);
     }
 
     protected function actingAsAdmin(): User

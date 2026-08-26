@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -88,6 +89,21 @@ class User extends Authenticatable
     public function products()
     {
         return $this->hasMany(Product::class);
+    }
+
+    public function favorites(): BelongsToMany
+    {
+        return $this->belongsToMany(Product::class, 'user_product_favorites');
+    }
+
+    public function likes(): BelongsToMany
+    {
+        return $this->favorites();
+    }
+
+    public function bookmarks(): BelongsToMany
+    {
+        return $this->belongsToMany(Product::class, 'user_product_bookmarks');
     }
 
     public function productsPercent()

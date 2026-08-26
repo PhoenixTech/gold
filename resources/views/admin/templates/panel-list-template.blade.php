@@ -341,8 +341,10 @@
                                                             @endif
                                                         @elseif(gettype($item->$col) == 'integer')
                                                             {{number_format($item->$col)}}
+                                                        @elseif($col === 'role')
+                                                            {{ __((string) $item->$col) }}
                                                         @elseif(strpos($col,'_type'))
-                                                            {{str_replace('App\\Models\\', '' , $item->$col)}}
+                                                            {{ __(str_replace('App\\Models\\', '', (string) $item->$col)) }}
                                                         @else
                                                             {{$item->$col}}
                                                         @endif

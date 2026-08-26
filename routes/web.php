@@ -14,6 +14,7 @@ Route::prefix(config('app.panel.prefix'))->name('admin.')->group(
             function () {
 
                 Route::get('/', [\App\Http\Controllers\HomeController::class, 'index'])->name('home');
+                Route::get('summary', [\App\Http\Controllers\Admin\SummaryController::class, 'index'])->name('summary.index');
 
                 Route::get('adminlogs', [\App\Http\Controllers\Admin\AdminLogController::class, 'index'])->name('adminlog.index');
                 Route::get('adminlogs/{user}', [\App\Http\Controllers\Admin\AdminLogController::class, 'log'])->name('adminlog.show');

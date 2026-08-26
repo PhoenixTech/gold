@@ -13,7 +13,18 @@ class ProductPriceCalculator
     {
         $key = $product->metal_type === 'silver' ? 'silver' : 'gold';
 
-        return (int) $this->settingValue($key);
+        return $this->applyMinimumPercent($this->settingValue($key));
+    }
+
+    public function applyMinimumPercent(int|float $metalPrice): int
+    {
+        $minimumPercent = (float) $this->settingValue('min', 100);
+
+        if ($minimumPercent <= 0) {
+            $minimumPercent = 100;
+        }
+
+        return (int) round(((float) $metalPrice * $minimumPercent) / 100);
     }
 
     public function feePercent(Product $product): float
@@ -122,11 +133,7 @@ class ProductPriceCalculator
         $firstAvailable = $available->sortBy('id')->first();
         $product->price = $firstAvailable !== null ? (int) $firstAvailable->price : 0;
 
-        $minPercent = (int) $this->settingValue('min', 105);
-
-        if ($product->price > 0 && (($product->price * $minPercent) / 100) < (int) $product->buy_price) {
-            $product->stock_status = 'OUT_STOCK';
-        } elseif ($product->stock_quantity > 0 && $product->price > 0) {
+        if ($product->stock_quantity > 0 && $product->price > 0) {
             $product->stock_status = 'IN_STOCK';
         } elseif ($product->stock_quantity <= 0) {
             $product->stock_status = 'OUT_STOCK';

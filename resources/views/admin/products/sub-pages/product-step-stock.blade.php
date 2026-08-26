@@ -12,8 +12,13 @@
 
     $goldSetting = Setting::query()->where('key', 'gold')->first();
     $silverSetting = Setting::query()->where('key', 'silver')->first();
-    $goldPrice = (int) str_replace(',', '', (string) ($goldSetting?->value ?: $goldSetting?->raw ?: 0));
-    $silverPrice = (int) str_replace(',', '', (string) ($silverSetting?->value ?: $silverSetting?->raw ?: 0));
+    $minimumPercentSetting = Setting::query()->where('key', 'min')->first();
+    $goldMarketPrice = (int) str_replace(',', '', (string) ($goldSetting?->value ?: $goldSetting?->raw ?: 0));
+    $silverMarketPrice = (int) str_replace(',', '', (string) ($silverSetting?->value ?: $silverSetting?->raw ?: 0));
+    $minimumPercent = (float) str_replace(',', '', (string) ($minimumPercentSetting?->value ?: $minimumPercentSetting?->raw ?: 100));
+    if ($minimumPercent <= 0) {
+        $minimumPercent = 100;
+    }
 @endphp
 
 <div class="row g-4">
@@ -54,8 +59,9 @@
             xname="stock_items"
             :xvalue='@json($stockItems)'
             :product-sku='@json($item->sku ?? "")'
-            :gold-price="{{ $goldPrice }}"
-            :silver-price="{{ $silverPrice }}"
+            :gold-price="{{ $goldMarketPrice }}"
+            :silver-price="{{ $silverMarketPrice }}"
+            :minimum-percent="{{ $minimumPercent }}"
             title="{{__('Stock pieces')}}"
             subtitle="{{__('Each row is one unique piece with its own weight and price.')}}"
             add-label="{{__('Add piece')}}"

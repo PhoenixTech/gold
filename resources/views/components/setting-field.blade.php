@@ -36,6 +36,15 @@
     };
 @endphp
 
+@if(!in_array($setting->key, [
+    'gold',
+    'gold24',
+    'silver',
+    'dollar',
+    'bank_card_number',
+    'bank_sheba',
+    'bank_account_name',
+], true))
 <div class="setting-field col-md-{{$fieldSize}}">
     <label for="{{$setting->key}}">
         {{__($displayTitle)}}
@@ -323,3 +332,4 @@
             @endif
     @endswitch
 </div>
+@endif

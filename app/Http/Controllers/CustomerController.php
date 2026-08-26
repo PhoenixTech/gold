@@ -3,11 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\Address;
+use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\Ticket;
+use App\Models\User;
 use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Spatie\Image\Image;
 
@@ -25,7 +29,7 @@ class CustomerController extends Controller
             }
 
             return $next($request);
-        });
+        })->except(['ProductFavToggle', 'ProductBookmarkToggle']);
     }
 
     public function addressSave(Address $address, Request $request): Address
@@ -148,43 +152,46 @@ class CustomerController extends Controller
         return view('client.invoice', compact('area', 'title', 'subtitle', 'invoice', 'qr'));
     }
 
-    public function ProductFavToggle($slug)
+    public function ProductFavToggle(Product $product): JsonResponse|RedirectResponse
     {
-        $product = Product::where('slug', $slug)->firstOrFail();
-
-        if (! auth('customer')->check()) {
-            return errors([__('You need to login first')], 403, __('You need to login first'));
-        }
-
-        $customer = auth('customer')->user();
-        $changes = $customer->favorites()->toggle($product->id);
-        $isAttached = count($changes['attached']) > 0;
-        $message = $isAttached ? __('Product added to favorites') : __('Product removed from favorites');
-        $fav = $isAttached ? '1' : '0';
-
-        if (request()->ajax() || request()->wantsJson()) {
-            return success($fav, $message);
-        }
-
-        return redirect()->back()->with(['message' => $message]);
+        return $this->toggleProductInteraction(
+            $product,
+            'favorites',
+            __('Product added to favorites'),
+            __('Product removed from favorites'),
+        );
     }
 
-    public function ProductBookmarkToggle($slug)
+    public function ProductBookmarkToggle(Product $product): JsonResponse|RedirectResponse
     {
-        $product = Product::where('slug', $slug)->firstOrFail();
+        return $this->toggleProductInteraction(
+            $product,
+            'bookmarks',
+            __('Product added to bookmarks'),
+            __('Product removed from bookmarks'),
+        );
+    }
 
-        if (! auth('customer')->check()) {
-            return errors([__('You need to login first')], 403, __('You need to login first'));
+    private function toggleProductInteraction(
+        Product $product,
+        string $relation,
+        string $attachedMessage,
+        string $detachedMessage,
+    ): JsonResponse|RedirectResponse {
+        /** @var Customer|User|null $actor */
+        $actor = auth('customer')->user() ?? auth('web')->user();
+
+        if ($actor === null) {
+            return errors([__('You need to login first')], 401, __('You need to login first'));
         }
 
-        $customer = auth('customer')->user();
-        $changes = $customer->bookmarks()->toggle($product->id);
+        $changes = $actor->{$relation}()->toggle($product->getKey());
         $isAttached = count($changes['attached']) > 0;
-        $message = $isAttached ? __('Product added to bookmarks') : __('Product removed from bookmarks');
-        $bookmarked = $isAttached ? '1' : '0';
+        $message = $isAttached ? $attachedMessage : $detachedMessage;
+        $state = $isAttached ? '1' : '0';
 
         if (request()->ajax() || request()->wantsJson()) {
-            return success($bookmarked, $message);
+            return success($state, $message);
         }
 
         return redirect()->back()->with(['message' => $message]);

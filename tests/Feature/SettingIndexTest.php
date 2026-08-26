@@ -37,6 +37,27 @@ class SettingIndexTest extends TestCase
         $this->assertSame([], $setting->fresh()->getData());
     }
 
+    public function test_legacy_market_and_bank_settings_are_hidden_from_the_settings_field(): void
+    {
+        foreach ([
+            'gold',
+            'gold24',
+            'silver',
+            'dollar',
+            'bank_card_number',
+            'bank_sheba',
+            'bank_account_name',
+        ] as $key) {
+            $setting = Setting::factory()->create(['key' => $key]);
+
+            $html = view('components.setting-field', [
+                'setting' => $setting,
+            ])->render();
+
+            $this->assertSame('', trim($html));
+        }
+    }
+
     public function test_number_setting_field_renders_when_data_is_null(): void
     {
         $setting = Setting::factory()->number()->create([

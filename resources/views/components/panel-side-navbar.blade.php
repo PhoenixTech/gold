@@ -14,6 +14,12 @@
                 <span class="nav-label">{{__("View Website")}}</span>
             </a>
         </li>
+        <li>
+            <a href="{{route('admin.summary.index')}}" class="dsb-item">
+                <i class="ri-pie-chart-2-line"></i>
+                <span class="nav-label">{{__("Shop summary")}}</span>
+            </a>
+        </li>
 
         @if(auth()->user()->hasAnyAccesses(['product', 'category', 'invoice', 'bank-account', 'transport', 'customer', 'discount', 'prop', 'rate', 'evaluation']))
             <li>
