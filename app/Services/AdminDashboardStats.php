@@ -254,7 +254,7 @@ class AdminDashboardStats
         $marketSettings = [];
         foreach ($items as $key => $meta) {
             $setting = $settings->get($key);
-            $value = $setting?->raw ?: $setting?->value;
+            $value = $setting?->value ?: $setting?->raw;
 
             $marketSettings[] = [
                 'key' => $key,
@@ -367,7 +367,7 @@ class AdminDashboardStats
                 'label' => $meta['label'],
                 'short' => $meta['short'],
                 'icon' => $meta['icon'],
-                'value' => (int) ($setting?->raw ?: $setting?->value ?: 0),
+                'value' => (int) ($setting?->value ?: $setting?->raw ?: 0),
                 'updated_at' => $setting?->updated_at
                     ? Invoice::formatPersianDateTime($setting->updated_at)
                     : null,

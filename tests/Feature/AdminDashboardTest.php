@@ -84,10 +84,10 @@ class AdminDashboardTest extends TestCase
         $canceledInvoice->save();
 
         foreach ([
-            'gold' => ['value' => '8500000', 'raw' => '8500000'],
-            'gold24' => ['value' => '9200000', 'raw' => '9200000'],
-            'silver' => ['value' => '120000', 'raw' => '120000'],
-            'dollar' => ['value' => '61000', 'raw' => '61000'],
+            'gold' => ['value' => '8500000', 'raw' => '8111111'],
+            'gold24' => ['value' => '9200000', 'raw' => '9222222'],
+            'silver' => ['value' => '120000', 'raw' => '113333'],
+            'dollar' => ['value' => '61000', 'raw' => '64444'],
             'min' => ['value' => '105', 'raw' => '105'],
             'offline_payment_hours' => ['value' => '3', 'raw' => '3'],
             'cart_quote_minutes' => ['value' => '30', 'raw' => '30'],
@@ -120,6 +120,10 @@ class AdminDashboardTest extends TestCase
         $response->assertSee(\App\Services\AdminDashboardStats::formatWeight(3.0), false);
         $response->assertSee(number_format(9_200_000), false);
         $response->assertSee(number_format(105), false);
+        $response->assertDontSee(number_format(8_111_111), false);
+        $response->assertDontSee(number_format(9_222_222), false);
+        $response->assertDontSee(number_format(113_333), false);
+        $response->assertDontSee(number_format(64_444), false);
         $response->assertSee(__('Selling price must be at least :percent% of purchase price.', [
             'percent' => number_format(105),
         ]), false);
@@ -140,7 +144,7 @@ class AdminDashboardTest extends TestCase
             'type' => 'TEXT',
             'ltr' => true,
             'value' => '8500000',
-            'raw' => '8500000',
+            'raw' => '8111111',
         ]);
         $gold->timestamps = false;
         $gold->updated_at = $goldUpdatedAt;
@@ -152,7 +156,7 @@ class AdminDashboardTest extends TestCase
             'type' => 'TEXT',
             'ltr' => true,
             'value' => '120000',
-            'raw' => '120000',
+            'raw' => '113333',
         ]);
         Setting::factory()->create([
             'key' => 'dollar',
@@ -160,7 +164,7 @@ class AdminDashboardTest extends TestCase
             'type' => 'TEXT',
             'ltr' => true,
             'value' => '61000',
-            'raw' => '61000',
+            'raw' => '64444',
         ]);
 
         $response = $this->get(route('home'));
@@ -171,6 +175,9 @@ class AdminDashboardTest extends TestCase
         $response->assertSee(number_format(8500000), false);
         $response->assertSee(number_format(120000), false);
         $response->assertSee(number_format(61000), false);
+        $response->assertDontSee(number_format(8_111_111), false);
+        $response->assertDontSee(number_format(113_333), false);
+        $response->assertDontSee(number_format(64_444), false);
         $response->assertSee(Invoice::formatPersianDateTime($goldUpdatedAt), false);
         $response->assertSee(__('Gold 18K Price'), false);
         $response->assertSee(__('Silver price'), false);
