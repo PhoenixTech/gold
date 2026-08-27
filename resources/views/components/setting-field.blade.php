@@ -34,6 +34,27 @@
         'tel' => 'tel',
         default => null,
     };
+
+    // Short, human help text shown under the field so admins know exactly
+    // what each option does without leaving the page.
+    $helpText = match ($setting->key) {
+        'min' => __('Minimum profit percent added to the daily metal rate when calculating product prices.'),
+        'offline_payment_hours' => __('How many hours a customer has to transfer money and upload the receipt; after that the offline invoice is cancelled automatically.'),
+        'cart_quote_minutes' => __('Cart prices are quoted with the current gold rate and stay valid for this long. After it expires, prices are recalculated at checkout.'),
+        'under' => __("While enabled, the storefront shows a maintenance page and visitors can't browse the shop."),
+        'subtitle' => __('Shown next to the site name in the header and used as a short description of the shop.'),
+        'css' => __('Injected into every page, ideal for small theme tweaks.'),
+        'keyword' => __('Comma-separated keywords placed in the meta tags of all pages.'),
+        'desc' => __('Default meta description used when a page has no description of its own.'),
+        'site_image' => __('Shared by search engines and messengers as preview image (og:image).'),
+        'optimize' => __('New uploaded images are converted to this format to save bandwidth.'),
+        'watermark' => __('Overlay the site logo on product & gallery & post images.'),
+        'watermark2' => __('Overlay the site logo on category, slider and group images.'),
+        'sign' => __('SMS body sent for sign-in / authentication codes. Use :code for the verification code.'),
+        'order' => __('SMS body sent to confirm an order.'),
+        'sent' => __('SMS body sent once the order is shipped/delivered.'),
+        default => null,
+    };
 @endphp
 
 @if(!in_array($setting->key, [
@@ -331,5 +352,12 @@
                        @if($autoComplete) autocomplete="{{$autoComplete}}" @endif>
             @endif
     @endswitch
+
+    @if($helpText)
+        <div class="form-text">
+            <i class="ri-information-line"></i>
+            {{$helpText}}
+        </div>
+    @endif
 </div>
 @endif

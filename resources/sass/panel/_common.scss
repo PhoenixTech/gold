@@ -94,11 +94,24 @@ a.action-btn, a.circle-btn, button.action-btn, button.circle-btn {
     }
 }
 
-#setting-sections {
-    section {
-        display: none;
-        background: $lighter-color;
-        padding: 1rem;
+.setting-tabs {
+    gap: .25rem;
+
+    .nav-link {
+        i {
+            margin-inline-end: .35rem;
+        }
+
+        &.active {
+            color: $primary-color-panel;
+            font-weight: bold;
+        }
+    }
+}
+
+#setting-page {
+    .tab-pane {
+        min-height: 12rem;
 
         .setting-field {
             padding: 5px;
