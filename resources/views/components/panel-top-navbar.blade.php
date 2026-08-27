@@ -21,7 +21,7 @@
 
             <!-- Right Side Of Navbar -->
             <ul class="navbar-nav ms-auto align-items-center gap-2 gap-md-3">
-                @if(!auth()->user()?->isVisitor())
+                @if(!auth()->user()?->isVisitor() && !auth()->user()?->isCourier())
                 <!-- Desktop Market Rates -->
                 <li class="nav-item d-none d-lg-block">
                     <div class="gold-nav-prices">
@@ -112,7 +112,7 @@
                             </div>
                         </div>
 
-                        @unless(Auth::user()->isVisitor())
+                        @unless(Auth::user()->isVisitor() || Auth::user()->isCourier())
                         <a class="dropdown-item d-flex align-items-center gap-2 py-2 px-3" href="{{ url('/') }}" target="_blank">
                             <i class="ri-global-line text-primary"></i>
                             {{ __('View Website') }}

@@ -7,6 +7,13 @@
                     <span class="nav-label">{{ __('Register shop') }}</span>
                 </a>
             </li>
+        @elseif(auth()->user()->isCourier())
+            <li>
+                <a href="{{ route('admin.delivery.index') }}" class="dsb-item">
+                    <i class="ri-motorbike-line"></i>
+                    <span class="nav-label">{{ __('Deliveries') }}</span>
+                </a>
+            </li>
         @else
         <li>
             <a href="{{route('client.welcome')}}" target="_blank" class="dsb-item">
@@ -233,6 +240,12 @@
                 </a>
             </li>
         @endif
+            <li>
+                <a href="{{ route('admin.help') }}" class="dsb-item @if(request()->routeIs('admin.help')) active @endif">
+                    <i class="ri-question-line"></i>
+                    <span class="nav-label">{{ __('Help') }}</span>
+                </a>
+            </li>
         @endif
     </ul>
 </nav>

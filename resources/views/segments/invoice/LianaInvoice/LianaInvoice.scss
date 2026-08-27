@@ -264,6 +264,11 @@
             background: color-mix(in srgb, var(--xshop-info) 18%, var(--xshop-background));
             color: var(--xshop-info);
         }
+
+        &.inv-OUT_FOR_DELIVERY {
+            background: color-mix(in srgb, var(--xshop-warning) 18%, var(--xshop-background));
+            color: var(--xshop-warning);
+        }
     }
 
     .liana-pay-type {

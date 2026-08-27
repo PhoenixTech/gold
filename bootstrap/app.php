@@ -27,10 +27,12 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'visitor' => \App\Http\Middleware\EnsureVisitor::class,
+            'courier' => \App\Http\Middleware\EnsureCourier::class,
         ]);
 
         $middleware->web(append: [
             \App\Http\Middleware\RestrictVisitorToPanel::class,
+            \App\Http\Middleware\RestrictCourierToPanel::class,
             \Fahlisaputra\Minify\Middleware\MinifyHtml::class,
             \Fahlisaputra\Minify\Middleware\MinifyCss::class,
             // MinifyJavascript breaks inline scripts (Laravel Boost logger, etc.)

@@ -307,11 +307,7 @@ class AdminDashboardStats
      */
     private function successfulInvoiceStatuses(): array
     {
-        return [
-            Invoice::PAID,
-            Invoice::PROCESSING,
-            Invoice::COMPLETED,
-        ];
+        return Invoice::successfulStatuses();
     }
 
     /**

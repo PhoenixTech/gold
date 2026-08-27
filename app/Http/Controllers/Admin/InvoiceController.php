@@ -9,6 +9,8 @@ use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Models\User;
+use App\Services\DeliveryService;
 use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
 use Illuminate\Http\Request;
@@ -67,8 +69,18 @@ class InvoiceController extends XController
         $invoice->transport_id = $request->input('transport_id', null);
         $invoice->address_id = $request->input('address_id', null);
         $invoice->tracking_code = $request->tracking_code;
-        $invoice->status = $request->status;
         $invoice->save();
+        $invoice->load('transport');
+
+        $courier = $request->filled('courier_id')
+            ? User::query()->couriers()->find($request->input('courier_id'))
+            : null;
+
+        app(DeliveryService::class)->applyAdminStatus(
+            $invoice,
+            (string) $request->status,
+            $courier
+        );
 
         return $invoice;
 
@@ -128,9 +140,34 @@ class InvoiceController extends XController
      */
     public function edit(Invoice $item)
     {
-        $item->loadMissing(['customer.addresses', 'orders.product', 'orders.quantity', 'payments', 'paymentReceipts']);
+        $item->loadMissing([
+            'customer.addresses',
+            'orders.product',
+            'orders.quantity',
+            'payments',
+            'paymentReceipts',
+            'transport',
+            'activeDelivery.courier',
+        ]);
+        $couriers = User::query()->couriers()->orderBy('name')->get();
 
-        return view($this->formView, compact('item'));
+        return view($this->formView, compact('item', 'couriers'));
+    }
+
+    public function resendDeliveryCode(Invoice $item, DeliveryService $deliveries)
+    {
+        $delivery = $item->activeDelivery;
+        if ($delivery === null) {
+            return redirect()
+                ->back()
+                ->withErrors(__('This invoice has no active motorcycle delivery.'));
+        }
+
+        $deliveries->resendCode($delivery);
+
+        return redirect()
+            ->back()
+            ->with(['message' => __('A new delivery code was sent to the customer.')]);
     }
 
     public function confirmPayment(Invoice $item)
@@ -242,6 +279,7 @@ class InvoiceController extends XController
             'payments.receipts',
             'paymentReceipts',
             'transport',
+            'activeDelivery.courier',
         ]);
 
         $title = __('Invoice').' #'.$invoice->hash;
@@ -272,6 +310,7 @@ class InvoiceController extends XController
             'payments.receipts',
             'paymentReceipts',
             'transport',
+            'activeDelivery.courier',
         ]);
 
         $title = __('Print invoice').' - '.$invoice->hash;

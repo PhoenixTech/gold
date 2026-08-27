@@ -33,6 +33,10 @@ class LoginController extends Controller
             return route('admin.home');
         }
 
+        if (auth()->user()?->isCourier()) {
+            return route('admin.delivery.index');
+        }
+
         return '/home';
     }
 

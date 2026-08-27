@@ -2,13 +2,14 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class Acl
 {
-    private $excepts = ['ckeditor', 'home'];
+    private $excepts = ['ckeditor', 'home', 'help'];
 
     /**
      * Handle an incoming request.
@@ -19,7 +20,8 @@ class Acl
     {
         $route = \Route::getCurrentRoute();
         // check admin page & user is not super admin
-        if (auth()->check() && auth()->user()->isVisitor()) {
+        $user = auth()->user();
+        if ($user instanceof User && ($user->isVisitor() || $user->isCourier())) {
             return $next($request);
         }
         if (auth()->check() && isset($route->action['as'])) {

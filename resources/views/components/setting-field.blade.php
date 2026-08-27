@@ -53,6 +53,7 @@
         'sign' => __('SMS body sent for sign-in / authentication codes. Use :code for the verification code.'),
         'order' => __('SMS body sent to confirm an order.'),
         'sent' => __('SMS body sent once the order is shipped/delivered.'),
+        'delivery_code' => __('SMS body sent with the 4-digit motorcycle delivery confirmation code. Use :code for the code.'),
         default => null,
     };
 @endphp

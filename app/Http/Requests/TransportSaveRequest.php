@@ -11,7 +11,7 @@ class TransportSaveRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return  auth()->check();
+        return auth()->check();
     }
 
     /**
@@ -22,10 +22,11 @@ class TransportSaveRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => ['required','string','min:4'],
-            'price' => ['required','integer'],
-            'description' => ['nullable','string'],
-            'icon' => ['nullable','string'],
+            'title' => ['required', 'string', 'min:4'],
+            'price' => ['required', 'integer'],
+            'description' => ['nullable', 'string'],
+            'is_default' => ['nullable'],
+            'requires_delivery_code' => ['nullable'],
         ];
     }
 }

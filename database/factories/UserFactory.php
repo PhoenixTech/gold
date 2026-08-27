@@ -50,4 +50,11 @@ class UserFactory extends Factory
             'role' => 'VISITOR',
         ]);
     }
+
+    public function courier(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'COURIER',
+        ]);
+    }
 }

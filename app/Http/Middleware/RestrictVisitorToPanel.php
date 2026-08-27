@@ -14,7 +14,7 @@ class RestrictVisitorToPanel
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
-        if ($user === null || ! $user->isVisitor()) {
+        if ($user === null || ! $user instanceof \App\Models\User || ! $user->isVisitor()) {
             return $next($request);
         }
 

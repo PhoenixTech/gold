@@ -168,6 +168,12 @@ class SettingSeeder extends Seeder
                     'type' => 'LONGTEXT',
                     'value' => 'sent',
                 ],
+                [
+                    'title' => __('Delivery confirmation'),
+                    'key' => 'delivery_code',
+                    'type' => 'LONGTEXT',
+                    'value' => 'delivery_code',
+                ],
             ],
             'SEO' => [
                 [

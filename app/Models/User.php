@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -16,7 +17,7 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, HasRoles, Notifiable, SoftDeletes;
 
-    public static $roles = ['DEVELOPER', 'ADMIN', 'USER', 'SUSPENDED', 'VISITOR'];
+    public static $roles = ['DEVELOPER', 'ADMIN', 'USER', 'SUSPENDED', 'VISITOR', 'COURIER'];
 
     public static function normalizeRole(?string $role): ?string
     {
@@ -162,6 +163,25 @@ class User extends Authenticatable
     public function isVisitor(): bool
     {
         return $this->role === 'VISITOR' || $this->hasRole('visitor');
+    }
+
+    public function isCourier(): bool
+    {
+        return $this->role === 'COURIER' || $this->hasRole('courier');
+    }
+
+    /**
+     * @param  Builder<User>  $query
+     * @return Builder<User>
+     */
+    public function scopeCouriers(Builder $query): Builder
+    {
+        return $query->where('role', 'COURIER');
+    }
+
+    public function deliveries(): HasMany
+    {
+        return $this->hasMany(Delivery::class, 'courier_id');
     }
 
     public function hasAnyAccess($name)

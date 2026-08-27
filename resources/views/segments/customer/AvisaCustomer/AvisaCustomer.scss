@@ -904,7 +904,7 @@
             color: var(--xshop-success);
         }
 
-        &.inv-PENDING, &.inv-PROCESSING {
+        &.inv-PENDING, &.inv-PROCESSING, &.inv-OUT_FOR_DELIVERY {
             background: color-mix(in srgb, var(--xshop-warning) 14%, var(--xshop-background));
             color: var(--xshop-warning);
         }

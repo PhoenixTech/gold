@@ -17,7 +17,7 @@
         $offlineIsExpired = $item->isOfflinePaymentExpired();
         $persianDeadline = $item->formattedDeadline();
         $displayStatus = $item->displayStatusKey();
-        $successfulCount = $item->customer->invoices()->whereIn('status', ['PAID', 'PROCESSING', 'COMPLETED'])->count();
+        $successfulCount = $item->customer->invoices()->whereIn('status', \App\Models\Invoice::successfulStatuses())->count();
         $waitingCount = $item->customer->invoices()->whereIn('status', ['AWAITING_PAYMENT', 'PENDING'])->count();
         $failedCount = $item->customer->invoices()->whereIn('status', ['CANCELED', 'FAILED'])->count();
     @endphp
@@ -106,6 +106,8 @@
                                 {{__("Payment is confirmed. Update tracking when the order ships.")}}
                             @elseif($displayStatus === \App\Models\Invoice::PROCESSING)
                                 {{__("This order is being prepared.")}}
+                            @elseif($displayStatus === \App\Models\Invoice::OUT_FOR_DELIVERY)
+                                {{__("This order is out for motorcycle delivery. The customer received a confirmation code by SMS.")}}
                             @elseif($displayStatus === \App\Models\Invoice::COMPLETED)
                                 {{__("This invoice is completed.")}}
                             @elseif($displayStatus === \App\Models\Invoice::FAILED)
@@ -231,12 +233,56 @@
                                     <li class="list-group-item">
                                         <label class="mb-0 d-flex gap-2 align-items-start">
                                             <input type="radio" name="transport_id" value="{{$t->id}}"
+                                                   data-requires-code="{{ $t->requires_delivery_code ? 1 : 0 }}"
                                                    @checked($t->id == $item->transport_id)/>
-                                            <span>{{$t->title}} ({{number_format($t->price)}})</span>
+                                            <span>
+                                                {{$t->title}} ({{number_format($t->price)}})
+                                                @if($t->requires_delivery_code)
+                                                    <small class="text-muted d-block">{{ __('Needs delivery confirmation code') }}</small>
+                                                @endif
+                                            </span>
                                         </label>
                                     </li>
                                 @endforeach
                             </ul>
+                        </div>
+                        <div class="col-md-12 mt-3" id="courier-assign">
+                            <div class="form-group">
+                                <label for="courier_id">{{ __('Courier') }}</label>
+                                <select name="courier_id" id="courier_id" class="form-select @error('courier_id') is-invalid @enderror">
+                                    <option value="">{{ __('Select a courier') }}</option>
+                                    @foreach(($couriers ?? collect()) as $courier)
+                                        <option value="{{ $courier->id }}" @selected((string) old('courier_id', $item->activeDelivery?->courier_id) === (string) $courier->id)>
+                                            {{ $courier->name }}
+                                            @if($courier->mobile)
+                                                — {{ $courier->mobile }}
+                                            @endif
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <div class="form-text">{{ __('Required when sending by motorcycle courier. A 4-digit code is SMS’d to the customer.') }}</div>
+                            </div>
+                            @if($item->activeDelivery)
+                                <div class="mt-3 p-3 border rounded bg-light">
+                                    <div class="d-flex flex-wrap justify-content-between gap-2 align-items-center">
+                                        <div>
+                                            <div class="fw-semibold">{{ $item->activeDelivery->status->label() }}</div>
+                                            <div class="text-muted fs-xs">
+                                                {{ $item->activeDelivery->courier?->name }}
+                                                @if($item->activeDelivery->sms_sent_at)
+                                                    — {{ __('SMS sent') }} {{ \App\Models\Invoice::formatPersianDateTime($item->activeDelivery->sms_sent_at) }}
+                                                @endif
+                                                @if($item->activeDelivery->failed_attempts)
+                                                    — {{ __('Failed attempts') }}: {{ $item->activeDelivery->failed_attempts }}
+                                                @endif
+                                            </div>
+                                        </div>
+                                        <button type="submit" form="resend-delivery-code-form" class="btn btn-outline-primary btn-sm">
+                                            {{ __('Resend delivery code') }}
+                                        </button>
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                         <div class="col-md-12">
                             <button type="submit" class="btn btn-primary mt-3">{{__('Save')}}</button>
@@ -303,4 +349,28 @@
             @csrf
         </form>
     @endif
+    @if(isset($item) && $item->activeDelivery)
+        <form id="resend-delivery-code-form"
+              action="{{ route('admin.invoice.resend-delivery-code', $item) }}"
+              method="post"
+              class="d-none">
+            @csrf
+        </form>
+    @endif
+    <script>
+        (function () {
+            var box = document.getElementById('courier-assign');
+            if (!box) return;
+            var radios = document.querySelectorAll('input[name="transport_id"]');
+            var sync = function () {
+                var selected = document.querySelector('input[name="transport_id"]:checked');
+                var needs = selected && selected.getAttribute('data-requires-code') === '1';
+                box.style.display = needs ? '' : 'none';
+            };
+            radios.forEach(function (radio) {
+                radio.addEventListener('change', sync);
+            });
+            sync();
+        })();
+    </script>
 @endsection

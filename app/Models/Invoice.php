@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Enums\DeliveryStatus;
 use App\Events\InvoiceFailed;
 use App\Events\InvoiceSucceed;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Invoice extends Model
@@ -18,6 +21,8 @@ class Invoice extends Model
     const AWAITING_PAYMENT = 'AWAITING_PAYMENT';
 
     const PROCESSING = 'PROCESSING';
+
+    const OUT_FOR_DELIVERY = 'OUT_FOR_DELIVERY';
 
     const COMPLETED = 'COMPLETED';
 
@@ -35,7 +40,7 @@ class Invoice extends Model
         'meta' => 'array',
     ];
 
-    public static $invoiceStatus = ['PENDING', 'AWAITING_PAYMENT', 'CANCELED', 'FAILED', 'PAID', 'PROCESSING', 'COMPLETED'];
+    public static $invoiceStatus = ['PENDING', 'AWAITING_PAYMENT', 'CANCELED', 'FAILED', 'PAID', 'PROCESSING', 'OUT_FOR_DELIVERY', 'COMPLETED'];
 
     /**
      * Statuses shown in the admin filter. PENDING is a leftover online-payment
@@ -50,6 +55,7 @@ class Invoice extends Model
             self::WAITING_CONFIRMATION,
             self::PAID,
             self::PROCESSING,
+            self::OUT_FOR_DELIVERY,
             self::COMPLETED,
             self::FAILED,
             self::CANCELED,
@@ -67,9 +73,25 @@ class Invoice extends Model
             self::AWAITING_PAYMENT,
             self::PAID,
             self::PROCESSING,
+            self::OUT_FOR_DELIVERY,
             self::COMPLETED,
             self::FAILED,
             self::CANCELED,
+        ];
+    }
+
+    /**
+     * Paid or fulfilled invoices, including motorcycle deliveries in transit.
+     *
+     * @return list<string>
+     */
+    public static function successfulStatuses(): array
+    {
+        return [
+            self::PAID,
+            self::PROCESSING,
+            self::OUT_FOR_DELIVERY,
+            self::COMPLETED,
         ];
     }
 
@@ -117,7 +139,7 @@ class Invoice extends Model
      */
     public function scopeSoldThisMonth(Builder $query): Builder
     {
-        return $query->whereIn('status', [self::PAID, self::PROCESSING, self::COMPLETED])
+        return $query->whereIn('status', self::successfulStatuses())
             ->where('created_at', '>=', now()->startOfMonth());
     }
 
@@ -290,6 +312,7 @@ class Invoice extends Model
             self::WAITING_CONFIRMATION => 'badge bg-primary-subtle text-primary border border-primary-subtle',
             self::PAID => 'badge bg-success-subtle text-success border border-success-subtle',
             self::PROCESSING => 'badge bg-info-subtle text-info border border-info-subtle',
+            self::OUT_FOR_DELIVERY => 'badge bg-warning-subtle text-warning border border-warning-subtle',
             self::COMPLETED => 'badge bg-success text-white',
             self::FAILED => 'badge bg-danger-subtle text-danger border border-danger-subtle',
             self::CANCELED => 'badge bg-secondary-subtle text-secondary border border-secondary-subtle',
@@ -445,6 +468,35 @@ class Invoice extends Model
     public function transport()
     {
         return $this->belongsTo(Transport::class);
+    }
+
+    public function deliveries(): HasMany
+    {
+        return $this->hasMany(Delivery::class);
+    }
+
+    public function activeDelivery(): HasOne
+    {
+        return $this->hasOne(Delivery::class)
+            ->ofMany(['id' => 'max'], function (Builder $query) {
+                $query->whereIn('status', DeliveryStatus::openValues());
+            });
+    }
+
+    public function requiresDeliveryCode(): bool
+    {
+        return (bool) $this->transport?->requires_delivery_code;
+    }
+
+    public function hasSuccessfulDelivery(): bool
+    {
+        if ($this->relationLoaded('deliveries')) {
+            return $this->deliveries->contains(
+                fn (Delivery $delivery) => $delivery->status === DeliveryStatus::Delivered
+            );
+        }
+
+        return $this->deliveries()->where('status', DeliveryStatus::Delivered)->exists();
     }
 
     public function evaluations()

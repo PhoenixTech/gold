@@ -7,6 +7,7 @@ use App\Models\State;
 use App\Services\AdminDashboardStats;
 use App\Services\ShopVisitRecorder;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 
 class HomeController extends Controller
 {
@@ -15,7 +16,7 @@ class HomeController extends Controller
         $this->middleware('auth');
     }
 
-    public function index(AdminDashboardStats $dashboard, ShopVisitRecorder $recorder): View
+    public function index(AdminDashboardStats $dashboard, ShopVisitRecorder $recorder): View|RedirectResponse
     {
         if (auth()->user()->isVisitor()) {
             $visit = $recorder->current(auth()->user());
@@ -29,6 +30,10 @@ class HomeController extends Controller
                 'selectedStateId' => $selectedStateId,
                 'selectedCityId' => $selectedCityId,
             ]);
+        }
+
+        if (auth()->user()->isCourier()) {
+            return redirect()->route('admin.delivery.index');
         }
 
         return view('home', array_merge($dashboard->data(), [

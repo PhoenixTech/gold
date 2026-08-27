@@ -147,6 +147,7 @@ class CustomerController extends Controller
             'orders.quantity',
             'payments',
             'paymentReceipts',
+            'activeDelivery',
         ]);
 
         return view('client.invoice', compact('area', 'title', 'subtitle', 'invoice', 'qr'));

@@ -74,14 +74,16 @@
                     </div>
                     <div class="col-md-12 mt-3 mr-5">
                         <div class="form-group">
-
                             <div class="form-check form-switch">
                                 <input value="1" class="form-check-input  @error('is_default') is-invalid @enderror" name="is_default" @if( isset($item) && $item->is_default) checked @endif type="checkbox" id="is_default">
                                 <label class="form-check-label" for="is_default"> {{__('Is default')}}</label>
                             </div>
+                            <div class="form-check form-switch mt-2">
+                                <input value="1" class="form-check-input @error('requires_delivery_code') is-invalid @enderror" name="requires_delivery_code" @if(old('requires_delivery_code', $item->requires_delivery_code ?? false)) checked @endif type="checkbox" id="requires_delivery_code">
+                                <label class="form-check-label" for="requires_delivery_code"> {{__('Needs delivery confirmation code')}}</label>
+                            </div>
+                            <div class="form-text">{{ __('Enable for motorcycle courier (پیک). A 4-digit code is SMS’d when the order goes out for delivery.') }}</div>
                         </div>
-
-
                     </div>
                     <div class="col-md-12">
                         <label> &nbsp; </label>

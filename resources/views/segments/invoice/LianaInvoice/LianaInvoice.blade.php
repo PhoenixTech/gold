@@ -73,6 +73,12 @@
                     <div class="liana-brand-meta">
                         <h5>{{config('app.name')}}</h5>
                         <span class="inv-badge inv-{{$invoice->displayStatusKey()}}">{{ $invoice->statusLabel() }}</span>
+                        @if($invoice->status === \App\Models\Invoice::OUT_FOR_DELIVERY)
+                            <div class="liana-payment-done mt-2">
+                                <i class="ri-motorbike-line"></i>
+                                {{ __('A 4-digit code was sent to your mobile. Give it only to the courier.') }}
+                            </div>
+                        @endif
                         @if($showOfflinePaymentHint)
                             <span class="liana-pay-type">
                                 <i class="ri-exchange-funds-line"></i>

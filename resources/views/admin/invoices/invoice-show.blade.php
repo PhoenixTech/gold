@@ -238,6 +238,17 @@
                     @endif
                 </div>
             </div>
+            @if($invoice->activeDelivery)
+                <div class="invoice-shipping-strip mb-2 p-1.5 px-2 rounded-2 border bg-light d-flex flex-wrap align-items-center justify-content-between gap-2 fs-xs">
+                    <div class="d-flex align-items-center gap-1.5">
+                        <i class="ri-motorbike-line text-primary"></i>
+                        <span class="text-muted">{{ __('Courier') }}:</span>
+                        <b class="text-dark">{{ $invoice->activeDelivery->courier?->name ?? '---' }}</b>
+                        <span class="{{ $invoice->activeDelivery->status->badgeClass() }}">{{ $invoice->activeDelivery->status->label() }}</span>
+                    </div>
+                    <span class="text-muted">{{ __('The customer must recite the SMS code. It is not shown here.') }}</span>
+                </div>
+            @endif
 
             {{-- 4. Order Items Table --}}
             <div class="invoice-items-table mb-2">

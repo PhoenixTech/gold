@@ -67,5 +67,16 @@ class UserSeeder extends Seeder
         $visitor->assignRole('visitor');
         $visitor->save();
 
+        User::factory()->create(
+            [
+                'name' => 'Courier',
+                'email' => 'courier@example.com',
+                'role' => 'COURIER',
+            ]
+        );
+        $courier = User::where('email', 'courier@example.com')->first();
+        $courier->assignRole('courier');
+        $courier->save();
+
     }
 }

@@ -15,6 +15,9 @@ Route::prefix(config('app.panel.prefix'))->name('admin.')->group(
 
                 Route::get('/', [\App\Http\Controllers\HomeController::class, 'index'])->name('home');
                 Route::get('summary', [\App\Http\Controllers\Admin\SummaryController::class, 'index'])->name('summary.index');
+                Route::get('help/{topic?}', [\App\Http\Controllers\Admin\HelpController::class, 'show'])
+                    ->name('help')
+                    ->where('topic', '[a-z0-9\-]+');
 
                 Route::get('adminlogs', [\App\Http\Controllers\Admin\AdminLogController::class, 'index'])->name('adminlog.index');
                 Route::get('adminlogs/{user}', [\App\Http\Controllers\Admin\AdminLogController::class, 'log'])->name('adminlog.show');
@@ -216,6 +219,7 @@ Route::prefix(config('app.panel.prefix'))->name('admin.')->group(
                         Route::get('print/{item}', [\App\Http\Controllers\Admin\InvoiceController::class, 'print'])->name('print');
                         Route::post('update/{item}', [\App\Http\Controllers\Admin\InvoiceController::class, 'update'])->name('update');
                         Route::post('confirm-payment/{item}', [\App\Http\Controllers\Admin\InvoiceController::class, 'confirmPayment'])->name('confirm-payment');
+                        Route::post('resend-delivery-code/{item}', [\App\Http\Controllers\Admin\InvoiceController::class, 'resendDeliveryCode'])->name('resend-delivery-code');
                         Route::get('delete/{item}', [\App\Http\Controllers\Admin\InvoiceController::class, 'destroy'])->name('destroy');
                         Route::get('restore/{item}', [\App\Http\Controllers\Admin\InvoiceController::class, 'restore'])->name('restore');
                         Route::get('remove/ordere/{order}', [\App\Http\Controllers\Admin\InvoiceController::class, 'removeOrder'])->name('remove-order');
@@ -404,6 +408,15 @@ Route::prefix(config('app.panel.prefix'))->name('admin.')->group(
                         Route::post('step-two', [\App\Http\Controllers\VisitorFormController::class, 'storeStepTwo'])
                             ->middleware('visitor')
                             ->name('step-two');
+                    });
+
+                Route::prefix('deliveries')->name('delivery.')->middleware('courier')->group(
+                    function () {
+                        Route::get('', [\App\Http\Controllers\Admin\CourierDeliveryController::class, 'index'])->name('index');
+                        Route::post('{delivery}/accept', [\App\Http\Controllers\Admin\CourierDeliveryController::class, 'accept'])->name('accept');
+                        Route::post('{delivery}/reject', [\App\Http\Controllers\Admin\CourierDeliveryController::class, 'reject'])->name('reject');
+                        Route::post('{delivery}/confirm', [\App\Http\Controllers\Admin\CourierDeliveryController::class, 'confirm'])->name('confirm');
+                        Route::post('{delivery}/fail', [\App\Http\Controllers\Admin\CourierDeliveryController::class, 'fail'])->name('fail');
                     });
 
                 Route::prefix('users')->name('user.')->group(

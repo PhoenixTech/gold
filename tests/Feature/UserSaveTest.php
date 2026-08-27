@@ -16,6 +16,7 @@ class UserSaveTest extends TestCase
     {
         Role::findOrCreate('admin', 'web');
         Role::findOrCreate('visitor', 'web');
+        Role::findOrCreate('courier', 'web');
         $user = User::factory()->create(['role' => 'ADMIN']);
         $user->assignRole('admin');
         $this->actingAs($user);
@@ -63,5 +64,26 @@ class UserSaveTest extends TestCase
             'email' => 'visitor-fa@example.com',
             'role' => 'VISITOR',
         ]);
+    }
+
+    public function test_admin_can_create_a_courier_user(): void
+    {
+        $this->actingAsAdmin();
+
+        $response = $this->post(route('admin.user.store'), [
+            'name' => 'پیک شمال',
+            'email' => 'courier-staff@example.com',
+            'mobile' => '09120001122',
+            'role' => 'COURIER',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('users', [
+            'email' => 'courier-staff@example.com',
+            'role' => 'COURIER',
+        ]);
+        $this->assertTrue(User::query()->where('email', 'courier-staff@example.com')->first()->hasRole('courier'));
     }
 }
