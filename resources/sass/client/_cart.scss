@@ -158,4 +158,29 @@
     .hover-underline:hover {
         text-decoration: underline !important;
     }
+
+    .btn-primary-cta {
+        background: #db9a00 !important;
+        background: linear-gradient(135deg, #f59e0b 0%, #db9a00 100%) !important;
+        color: #ffffff !important;
+        border: none !important;
+        font-weight: 700 !important;
+        box-shadow: 0 4px 14px rgba(219, 154, 0, 0.35) !important;
+        transition: all 0.2s ease !important;
+
+        &:hover {
+            background: #c78b00 !important;
+            background: linear-gradient(135deg, #d97706 0%, #c78b00 100%) !important;
+            color: #ffffff !important;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(219, 154, 0, 0.45) !important;
+        }
+
+        &:disabled {
+            opacity: 0.55 !important;
+            cursor: not-allowed !important;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+    }
 }

@@ -1184,22 +1184,39 @@ export default {
     border: 0;
     border-radius: .75rem;
     padding: .8rem 1rem;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
+    transition: all 0.2s ease;
 }
 
 .btn-primary-cta {
-    background: var(--ck-accent);
-    color: #fff;
+    background: #db9a00;
+    background: linear-gradient(135deg, #f59e0b 0%, #db9a00 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(219, 154, 0, 0.35);
 }
 
 .btn-primary-cta:hover {
-    filter: brightness(1.05);
+    background: #c78b00;
+    background: linear-gradient(135deg, #d97706 0%, #c78b00 100%);
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(219, 154, 0, 0.45);
 }
 
 .checkout-aside .btn-primary-cta {
-    background: #fff;
-    color: var(--ck-deep);
+    background: #db9a00;
+    background: linear-gradient(135deg, #f59e0b 0%, #db9a00 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+.checkout-aside .btn-primary-cta:hover {
+    background: #c78b00;
+    background: linear-gradient(135deg, #d97706 0%, #c78b00 100%);
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
 }
 
 .checkout-aside .btn-ghost {
@@ -1465,9 +1482,11 @@ textarea.full {
     }
     .checkout-dock .btn-primary-cta {
         flex-shrink: 0;
-        background: var(--ck-accent);
+        background: #db9a00;
+        background: linear-gradient(135deg, #f59e0b 0%, #db9a00 100%);
         color: #fff;
         padding: .7rem 1.1rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     }
 }
 
