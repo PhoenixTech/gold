@@ -70,19 +70,6 @@ class AppServiceProvider extends ServiceProvider
         Part::observe(PartObsever::class);
         Setting::observe(SettingObsever::class);
 
-        \Illuminate\Database\Eloquent\Relations\Relation::morphMap([
-            'Category' => \App\Models\Category::class,
-            'App\Models\Category' => \App\Models\Category::class,
-            'App\Category' => \App\Models\Category::class,
-            'Group' => \App\Models\Group::class,
-            'App\Models\Group' => \App\Models\Group::class,
-            'App\Group' => \App\Models\Group::class,
-            'Product' => \App\Models\Product::class,
-            'App\Models\Product' => \App\Models\Product::class,
-            'App\Product' => \App\Models\Product::class,
-            'Post' => \App\Models\Post::class,
-            'App\Models\Post' => \App\Models\Post::class,
-            'App\Post' => \App\Models\Post::class,
-        ]);
+
     }
 }

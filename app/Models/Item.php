@@ -40,54 +40,16 @@ class Item extends Model
             return $this->dest->webUrl();
         }
 
-        // Direct fallback if morphTo failed to resolve:
-        if ($this->menuable_id && ($this->menuable_type === Category::class || in_array(class_basename($this->menuable_type), ['Category', 'category'], true))) {
-            $cat = Category::find($this->menuable_id);
-            if ($cat) {
-                return $cat->webUrl();
-            }
-        }
-
-        if ($this->menuable_id && ($this->menuable_type === Group::class || in_array(class_basename($this->menuable_type), ['Group', 'group'], true))) {
-            $grp = Group::find($this->menuable_id);
-            if ($grp) {
-                return $grp->webUrl();
-            }
-        }
-
-        if ($this->menuable_id && ($this->menuable_type === Product::class || in_array(class_basename($this->menuable_type), ['Product', 'product'], true))) {
-            $prd = Product::find($this->menuable_id);
-            if ($prd) {
-                return $prd->webUrl();
-            }
-        }
-
-        if ($this->menuable_id && ($this->menuable_type === Post::class || in_array(class_basename($this->menuable_type), ['Post', 'post'], true))) {
-            $pst = Post::find($this->menuable_id);
-            if ($pst) {
-                return $pst->webUrl();
-            }
-        }
-
         if (!empty($this->meta)) {
-            $url = $this->meta;
-
-            // If the stored URL contains a local/test domain, convert to current domain
-            $parsed = parse_url($url);
-            if (isset($parsed['host']) && in_array($parsed['host'], ['zhonella.test', 'localhost', '127.0.0.1'])) {
-                $path = ($parsed['path'] ?? '/') . (isset($parsed['query']) ? '?' . $parsed['query'] : '');
-                $url = url($path);
-            }
-
             if (config('app.xlang.active') && app()->getLocale() != config('app.xlang.main')) {
-                if ($url[0] != '/') {
+                if ($this->meta[0] != '/') {
                     $welcome = \route('client.welcome');
-                    return str_replace($welcome, $welcome . '/' . app()->getLocale(), $url);
+                    return str_replace($welcome, $welcome . '/' . app()->getLocale(), $this->meta);
                 } else {
-                    return '/' . app()->getLocale() . $url;
+                    return '/' . app()->getLocale() . $this->meta;
                 }
             }
-            return $url;
+            return $this->meta;
         }
 
         return '#';
