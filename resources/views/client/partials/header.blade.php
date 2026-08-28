@@ -23,24 +23,36 @@
             <div class="nav-section-menu d-none d-lg-flex align-items-center justify-content-center flex-grow-1 mx-3">
                 <ul class="nav-menu-list d-flex align-items-center gap-1 list-unstyled m-0 p-0">
                     @foreach($menuItems as $item)
+                        @php
+                            $destModel = $item->dest;
+                            if (!$destModel && $item->menuable_id) {
+                                if ($item->menuable_type === \App\Models\Category::class || in_array(class_basename($item->menuable_type), ['Category', 'category'], true)) {
+                                    $destModel = \App\Models\Category::find($item->menuable_id);
+                                } elseif ($item->menuable_type === \App\Models\Group::class || in_array(class_basename($item->menuable_type), ['Group', 'group'], true)) {
+                                    $destModel = \App\Models\Group::find($item->menuable_id);
+                                }
+                            }
+                            $hasSubMenu = $destModel && ($destModel instanceof \App\Models\Category || $destModel instanceof \App\Models\Group);
+                            $itemLink = $destModel ? $destModel->webUrl() : $item->webUrl();
+                        @endphp
                         <li class="nav-item position-relative">
-                            <a href="{{$item->webUrl()}}" class="nav-link-custom">
+                            <a href="{{$itemLink}}" class="nav-link-custom">
                                 <span>{{$item->title}}</span>
-                                @if($item->meta == null && in_array($item->menuable_type, [\App\Models\Group::class, \App\Models\Category::class]) && $item->dest)
+                                @if($hasSubMenu)
                                     <i class="ri-arrow-down-s-line fs-14 ms-0.5 opacity-75"></i>
                                 @endif
                             </a>
-                            @if($item->meta == null && in_array($item->menuable_type, [\App\Models\Group::class, \App\Models\Category::class]) && $item->dest)
+                            @if($hasSubMenu)
                                 <div class="sub-menu">
                                     <div class="{{gfx()['container']}}">
                                         <div>
                                             <h4>
                                                 <i class="ri-grid-fill text-warning me-1.5 fs-15"></i>
-                                                {{$item->dest->name}}
+                                                {{$destModel->name}}
                                             </h4>
                                             <ul>
-                                                @if($item->dest->children()->count() == 0)
-                                                    @foreach($item->dest->published(5,'view') as $itm)
+                                                @if($destModel->children()->count() == 0)
+                                                    @foreach($destModel->published(5,'view') as $itm)
                                                         <li>
                                                             <a href="{{$itm->webUrl()}}">
                                                                 <i class="ri-arrow-left-s-line text-warning-subtle me-1 fs-12"></i>
@@ -49,7 +61,7 @@
                                                         </li>
                                                     @endforeach
                                                 @else
-                                                    @foreach($item->dest->children()->where('hide', false)->get() as $itm)
+                                                    @foreach($destModel->children()->where('hide', false)->get() as $itm)
                                                         <li>
                                                             <a href="{{$itm->webUrl()}}">
                                                                 <i class="ri-arrow-left-s-line text-warning-subtle me-1 fs-12"></i>
@@ -63,11 +75,11 @@
                                         <div>
                                             <h4>
                                                 <i class="ri-sparkling-fill text-warning me-1.5 fs-15"></i>
-                                                {{__("Latest ")}} {{$item->dest->name}}
+                                                {{__("Latest ")}} {{$destModel->name}}
                                             </h4>
                                             <ul>
                                                 @php
-                                                    $latestItems = $item->dest->published(5);
+                                                    $latestItems = $destModel->published(5);
                                                 @endphp
                                                 @if($latestItems->isNotEmpty())
                                                     @foreach($latestItems as $itm)
@@ -88,10 +100,10 @@
                                         <div>
                                             <h4>
                                                 <i class="ri-information-fill text-warning me-1.5 fs-15"></i>
-                                                {{$item->dest->subtitle ?: $item->dest->name}}
+                                                {{$destModel->subtitle ?: $destModel->name}}
                                             </h4>
-                                            <p>{{$item->dest->description ?: __('Explore our exclusive collection and certified fine gold pieces crafted to perfection.')}}</p>
-                                            <a href="{{$item->webUrl()}}" class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1 mt-2 fs-12 text-white d-inline-flex align-items-center gap-1">
+                                            <p>{{$destModel->description ?: __('Explore our exclusive collection and certified fine gold pieces crafted to perfection.')}}</p>
+                                            <a href="{{$destModel->webUrl()}}" class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1 mt-2 fs-12 text-white d-inline-flex align-items-center gap-1">
                                                 <span>{{ __('View all') }}</span>
                                                 <i class="ri-arrow-left-line"></i>
                                             </a>

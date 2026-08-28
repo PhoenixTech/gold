@@ -40,6 +40,35 @@ class Item extends Model
             return $this->dest->webUrl();
         }
 
+        // Direct fallback if morphTo failed to resolve:
+        if ($this->menuable_id && ($this->menuable_type === Category::class || in_array(class_basename($this->menuable_type), ['Category', 'category'], true))) {
+            $cat = Category::find($this->menuable_id);
+            if ($cat) {
+                return $cat->webUrl();
+            }
+        }
+
+        if ($this->menuable_id && ($this->menuable_type === Group::class || in_array(class_basename($this->menuable_type), ['Group', 'group'], true))) {
+            $grp = Group::find($this->menuable_id);
+            if ($grp) {
+                return $grp->webUrl();
+            }
+        }
+
+        if ($this->menuable_id && ($this->menuable_type === Product::class || in_array(class_basename($this->menuable_type), ['Product', 'product'], true))) {
+            $prd = Product::find($this->menuable_id);
+            if ($prd) {
+                return $prd->webUrl();
+            }
+        }
+
+        if ($this->menuable_id && ($this->menuable_type === Post::class || in_array(class_basename($this->menuable_type), ['Post', 'post'], true))) {
+            $pst = Post::find($this->menuable_id);
+            if ($pst) {
+                return $pst->webUrl();
+            }
+        }
+
         if (!empty($this->meta)) {
             $url = $this->meta;
 
