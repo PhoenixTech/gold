@@ -12,6 +12,7 @@ use Tests\TestCase;
 
 class ClientWebPagesTest extends TestCase
 {
+    use RefreshDatabase;
 
     public function test_web_client_index(): void
     {
@@ -70,6 +71,18 @@ class ClientWebPagesTest extends TestCase
             Category::factory(1)->create();
         }
         $response = $this->get(Category::first()->webUrl());
+        $response->assertStatus(200);
+    }
+
+    public function test_web_client_sign_in(): void
+    {
+        $response = $this->get(route('client.sign-in'));
+        $response->assertStatus(200);
+    }
+
+    public function test_web_client_sign_up(): void
+    {
+        $response = $this->get(route('client.sign-up'));
         $response->assertStatus(200);
     }
 }

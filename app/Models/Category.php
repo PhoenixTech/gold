@@ -97,17 +97,27 @@ class Category extends Model
 
     public function published($limit = 10, $order = 'id', $dir = 'DESC')
     {
-        return  $this->products()->where('status', 1)
+        $products = $this->products()->where('status', 1)
             ->orderBy($order, $dir)->limit($limit)->get([
                 'name',
                 'slug',
-            ])->map(function ($item) {
-                // Change 'name' to 'title'
-                $item->title = $item->name; // Add title property
-                unset($item->name); // Remove the old name property
-                return $item; // Return the modified item
-            });
+            ]);
 
+        if ($products->isEmpty() && $this->children()->exists()) {
+            $childCategoryIds = $this->children()->pluck('id');
+            $products = Product::whereHas('categories', function ($query) use ($childCategoryIds) {
+                $query->whereIn('categories.id', $childCategoryIds);
+            })->where('status', 1)->orderBy($order, $dir)->limit($limit)->get([
+                'name',
+                'slug',
+            ]);
+        }
+
+        return $products->map(function ($item) {
+            // Change 'name' to 'title'
+            $item->title = $item->name; // Add title property
+            return $item; // Return the modified item
+        });
     }
 
     public function evaluations(){

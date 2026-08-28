@@ -1,0 +1,45 @@
+// Authentication Page Styles (Customer Sign-In & Sign-Up, Staff Login)
+
+.auth-page-section {
+    min-height: calc(100vh - 200px);
+    display: flex;
+    align-items: center;
+
+    .auth-split-wrapper {
+        border: 1px solid rgba(0, 0, 0, 0.08) !important;
+        box-shadow: 0 12px 36px -4px rgba(0, 0, 0, 0.12) !important;
+    }
+
+    .auth-showcase-column {
+        min-height: 480px;
+
+        .benefit-icon-box {
+            background: rgba(219, 154, 0, 0.15);
+            color: var(--xshop-primary);
+        }
+
+        .border-white-15 {
+            border-color: rgba(255, 255, 255, 0.15) !important;
+        }
+
+        .text-white-70 {
+            color: rgba(255, 255, 255, 0.72) !important;
+        }
+    }
+
+    .not-send {
+        display: none;
+    }
+
+    .input-group-text {
+        background-color: var(--xshop-surface-50);
+        border-color: var(--xshop-surface-200);
+        color: var(--xshop-text-muted);
+    }
+}
+
+.auth-login-view {
+    min-height: calc(100vh - 200px);
+    display: flex;
+    align-items: center;
+}

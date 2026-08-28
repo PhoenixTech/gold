@@ -1,0 +1,185 @@
+// Site Footer Styles
+
+.TypicalFooter {
+    margin-top: 4rem;
+    background: var(--xshop-tf-bg, #1a1a20);
+    color: #a0aec0;
+    font-size: 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+
+    a {
+        color: #cbd5e1;
+        text-decoration: none;
+        transition: all 0.2s ease;
+
+        &:hover {
+            color: var(--xshop-tf-accent, #db9a00);
+        }
+    }
+
+    h4 {
+        margin-bottom: 1.25rem;
+        font-size: 16px;
+        font-weight: 700;
+        color: #ffffff;
+        letter-spacing: 0.2px;
+        position: relative;
+        padding-bottom: 0.5rem;
+
+        &::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            inset-inline-start: 0;
+            width: 32px;
+            height: 2px;
+            background: var(--xshop-tf-accent, #db9a00);
+            border-radius: 2px;
+        }
+    }
+
+    .tf-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1.3fr 1.2fr;
+        gap: 2.5rem;
+        padding: 3.5rem 0 2.5rem;
+
+        @media (max-width: 991.98px) {
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 575.98px) {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            padding: 2.5rem 0 2rem;
+        }
+    }
+
+    .tf-brand {
+        display: inline-block;
+        margin-bottom: 1rem;
+
+        img {
+            max-height: 2.8rem;
+            filter: brightness(0) invert(1);
+        }
+    }
+
+    .tf-about {
+        line-height: 1.85;
+        color: #94a3b8;
+        font-size: 13.5px;
+    }
+
+    .tf-links,
+    .tf-contact,
+    .tf-social {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .tf-links {
+        li {
+            margin-bottom: 0.65rem;
+
+            a {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.35rem;
+                transition: transform 0.2s ease, color 0.2s ease;
+
+                &:hover {
+                    transform: translateX(-4px);
+                    color: var(--xshop-tf-accent, #db9a00);
+                }
+            }
+        }
+    }
+
+    .tf-contact {
+        li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 0.85rem;
+            font-size: 13.5px;
+            color: #94a3b8;
+
+            i {
+                font-size: 18px;
+                color: var(--xshop-tf-accent, #db9a00);
+                flex-shrink: 0;
+                margin-top: 1px;
+            }
+
+            a {
+                color: #cbd5e1;
+                direction: ltr;
+
+                &:hover {
+                    color: var(--xshop-tf-accent, #db9a00);
+                }
+            }
+        }
+    }
+
+    .tf-social {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+
+        li {
+            a {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 40px;
+                height: 40px;
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.04);
+                color: #cbd5e1;
+                transition: all 0.25s ease;
+
+                i {
+                    font-size: 18px;
+                }
+
+                &:hover {
+                    border-color: var(--xshop-tf-accent, #db9a00);
+                    background: var(--xshop-tf-accent, #db9a00);
+                    color: #ffffff;
+                    transform: translateY(-3px);
+                    box-shadow: 0 4px 12px rgba(219, 154, 0, 0.35);
+                }
+            }
+        }
+    }
+
+    .tf-social-hint {
+        color: #64748b;
+        font-size: 12.5px;
+        line-height: 1.6;
+    }
+
+    .tf-bottom {
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        background: rgba(0, 0, 0, 0.2);
+        padding: 1.25rem 0;
+        font-size: 13px;
+        color: #64748b;
+
+        .tf-bottom-links {
+            a {
+                color: #64748b;
+                font-size: 12.5px;
+
+                &:hover {
+                    color: var(--xshop-tf-accent, #db9a00);
+                }
+            }
+        }
+    }
+}

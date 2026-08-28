@@ -21,20 +21,21 @@ class Part extends Model
     /**
      * @return array{blade: string, data: mixed}
      */
-    public function getBladeWithData($item = null): array
+    public function getBladeWithData($item = null)
     {
         $handle = $this->handleClass();
+        $data = ($handle && method_exists($handle, 'onMount')) ? $handle::onMount($this, $item) : $this;
 
         return [
-            'blade' => 'segments.'.$this->segment.'.'.$this->part.'.'.$this->part,
-            'data' => $handle::onMount($this, $item),
+            'blade' => 'client.'.$this->part,
+            'data' => $data,
         ];
     }
 
     /**
-     * @return class-string
+     * @return class-string|null
      */
-    public function handleClass(): string
+    public function handleClass(): ?string
     {
         return self::segmentClass((string) $this->segment, (string) $this->part);
     }
@@ -45,7 +46,7 @@ class Part extends Model
      *
      * @return class-string
      */
-    public static function segmentClass(string $segment, string $part): string
+    public static function segmentClass(string $segment, string $part): ?string
     {
         $className = 'Resources\\Views\\Segments\\'.ucfirst($part);
         if (class_exists($className, false)) {
@@ -54,13 +55,13 @@ class Part extends Model
 
         $path = resource_path('views/segments/'.$segment.'/'.$part.'/'.$part.'.php');
         if (! is_file($path)) {
-            throw new RuntimeException("Theme part class file not found: {$segment}/{$part}");
+            return null;
         }
 
         require_once $path;
 
         if (! class_exists($className, false)) {
-            throw new RuntimeException("Theme part class {$className} was not defined in {$path}");
+            return null;
         }
 
         return $className;

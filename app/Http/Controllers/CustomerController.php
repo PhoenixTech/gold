@@ -59,11 +59,10 @@ class CustomerController extends Controller
 
     public function profile()
     {
-        $area = 'customer';
         $title = __('Profile');
         $subtitle = 'You information';
 
-        return view('client.default-list', compact('area', 'title', 'subtitle'));
+        return view('client.customer.profile', compact('title', 'subtitle'));
     }
 
     public function save(Request $request)
@@ -150,7 +149,7 @@ class CustomerController extends Controller
             'activeDelivery',
         ]);
 
-        return view('client.invoice', compact('area', 'title', 'subtitle', 'invoice', 'qr'));
+        return view('client.customer.invoice', compact('title', 'subtitle', 'invoice', 'qr'));
     }
 
     public function ProductFavToggle(Product $product): JsonResponse|RedirectResponse
@@ -257,7 +256,7 @@ class CustomerController extends Controller
 
     public function showTicket(Ticket $ticket)
     {
-        return view('client.ticket', compact('ticket'));
+        return view('client.customer.ticket', compact('ticket'));
     }
 
     public function ticketAnswer(Ticket $ticket, Request $request)

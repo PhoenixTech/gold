@@ -12,7 +12,9 @@ class PartObsever
     public function created(Part $part): void
     {
         $handle = Part::segmentClass((string) $part->segment, (string) $part->part);
-        $handle::onAdd($part);
+        if ($handle && method_exists($handle, 'onAdd')) {
+            $handle::onAdd($part);
+        }
     }
 
     /**
@@ -31,10 +33,14 @@ class PartObsever
         $old->part = $oldPart;
 
         $handleOld = Part::segmentClass($oldSegment, $oldPart);
-        $handleOld::onRemove($old);
+        if ($handleOld && method_exists($handleOld, 'onRemove')) {
+            $handleOld::onRemove($old);
+        }
 
         $handle = Part::segmentClass((string) $part->segment, (string) $part->part);
-        $handle::onAdd($part);
+        if ($handle && method_exists($handle, 'onAdd')) {
+            $handle::onAdd($part);
+        }
     }
 
     /**
@@ -43,7 +49,9 @@ class PartObsever
     public function deleted(Part $part): void
     {
         $handle = Part::segmentClass((string) $part->segment, (string) $part->part);
-        $handle::onRemove($part);
+        if ($handle && method_exists($handle, 'onRemove')) {
+            $handle::onRemove($part);
+        }
     }
 
     /**

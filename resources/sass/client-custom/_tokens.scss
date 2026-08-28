@@ -1,57 +1,66 @@
-// Design tokens for the client theme.
-// Import from client.scss AFTER client-custom/zfix and BEFORE segment imports.
-// Per-deployment client.scss / DB theme settings may override these.
-
-// Text-safe gold (AA on white) — backgrounds keep --xshop-primary
-$xshop-primary-text: #8a5f00;
+// Refactoring UI Design System Tokens for xShop / Gold Store
 
 :root {
-    --xshop-primary-text: #8a5f00;
-    --xshop-shadow: 0 2px 8px rgba(0, 0, 0, .06);
+    // --- 1. Color Palette: Grayscale & Brand Tint ---
+    // Text & Surfaces (Slate-Warm Grayscale)
+    --xshop-text-main: #0f172a;       // Slate 900 (High contrast primary text)
+    --xshop-text-body: #334155;       // Slate 700 (Comfortable body text)
+    --xshop-text-muted: #64748b;      // Slate 500 (De-emphasized labels & metadata)
+    --xshop-text-light: #94a3b8;      // Slate 400 (Placeholder & subtle captions)
 
-    // Gold ramp (500 = brand primary)
-    --xshop-gold-50: #fffdf8;
-    --xshop-gold-100: #fff8e8;
-    --xshop-gold-200: #f4e7c3;
-    --xshop-gold-300: #e4d2a8;
-    --xshop-gold-400: #e0b64d;
+    --xshop-surface-0: #ffffff;       // Card and modal backgrounds
+    --xshop-surface-50: #f8fafc;      // Page & section soft backgrounds
+    --xshop-surface-100: #f1f5f9;     // Subtle container & toolbar backgrounds
+    --xshop-surface-200: #e2e8f0;     // Input borders & dividers
+    --xshop-surface-300: #cbd5e1;     // Active borders & strong rules
+
+    // Gold Brand Ramp (50 to 900)
+    --xshop-primary: #db9a00;         // Brand gold
+    --xshop-primary-hover: #c48900;   // Darker gold for hover states
+    --xshop-primary-text: #8a5f00;    // Accessible gold text on white (AA compliant)
+    --xshop-gold-50: #fffbeb;
+    --xshop-gold-100: #fef3c7;
+    --xshop-gold-200: #fde68a;
+    --xshop-gold-300: #fcd34d;
+    --xshop-gold-400: #fbbf24;
     --xshop-gold-500: #db9a00;
     --xshop-gold-600: #b57d00;
     --xshop-gold-700: #8a5f00;
     --xshop-gold-800: #5f4200;
     --xshop-gold-900: #3d2e14;
 
-    // Warm gray ramp (stone — tinted to match gold brand)
-    --xshop-gray-50: #faf9f7;
-    --xshop-gray-100: #f4f3f0;
-    --xshop-gray-200: #e7e5e1;
-    --xshop-gray-300: #d6d4ce;
-    --xshop-gray-400: #a8a29e;
-    --xshop-gray-500: #78716c;
-    --xshop-gray-600: #57534e;
-    --xshop-gray-700: #44403c;
-    --xshop-gray-800: #292524;
-    --xshop-gray-900: #1c1917;
+    // Semantic Status Colors
+    --xshop-success: #16a34a;
+    --xshop-success-bg: #f0fdf4;
+    --xshop-success-border: #bbf7d0;
 
-    // Accent pairs (decorative stat/feature gradients)
-    --xshop-accent-blue: #3b82f6;
-    --xshop-accent-blue-dark: #1d4ed8;
-    --xshop-accent-green: #10b981;
-    --xshop-accent-green-dark: #047857;
-    --xshop-accent-violet: #8b5cf6;
-    --xshop-accent-violet-dark: #6d28d9;
+    --xshop-danger: #dc2626;
+    --xshop-danger-bg: #fef2f2;
+    --xshop-danger-border: #fecaca;
 
-    // Elevation scale (2xs..2xl) + hover lift
-    --xshop-shadow-2xs: 0 1px 2px rgba(28, 25, 23, .05);
-    --xshop-shadow-xs: 0 2px 4px rgba(28, 25, 23, .05);
-    --xshop-shadow-sm: 0 2px 8px rgba(28, 25, 23, .06);
-    --xshop-shadow-md: 0 4px 14px rgba(28, 25, 23, .08);
-    --xshop-shadow-lg: 0 10px 28px rgba(28, 25, 23, .11);
-    --xshop-shadow-xl: 0 20px 44px rgba(28, 25, 23, .15);
-    --xshop-shadow-2xl: 0 26px 54px rgba(28, 25, 23, .2);
-    --xshop-lift: -4px;
+    --xshop-warning: #d97706;
+    --xshop-warning-bg: #fffbeb;
+    --xshop-warning-border: #fde68a;
 
-    // Soft gold border + focus ring
-    --xshop-border-soft: color-mix(in srgb, var(--xshop-primary) 15%, transparent);
-    --xshop-ring: 0 0 0 4px color-mix(in srgb, var(--xshop-primary) 15%, transparent);
+    --xshop-info: #0284c7;
+    --xshop-info-bg: #f0f9ff;
+    --xshop-info-border: #bae6fd;
+
+    // --- 2. Depth & Multi-Layer Elevation Scale ---
+    --xshop-shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.04), 0 1px 1px 0 rgba(0, 0, 0, 0.02);
+    --xshop-shadow-sm: 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+    --xshop-shadow-md: 0 6px 12px -2px rgba(0, 0, 0, 0.08), 0 3px 6px -2px rgba(0, 0, 0, 0.04);
+    --xshop-shadow-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.10), 0 6px 12px -3px rgba(0, 0, 0, 0.05);
+    --xshop-shadow-xl: 0 24px 48px -12px rgba(0, 0, 0, 0.16), 0 12px 24px -6px rgba(0, 0, 0, 0.08);
+    --xshop-lift: -3px;
+
+    // --- 3. Borders & Focus Rings ---
+    --xshop-border-soft: rgba(0, 0, 0, 0.08);
+    --xshop-border-card: rgba(0, 0, 0, 0.06);
+    --xshop-ring-focus: 0 0 0 3px rgba(219, 154, 0, 0.25);
+
+    // --- 4. Transition Durations ---
+    --xshop-duration-fast: 150ms;
+    --xshop-duration-normal: 250ms;
+    --xshop-ease: cubic-bezier(0.4, 0, 0.2, 1);
 }

@@ -89,8 +89,17 @@ class Group extends Model
 
     public function published($limit = 10, $order = 'id', $dir = 'DESC')
     {
-        return $this->posts()->where('status', 1)
+        $posts = $this->posts()->where('status', 1)
             ->orderBy($order, $dir)->limit($limit)->get(['title', 'slug', 'icon']);
+
+        if ($posts->isEmpty() && $this->children()->exists()) {
+            $childGroupIds = $this->children()->pluck('id');
+            $posts = Post::whereHas('groups', function ($query) use ($childGroupIds) {
+                $query->whereIn('groups.id', $childGroupIds);
+            })->where('status', 1)->orderBy($order, $dir)->limit($limit)->get(['title', 'slug', 'icon']);
+        }
+
+        return $posts;
     }
 
     public function evaluations(){

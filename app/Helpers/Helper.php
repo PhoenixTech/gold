@@ -244,7 +244,23 @@ function logAdmin($method, $cls, $id): void
 
 function gfx()
 {
-    return \App\Models\Gfx::pluck('value', 'key');
+    $defaults = [
+        'container' => 'container',
+        'dark' => 0,
+        'primary' => '#db9a00',
+        'secondary' => '#3d3846',
+        'background' => '#ffffff',
+        'text' => '#111111',
+        'font' => 'sans-serif',
+    ];
+
+    try {
+        $db = \App\Models\Gfx::pluck('value', 'key')->toArray();
+
+        return array_merge($defaults, $db);
+    } catch (\Throwable $e) {
+        return $defaults;
+    }
 }
 
 /**
@@ -657,7 +673,11 @@ function validateSettingRequest($setting, $newValue)
  */
 function getSetting($key)
 {
-    if (! isset($_SERVER['SERVER_NAME']) || ! \Schema::hasTable('settings')) {
+    try {
+        if (! \Schema::hasTable('settings')) {
+            return false;
+        }
+    } catch (\Throwable $e) {
         return false;
     }
     $x = Setting::where('key', $key)->first();
@@ -1599,7 +1619,13 @@ function CalcPrice($gold, $gr, $fee, ?float $profitRate = null, ?float $taxRate 
  */
 function getCategoriesSet($key, $limit = 4, $orderBy = 'sort', $asc = 'ASC')
 {
-    return \App\Models\Category::whereIn('id', json_decode(getSetting($key) ?? []))->where('hide', 0)->limit($limit)->orderBy($orderBy, $asc)->get();
+    $val = getSetting($key);
+    $ids = is_string($val) ? (json_decode($val, true) ?: []) : (is_array($val) ? $val : []);
+    if (empty($ids)) {
+        return collect();
+    }
+
+    return \App\Models\Category::whereIn('id', $ids)->where('hide', 0)->limit($limit)->orderBy($orderBy, $asc)->get();
 }
 
 /**
@@ -1609,5 +1635,11 @@ function getCategoriesSet($key, $limit = 4, $orderBy = 'sort', $asc = 'ASC')
  */
 function getGroupsSet($key, $limit = 4, $orderBy = 'sort', $asc = 'ASC')
 {
-    return \App\Models\Group::whereIn('id', json_decode(getSetting($key) ?? []))->where('hide', 0)->limit($limit)->orderBy($orderBy, $asc)->get();
+    $val = getSetting($key);
+    $ids = is_string($val) ? (json_decode($val, true) ?: []) : (is_array($val) ? $val : []);
+    if (empty($ids)) {
+        return collect();
+    }
+
+    return \App\Models\Group::whereIn('id', $ids)->where('hide', 0)->limit($limit)->orderBy($orderBy, $asc)->get();
 }

@@ -1,63 +1,136 @@
-// Client-side utility classes used across segment blades.
-// Bootstrap ships only fs-1..fs-6 and integer spacing steps,
-// so these hand-written utilities back the design markup.
+// Refactoring UI Spacing, Typography, and Elevation Utilities
 
-// ---- Typography scale ----
-.fs-11 { font-size: .6875rem !important; } // 11px
-.fs-12 { font-size: .75rem !important; }   // 12px
-.fs-13 { font-size: .8125rem !important; } // 13px
-.fs-14 { font-size: .875rem !important; }  // 14px
-.fs-15 { font-size: .9375rem !important; } // 15px
+// ---- Typography Scale (11, 12, 13, 14, 15, 16, 18, 20, 24, 28, 32, 36) ----
+.fs-11 { font-size: 0.6875rem !important; } // 11px
+.fs-12 { font-size: 0.75rem !important; }   // 12px
+.fs-13 { font-size: 0.8125rem !important; } // 13px
+.fs-14 { font-size: 0.875rem !important; }  // 14px
+.fs-15 { font-size: 0.9375rem !important; } // 15px
 .fs-16 { font-size: 1rem !important; }     // 16px
 .fs-18 { font-size: 1.125rem !important; } // 18px
 .fs-20 { font-size: 1.25rem !important; }  // 20px
+.fs-22 { font-size: 1.375rem !important; } // 22px
+.fs-24 { font-size: 1.5rem !important; }   // 24px
+.fs-28 { font-size: 1.75rem !important; }  // 28px
+.fs-32 { font-size: 2rem !important; }     // 32px
+.fs-36 { font-size: 2.25rem !important; }  // 36px
 
-// ---- Half-step spacing (Tailwind-equivalent values) ----
-.p-0\.5  { padding: .125rem !important; }
-.p-1\.5  { padding: .375rem !important; }
-.p-2\.5  { padding: .625rem !important; }
-.p-3\.5  { padding: .875rem !important; }
-.px-0\.5 { padding-inline: .125rem !important; }
-.px-1\.5 { padding-inline: .375rem !important; }
-.px-2\.5 { padding-inline: .625rem !important; }
-.px-3\.5 { padding-inline: .875rem !important; }
-.py-0\.5 { padding-block: .125rem !important; }
-.py-1\.5 { padding-block: .375rem !important; }
-.py-2\.5 { padding-block: .625rem !important; }
-.py-3\.5 { padding-block: .875rem !important; }
-.m-0\.5  { margin: .125rem !important; }
-.m-1\.5  { margin: .375rem !important; }
-.m-2\.5  { margin: .625rem !important; }
-.m-3\.5  { margin: .875rem !important; }
-.mx-0\.5 { margin-inline: .125rem !important; }
-.mx-1\.5 { margin-inline: .375rem !important; }
-.mx-2\.5 { margin-inline: .625rem !important; }
-.mx-3\.5 { margin-inline: .875rem !important; }
-.my-0\.5 { margin-block: .125rem !important; }
-.my-1\.5 { margin-block: .375rem !important; }
-.my-2\.5 { margin-block: .625rem !important; }
-.my-3\.5 { margin-block: .875rem !important; }
-.mt-0\.5 { margin-top: .125rem !important; }
-.mt-1\.5 { margin-top: .375rem !important; }
-.mt-2\.5 { margin-top: .625rem !important; }
-.mt-3\.5 { margin-top: .875rem !important; }
-.mb-0\.5 { margin-bottom: .125rem !important; }
-.mb-1\.5 { margin-bottom: .375rem !important; }
-.mb-2\.5 { margin-bottom: .625rem !important; }
-.mb-3\.5 { margin-bottom: .875rem !important; }
-.gap-0\.5 { gap: .125rem !important; }
-.gap-1\.5 { gap: .375rem !important; }
-.gap-2\.5 { gap: .625rem !important; }
-.gap-3\.5 { gap: .875rem !important; }
-
-// ---- Misc helpers ----
-.cursor-pointer { cursor: pointer !important; }
-.transition-all { transition: all .3s ease; }
+// ---- Line Heights (Tight for headings, relaxed for body) ----
+.leading-none    { line-height: 1 !important; }
+.leading-tight   { line-height: 1.25 !important; }
+.leading-snug    { line-height: 1.375 !important; }
+.leading-normal  { line-height: 1.5 !important; }
 .leading-relaxed { line-height: 1.75 !important; }
-.opacity-85 { opacity: .85 !important; }
 
-// ---- Overlay helpers (text on images) ----
-.text-shadow { text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); }
-.bg-white-20 { background-color: rgba(255, 255, 255, 0.25); }
-.border-white-30 { border-color: rgba(255, 255, 255, 0.35) !important; }
-.backdrop-blur { backdrop-filter: blur(4px); }
+// ---- Text Constraint (Prevent overly wide unreadable text lines) ----
+.max-w-prose {
+    max-width: 65ch !important;
+}
+.max-w-md {
+    max-width: 28rem !important;
+}
+.max-w-lg {
+    max-width: 32rem !important;
+}
+.max-w-xl {
+    max-width: 36rem !important;
+}
+
+// ---- Text Colors with AA Contrast ----
+.text-main {
+    color: var(--xshop-text-main) !important;
+}
+.text-body-custom {
+    color: var(--xshop-text-body) !important;
+}
+.text-muted-custom {
+    color: var(--xshop-text-muted) !important;
+}
+.text-gold {
+    color: var(--xshop-primary-text) !important;
+}
+
+// ---- Multi-Layer Shadows ----
+.shadow-xs {
+    box-shadow: var(--xshop-shadow-xs) !important;
+}
+.shadow-sm {
+    box-shadow: var(--xshop-shadow-sm) !important;
+}
+.shadow-md {
+    box-shadow: var(--xshop-shadow-md) !important;
+}
+.shadow-lg {
+    box-shadow: var(--xshop-shadow-lg) !important;
+}
+.shadow-xl {
+    box-shadow: var(--xshop-shadow-xl) !important;
+}
+
+// ---- Spacing Scale (4, 8, 12, 16, 24, 32, 48, 64px) ----
+.p-0\.5  { padding: 0.125rem !important; }  // 2px
+.p-1     { padding: 0.25rem !important; }   // 4px
+.p-1\.5  { padding: 0.375rem !important; }  // 6px
+.p-2     { padding: 0.5rem !important; }    // 8px
+.p-2\.5  { padding: 0.625rem !important; }  // 10px
+.p-3     { padding: 0.75rem !important; }   // 12px
+.p-3\.5  { padding: 0.875rem !important; }  // 14px
+.p-4     { padding: 1rem !important; }      // 16px
+.p-5     { padding: 1.5rem !important; }    // 24px
+.p-6     { padding: 2rem !important; }      // 32px
+.p-8     { padding: 3rem !important; }      // 48px
+
+.px-1\.5 { padding-inline: 0.375rem !important; }
+.px-2\.5 { padding-inline: 0.625rem !important; }
+.px-3\.5 { padding-inline: 0.875rem !important; }
+.py-1\.5 { padding-block: 0.375rem !important; }
+.py-2\.5 { padding-block: 0.625rem !important; }
+.py-3\.5 { padding-block: 0.875rem !important; }
+
+.m-1\.5  { margin: 0.375rem !important; }
+.m-2\.5  { margin: 0.625rem !important; }
+.mx-1\.5 { margin-inline: 0.375rem !important; }
+.mx-2\.5 { margin-inline: 0.625rem !important; }
+.my-1\.5 { margin-block: 0.375rem !important; }
+.my-2\.5 { margin-block: 0.625rem !important; }
+.mt-1\.5 { margin-top: 0.375rem !important; }
+.mt-2\.5 { margin-top: 0.625rem !important; }
+.mb-1\.5 { margin-bottom: 0.375rem !important; }
+.mb-2\.5 { margin-bottom: 0.625rem !important; }
+
+.gap-1   { gap: 0.25rem !important; }   // 4px
+.gap-1\.5 { gap: 0.375rem !important; } // 6px
+.gap-2   { gap: 0.5rem !important; }    // 8px
+.gap-2\.5 { gap: 0.625rem !important; } // 10px
+.gap-3   { gap: 0.75rem !important; }   // 12px
+.gap-4   { gap: 1rem !important; }      // 16px
+.gap-5   { gap: 1.5rem !important; }    // 24px
+.gap-6   { gap: 2rem !important; }      // 32px
+
+// ---- Interactive Transitions ----
+.transition-all {
+    transition: all var(--xshop-duration-normal) var(--xshop-ease);
+}
+.transition-fast {
+    transition: all var(--xshop-duration-fast) var(--xshop-ease);
+}
+.hover-lift {
+    transition: transform var(--xshop-duration-normal) var(--xshop-ease), box-shadow var(--xshop-duration-normal) var(--xshop-ease);
+    &:hover {
+        transform: translateY(var(--xshop-lift));
+    }
+}
+
+// ---- Overlay & Visual Helpers ----
+.text-shadow {
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+.bg-white-20 {
+    background-color: rgba(255, 255, 255, 0.25);
+}
+.border-white-30 {
+    border-color: rgba(255, 255, 255, 0.35) !important;
+}
+.backdrop-blur {
+    backdrop-filter: blur(8px);
+}

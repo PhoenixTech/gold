@@ -14,11 +14,6 @@
 @endphp
 
 @section('content')
-    @foreach(getParts('defaultHeader') as $part)
-        @php($p = $part->getBladeWithData())
-        @include($p['blade'],['data' => $p['data']])
-    @endforeach
-
     <div class="{{gfx()['container']}} content tag-page py-4">
         <!-- Page Title Header -->
         <div class="search-header text-center mb-4">
@@ -272,9 +267,4 @@
             });
         });
     </script>
-
-    @foreach(getParts('defaultFooter') as $part)
-        @php($p = $part->getBladeWithData())
-        @include($p['blade'],['data' => $p['data']])
-    @endforeach
 @endsection

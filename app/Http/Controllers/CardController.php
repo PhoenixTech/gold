@@ -100,11 +100,10 @@ class CardController extends Controller
 
     public function index()
     {
-        $area = 'card';
         $title = __('Shopping card');
         $subtitle = '';
 
-        return view('client.default-list', compact('area', 'title', 'subtitle'));
+        return view('client.cart.index', compact('title', 'subtitle'));
     }
 
     public function check(Request $request)

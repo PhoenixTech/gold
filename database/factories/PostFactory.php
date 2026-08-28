@@ -60,11 +60,11 @@ class PostFactory extends Factory
             'slug' => sluger($title),
             'subtitle' => $this->faker->realText(),
             'body' => $this->faker->realText(500),
-            'group_id' => Group::inRandomOrder()->first()->id,
+            'group_id' => Group::inRandomOrder()->first()?->id ?? Group::factory(),
             'hash' => str_pad(dechex(crc32($title)), 8, '0', STR_PAD_LEFT),
-            'status' => rand(0,1),
+            'status' => 1,
             'view' => rand(0,999),
-            'user_id' => User::where('id','<',6)->inRandomOrder()->first()->id,
+            'user_id' => User::inRandomOrder()->first()?->id ?? User::factory(),
             'icon' => $this->icons[rand(0,count($this->icons)-1)],
         ];
     }

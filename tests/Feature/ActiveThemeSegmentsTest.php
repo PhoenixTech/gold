@@ -7,77 +7,70 @@ use Tests\TestCase;
 class ActiveThemeSegmentsTest extends TestCase
 {
     /**
-     * Segment folders that belong to the live shop theme.
+     * Required client plain MVC Blade views.
      *
      * @return list<string>
      */
-    private function activeParts(): array
+    private function expectedClientViews(): array
     {
         return [
-            'attachment/AttachmentWithPreview',
-            'attachments/SimpleAttachmentList',
-            'attachments_page/DenaAttachList',
-            'card/NsCard',
-            'category/ParallelCategoriesGrid',
-            'category/SubCategoriesGrid',
-            'clip/DorClip',
-            'clips_page/ClipListGrid',
-            'compare/CompareProducts',
-            'contact/MeloContact',
-            'customer/AvisaCustomer',
-            'footer/TypicalFooter',
-            'footer/WTFFooter',
-            'galleries_page/GalleriesList',
-            'gallery/GallaryGrid',
-            'header/ParallaxHeader',
-            'index/BottomBar',
-            'index/Natalia2Categories',
-            'index/NeginNews',
-            'index/WTFIndex',
-            'invoice/LianaInvoice',
-            'login/LoginPatternBg',
-            'menu/AplMenu',
-            'menu/ZarMenu',
-            'post/PostSidebar',
-            'posts_page/GridPostListSidebar',
-            'product/ProductAria',
-            'product_grid/ShivaProductGrid',
-            'products_page/ProductGridHiddenSidebar',
-            'products_page/ProductGridSidebar',
-            'register/SimpleRegister',
+            'home.blade.php',
+            'products/index.blade.php',
+            'products/show.blade.php',
+            'categories/show.blade.php',
+            'posts/index.blade.php',
+            'posts/show.blade.php',
+            'posts/group.blade.php',
+            'posts/tag.blade.php',
+            'galleries/index.blade.php',
+            'galleries/show.blade.php',
+            'clips/index.blade.php',
+            'clips/show.blade.php',
+            'attachments/index.blade.php',
+            'attachments/show.blade.php',
+            'contact/index.blade.php',
+            'compare/index.blade.php',
+            'customer/profile.blade.php',
+            'customer/invoice.blade.php',
+            'customer/ticket.blade.php',
+            'cart/index.blade.php',
+            'auth/login.blade.php',
+            'auth/register.blade.php',
+            'partials/header.blade.php',
+            'partials/footer.blade.php',
+            'partials/product-card.blade.php',
+            'partials/post-card.blade.php',
+            'partials/breadcrumbs.blade.php',
+            'partials/product-sidebar.blade.php',
+            'partials/post-sidebar.blade.php',
         ];
     }
 
-    public function test_only_active_theme_part_folders_remain(): void
+    public function test_all_plain_mvc_client_views_exist(): void
     {
-        $root = resource_path('views/segments');
-        $found = [];
+        $base = resource_path('views/client');
 
-        foreach (glob($root.'/*', GLOB_ONLYDIR) ?: [] as $segmentDir) {
-            $segment = basename($segmentDir);
-            if ($segment === 'default-assets') {
-                continue;
-            }
-
-            foreach (glob($segmentDir.'/*', GLOB_ONLYDIR) ?: [] as $partDir) {
-                $found[] = $segment.'/'.basename($partDir);
-            }
+        foreach ($this->expectedClientViews() as $viewPath) {
+            $this->assertFileExists($base.'/'.$viewPath, "Expected view {$viewPath} to exist.");
         }
-
-        sort($found);
-        $expected = $this->activeParts();
-        sort($expected);
-
-        $this->assertSame($expected, $found);
     }
 
-    public function test_removed_catalog_parts_are_gone(): void
+    public function test_modular_client_assets_exist(): void
     {
-        $this->assertDirectoryDoesNotExist(resource_path('views/segments/product/ProductKaren'));
-        $this->assertDirectoryDoesNotExist(resource_path('views/segments/footer/WaveFooter'));
-        $this->assertDirectoryDoesNotExist(resource_path('views/segments/index/AuthorSlider'));
-        $this->assertDirectoryDoesNotExist(resource_path('views/segments/preloader'));
-        $this->assertDirectoryExists(resource_path('views/segments/default-assets'));
-        $this->assertFileExists(resource_path('views/segments/product/ProductAria/inc/comment-detail.blade.php'));
+        $this->assertFileExists(resource_path('sass/client/_header.scss'));
+        $this->assertFileExists(resource_path('sass/client/_footer.scss'));
+        $this->assertFileExists(resource_path('sass/client/_home.scss'));
+        $this->assertFileExists(resource_path('sass/client/_products.scss'));
+        $this->assertFileExists(resource_path('sass/client/_cart.scss'));
+        $this->assertFileExists(resource_path('sass/client/_customer.scss'));
+        $this->assertFileExists(resource_path('sass/client/_auth.scss'));
+        $this->assertFileExists(resource_path('sass/client/_posts.scss'));
+        $this->assertFileExists(resource_path('sass/client/_media.scss'));
+
+        $this->assertFileExists(resource_path('js/client/header.js'));
+        $this->assertFileExists(resource_path('js/client/home.js'));
+        $this->assertFileExists(resource_path('js/client/products.js'));
+        $this->assertFileExists(resource_path('js/client/customer.js'));
+        $this->assertFileExists(resource_path('js/client/gallery.js'));
     }
 }

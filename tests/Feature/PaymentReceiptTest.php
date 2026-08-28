@@ -223,7 +223,7 @@ class PaymentReceiptTest extends TestCase
         [$customer, $invoice] = $this->createAwaitingCardInvoice();
         $invoice->load(['customer', 'address.state', 'address.city', 'orders.product', 'orders.quantity', 'payments', 'paymentReceipts']);
 
-        $html = view('segments.invoice.LianaInvoice.LianaInvoice', [
+        $html = view('client.customer.invoice', [
             'invoice' => $invoice,
             'qr' => new class
             {
@@ -232,10 +232,6 @@ class PaymentReceiptTest extends TestCase
                     return 'data:image/svg+xml,'.rawurlencode('<svg></svg>');
                 }
             },
-            'data' => (object) [
-                'area_name' => 'invoice',
-                'part' => 'LianaInvoice',
-            ],
         ])->render();
 
         $this->assertStringContainsString(__('Deadline:'), $html);
@@ -346,7 +342,7 @@ class PaymentReceiptTest extends TestCase
         $response->assertOk();
         $response->assertSee('List Date Customer', false);
         $response->assertSee(__('created_at'), false);
-        $response->assertDontSee(__('hash'), false);
+        $response->assertDontSee('<th>' . __('hash') . '</th>', false);
         $response->assertSee(Invoice::formatPersianDateTime($invoice->created_at), false);
         $response->assertDontSee($invoice->created_at->format('Y-m-d H:i'), false);
     }
@@ -359,7 +355,7 @@ class PaymentReceiptTest extends TestCase
         $payment->forceFill(['status' => Payment::FAIL])->save();
         $invoice->load(['customer', 'address.state', 'address.city', 'orders.product', 'orders.quantity', 'payments', 'paymentReceipts']);
 
-        $html = view('segments.invoice.LianaInvoice.LianaInvoice', [
+        $html = view('client.customer.invoice', [
             'invoice' => $invoice,
             'qr' => new class
             {
@@ -368,10 +364,31 @@ class PaymentReceiptTest extends TestCase
                     return 'data:image/svg+xml,'.rawurlencode('<svg></svg>');
                 }
             },
-            'data' => (object) [
-                'area_name' => 'invoice',
-                'part' => 'LianaInvoice',
-            ],
+        ])->render();
+
+        $this->assertStringNotContainsString('liana-payment-panel', $html);
+        $this->assertStringNotContainsString('Card to card', $html);
+    }
+
+    public function test_invoice_page_hides_offline_payment_panel_when_offline_deadline_is_expired(): void
+    {
+        [$customer, $invoice, $payment] = $this->createAwaitingCardInvoice();
+
+        $hours = Invoice::offlinePaymentHours();
+        $invoice->forceFill(['created_at' => now()->subHours($hours + 1)])->save();
+        $invoice->load(['customer', 'address.state', 'address.city', 'orders.product', 'orders.quantity', 'payments', 'paymentReceipts']);
+
+        $this->assertTrue($invoice->isOfflinePaymentExpired());
+
+        $html = view('client.customer.invoice', [
+            'invoice' => $invoice,
+            'qr' => new class
+            {
+                public function render(string $url): string
+                {
+                    return 'data:image/svg+xml,'.rawurlencode('<svg></svg>');
+                }
+            },
         ])->render();
 
         $this->assertStringNotContainsString('liana-payment-panel', $html);

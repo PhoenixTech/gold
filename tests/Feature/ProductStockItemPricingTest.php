@@ -73,7 +73,7 @@ class ProductStockItemPricingTest extends TestCase
 
     public function test_product_view_only_offers_the_first_available_piece(): void
     {
-        $blade = file_get_contents(resource_path('views/segments/product/ProductAria/ProductAria.blade.php'));
+        $blade = file_get_contents(resource_path('views/client/products/show.blade.php'));
         $vue = file_get_contents(base_path('resources/js/client-vue/QuantitiesAddToCard.vue'));
 
         $this->assertNotFalse($blade);

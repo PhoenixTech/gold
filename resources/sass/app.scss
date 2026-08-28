@@ -73,7 +73,7 @@ main {
 @import "panel/dashboard";
 @import "panel/help";
 @import "panel/steps";
-@import "../views/segments/customer/AvisaCustomer/AvisaCustomer.scss";
+@import "client/customer";
 
 .ql-editor {
     min-height: 200px;

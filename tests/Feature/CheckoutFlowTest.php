@@ -380,7 +380,7 @@ class CheckoutFlowTest extends TestCase
         $this->assertNotNull($invoice);
         $invoice->load(['customer', 'address.state', 'address.city', 'orders.product', 'orders.quantity', 'payments']);
 
-        $html = view('segments.invoice.LianaInvoice.LianaInvoice', [
+        $html = view('client.customer.invoice', [
             'invoice' => $invoice,
             'qr' => new class
             {
@@ -389,10 +389,6 @@ class CheckoutFlowTest extends TestCase
                     return 'data:image/svg+xml,'.rawurlencode('<svg></svg>');
                 }
             },
-            'data' => (object) [
-                'area_name' => 'invoice',
-                'part' => 'LianaInvoice',
-            ],
         ])->render();
 
         $this->assertStringContainsString('تهران خیابان آزادی پلاک ۱۰', $html);

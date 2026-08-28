@@ -12,6 +12,8 @@ class Item extends Model
 
     public $translatable = ['title'];
 
+    protected $guarded = ['id'];
+
     public function menu()
     {
         return $this->belongsTo(Menu::class, 'menu_id', 'id');
@@ -32,21 +34,24 @@ class Item extends Model
         return $this->morphTo('menuable','menuable_type','menuable_id');
     }
 
-    public function webUrl(){
-        if ($this->kind == 'direct'){
+    public function webUrl()
+    {
+        if ($this->dest) {
+            return $this->dest->webUrl();
+        }
 
-            if ( config('app.xlang.active') && app()->getLocale() != config('app.xlang.main')){
-                if ($this->meta[0] != '/'){
-
+        if (!empty($this->meta)) {
+            if (config('app.xlang.active') && app()->getLocale() != config('app.xlang.main')) {
+                if ($this->meta[0] != '/') {
                     $welcome = \route('client.welcome');
-                    return str_replace($welcome,$welcome .'/'.app()->getLocale(),$this->meta);
-                }else{
-                    return  '/'.app()->getLocale() . $this->meta;
+                    return str_replace($welcome, $welcome . '/' . app()->getLocale(), $this->meta);
+                } else {
+                    return '/' . app()->getLocale() . $this->meta;
                 }
             }
             return $this->meta;
-        }else{
-            return $this->dest->webUrl();
         }
+
+        return '#';
     }
 }

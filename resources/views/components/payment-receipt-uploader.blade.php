@@ -10,7 +10,7 @@
 @endphp
 <form id="{{ $formId }}"
       class="receipt-uploader no-print"
-      action="{{ route('client.invoice.receipts.store', $invoice) }}"
+      action="{{ (isset($invoice) && $invoice->exists) ? route('client.invoice.receipts.store', $invoice) : '#' }}"
       method="post"
       enctype="multipart/form-data"
       data-receipt-uploader>

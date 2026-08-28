@@ -262,6 +262,10 @@ class Invoice extends Model
             return false;
         }
 
+        if ($this->isOfflinePaymentExpired()) {
+            return false;
+        }
+
         $payment = $this->cardPayment();
 
         return $payment !== null && $payment->status === Payment::PENDING;

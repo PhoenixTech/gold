@@ -54,11 +54,37 @@ class ClientController extends Controller
     //
     public function welcome()
     {
-        $area = 'index';
         $title = config('app.name');
         $subtitle = getSetting('subtitle');
 
-        return view('client.welcome', compact('area', 'title', 'subtitle'));
+        $mainCategories = getCategoriesSet('index_WTFIndex_categories');
+        if ($mainCategories->isEmpty()) {
+            $mainCategories = Category::where('hide', 0)
+                ->where(function ($q) {
+                    $q->whereNull('parent_id')->orWhere('parent_id', 0);
+                })
+                ->orderBy('sort')
+                ->take(4)
+                ->with(['children' => function ($q) {
+                    $q->where('hide', 0)->orderBy('sort');
+                }])
+                ->get();
+        }
+
+        $latestProducts = Product::where('status', 1)
+            ->orderByDesc('id')
+            ->take(8)
+            ->get();
+
+        $latestPosts = Post::where('status', 1)
+            ->orderByDesc('id')
+            ->take(4)
+            ->get();
+
+        $introText = getSetting('index_Natalia2Categories_text') ?: getSetting('about');
+        $newsText = getSetting('index_NeginNews_text');
+
+        return view('client.home', compact('title', 'subtitle', 'mainCategories', 'latestProducts', 'latestPosts', 'introText', 'newsText'));
     }
 
     public function post($slug)
@@ -79,7 +105,7 @@ class ClientController extends Controller
             $post->title => null,
         ];
 
-        return view('client.post', compact('area', 'post', 'title', 'subtitle', 'breadcrumb'));
+        return view('client.posts.show', compact('post', 'title', 'subtitle', 'breadcrumb'));
     }
 
     public function clip($slug)
@@ -90,7 +116,6 @@ class ClientController extends Controller
         if ($clip->status = 0 && ! auth()->check()) {
             return abort(403);
         }
-        $area = 'clip';
         $title = $clip->title;
         $subtitle = '';
         $breadcrumb = [
@@ -99,7 +124,7 @@ class ClientController extends Controller
         ];
         $model = $clip;
 
-        return view('client.default-list', compact('area', 'clip', 'title', 'subtitle', 'breadcrumb', 'model'));
+        return view('client.clips.show', compact('clip', 'title', 'subtitle', 'breadcrumb', 'model'));
     }
 
     public function gallery($slug)
@@ -109,7 +134,6 @@ class ClientController extends Controller
         if ($gallery->status = 0 && ! auth()->check()) {
             return abort(403);
         }
-        $area = 'gallery';
         $title = $gallery->title;
         $subtitle = \Str::limit(strip_tags($gallery->description), 15);
         $gallery->increment('view');
@@ -118,18 +142,17 @@ class ClientController extends Controller
             $gallery->title => null,
         ];
 
-        return view('client.gallery', compact('area', 'gallery', 'title', 'subtitle', 'breadcrumb'));
+        return view('client.galleries.show', compact('gallery', 'title', 'subtitle', 'breadcrumb'));
     }
 
     public function posts()
     {
-        $area = 'posts-list';
         $title = __('Posts list');
         $subtitle = '';
         $posts = Post::where('status', 1)
             ->orderByDesc('id')->paginate($this->paginate);
 
-        return view('client.default-list', compact('area', 'posts', 'title', 'subtitle'));
+        return view('client.posts.index', compact('posts', 'title', 'subtitle'));
     }
 
     public function products(Request $request)
@@ -233,47 +256,43 @@ class ClientController extends Controller
             }])
             ->get();
 
-        return view('client.default-list', compact('area', 'products', 'title', 'subtitle', 'categories', 'activeCategory'));
+        return view('client.products.index', compact('products', 'title', 'subtitle', 'categories', 'activeCategory'));
     }
 
     public function galleries()
     {
-        $area = 'galleries-list';
         $title = __('Galleries list');
         $subtitle = '';
         $galleries = Gallery::where('status', 1)
             ->orderByDesc('id')->paginate($this->paginate);
 
-        return view('client.default-list', compact('area', 'galleries', 'title', 'subtitle'));
+        return view('client.galleries.index', compact('galleries', 'title', 'subtitle'));
     }
 
     public function clips()
     {
-        $area = 'clips-list';
         $title = __('Video clips list');
         $subtitle = '';
         $clips = Clip::where('status', 1)
             ->orderByDesc('id')->paginate($this->paginate);
 
-        return view('client.default-list', compact('area', 'clips', 'title', 'subtitle'));
+        return view('client.clips.index', compact('clips', 'title', 'subtitle'));
     }
 
     public function attachments()
     {
-        $area = 'attachments-list';
         $title = __('Attachments list');
         $subtitle = '';
-        $attachs = Attachment::where('is_fillable', 1)
+        $attachments = Attachment::where('is_fillable', 1)
             ->orderByDesc('id')->paginate($this->paginate);
 
-        return view('client.default-list', compact('area', 'attachs', 'title', 'subtitle'));
+        return view('client.attachments.index', compact('attachments', 'title', 'subtitle'));
     }
 
     public function attachment($slug)
     {
 
         $attachment = Attachment::where('slug', $slug)->firstOrFail();
-        $area = 'attachment';
         $title = $attachment->title;
         $subtitle = $attachment->subtitle;
         $breadcrumb = [
@@ -282,7 +301,7 @@ class ClientController extends Controller
         ];
         $model = $attachment;
 
-        return view('client.default-list', compact('area', 'attachment', 'title', 'subtitle', 'breadcrumb', 'model'));
+        return view('client.attachments.show', compact('attachment', 'title', 'subtitle', 'breadcrumb', 'model'));
     }
 
     public function tag($slug)
@@ -402,7 +421,7 @@ class ClientController extends Controller
 
         }
 
-        return view('client.group', compact('area', 'posts', 'title', 'subtitle', 'group', 'breadcrumb'));
+        return view('client.posts.group', compact('posts', 'title', 'subtitle', 'group', 'breadcrumb'));
     }
 
     public function product($slug)
@@ -412,7 +431,6 @@ class ClientController extends Controller
         if ($product->status = 0 && ! auth()->check()) {
             return abort(403);
         }
-        $area = 'product';
         $title = $product->name;
         $subtitle = $product->excerpt; // WIP SEO
         $breadcrumb = [
@@ -424,13 +442,12 @@ class ClientController extends Controller
         }
         $breadcrumb[$product->name] = null;
 
-        return view('client.product', compact('area', 'product', 'title', 'subtitle', 'breadcrumb'));
+        return view('client.products.show', compact('product', 'title', 'subtitle', 'breadcrumb'));
     }
 
     public function category($slug, Request $request)
     {
         $category = Category::where('slug', $slug)->firstOrFail();
-        $area = 'category';
         $title = $category->name;
         $subtitle = $category->subtitle;
         $query = $category->products()->where('status', 1);
@@ -574,7 +591,7 @@ class ClientController extends Controller
 
         }
 
-        return view('client.category', compact('area', 'products', 'title', 'subtitle', 'category', 'breadcrumb'));
+        return view('client.categories.show', compact('products', 'title', 'subtitle', 'category', 'breadcrumb'));
     }
 
     public function attachDl($slug)
@@ -589,22 +606,20 @@ class ClientController extends Controller
 
     public function compare()
     {
-        $area = 'compare';
         $title = __('Compare products');
         $subtitle = '';
         $ids = json_decode(\Cookie::get('compares'), true);
         $products = Product::whereIn('id', $ids)->where('status', 1)->get();
 
-        return view('client.default-list', compact('area', 'products', 'title', 'subtitle'));
+        return view('client.compare.index', compact('products', 'title', 'subtitle'));
     }
 
     public function contact()
     {
-        $area = 'contact-us';
         $title = __('Contact us');
         $subtitle = '';
 
-        return view('client.default-list', compact('area', 'title', 'subtitle'));
+        return view('client.contact.index', compact('title', 'subtitle'));
     }
 
     public function sendContact(ContactSubmitRequest $request)
@@ -633,11 +648,10 @@ class ClientController extends Controller
             session(['url.intended' => $request->input('redirect')]);
         }
 
-        $area = 'login';
         $title = __('sign in');
         $subtitle = __('Sign in as customer');
 
-        return view('client.default-list', compact('area', 'title', 'subtitle'));
+        return view('client.auth.login', compact('title', 'subtitle'));
     }
 
     public function signUp(Request $request)
@@ -650,11 +664,10 @@ class ClientController extends Controller
             session(['url.intended' => $request->input('redirect')]);
         }
 
-        $area = 'register';
         $title = __('sign up');
         $subtitle = __('Sign up as customer');
 
-        return view('client.default-list', compact('area', 'title', 'subtitle'));
+        return view('client.auth.register', compact('title', 'subtitle'));
     }
 
     public function signUpNow(Request $request)

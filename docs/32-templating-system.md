@@ -1,8 +1,6 @@
-# Templating System (Areas, Parts & Segments)
+# Templating Architecture (Plain MVC Migration)
 
-This document explains how the custom front-end templating system of xShop works, using the **customer dashboard** as a walking example, and concludes with recommendations for making the system easier to change — especially for AI-assisted development.
-
-> Also read [14-area.md](14-area.md) for the database-level description of `areas` and `parts`.
+> **Architecture Update**: The front-end has been migrated to a **standard Plain MVC architecture**. All client pages are now rendered with direct Blade templates in `resources/views/client/`, modular SCSS in `resources/sass/client/`, modular JavaScript in `resources/js/client/`, and explicit data passing from controllers.
 
 ---
 

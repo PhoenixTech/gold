@@ -1,0 +1,2804 @@
+#AvisaCustomer {
+    padding: 2.5rem 0 3rem;
+
+    .tab {
+        display: none !important;
+
+        &.active {
+            display: block !important;
+            animation: avisaFadeIn 0.2s ease-in-out;
+        }
+    }
+
+    @keyframes avisaFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(6px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .alert {
+        border-radius: 1rem;
+        padding: 1rem 1.25rem;
+        box-shadow: var(--xshop-shadow-xs);
+    }
+
+    #avisa-alert-profile {
+        border-radius: 1rem;
+        border: 1px solid rgba(220, 38, 38, 0.25);
+        box-shadow: 0 4px 14px -4px rgba(220, 38, 38, 0.15);
+    }
+
+    .avisa-menu-btn {
+        display: none;
+    }
+
+    .avisa-backdrop {
+        display: none;
+    }
+
+    .avisa-sidebar {
+        position: sticky;
+        top: 1rem;
+        background: #ffffff;
+        border: 1px solid var(--xshop-border-card);
+        border-radius: 1rem;
+        box-shadow: var(--xshop-shadow-xs);
+        overflow: hidden;
+
+        .avisa-user {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            padding: 1.25rem 1rem;
+            background: var(--xshop-surface-50);
+            border-bottom: 1px solid var(--xshop-surface-200);
+
+            .avisa-avatar {
+                height: 52px;
+                width: 52px;
+                min-width: 52px;
+                border-radius: 50%;
+                object-fit: cover;
+                cursor: pointer;
+                border: 2px solid #ffffff;
+                box-shadow: var(--xshop-shadow-xs);
+                transition: transform 0.2s ease;
+
+                &:hover {
+                    transform: scale(1.05);
+                }
+            }
+
+            .avisa-user-meta {
+                overflow: hidden;
+
+                small {
+                    display: block;
+                    color: var(--xshop-text-muted);
+                    font-size: 12px;
+                    font-weight: 500;
+                }
+
+                strong {
+                    display: block;
+                    font-size: 15px;
+                    font-weight: 700;
+                    color: var(--xshop-text-main);
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
+                    overflow: hidden;
+                }
+            }
+        }
+    }
+
+    #avisa-tabs {
+        list-style: none;
+        padding: 0.65rem 0.5rem;
+        margin: 0;
+
+        li {
+            margin-bottom: 0.25rem;
+
+            a {
+                display: flex;
+                align-items: center;
+                gap: 0.65rem;
+                padding: 0.6rem 0.8rem;
+                border-radius: 0.75rem;
+                background: transparent;
+                border: 1px solid transparent;
+                color: var(--xshop-text-body);
+                font-size: 13.5px;
+                font-weight: 600;
+                transition: all 0.2s ease;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                overflow-x: hidden;
+
+                .avisa-nav-icon {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 32px;
+                    height: 32px;
+                    min-width: 32px;
+                    border-radius: 8px;
+                    font-size: 16px;
+                    color: var(--xshop-text-muted);
+                    background: var(--xshop-surface-100);
+                    transition: all 0.2s ease;
+                }
+
+                .avisa-nav-label {
+                    flex: 1;
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
+                    overflow: hidden;
+                }
+
+                .avisa-nav-count {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    min-width: 22px;
+                    height: 22px;
+                    padding: 0 0.45rem;
+                    border-radius: 9999px;
+                    background: var(--xshop-surface-100);
+                    color: var(--xshop-text-muted);
+                    font-size: 11.5px;
+                    font-weight: 700;
+                    transition: all 0.2s ease;
+                }
+
+                &:hover {
+                    background: var(--xshop-surface-50);
+                    color: var(--xshop-text-main);
+                    transform: translateX(-2px);
+
+                    .avisa-nav-icon {
+                        background: var(--xshop-surface-200);
+                        color: var(--xshop-primary);
+                    }
+                }
+
+                &.active {
+                    background: rgba(219, 154, 0, 0.08);
+                    color: var(--xshop-primary-text);
+                    border-color: rgba(219, 154, 0, 0.25);
+                    font-weight: 700;
+                    box-shadow: none;
+
+                    .avisa-nav-icon {
+                        background: var(--xshop-primary);
+                        color: #ffffff;
+                    }
+
+                    .avisa-nav-count {
+                        background: var(--xshop-primary);
+                        color: #ffffff;
+                    }
+                }
+            }
+        }
+    }
+
+    /* Modern Dashboard Hero Header */
+    .avisa-hero-card {
+        background: linear-gradient(135deg, color-mix(in srgb, var(--xshop-primary) 10%, var(--xshop-background)), color-mix(in srgb, var(--xshop-primary) 3%, var(--xshop-background)));
+        border: 1px solid color-mix(in srgb, var(--xshop-primary) 20%, transparent);
+        border-radius: 1.25rem;
+        padding: 1.5rem;
+        box-shadow: 0 10px 30px -15px color-mix(in srgb, var(--xshop-primary) 25%, transparent);
+        position: relative;
+        overflow: hidden;
+
+        &::before {
+            content: '';
+            position: absolute;
+            top: -40%;
+            left: -10%;
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle, color-mix(in srgb, var(--xshop-primary) 18%, transparent) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .avisa-hero-body {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1.25rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .avisa-hero-user {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+
+            .avisa-hero-avatar {
+                width: 64px;
+                height: 64px;
+                min-width: 64px;
+                border-radius: 50%;
+                object-fit: cover;
+                border: 3px solid var(--xshop-primary);
+                box-shadow: 0 4px 14px color-mix(in srgb, var(--xshop-primary) 30%, transparent);
+                cursor: pointer;
+                transition: transform .3s ease;
+
+                &:hover {
+                    transform: scale(1.06);
+                }
+            }
+
+            .avisa-hero-title {
+                font-size: 1.35rem;
+                font-weight: 800;
+                margin-bottom: .25rem;
+                color: var(--xshop-text);
+            }
+
+            .avisa-hero-sub {
+                font-size: .88rem;
+            }
+        }
+
+        .avisa-hero-actions {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            flex-wrap: wrap;
+        }
+    }
+
+    /* Modern Summary Stat Cards */
+    .avisa-summary-stat-card {
+        background: var(--xshop-background);
+        border: 1px solid var(--xshop-border-soft);
+        border-radius: 1.15rem;
+        padding: 1.35rem 1.4rem;
+        display: flex;
+        align-items: center;
+        gap: 1.15rem;
+        cursor: pointer;
+        transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: var(--xshop-shadow-sm);
+        position: relative;
+        overflow: hidden;
+
+        &:hover {
+            transform: translateY(var(--xshop-lift));
+            box-shadow: 0 12px 25px -8px color-mix(in srgb, var(--xshop-primary) 30%, transparent);
+            border-color: var(--xshop-primary);
+
+            .stat-icon-wrapper {
+                transform: scale(1.08) rotate(3deg);
+            }
+        }
+
+        .stat-icon-wrapper {
+            width: 56px;
+            height: 56px;
+            min-width: 56px;
+            border-radius: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            transition: transform .3s ease;
+        }
+
+        &.card-invoice .stat-icon-wrapper {
+            background: linear-gradient(135deg, var(--xshop-accent-blue), var(--xshop-accent-blue-dark));
+            color: #fff;
+            box-shadow: 0 6px 15px -4px color-mix(in srgb, var(--xshop-accent-blue) 50%, transparent);
+        }
+
+        &.card-credit .stat-icon-wrapper {
+            background: linear-gradient(135deg, var(--xshop-accent-green), var(--xshop-accent-green-dark));
+            color: #fff;
+            box-shadow: 0 6px 15px -4px color-mix(in srgb, var(--xshop-accent-green) 50%, transparent);
+        }
+
+        &.card-ticket .stat-icon-wrapper {
+            background: linear-gradient(135deg, var(--xshop-accent-violet), var(--xshop-accent-violet-dark));
+            color: #fff;
+            box-shadow: 0 6px 15px -4px color-mix(in srgb, var(--xshop-accent-violet) 50%, transparent);
+        }
+
+        &.card-address .stat-icon-wrapper {
+            background: linear-gradient(135deg, var(--xshop-gold-500), var(--xshop-gold-600));
+            color: #fff;
+            box-shadow: 0 6px 15px -4px color-mix(in srgb, var(--xshop-gold-500) 50%, transparent);
+        }
+
+        .stat-details {
+            flex: 1;
+
+            .stat-label {
+                display: block;
+                font-size: .88rem;
+                font-weight: 600;
+                color: var(--xshop-text);
+                opacity: .75;
+                margin-bottom: .25rem;
+            }
+
+            .stat-value {
+                font-size: 1.55rem;
+                font-weight: 800;
+                margin: 0;
+                color: var(--xshop-text);
+
+                small {
+                    font-size: .88rem;
+                    font-weight: 600;
+                    opacity: .8;
+                }
+            }
+        }
+    }
+
+    /* Summary Widgets */
+    .avisa-summary-widget {
+        background: var(--xshop-background);
+        border: 1px solid var(--xshop-border-soft);
+        border-radius: 1.1rem;
+        box-shadow: var(--xshop-shadow-sm);
+        overflow: hidden;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+
+        .widget-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.1rem 1.25rem;
+            border-bottom: 1px solid color-mix(in srgb, var(--xshop-primary) 10%, transparent);
+            background: color-mix(in srgb, var(--xshop-primary) 3%, var(--xshop-background));
+
+            h4 {
+                font-size: 1.05rem;
+                font-weight: 700;
+                margin: 0;
+                color: var(--xshop-text);
+                display: flex;
+                align-items: center;
+
+                i {
+                    color: var(--xshop-primary);
+                }
+            }
+
+            .widget-link {
+                font-size: .82rem;
+                font-weight: 700;
+                color: var(--xshop-primary);
+                text-decoration: none;
+                display: flex;
+                align-items: center;
+                gap: .2rem;
+                transition: gap .2s ease;
+
+                &:hover {
+                    gap: .4rem;
+                }
+            }
+        }
+
+        .widget-body {
+            padding: 1.1rem 1.25rem;
+            flex: 1;
+        }
+
+        .avisa-summary-table {
+            th {
+                font-size: .8rem;
+                font-weight: 700;
+                color: var(--xshop-text);
+                opacity: .7;
+                background: color-mix(in srgb, var(--xshop-primary) 3%, var(--xshop-background));
+                border-bottom: 1px solid color-mix(in srgb, var(--xshop-primary) 10%, transparent);
+                padding: .75rem 1rem;
+            }
+
+            td {
+                padding: .85rem 1rem;
+                border-bottom: 1px solid color-mix(in srgb, var(--xshop-primary) 8%, transparent);
+                font-size: .88rem;
+            }
+
+            tr:last-child td {
+                border-bottom: none;
+            }
+        }
+
+        .avisa-ticket-mini-list {
+            display: flex;
+            flex-direction: column;
+            gap: .8rem;
+
+            .ticket-mini-item {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: .75rem;
+                padding: .85rem 1rem;
+                background: color-mix(in srgb, var(--xshop-primary) 3%, var(--xshop-background));
+                border: 1px solid color-mix(in srgb, var(--xshop-primary) 10%, transparent);
+                border-radius: .85rem;
+                transition: border-color .2s ease;
+
+                &:hover {
+                    border-color: var(--xshop-primary);
+                }
+
+                .ticket-mini-info {
+                    display: flex;
+                    flex-direction: column;
+                    gap: .2rem;
+                    overflow: hidden;
+
+                    .ticket-mini-title {
+                        font-weight: 700;
+                        font-size: .9rem;
+                        color: var(--xshop-text);
+                        text-decoration: none;
+                        white-space: nowrap;
+                        text-overflow: ellipsis;
+                        overflow: hidden;
+
+                        &:hover {
+                            color: var(--xshop-primary);
+                        }
+                    }
+
+                    .ticket-mini-date {
+                        font-size: .75rem;
+                        color: var(--xshop-text);
+                        opacity: .6;
+                    }
+                }
+            }
+        }
+    }
+
+    .avisa-grid {
+        .grid-item {
+            border: 1px solid var(--xshop-primary);
+            border-radius: var(--xshop-border-radius);
+            background: var(--xshop-background);
+            padding: 1.25rem 1rem;
+            margin-bottom: 1rem;
+            text-align: center;
+            transition: 300ms;
+
+            &:hover {
+                box-shadow: var(--xshop-shadow);
+            }
+
+            i {
+                display: block;
+                font-size: 26px;
+                line-height: 1;
+                color: var(--xshop-primary);
+                margin-bottom: .6rem;
+            }
+
+            h2 {
+                font-size: 22px;
+                font-weight: 700;
+                margin: 0;
+                color: var(--xshop-text);
+            }
+
+            h3 {
+                font-size: 13px;
+                margin: .15rem 0 0;
+                color: var(--xshop-text);
+                opacity: .6;
+            }
+        }
+    }
+
+
+
+    .avisa-comment {
+        border: 1px solid var(--xshop-primary);
+        padding: 1rem;
+        border-radius: var(--xshop-border-radius);
+        margin-bottom: 1rem;
+
+        h3 {
+            font-size: 17px;
+        }
+
+        .comment-date {
+            background: var(--xshop-secondary);
+            color: var(--xshop-diff2);
+            padding: 7px;
+            border-radius: var(--xshop-border-radius);
+        }
+    }
+    .product-item{
+        margin-bottom: 1rem;
+        border-radius: var(--xshop-border-radius);
+        border: 1px solid var(--xshop-primary);
+        overflow: hidden;
+
+        .fav-btn, .compare-btn {
+            border-radius: var(--xshop-border-radius);
+            background: #ffffff55;
+            font-size: 25px;
+            display: inline-block;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: .4s;
+            min-width: 100px;
+            text-align: center;
+            margin-top: -7px;
+            &:hover {
+                background: var(--xshop-primary);
+                color: var(--xshop-diff);
+            }
+        }
+
+        .fav-btn {
+            top: calc(3% + 50px);
+
+            &[data-is-fav="-1"]{
+                display: none;
+            }
+            &[data-is-fav="1"]{
+                .ri-heart-line{
+                    display: none;
+                }
+            }
+            &[data-is-fav="0"]{
+                .ri-heart-fill{
+                    display: none;
+                }
+            }
+        }
+    }
+}
+
+/*-992px width*/
+@media (max-width: 991.98px) {
+    #AvisaCustomer {
+        padding: 1.5rem 0 2rem;
+
+        .avisa-menu-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            border: 1px solid var(--xshop-border-card);
+            border-radius: 9999px;
+            background: #ffffff;
+            color: var(--xshop-text-main);
+            padding: 0.65rem 1.25rem;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            box-shadow: var(--xshop-shadow-xs);
+            transition: all 0.2s ease;
+
+            &:active {
+                transform: scale(0.98);
+            }
+        }
+
+        .avisa-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1040;
+            opacity: 0;
+            pointer-events: none;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            transition: opacity 0.25s ease;
+
+            &.open {
+                display: block;
+                opacity: 1;
+                pointer-events: auto;
+            }
+        }
+
+        .avisa-sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            inset-inline-start: 0;
+            width: min(85vw, 310px);
+            z-index: 1050;
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.32, 0.72, 0.35, 1);
+            border: 0;
+            border-radius: 0 1rem 1rem 0;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            box-shadow: var(--xshop-shadow-xl);
+            background: #ffffff;
+
+            &.open {
+                transform: translateX(0);
+            }
+
+            .avisa-user {
+                position: sticky;
+                top: 0;
+                z-index: 2;
+                background: var(--xshop-surface-50);
+                border-bottom: 1px solid var(--xshop-surface-200);
+                padding: 1.25rem 1rem;
+
+                .avisa-close-btn {
+                    position: absolute;
+                    top: 0.85rem;
+                    inset-inline-end: 0.85rem;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 32px;
+                    height: 32px;
+                    border: 1px solid var(--xshop-surface-200);
+                    border-radius: 50%;
+                    background: #ffffff;
+                    color: var(--xshop-text-muted);
+                    font-size: 18px;
+                    transition: all 0.2s ease;
+
+                    &:hover {
+                        color: var(--xshop-text-main);
+                        background: var(--xshop-surface-100);
+                    }
+                }
+            }
+        }
+
+        [dir="rtl"] & {
+            .avisa-sidebar {
+                transform: translateX(100%);
+                border-radius: 1rem 0 0 1rem;
+
+                &.open {
+                    transform: translateX(0);
+                }
+            }
+        }
+    }
+}
+
+/* =====================================================================
+   Modern dashboard — widgets, tables, credit, comments, panels
+   ===================================================================== */
+#AvisaCustomer {
+
+    // ---- Modern metric widgets (Summary) ----
+    .avisa-grid {
+        .grid-item {
+            position: relative;
+            border: 1px solid color-mix(in srgb, var(--xshop-primary) 35%, transparent);
+            border-radius: 1.1rem;
+            background: var(--xshop-background);
+            padding: 1.5rem 1rem 1.35rem;
+            text-align: center;
+            box-shadow: var(--xshop-shadow-lg);
+            transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+            overflow: hidden;
+
+            &::before {
+                content: "";
+                position: absolute;
+                inset: 0 0 auto 0;
+                height: 4px;
+                background: linear-gradient(90deg, var(--xshop-primary), color-mix(in srgb, var(--xshop-primary) 55%, #ffffff));
+            }
+
+            &:hover {
+                transform: translateY(var(--xshop-lift));
+                box-shadow: var(--xshop-shadow-lg);
+                border-color: color-mix(in srgb, var(--xshop-primary) 55%, transparent);
+            }
+
+            i {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 54px;
+                height: 54px;
+                margin: 0 auto .85rem;
+                font-size: 25px;
+                line-height: 1;
+                border-radius: 15px;
+                color: var(--xshop-diff2);
+                background: linear-gradient(135deg, var(--xshop-primary), color-mix(in srgb, var(--xshop-primary) 45%, var(--xshop-secondary)));
+                box-shadow: 0 8px 16px -8px color-mix(in srgb, var(--xshop-primary) 75%, transparent);
+            }
+
+            h2 {
+                font-size: 25px;
+                font-weight: 800;
+                letter-spacing: -.3px;
+                color: var(--xshop-text);
+            }
+
+            h3 {
+                font-size: 12.5px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: .5px;
+                color: color-mix(in srgb, var(--xshop-text) 55%, transparent);
+                margin: .2rem 0 0;
+            }
+        }
+    }
+
+    // ---- Generic card panel (forms) ----
+    .avisa-panel {
+        border: 1px solid color-mix(in srgb, var(--xshop-primary) 30%, transparent);
+        border-radius: 1.1rem;
+        background: var(--xshop-background);
+        padding: 1.25rem;
+        box-shadow: var(--xshop-shadow-lg);
+        margin-bottom: 1rem;
+    }
+
+    // ---- Table card ----
+    .avisa-table-card {
+        border: 1px solid color-mix(in srgb, var(--xshop-primary) 30%, transparent);
+        border-radius: 1.1rem;
+        background: var(--xshop-background);
+        box-shadow: var(--xshop-shadow-lg);
+        overflow: hidden;
+        margin-bottom: 1rem;
+    }
+
+    .avisa-table-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid color-mix(in srgb, var(--xshop-primary) 25%, transparent);
+        background: color-mix(in srgb, var(--xshop-primary) 7%, var(--xshop-background));
+
+        h4 {
+            margin: 0;
+            font-size: 17px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            color: var(--xshop-text);
+
+            i {
+                color: var(--xshop-primary);
+                font-size: 20px;
+            }
+        }
+    }
+
+    .avisa-count-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 30px;
+        height: 30px;
+        padding: 0 .55rem;
+        border-radius: 50rem;
+        background: var(--xshop-primary);
+        color: var(--xshop-diff2);
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .avisa-table-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .avisa-table {
+        width: 100%;
+        margin: 0;
+        border-collapse: collapse;
+        font-size: 14px;
+
+        thead th {
+            padding: .85rem 1.25rem;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+            color: color-mix(in srgb, var(--xshop-text) 55%, transparent);
+            background: color-mix(in srgb, var(--xshop-primary) 4%, var(--xshop-background));
+            border-bottom: 1px solid color-mix(in srgb, var(--xshop-primary) 25%, transparent);
+            white-space: nowrap;
+        }
+
+        tbody td {
+            padding: .9rem 1.25rem;
+            border-bottom: 1px solid color-mix(in srgb, var(--xshop-primary) 14%, transparent);
+            color: var(--xshop-text);
+            vertical-align: middle;
+        }
+
+        tbody tr {
+            transition: background-color .15s ease;
+
+            &:hover {
+                background: color-mix(in srgb, var(--xshop-primary) 5%, var(--xshop-background));
+            }
+
+            &:last-child td {
+                border-bottom: 0;
+            }
+        }
+    }
+}
+
+#AvisaCustomer {
+
+    // ---- Status pills ----
+    .inv-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        padding: .3rem .75rem;
+        border-radius: 50rem;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.4;
+        white-space: nowrap;
+
+        &::before {
+            content: "";
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        &.inv-PAID, &.inv-COMPLETED {
+            background: color-mix(in srgb, var(--xshop-success) 14%, var(--xshop-background));
+            color: var(--xshop-success);
+        }
+
+        &.inv-PENDING, &.inv-PROCESSING, &.inv-OUT_FOR_DELIVERY {
+            background: color-mix(in srgb, var(--xshop-warning) 14%, var(--xshop-background));
+            color: var(--xshop-warning);
+        }
+
+        &.inv-AWAITING_PAYMENT, &.inv-WAITING_RECEIPT {
+            background: color-mix(in srgb, var(--xshop-warning) 18%, var(--xshop-background));
+            color: var(--xshop-warning);
+            box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--xshop-warning) 35%, transparent);
+        }
+
+        &.inv-WAITING_CONFIRMATION {
+            background: color-mix(in srgb, var(--xshop-info) 16%, var(--xshop-background));
+            color: var(--xshop-info);
+            box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--xshop-info) 35%, transparent);
+        }
+
+        &.inv-CANCELED, &.inv-FAILED {
+            background: color-mix(in srgb, var(--xshop-danger) 14%, var(--xshop-background));
+            color: var(--xshop-danger);
+        }
+
+        &.inv-ANSWERED {
+            background: color-mix(in srgb, var(--xshop-info) 14%, var(--xshop-background));
+            color: var(--xshop-info);
+        }
+
+        &.inv-CLOSED {
+            background: color-mix(in srgb, var(--xshop-secondary) 14%, var(--xshop-background));
+            color: var(--xshop-secondary);
+        }
+    }
+
+    // ---- Row actions ----
+    .avisa-row-actions {
+        white-space: nowrap;
+        text-align: end;
+
+        a + a, button + a, a + button {
+            margin-inline-start: .4rem;
+        }
+    }
+
+    .avisa-icon-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 1px solid var(--xshop-surface-200);
+        background: #ffffff;
+        color: var(--xshop-text-muted);
+        font-size: 16px;
+        box-shadow: var(--xshop-shadow-xs);
+        transition: all .2s ease;
+
+        &:hover {
+            background: var(--xshop-primary);
+            color: #ffffff;
+            border-color: var(--xshop-primary);
+            transform: translateY(-1px);
+            box-shadow: var(--xshop-shadow-sm);
+        }
+    }
+
+    .avisa-pay-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+        padding: .45rem 1rem;
+        border-radius: 9999px;
+        border: 1px solid var(--xshop-primary);
+        background: var(--xshop-primary);
+        color: #ffffff;
+        font-size: 13px;
+        font-weight: 600;
+        box-shadow: var(--xshop-shadow-xs);
+        transition: all .2s ease;
+
+        &:hover {
+            background: var(--xshop-primary-hover);
+            border-color: var(--xshop-primary-hover);
+            color: #ffffff;
+            transform: translateY(-1px);
+            box-shadow: var(--xshop-shadow-sm);
+        }
+    }
+
+    .avisa-upload-receipt-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+        padding: .45rem 1rem;
+        border-radius: 9999px;
+        border: 1px solid var(--xshop-warning);
+        background: var(--xshop-warning-bg);
+        color: var(--xshop-warning);
+        font-size: 12.5px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all .2s ease;
+
+        &:hover {
+            background: var(--xshop-warning);
+            color: #ffffff;
+            transform: translateY(-1px);
+            box-shadow: var(--xshop-shadow-xs);
+        }
+    }
+
+    .avisa-receipt-hint {
+        margin-top: .35rem;
+        display: inline-flex;
+        align-items: center;
+        gap: .3rem;
+        font-size: 11.5px;
+        font-weight: 700;
+        color: var(--xshop-warning);
+
+        &.is-waiting {
+            color: var(--xshop-info);
+        }
+    }
+
+    .avisa-invoice-needs-receipt {
+        background: color-mix(in srgb, var(--xshop-warning) 7%, transparent);
+    }
+
+    .avisa-receipt-alert {
+        border-radius: 1rem;
+    }
+
+    .avisa-deadline-note {
+        display: inline-flex;
+        align-items: center;
+        gap: .3rem;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--xshop-warning);
+    }
+
+    .avisa-deadline-mini {
+        display: inline-flex;
+        align-items: center;
+        gap: .25rem;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--xshop-warning);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .avisa-receipt-modal {
+        border-radius: 1rem;
+        overflow: hidden;
+
+        &__intro {
+            font-size: 13.5px;
+            line-height: 1.7;
+            color: color-mix(in srgb, var(--xshop-text) 70%, transparent);
+            margin-bottom: 1rem;
+        }
+
+        .receipt-uploader {
+            display: grid;
+            gap: .85rem;
+            padding: 1rem;
+            border-radius: .95rem;
+            border: 1px solid color-mix(in srgb, var(--xshop-warning) 40%, transparent);
+            background: color-mix(in srgb, var(--xshop-warning) 8%, var(--xshop-background));
+        }
+
+        .receipt-uploader__head {
+            display: flex;
+            gap: .75rem;
+            align-items: flex-start;
+        }
+
+        .receipt-uploader__icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            background: color-mix(in srgb, var(--xshop-warning) 20%, #fff);
+            color: var(--xshop-warning);
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .receipt-uploader__title {
+            display: block;
+            font-size: 14.5px;
+            margin-bottom: .2rem;
+        }
+
+        .receipt-uploader__hint {
+            font-size: 12.5px;
+            line-height: 1.7;
+            color: color-mix(in srgb, var(--xshop-text) 68%, transparent);
+        }
+
+        .receipt-uploader__deadline {
+            margin-top: .3rem;
+            color: var(--xshop-warning);
+
+            b {
+                font-variant-numeric: tabular-nums;
+            }
+        }
+
+        .receipt-uploader__error {
+            color: var(--xshop-danger);
+            font-size: 12.5px;
+        }
+
+        .receipt-uploader__submit {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .45rem;
+            width: 100%;
+            padding: .75rem 1rem;
+            border: 0;
+            border-radius: .8rem;
+            background: var(--xshop-primary);
+            color: var(--xshop-diff2);
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+
+            &:disabled {
+                opacity: .45;
+                cursor: not-allowed;
+            }
+        }
+
+        .receipt-dropzone {
+            display: block;
+            cursor: pointer;
+            position: relative;
+            border: 2px dashed color-mix(in srgb, var(--xshop-primary) 45%, transparent);
+            border-radius: .9rem;
+            background: var(--xshop-background);
+            padding: 1.25rem 1rem;
+            text-align: center;
+
+            &:hover,
+            &.is-dragover,
+            &:focus-within {
+                border-color: var(--xshop-primary);
+                background: color-mix(in srgb, var(--xshop-primary) 6%, var(--xshop-background));
+            }
+        }
+
+        .receipt-dropzone__input {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            overflow: hidden;
+        }
+
+        .receipt-dropzone__visual {
+            display: grid;
+            gap: .35rem;
+            justify-items: center;
+
+            > i {
+                font-size: 28px;
+                color: var(--xshop-primary);
+            }
+        }
+
+        .receipt-dropzone__cta {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .receipt-dropzone__meta {
+            font-size: 12px;
+            color: color-mix(in srgb, var(--xshop-text) 55%, transparent);
+        }
+
+        .receipt-file-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            gap: .45rem;
+        }
+
+        .receipt-file-list__item {
+            display: grid;
+            grid-template-columns: 44px 1fr auto;
+            gap: .65rem;
+            align-items: center;
+            padding: .45rem .55rem;
+            border-radius: .7rem;
+            background: var(--xshop-background);
+            border: 1px solid color-mix(in srgb, var(--xshop-primary) 20%, transparent);
+        }
+
+        .receipt-file-list__thumb {
+            width: 44px;
+            height: 44px;
+            border-radius: .55rem;
+            object-fit: cover;
+            display: grid;
+            place-items: center;
+            background: color-mix(in srgb, var(--xshop-primary) 10%, #fff);
+            color: var(--xshop-primary);
+            font-size: 20px;
+            overflow: hidden;
+        }
+
+        .receipt-file-list__meta {
+            min-width: 0;
+
+            strong {
+                display: block;
+                font-size: 12.5px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            small {
+                color: color-mix(in srgb, var(--xshop-text) 55%, transparent);
+                font-size: 11px;
+            }
+        }
+
+        .receipt-file-list__remove {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 1px solid color-mix(in srgb, var(--xshop-danger) 35%, transparent);
+            background: transparent;
+            color: var(--xshop-danger);
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+        }
+    }
+}
+
+#AvisaCustomer {
+
+    // ---- Card payment guide ----
+    .avisa-card-payment {
+        &__intro {
+            display: flex;
+            gap: .75rem;
+            align-items: flex-start;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: .95rem;
+            border: 1px solid color-mix(in srgb, var(--xshop-warning) 40%, transparent);
+            background: color-mix(in srgb, var(--xshop-warning) 10%, var(--xshop-background));
+
+            > i {
+                font-size: 22px;
+                color: var(--xshop-warning);
+                margin-top: .1rem;
+            }
+
+            strong {
+                display: block;
+                margin-bottom: .25rem;
+                font-size: 14.5px;
+            }
+
+            p {
+                margin: 0;
+                font-size: 13px;
+                line-height: 1.7;
+                color: color-mix(in srgb, var(--xshop-text) 70%, transparent);
+            }
+        }
+
+        &__steps {
+            list-style: none;
+            margin: 0 0 1.1rem;
+            padding: 0;
+            display: grid;
+            gap: .55rem;
+
+            @media (min-width: 768px) {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            li {
+                display: flex;
+                gap: .65rem;
+                align-items: flex-start;
+                padding: .75rem .85rem;
+                border-radius: .85rem;
+                border: 1px solid color-mix(in srgb, var(--xshop-primary) 24%, transparent);
+                background: color-mix(in srgb, var(--xshop-primary) 4%, var(--xshop-background));
+
+                > span {
+                    width: 26px;
+                    height: 26px;
+                    border-radius: 50%;
+                    display: grid;
+                    place-items: center;
+                    flex-shrink: 0;
+                    font-size: 12px;
+                    font-weight: 800;
+                    color: var(--xshop-diff2);
+                    background: var(--xshop-primary);
+                }
+
+                strong {
+                    display: block;
+                    font-size: 13px;
+                    margin-bottom: .15rem;
+                }
+
+                small {
+                    font-size: 11.5px;
+                    color: color-mix(in srgb, var(--xshop-text) 60%, transparent);
+                }
+            }
+        }
+
+        &__bank {
+            border: 1px solid color-mix(in srgb, var(--xshop-primary) 28%, transparent);
+            border-radius: 1rem;
+            overflow: hidden;
+            background: var(--xshop-background);
+            margin-bottom: 1rem;
+        }
+
+        &__bank-head {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            padding: .8rem 1rem;
+            background: color-mix(in srgb, var(--xshop-primary) 8%, var(--xshop-background));
+            border-bottom: 1px solid color-mix(in srgb, var(--xshop-primary) 18%, transparent);
+            color: var(--xshop-primary);
+            font-size: 14px;
+        }
+
+        &__live {
+            margin-inline-start: auto;
+            padding: .15rem .55rem;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--xshop-success);
+            background: color-mix(in srgb, var(--xshop-success) 14%, transparent);
+        }
+
+        &__rows {
+            margin: 0;
+            padding: .35rem 0;
+
+            > div {
+                display: flex;
+                justify-content: space-between;
+                gap: 1rem;
+                padding: .65rem 1rem;
+                border-bottom: 1px solid color-mix(in srgb, var(--xshop-primary) 10%, transparent);
+
+                &:last-child {
+                    border-bottom: 0;
+                }
+            }
+
+            dt {
+                margin: 0;
+                font-size: 12.5px;
+                color: color-mix(in srgb, var(--xshop-text) 55%, transparent);
+            }
+
+            dd {
+                margin: 0;
+                font-size: 14px;
+                font-weight: 700;
+                text-align: end;
+                overflow-wrap: anywhere;
+            }
+        }
+
+        &__empty {
+            display: flex;
+            gap: .55rem;
+            align-items: flex-start;
+            padding: 1rem;
+            color: var(--xshop-danger);
+
+            p {
+                margin: 0;
+                font-size: 13.5px;
+                line-height: 1.7;
+            }
+        }
+
+        &__pending {
+            border: 1px solid color-mix(in srgb, var(--xshop-warning) 35%, transparent);
+            border-radius: 1rem;
+            overflow: hidden;
+            background: color-mix(in srgb, var(--xshop-warning) 6%, var(--xshop-background));
+        }
+
+        &__pending-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: .75rem 1rem;
+            border-bottom: 1px solid color-mix(in srgb, var(--xshop-warning) 22%, transparent);
+
+            span {
+                display: inline-grid;
+                place-items: center;
+                min-width: 28px;
+                height: 28px;
+                padding: 0 .45rem;
+                border-radius: 999px;
+                background: var(--xshop-warning);
+                color: var(--xshop-gray-900);
+                font-size: 12px;
+                font-weight: 800;
+            }
+        }
+
+        &__pending-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+
+            li {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 1rem;
+                padding: .85rem 1rem;
+                border-bottom: 1px solid color-mix(in srgb, var(--xshop-warning) 16%, transparent);
+
+                &:last-child {
+                    border-bottom: 0;
+                }
+
+                b {
+                    display: block;
+                    font-size: 14px;
+                }
+
+                span {
+                    display: block;
+                    font-size: 13px;
+                    font-weight: 700;
+                    color: var(--xshop-text);
+                }
+
+                small {
+                    display: inline-block;
+                    margin-top: .2rem;
+                    font-size: 11.5px;
+                    font-weight: 700;
+                    color: var(--xshop-warning);
+
+                    &.is-waiting {
+                        color: var(--xshop-info);
+                    }
+                }
+            }
+        }
+
+        &__pending-actions {
+            display: flex;
+            align-items: center;
+            gap: .45rem;
+            flex-shrink: 0;
+        }
+    }
+}
+
+#AvisaCustomer {
+
+    // ---- Credit history ----
+    .avisa-credit-item {
+        border: 1px solid color-mix(in srgb, var(--xshop-primary) 30%, transparent);
+        border-radius: 1rem;
+        background: var(--xshop-background);
+        padding: 1rem 1.1rem;
+        margin-bottom: .75rem;
+        box-shadow: var(--xshop-shadow-md);
+        transition: transform .2s ease, box-shadow .2s ease;
+
+        &:hover {
+            transform: translateY(var(--xshop-lift));
+            box-shadow: var(--xshop-shadow-lg);
+        }
+
+        .avisa-credit-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: .5rem;
+        }
+
+        .avisa-credit-date {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            font-size: 12px;
+            color: color-mix(in srgb, var(--xshop-text) 55%, transparent);
+        }
+
+        .avisa-credit-amount {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--xshop-primary);
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+
+            i {
+                font-size: 20px;
+            }
+        }
+
+        .avisa-credit-note {
+            margin-top: .6rem;
+            padding-top: .6rem;
+            border-top: 1px dashed color-mix(in srgb, var(--xshop-primary) 30%, transparent);
+            font-size: 13px;
+            color: color-mix(in srgb, var(--xshop-text) 70%, transparent);
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+
+            i {
+                color: var(--xshop-primary);
+            }
+        }
+    }
+
+    // ---- Comments ----
+    .avisa-comment {
+        border: 1px solid color-mix(in srgb, var(--xshop-primary) 30%, transparent);
+        border-radius: 1rem;
+        background: var(--xshop-background);
+        padding: 1.1rem 1.2rem;
+        margin-bottom: .9rem;
+        box-shadow: var(--xshop-shadow-md);
+
+        h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--xshop-text);
+            margin-bottom: .5rem;
+        }
+
+        .comment-date {
+            background: color-mix(in srgb, var(--xshop-primary) 12%, var(--xshop-background));
+            color: var(--xshop-primary);
+            padding: .3rem .7rem;
+            border-radius: 50rem;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        p {
+            margin: .6rem 0 0;
+            color: color-mix(in srgb, var(--xshop-text) 78%, transparent);
+            line-height: 1.8;
+        }
+    }
+}
+
+// ---- Responsive: tables become stacked cards on mobile ----
+@media (max-width: 640px) {
+    #AvisaCustomer {
+        .avisa-table-wrap {
+            overflow: visible;
+        }
+
+        .avisa-table {
+            display: block;
+
+            thead {
+                display: none;
+            }
+
+            tbody {
+                display: block;
+
+                tr {
+                    display: block;
+                    border: 1px solid color-mix(in srgb, var(--xshop-primary) 28%, transparent);
+                    border-radius: 1rem;
+                    margin: 0 .75rem .75rem;
+                    padding: .35rem .9rem;
+                    background: var(--xshop-background);
+                    box-shadow: var(--xshop-shadow-md);
+
+                    &:hover {
+                        background: var(--xshop-background);
+                    }
+
+                    td {
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        gap: 1rem;
+                        padding: .6rem 0;
+                        border-bottom: 1px dashed color-mix(in srgb, var(--xshop-primary) 20%, transparent);
+                        text-align: start;
+
+                        &::before {
+                            content: attr(data-label);
+                            font-size: 12px;
+                            font-weight: 700;
+                            text-transform: uppercase;
+                            letter-spacing: .3px;
+                            color: color-mix(in srgb, var(--xshop-text) 55%, transparent);
+                            flex-shrink: 0;
+                        }
+
+                        &:last-child {
+                            border-bottom: 0;
+                        }
+
+                        &.avisa-row-actions {
+                            justify-content: flex-start;
+                            flex-wrap: wrap;
+
+                            &::before {
+                                display: none;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+#AvisaCustomer {
+
+    // ---- Panel head (Addresses) ----
+    .avisa-panel-head {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        padding-bottom: .85rem;
+        margin-bottom: .9rem;
+        border-bottom: 1px solid color-mix(in srgb, var(--xshop-primary) 25%, transparent);
+
+        h4 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            color: var(--xshop-text);
+
+            i {
+                color: var(--xshop-primary);
+                font-size: 19px;
+            }
+        }
+    }
+
+    // ---- Profile header ----
+    .avisa-profile-head {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        border: 1px solid color-mix(in srgb, var(--xshop-primary) 30%, transparent);
+        border-radius: 1.1rem;
+        background: var(--xshop-background);
+        padding: 1.1rem 1.25rem;
+        margin-bottom: .9rem;
+        box-shadow: var(--xshop-shadow-lg);
+
+        .avisa-profile-avatar {
+            width: 74px;
+            height: 74px;
+            min-width: 74px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--xshop-primary);
+            box-shadow: 0 6px 14px -6px color-mix(in srgb, var(--xshop-primary) 60%, transparent);
+            cursor: pointer;
+            transition: transform .2s ease;
+
+            &:hover {
+                transform: scale(1.06);
+            }
+        }
+
+        .avisa-profile-info {
+            min-width: 0;
+            flex: 1;
+
+            h4 {
+                margin: 0;
+                font-size: 19px;
+                font-weight: 800;
+                color: var(--xshop-text);
+            }
+
+            span {
+                font-size: 13px;
+                color: color-mix(in srgb, var(--xshop-text) 55%, transparent);
+                direction: ltr;
+                display: inline-block;
+            }
+        }
+
+        .avisa-upload-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            padding: .55rem 1rem;
+            border-radius: 11px;
+            border: 1px dashed color-mix(in srgb, var(--xshop-primary) 60%, transparent);
+            background: color-mix(in srgb, var(--xshop-primary) 8%, var(--xshop-background));
+            color: var(--xshop-primary);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .18s ease;
+
+            &:hover {
+                background: var(--xshop-primary);
+                color: var(--xshop-diff2);
+            }
+        }
+    }
+
+    // ---- Hint banner ----
+    .avisa-hint {
+        display: flex;
+        align-items: flex-start;
+        gap: .6rem;
+        padding: .8rem 1rem;
+        margin-bottom: .9rem;
+        border-radius: .9rem;
+        background: color-mix(in srgb, var(--xshop-info) 10%, var(--xshop-background));
+        border: 1px solid color-mix(in srgb, var(--xshop-info) 30%, transparent);
+        color: color-mix(in srgb, var(--xshop-text) 75%, transparent);
+        font-size: 13px;
+        line-height: 1.7;
+
+        i {
+            color: var(--xshop-info);
+            font-size: 18px;
+            flex-shrink: 0;
+            margin-top: .1rem;
+        }
+    }
+
+    // ---- Profile Likes & Bookmarks Product Cards ----
+    .avisa-profile-product-card {
+        background: var(--xshop-background, #fff);
+        border: 1px solid var(--xshop-border-soft) !important;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+
+        &:hover {
+            transform: translateY(var(--xshop-lift));
+            box-shadow: var(--xshop-shadow-lg) !important;
+        }
+
+        .hover-primary {
+            transition: color 0.2s ease;
+            &:hover {
+                color: var(--xshop-primary) !important;
+            }
+        }
+
+        .btn-white {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(4px);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            &:hover {
+                background: #fff;
+                transform: scale(1.1);
+            }
+        }
+
+        .fav-btn {
+            &[data-is-fav="1"] {
+                .ri-heart-line {
+                    display: none !important;
+                }
+                .ri-heart-fill {
+                    display: inline-block !important;
+                }
+            }
+            &[data-is-fav="0"], &[data-is-fav="-1"], &:not([data-is-fav="1"]) {
+                .ri-heart-fill {
+                    display: none !important;
+                }
+                .ri-heart-line {
+                    display: inline-block !important;
+                }
+            }
+        }
+
+        .bookmark-btn {
+            &[data-is-bookmarked="1"] {
+                .ri-bookmark-line {
+                    display: none !important;
+                }
+                .ri-bookmark-fill {
+                    display: inline-block !important;
+                }
+            }
+            &[data-is-bookmarked="0"], &[data-is-bookmarked="-1"], &:not([data-is-bookmarked="1"]) {
+                .ri-bookmark-fill {
+                    display: none !important;
+                }
+                .ri-bookmark-line {
+                    display: inline-block !important;
+                }
+            }
+        }
+    }
+
+    .empty-tab-state {
+        .empty-tab-icon-box {
+            transition: transform 0.3s ease;
+        }
+        &:hover .empty-tab-icon-box {
+            transform: scale(1.1);
+        }
+    }
+}
+.LianaInvoice {
+
+    .liana-card {
+        max-width: 960px;
+        margin: 0 auto;
+        border: 1px solid color-mix(in srgb, var(--xshop-primary) 30%, transparent);
+        border-radius: 1.2rem;
+        background: var(--xshop-background);
+        padding: 1.25rem;
+        box-shadow: var(--xshop-shadow-lg);
+    }
+
+    .liana-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        padding-bottom: 1.1rem;
+        margin-bottom: 1rem;
+        border-bottom: 1px dashed color-mix(in srgb, var(--xshop-primary) 30%, transparent);
+    }
+
+    .liana-brand {
+        display: flex;
+        align-items: center;
+        gap: .9rem;
+        min-width: 0;
+
+        .liana-logo {
+            height: 56px;
+            width: 56px;
+            min-width: 56px;
+            object-fit: contain;
+            border-radius: 14px;
+            padding: 6px;
+            background: color-mix(in srgb, var(--xshop-primary) 8%, #ffffff);
+            border: 1px solid color-mix(in srgb, var(--xshop-primary) 25%, transparent);
+        }
+
+        .liana-brand-meta {
+            min-width: 0;
+
+            h3 {
+                margin: 0 0 .35rem;
+                font-size: 20px;
+                font-weight: 800;
+                color: var(--xshop-text);
+            }
+        }
+    }
+
+    .liana-qr {
+        flex-shrink: 0;
+
+        .qr-code {
+            max-width: 110px;
+            width: 100%;
+            border-radius: 12px;
+            border: 1px solid color-mix(in srgb, var(--xshop-primary) 25%, transparent);
+            background: #ffffff;
+            padding: 4px;
+        }
+    }
+
+    .liana-meta {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: .6rem;
+        margin-bottom: 1.1rem;
+
+        @media (min-width: 768px) {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+
+    .liana-meta-item {
+        display: flex;
+        flex-direction: column;
+        gap: .25rem;
+        border: 1px solid color-mix(in srgb, var(--xshop-primary) 22%, transparent);
+        border-radius: .8rem;
+        padding: .7rem .9rem;
+        background: color-mix(in srgb, var(--xshop-primary) 4%, var(--xshop-background));
+
+        .liana-meta-label {
+            font-size: 11.5px;
+            color: color-mix(in srgb, var(--xshop-text) 55%, transparent);
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+
+            i {
+                color: var(--xshop-primary);
+                font-size: 14px;
+            }
+        }
+
+        b {
+            font-size: 13.5px;
+            color: var(--xshop-text);
+            overflow-wrap: anywhere;
+            font-weight: 700;
+        }
+    }
+
+    .liana-table-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border: 1px solid color-mix(in srgb, var(--xshop-primary) 25%, transparent);
+        border-radius: .9rem;
+        margin-bottom: 1.1rem;
+    }
+
+    .liana-table {
+        width: 100%;
+        margin: 0;
+        border-collapse: collapse;
+        font-size: 14px;
+
+        thead th {
+            padding: .8rem 1rem;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+            color: color-mix(in srgb, var(--xshop-text) 55%, transparent);
+            background: color-mix(in srgb, var(--xshop-primary) 6%, var(--xshop-background));
+            border-bottom: 1px solid color-mix(in srgb, var(--xshop-primary) 25%, transparent);
+            white-space: nowrap;
+            text-align: start;
+        }
+
+        tbody td {
+            padding: .85rem 1rem;
+            border-bottom: 1px solid color-mix(in srgb, var(--xshop-primary) 12%, transparent);
+            color: var(--xshop-text);
+            vertical-align: middle;
+        }
+
+        tbody tr:hover {
+            background: color-mix(in srgb, var(--xshop-primary) 4%, var(--xshop-background));
+        }
+
+        .liana-price {
+            font-weight: 700;
+            text-align: end;
+            white-space: nowrap;
+            color: var(--xshop-primary);
+        }
+    }
+
+    .liana-summary {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: .6rem;
+        margin-bottom: 1.1rem;
+
+        @media (min-width: 768px) {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    .liana-summary-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: .8rem 1rem;
+        border-radius: .8rem;
+        border: 1px solid color-mix(in srgb, var(--xshop-primary) 22%, transparent);
+        background: color-mix(in srgb, var(--xshop-primary) 4%, var(--xshop-background));
+
+        span {
+            font-size: 12.5px;
+            color: color-mix(in srgb, var(--xshop-text) 60%, transparent);
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+
+            i {
+                color: var(--xshop-primary);
+            }
+        }
+
+        b {
+            font-size: 15px;
+            color: var(--xshop-text);
+            white-space: nowrap;
+        }
+
+        &.liana-summary-total {
+            border-color: var(--xshop-primary);
+            background: linear-gradient(135deg, var(--xshop-primary), color-mix(in srgb, var(--xshop-primary) 72%, var(--xshop-secondary)));
+
+            span, b, i {
+                color: var(--xshop-diff2);
+            }
+        }
+    }
+
+    .liana-footer {
+        border: 1px solid color-mix(in srgb, var(--xshop-primary) 25%, transparent);
+        border-radius: .9rem;
+        padding: 1rem 1.1rem;
+        margin-bottom: 1rem;
+        color: color-mix(in srgb, var(--xshop-text) 75%, transparent);
+        font-size: 13.5px;
+        line-height: 1.8;
+
+        .liana-desc {
+            margin: 0 0 .6rem;
+        }
+
+        .liana-address {
+            display: flex;
+            align-items: flex-start;
+            gap: .45rem;
+
+            i {
+                color: var(--xshop-primary);
+                font-size: 17px;
+                flex-shrink: 0;
+                margin-top: .15rem;
+            }
+        }
+
+        .liana-dyn {
+            font-size: 13px;
+        }
+    }
+
+    .liana-print-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: .45rem;
+        width: 100%;
+        padding: .7rem;
+        border-radius: 12px;
+        border: 1px solid var(--xshop-primary);
+        background: var(--xshop-primary);
+        color: var(--xshop-diff2);
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all .18s ease;
+
+        &:hover {
+            background: var(--xshop-secondary);
+            border-color: var(--xshop-secondary);
+            color: var(--xshop-diff2);
+        }
+    }
+
+    .inv-badge {
+        font-size: 11.5px;
+
+        &.inv-AWAITING_PAYMENT, &.inv-WAITING_RECEIPT {
+            background: color-mix(in srgb, var(--xshop-warning) 18%, var(--xshop-background));
+            color: var(--xshop-warning);
+        }
+
+        &.inv-WAITING_CONFIRMATION {
+            background: color-mix(in srgb, var(--xshop-info) 18%, var(--xshop-background));
+            color: var(--xshop-info);
+        }
+
+        &.inv-OUT_FOR_DELIVERY {
+            background: color-mix(in srgb, var(--xshop-warning) 18%, var(--xshop-background));
+            color: var(--xshop-warning);
+        }
+    }
+
+    .liana-pay-type {
+        display: inline-flex;
+        align-items: center;
+        gap: .3rem;
+        margin-inline-start: .4rem;
+        padding: .2rem .55rem;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--xshop-warning);
+        background: color-mix(in srgb, var(--xshop-warning) 14%, var(--xshop-background));
+        border: 1px solid color-mix(in srgb, var(--xshop-warning) 35%, transparent);
+    }
+
+    .liana-offline-alert {
+        display: flex;
+        gap: .9rem;
+        align-items: flex-start;
+        padding: 1rem 1.1rem;
+        margin-bottom: 1.1rem;
+        border-radius: 1rem;
+        border: 1px solid color-mix(in srgb, var(--xshop-warning) 45%, transparent);
+        background: linear-gradient(135deg,
+            color-mix(in srgb, var(--xshop-warning) 16%, var(--xshop-background)),
+            color-mix(in srgb, var(--xshop-primary) 8%, var(--xshop-background))
+        );
+
+        &.is-waiting {
+            border-color: color-mix(in srgb, var(--xshop-info) 45%, transparent);
+            background: linear-gradient(135deg,
+                color-mix(in srgb, var(--xshop-info) 14%, var(--xshop-background)),
+                color-mix(in srgb, var(--xshop-primary) 6%, var(--xshop-background))
+            );
+
+            .liana-offline-alert__icon {
+                background: color-mix(in srgb, var(--xshop-info) 18%, #fff);
+                color: var(--xshop-info);
+            }
+
+            .liana-offline-alert__eyebrow {
+                color: var(--xshop-info);
+            }
+        }
+
+        &__icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+            background: color-mix(in srgb, var(--xshop-warning) 22%, #fff);
+            color: var(--xshop-warning);
+            font-size: 22px;
+        }
+
+        &__eyebrow {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: .4px;
+            text-transform: uppercase;
+            color: var(--xshop-warning);
+            margin-bottom: .2rem;
+        }
+
+        strong {
+            display: block;
+            font-size: 15px;
+            color: var(--xshop-text);
+            margin-bottom: .25rem;
+        }
+
+        p {
+            margin: 0;
+            font-size: 13px;
+            line-height: 1.7;
+            color: color-mix(in srgb, var(--xshop-text) 72%, transparent);
+        }
+    }
+
+    .liana-offline-deadline {
+        display: flex;
+        align-items: flex-start;
+        gap: .5rem;
+        margin-top: .7rem;
+        padding: .6rem .75rem;
+        border-radius: .7rem;
+        font-size: 12.5px;
+        line-height: 1.6;
+        color: color-mix(in srgb, var(--xshop-text) 80%, transparent);
+        background: color-mix(in srgb, var(--xshop-warning) 12%, var(--xshop-background));
+        border: 1px solid color-mix(in srgb, var(--xshop-warning) 32%, transparent);
+
+        > i {
+            color: var(--xshop-warning);
+            font-size: 16px;
+            margin-top: .1rem;
+        }
+
+        b {
+            color: var(--xshop-warning);
+            font-variant-numeric: tabular-nums;
+        }
+
+        &.is-expired {
+            border-color: color-mix(in srgb, var(--xshop-danger) 45%, transparent);
+            background: color-mix(in srgb, var(--xshop-danger) 12%, var(--xshop-background));
+
+            > i,
+            b {
+                color: var(--xshop-danger);
+            }
+        }
+    }
+
+    .liana-payment-panel {
+        margin-top: 1rem;
+        padding: 1rem;
+        border-radius: 1rem;
+        border: 1px solid color-mix(in srgb, var(--xshop-primary) 28%, transparent);
+        background: color-mix(in srgb, var(--xshop-primary) 4%, var(--xshop-background));
+
+        &__title {
+            display: flex;
+            gap: .75rem;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+
+            > i {
+                font-size: 22px;
+                color: var(--xshop-primary);
+                margin-top: .1rem;
+            }
+
+            strong {
+                display: block;
+                font-size: 15px;
+                margin-bottom: .2rem;
+            }
+
+            p {
+                margin: 0;
+                font-size: 13px;
+                color: color-mix(in srgb, var(--xshop-text) 68%, transparent);
+            }
+        }
+    }
+
+    .liana-payment-deadline {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        flex-wrap: wrap;
+        margin: 0 0 .85rem;
+        padding: .55rem .8rem;
+        border-radius: .7rem;
+        font-size: 12.5px;
+        color: color-mix(in srgb, var(--xshop-text) 78%, transparent);
+        background: color-mix(in srgb, var(--xshop-warning) 10%, var(--xshop-background));
+        border: 1px solid color-mix(in srgb, var(--xshop-warning) 30%, transparent);
+
+        > i {
+            color: var(--xshop-warning);
+        }
+
+        b {
+            margin-inline-start: auto;
+            font-variant-numeric: tabular-nums;
+            color: var(--xshop-warning);
+        }
+    }
+
+    .liana-payment-steps {
+        list-style: none;
+        margin: 0 0 1rem;
+        padding: 0;
+        display: grid;
+        gap: .55rem;
+
+        @media (min-width: 768px) {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        li {
+            display: flex;
+            gap: .65rem;
+            align-items: flex-start;
+            padding: .7rem .8rem;
+            border-radius: .8rem;
+            border: 1px dashed color-mix(in srgb, var(--xshop-primary) 28%, transparent);
+            background: var(--xshop-background);
+
+            > span {
+                width: 26px;
+                height: 26px;
+                border-radius: 50%;
+                display: grid;
+                place-items: center;
+                flex-shrink: 0;
+                font-size: 12px;
+                font-weight: 800;
+                color: var(--xshop-diff2);
+                background: color-mix(in srgb, var(--xshop-primary) 70%, var(--xshop-gray-500));
+            }
+
+            strong {
+                display: block;
+                font-size: 13px;
+                margin-bottom: .15rem;
+            }
+
+            small {
+                color: color-mix(in srgb, var(--xshop-text) 60%, transparent);
+                font-size: 11.5px;
+            }
+
+            &.is-current {
+                border-style: solid;
+                border-color: var(--xshop-warning);
+                background: color-mix(in srgb, var(--xshop-warning) 10%, var(--xshop-background));
+
+                > span {
+                    background: var(--xshop-warning);
+                }
+            }
+
+            &.is-done {
+                border-style: solid;
+                border-color: color-mix(in srgb, var(--xshop-success) 40%, transparent);
+                background: color-mix(in srgb, var(--xshop-success) 8%, var(--xshop-background));
+
+                > span {
+                    background: var(--xshop-success);
+                }
+            }
+        }
+    }
+
+    .liana-payment-waiting {
+        display: flex;
+        gap: .7rem;
+        align-items: flex-start;
+        padding: .9rem 1rem;
+        margin-bottom: .75rem;
+        border-radius: .85rem;
+        border: 1px solid color-mix(in srgb, var(--xshop-info) 40%, transparent);
+        background: color-mix(in srgb, var(--xshop-info) 10%, var(--xshop-background));
+        color: var(--xshop-text);
+
+        > i {
+            font-size: 22px;
+            color: var(--xshop-info);
+            margin-top: .1rem;
+        }
+
+        strong {
+            display: block;
+            margin-bottom: .2rem;
+            font-size: 14px;
+        }
+
+        p {
+            margin: 0;
+            font-size: 12.5px;
+            line-height: 1.7;
+            color: color-mix(in srgb, var(--xshop-text) 68%, transparent);
+        }
+    }
+
+    .liana-receipt-more {
+        margin-top: .25rem;
+
+        summary {
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--xshop-primary);
+            margin-bottom: .75rem;
+        }
+    }
+
+    .liana-bank-box {
+        border: 1px solid color-mix(in srgb, var(--xshop-primary) 30%, transparent);
+        border-radius: .9rem;
+        overflow: hidden;
+        margin-bottom: 1rem;
+        background: var(--xshop-background);
+
+        &__head {
+            display: flex;
+            align-items: center;
+            gap: .45rem;
+            padding: .7rem .9rem;
+            background: color-mix(in srgb, var(--xshop-primary) 8%, var(--xshop-background));
+            border-bottom: 1px solid color-mix(in srgb, var(--xshop-primary) 18%, transparent);
+            font-size: 13.5px;
+            color: var(--xshop-primary);
+        }
+
+        &__amount {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            padding: .85rem .9rem;
+            border-bottom: 1px dashed color-mix(in srgb, var(--xshop-primary) 18%, transparent);
+
+            span {
+                font-size: 12.5px;
+                color: color-mix(in srgb, var(--xshop-text) 60%, transparent);
+            }
+
+            b {
+                font-size: 18px;
+                color: var(--xshop-primary);
+            }
+        }
+
+        &__rows {
+            margin: 0;
+            padding: .35rem 0;
+
+            > div {
+                display: flex;
+                justify-content: space-between;
+                gap: 1rem;
+                padding: .55rem .9rem;
+                border-bottom: 1px solid color-mix(in srgb, var(--xshop-primary) 10%, transparent);
+
+                &:last-child {
+                    border-bottom: 0;
+                }
+            }
+
+            dt {
+                margin: 0;
+                font-size: 12px;
+                color: color-mix(in srgb, var(--xshop-text) 55%, transparent);
+            }
+
+            dd {
+                margin: 0;
+                font-size: 13.5px;
+                font-weight: 700;
+                text-align: end;
+                overflow-wrap: anywhere;
+            }
+        }
+    }
+
+    .liana-receipts {
+        margin-bottom: 1rem;
+
+        strong {
+            display: block;
+            margin-bottom: .55rem;
+            font-size: 13.5px;
+        }
+
+        ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            gap: .45rem;
+        }
+
+        li {
+            display: flex;
+            justify-content: space-between;
+            gap: .75rem;
+            align-items: center;
+            padding: .55rem .7rem;
+            border-radius: .7rem;
+            border: 1px solid color-mix(in srgb, var(--xshop-primary) 20%, transparent);
+            background: var(--xshop-background);
+
+            a {
+                display: inline-flex;
+                align-items: center;
+                gap: .4rem;
+                color: var(--xshop-primary);
+                font-weight: 600;
+                font-size: 13px;
+            }
+
+            small {
+                color: color-mix(in srgb, var(--xshop-text) 55%, transparent);
+                font-size: 11px;
+                white-space: nowrap;
+            }
+        }
+
+        &__note {
+            margin: .55rem 0 0;
+            font-size: 12.5px;
+            color: color-mix(in srgb, var(--xshop-text) 65%, transparent);
+        }
+    }
+
+    .liana-payment-done {
+        display: flex;
+        align-items: center;
+        gap: .45rem;
+        padding: .75rem .9rem;
+        border-radius: .8rem;
+        background: color-mix(in srgb, var(--xshop-success) 12%, var(--xshop-background));
+        color: var(--xshop-success);
+        font-weight: 700;
+        font-size: 13.5px;
+    }
+
+    .receipt-uploader {
+        display: grid;
+        gap: .85rem;
+        padding: 1rem;
+        border-radius: .95rem;
+        border: 1px solid color-mix(in srgb, var(--xshop-warning) 40%, transparent);
+        background: color-mix(in srgb, var(--xshop-warning) 8%, var(--xshop-background));
+
+        &__head {
+            display: flex;
+            gap: .75rem;
+            align-items: flex-start;
+        }
+
+        &__icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            background: color-mix(in srgb, var(--xshop-warning) 20%, #fff);
+            color: var(--xshop-warning);
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        &__title {
+            display: block;
+            font-size: 14.5px;
+            margin-bottom: .2rem;
+        }
+
+        &__hint {
+            font-size: 12.5px;
+            line-height: 1.7;
+            color: color-mix(in srgb, var(--xshop-text) 68%, transparent);
+        }
+
+        &__error {
+            color: var(--xshop-danger);
+            font-size: 12.5px;
+        }
+
+        &__submit {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .45rem;
+            width: 100%;
+            padding: .75rem 1rem;
+            border: 0;
+            border-radius: .8rem;
+            background: var(--xshop-primary);
+            color: var(--xshop-diff2);
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: .18s ease;
+
+            &:disabled {
+                opacity: .45;
+                cursor: not-allowed;
+            }
+
+            &:not(:disabled):hover {
+                background: var(--xshop-secondary);
+            }
+        }
+    }
+
+    .receipt-dropzone {
+        display: block;
+        cursor: pointer;
+        position: relative;
+        border: 2px dashed color-mix(in srgb, var(--xshop-primary) 45%, transparent);
+        border-radius: .9rem;
+        background: var(--xshop-background);
+        padding: 1.25rem 1rem;
+        text-align: center;
+        transition: .18s ease;
+
+        &:hover,
+        &.is-dragover,
+        &:focus-within {
+            border-color: var(--xshop-primary);
+            background: color-mix(in srgb, var(--xshop-primary) 6%, var(--xshop-background));
+        }
+
+        &__input {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            overflow: hidden;
+        }
+
+        &__visual {
+            display: grid;
+            gap: .35rem;
+            justify-items: center;
+
+            > i {
+                font-size: 28px;
+                color: var(--xshop-primary);
+            }
+        }
+
+        &__cta {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--xshop-text);
+        }
+
+        &__meta {
+            font-size: 12px;
+            color: color-mix(in srgb, var(--xshop-text) 55%, transparent);
+        }
+    }
+
+    .receipt-file-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: .45rem;
+
+        &__item {
+            display: grid;
+            grid-template-columns: 44px 1fr auto;
+            gap: .65rem;
+            align-items: center;
+            padding: .45rem .55rem;
+            border-radius: .7rem;
+            background: var(--xshop-background);
+            border: 1px solid color-mix(in srgb, var(--xshop-primary) 20%, transparent);
+        }
+
+        &__thumb {
+            width: 44px;
+            height: 44px;
+            border-radius: .55rem;
+            object-fit: cover;
+            display: grid;
+            place-items: center;
+            background: color-mix(in srgb, var(--xshop-primary) 10%, #fff);
+            color: var(--xshop-primary);
+            font-size: 20px;
+            overflow: hidden;
+        }
+
+        &__meta {
+            min-width: 0;
+
+            strong {
+                display: block;
+                font-size: 12.5px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            small {
+                color: color-mix(in srgb, var(--xshop-text) 55%, transparent);
+                font-size: 11px;
+            }
+        }
+
+        &__remove {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 1px solid color-mix(in srgb, var(--xshop-danger) 35%, transparent);
+            background: transparent;
+            color: var(--xshop-danger);
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+        }
+    }
+
+    // ---- Mobile: stacked cards ----
+    @media (max-width: 640px) {
+        .liana-head {
+            flex-wrap: wrap;
+
+            .liana-qr {
+                order: -1;
+                margin-inline-start: auto;
+
+                .qr-code {
+                    max-width: 84px;
+                }
+            }
+        }
+
+        .liana-table-wrap {
+            overflow: visible;
+            border: 0;
+        }
+
+        .liana-table {
+            display: block;
+
+            thead {
+                display: none;
+            }
+
+            tbody {
+                display: block;
+
+                tr {
+                    display: block;
+                    border: 1px solid color-mix(in srgb, var(--xshop-primary) 28%, transparent);
+                    border-radius: .9rem;
+                    margin-bottom: .7rem;
+                    padding: .4rem .8rem;
+                    background: var(--xshop-background);
+                    box-shadow: var(--xshop-shadow-md);
+
+                    td {
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        gap: 1rem;
+                        padding: .6rem 0;
+                        border-bottom: 1px dashed color-mix(in srgb, var(--xshop-primary) 18%, transparent);
+                        text-align: start;
+
+                        &::before {
+                            content: attr(data-label);
+                            font-size: 11.5px;
+                            font-weight: 700;
+                            text-transform: uppercase;
+                            letter-spacing: .3px;
+                            color: color-mix(in srgb, var(--xshop-text) 55%, transparent);
+                            flex-shrink: 0;
+                        }
+
+                        &:last-child {
+                            border-bottom: 0;
+                        }
+
+                        &.liana-price {
+                            text-align: start;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Print: keep a clean one-page invoice
+    @media print {
+        .liana-card {
+            border: 0;
+            box-shadow: none;
+            padding: 0;
+        }
+
+        .liana-table {
+            display: table;
+
+            thead {
+                display: table-header-group;
+
+                th {
+                    background: transparent;
+                }
+            }
+
+            tbody {
+                display: table-row-group;
+
+                tr {
+                    display: table-row;
+                    border: 0;
+                    padding: 0;
+                    box-shadow: none;
+
+                    td {
+                        display: table-cell;
+                        border-bottom: 1px solid var(--xshop-gray-300);
+                        padding: .5rem .6rem;
+
+                        &::before {
+                            content: none;
+                        }
+
+                        &.liana-price {
+                            text-align: end;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

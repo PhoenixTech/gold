@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="{{app()->getLocale()}}" @if(langIsRTL(app()->getLocale())) dir="rtl" @else dir="ltr" @endif @if(gfx()['dark'] == 1) data-bs-theme="dark" @endif >
+<html lang="{{app()->getLocale()}}" @if(langIsRTL(app()->getLocale())) dir="rtl" @else dir="ltr" @endif @if((gfx()['dark'] ?? 0) == 1) data-bs-theme="dark" @endif >
 <head>
     <meta charset="UTF-8">
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <meta name="theme-color" content="{{gfx()['primary']}}"/>
+    <meta name="theme-color" content="{{gfx()['primary'] ?? '#db9a00'}}"/>
     @if(config('app.demo') || isset($noIndex))
         <meta name="robots" content="noindex">
     @else
@@ -127,7 +127,4 @@
 <body @yield('body-attr')>
 
 <div id="app">
-@foreach(getParts('floats') as $part)
-    @php($p = $part->getBladeWithData())
-    @include($p['blade'],['data' => $p['data']])
-@endforeach
+
