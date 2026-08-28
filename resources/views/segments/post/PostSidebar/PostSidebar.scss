@@ -1,10 +1,10 @@
 .PostSidebar {
     .post-article-card {
         background: var(--xshop-background);
-        border: 1px solid color-mix(in srgb, var(--xshop-primary) 15%, transparent);
+        border: 1px solid var(--xshop-border-soft);
         border-radius: 1.25rem;
         padding: 2rem;
-        box-shadow: 0 4px 20px -5px rgba(0, 0, 0, .05);
+        box-shadow: var(--xshop-shadow-sm);
 
         @media (max-width: 767.98px) {
             padding: 1.25rem;
@@ -34,7 +34,7 @@
         width: 100%;
         object-fit: cover;
         border-radius: 1.1rem;
-        box-shadow: 0 8px 25px -8px rgba(0, 0, 0, .12);
+        box-shadow: var(--xshop-shadow-lg);
     }
 
     .post-content {
@@ -71,10 +71,10 @@
 
     .post-sidebar-widget {
         background: var(--xshop-background);
-        border: 1px solid color-mix(in srgb, var(--xshop-primary) 15%, transparent);
+        border: 1px solid var(--xshop-border-soft);
         border-radius: 1.1rem;
         padding: 1.25rem;
-        box-shadow: 0 4px 15px -5px rgba(0, 0, 0, .05);
+        box-shadow: var(--xshop-shadow-sm);
         margin-bottom: 1.5rem;
 
         .widget-title {

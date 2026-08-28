@@ -1,0 +1,57 @@
+// Design tokens for the client theme.
+// Import from client.scss AFTER client-custom/zfix and BEFORE segment imports.
+// Per-deployment client.scss / DB theme settings may override these.
+
+// Text-safe gold (AA on white) — backgrounds keep --xshop-primary
+$xshop-primary-text: #8a5f00;
+
+:root {
+    --xshop-primary-text: #8a5f00;
+    --xshop-shadow: 0 2px 8px rgba(0, 0, 0, .06);
+
+    // Gold ramp (500 = brand primary)
+    --xshop-gold-50: #fffdf8;
+    --xshop-gold-100: #fff8e8;
+    --xshop-gold-200: #f4e7c3;
+    --xshop-gold-300: #e4d2a8;
+    --xshop-gold-400: #e0b64d;
+    --xshop-gold-500: #db9a00;
+    --xshop-gold-600: #b57d00;
+    --xshop-gold-700: #8a5f00;
+    --xshop-gold-800: #5f4200;
+    --xshop-gold-900: #3d2e14;
+
+    // Warm gray ramp (stone — tinted to match gold brand)
+    --xshop-gray-50: #faf9f7;
+    --xshop-gray-100: #f4f3f0;
+    --xshop-gray-200: #e7e5e1;
+    --xshop-gray-300: #d6d4ce;
+    --xshop-gray-400: #a8a29e;
+    --xshop-gray-500: #78716c;
+    --xshop-gray-600: #57534e;
+    --xshop-gray-700: #44403c;
+    --xshop-gray-800: #292524;
+    --xshop-gray-900: #1c1917;
+
+    // Accent pairs (decorative stat/feature gradients)
+    --xshop-accent-blue: #3b82f6;
+    --xshop-accent-blue-dark: #1d4ed8;
+    --xshop-accent-green: #10b981;
+    --xshop-accent-green-dark: #047857;
+    --xshop-accent-violet: #8b5cf6;
+    --xshop-accent-violet-dark: #6d28d9;
+
+    // Elevation scale (2xs..2xl) + hover lift
+    --xshop-shadow-2xs: 0 1px 2px rgba(28, 25, 23, .05);
+    --xshop-shadow-xs: 0 2px 4px rgba(28, 25, 23, .05);
+    --xshop-shadow-sm: 0 2px 8px rgba(28, 25, 23, .06);
+    --xshop-shadow-md: 0 4px 14px rgba(28, 25, 23, .08);
+    --xshop-shadow-lg: 0 10px 28px rgba(28, 25, 23, .11);
+    --xshop-shadow-xl: 0 20px 44px rgba(28, 25, 23, .15);
+    --xshop-shadow-2xl: 0 26px 54px rgba(28, 25, 23, .2);
+    --xshop-lift: -4px;
+
+    // Soft gold border + focus ring
+    --xshop-border-soft: color-mix(in srgb, var(--xshop-primary) 15%, transparent);
+    --xshop-ring: 0 0 0 4px color-mix(in srgb, var(--xshop-primary) 15%, transparent);
+}

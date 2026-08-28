@@ -1,0 +1,63 @@
+// Client-side utility classes used across segment blades.
+// Bootstrap ships only fs-1..fs-6 and integer spacing steps,
+// so these hand-written utilities back the design markup.
+
+// ---- Typography scale ----
+.fs-11 { font-size: .6875rem !important; } // 11px
+.fs-12 { font-size: .75rem !important; }   // 12px
+.fs-13 { font-size: .8125rem !important; } // 13px
+.fs-14 { font-size: .875rem !important; }  // 14px
+.fs-15 { font-size: .9375rem !important; } // 15px
+.fs-16 { font-size: 1rem !important; }     // 16px
+.fs-18 { font-size: 1.125rem !important; } // 18px
+.fs-20 { font-size: 1.25rem !important; }  // 20px
+
+// ---- Half-step spacing (Tailwind-equivalent values) ----
+.p-0\.5  { padding: .125rem !important; }
+.p-1\.5  { padding: .375rem !important; }
+.p-2\.5  { padding: .625rem !important; }
+.p-3\.5  { padding: .875rem !important; }
+.px-0\.5 { padding-inline: .125rem !important; }
+.px-1\.5 { padding-inline: .375rem !important; }
+.px-2\.5 { padding-inline: .625rem !important; }
+.px-3\.5 { padding-inline: .875rem !important; }
+.py-0\.5 { padding-block: .125rem !important; }
+.py-1\.5 { padding-block: .375rem !important; }
+.py-2\.5 { padding-block: .625rem !important; }
+.py-3\.5 { padding-block: .875rem !important; }
+.m-0\.5  { margin: .125rem !important; }
+.m-1\.5  { margin: .375rem !important; }
+.m-2\.5  { margin: .625rem !important; }
+.m-3\.5  { margin: .875rem !important; }
+.mx-0\.5 { margin-inline: .125rem !important; }
+.mx-1\.5 { margin-inline: .375rem !important; }
+.mx-2\.5 { margin-inline: .625rem !important; }
+.mx-3\.5 { margin-inline: .875rem !important; }
+.my-0\.5 { margin-block: .125rem !important; }
+.my-1\.5 { margin-block: .375rem !important; }
+.my-2\.5 { margin-block: .625rem !important; }
+.my-3\.5 { margin-block: .875rem !important; }
+.mt-0\.5 { margin-top: .125rem !important; }
+.mt-1\.5 { margin-top: .375rem !important; }
+.mt-2\.5 { margin-top: .625rem !important; }
+.mt-3\.5 { margin-top: .875rem !important; }
+.mb-0\.5 { margin-bottom: .125rem !important; }
+.mb-1\.5 { margin-bottom: .375rem !important; }
+.mb-2\.5 { margin-bottom: .625rem !important; }
+.mb-3\.5 { margin-bottom: .875rem !important; }
+.gap-0\.5 { gap: .125rem !important; }
+.gap-1\.5 { gap: .375rem !important; }
+.gap-2\.5 { gap: .625rem !important; }
+.gap-3\.5 { gap: .875rem !important; }
+
+// ---- Misc helpers ----
+.cursor-pointer { cursor: pointer !important; }
+.transition-all { transition: all .3s ease; }
+.leading-relaxed { line-height: 1.75 !important; }
+.opacity-85 { opacity: .85 !important; }
+
+// ---- Overlay helpers (text on images) ----
+.text-shadow { text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); }
+.bg-white-20 { background-color: rgba(255, 255, 255, 0.25); }
+.border-white-30 { border-color: rgba(255, 255, 255, 0.35) !important; }
+.backdrop-blur { backdrop-filter: blur(4px); }

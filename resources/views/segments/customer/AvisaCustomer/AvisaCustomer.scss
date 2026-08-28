@@ -4,7 +4,7 @@
     .alert {
         border-radius: 1.1rem;
         padding: 1.1rem 1.25rem;
-        box-shadow: 0 4px 15px -5px rgba(0, 0, 0, .05);
+        box-shadow: var(--xshop-shadow-sm);
     }
 
     #avisa-alert-profile {
@@ -27,7 +27,7 @@
         background: var(--xshop-background);
         border: 1px solid color-mix(in srgb, var(--xshop-primary) 30%, transparent);
         border-radius: 1.1rem;
-        box-shadow: 0 6px 18px -10px rgba(0, 0, 0, .16);
+        box-shadow: var(--xshop-shadow-lg);
         overflow: hidden;
 
         .avisa-user {
@@ -197,7 +197,7 @@
                 transition: transform .3s ease;
 
                 &:hover {
-                    transform: scale(1.05);
+                    transform: scale(1.06);
                 }
             }
 
@@ -224,7 +224,7 @@
     /* Modern Summary Stat Cards */
     .avisa-summary-stat-card {
         background: var(--xshop-background);
-        border: 1px solid color-mix(in srgb, var(--xshop-primary) 15%, transparent);
+        border: 1px solid var(--xshop-border-soft);
         border-radius: 1.1rem;
         padding: 1.25rem;
         display: flex;
@@ -232,12 +232,12 @@
         gap: 1rem;
         cursor: pointer;
         transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 4px 15px -5px rgba(0, 0, 0, .05);
+        box-shadow: var(--xshop-shadow-sm);
         position: relative;
         overflow: hidden;
 
         &:hover {
-            transform: translateY(-4px);
+            transform: translateY(var(--xshop-lift));
             box-shadow: 0 12px 25px -8px color-mix(in srgb, var(--xshop-primary) 30%, transparent);
             border-color: var(--xshop-primary);
 
@@ -259,27 +259,27 @@
         }
 
         &.card-invoice .stat-icon-wrapper {
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            background: linear-gradient(135deg, var(--xshop-accent-blue), var(--xshop-accent-blue-dark));
             color: #fff;
-            box-shadow: 0 6px 15px -4px rgba(59, 130, 246, .5);
+            box-shadow: 0 6px 15px -4px color-mix(in srgb, var(--xshop-accent-blue) 50%, transparent);
         }
 
         &.card-credit .stat-icon-wrapper {
-            background: linear-gradient(135deg, #10b981, #047857);
+            background: linear-gradient(135deg, var(--xshop-accent-green), var(--xshop-accent-green-dark));
             color: #fff;
-            box-shadow: 0 6px 15px -4px rgba(16, 185, 129, .5);
+            box-shadow: 0 6px 15px -4px color-mix(in srgb, var(--xshop-accent-green) 50%, transparent);
         }
 
         &.card-ticket .stat-icon-wrapper {
-            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+            background: linear-gradient(135deg, var(--xshop-accent-violet), var(--xshop-accent-violet-dark));
             color: #fff;
-            box-shadow: 0 6px 15px -4px rgba(139, 92, 246, .5);
+            box-shadow: 0 6px 15px -4px color-mix(in srgb, var(--xshop-accent-violet) 50%, transparent);
         }
 
         &.card-address .stat-icon-wrapper {
-            background: linear-gradient(135deg, #f59e0b, #b45309);
+            background: linear-gradient(135deg, var(--xshop-gold-500), var(--xshop-gold-600));
             color: #fff;
-            box-shadow: 0 6px 15px -4px rgba(245, 158, 11, .5);
+            box-shadow: 0 6px 15px -4px color-mix(in srgb, var(--xshop-gold-500) 50%, transparent);
         }
 
         .stat-details {
@@ -312,9 +312,9 @@
     /* Summary Widgets */
     .avisa-summary-widget {
         background: var(--xshop-background);
-        border: 1px solid color-mix(in srgb, var(--xshop-primary) 15%, transparent);
+        border: 1px solid var(--xshop-border-soft);
         border-radius: 1.1rem;
-        box-shadow: 0 4px 15px -5px rgba(0, 0, 0, .05);
+        box-shadow: var(--xshop-shadow-sm);
         overflow: hidden;
         height: 100%;
         display: flex;
@@ -551,7 +551,7 @@
             padding: .6rem 1.2rem;
             font-size: 15px;
             margin-bottom: 1rem;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, .18);
+            box-shadow: var(--xshop-shadow-md);
             transition: 300ms;
 
             &:active {
@@ -588,7 +588,7 @@
             border-radius: 0 1.25rem 1.25rem 0;
             overflow-y: auto;
             overscroll-behavior: contain;
-            box-shadow: 12px 0 40px rgba(0, 0, 0, .25);
+            box-shadow: var(--xshop-shadow-xl);
             padding-bottom: env(safe-area-inset-bottom);
 
             &.open {
@@ -609,7 +609,7 @@
                     width: 62px;
                     min-width: 62px;
                     border: 2px solid rgba(255, 255, 255, .85);
-                    box-shadow: 0 4px 12px rgba(0, 0, 0, .25);
+                    box-shadow: var(--xshop-shadow-md);
                 }
 
                 .avisa-user-meta {
@@ -673,7 +673,7 @@
                         &.active, &:hover {
                             background: var(--xshop-primary);
                             color: var(--xshop-diff2);
-                            box-shadow: 0 3px 10px rgba(0, 0, 0, .12);
+                            box-shadow: var(--xshop-shadow-sm);
                         }
                     }
                 }
@@ -723,7 +723,7 @@
             background: var(--xshop-background);
             padding: 1.5rem 1rem 1.35rem;
             text-align: center;
-            box-shadow: 0 6px 18px -10px rgba(0, 0, 0, .2);
+            box-shadow: var(--xshop-shadow-lg);
             transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
             overflow: hidden;
 
@@ -736,8 +736,8 @@
             }
 
             &:hover {
-                transform: translateY(-4px);
-                box-shadow: 0 18px 32px -14px rgba(0, 0, 0, .3);
+                transform: translateY(var(--xshop-lift));
+                box-shadow: var(--xshop-shadow-lg);
                 border-color: color-mix(in srgb, var(--xshop-primary) 55%, transparent);
             }
 
@@ -780,7 +780,7 @@
         border-radius: 1.1rem;
         background: var(--xshop-background);
         padding: 1.25rem;
-        box-shadow: 0 6px 18px -10px rgba(0, 0, 0, .16);
+        box-shadow: var(--xshop-shadow-lg);
         margin-bottom: 1rem;
     }
 
@@ -789,7 +789,7 @@
         border: 1px solid color-mix(in srgb, var(--xshop-primary) 30%, transparent);
         border-radius: 1.1rem;
         background: var(--xshop-background);
-        box-shadow: 0 6px 18px -10px rgba(0, 0, 0, .16);
+        box-shadow: var(--xshop-shadow-lg);
         overflow: hidden;
         margin-bottom: 1rem;
     }
@@ -1002,7 +1002,7 @@
 
         &:hover {
             background: var(--xshop-warning);
-            color: #1a1a1a;
+            color: var(--xshop-gray-900);
         }
     }
 
@@ -1418,7 +1418,7 @@
                 padding: 0 .45rem;
                 border-radius: 999px;
                 background: var(--xshop-warning);
-                color: #1a1a1a;
+                color: var(--xshop-gray-900);
                 font-size: 12px;
                 font-weight: 800;
             }
@@ -1485,12 +1485,12 @@
         background: var(--xshop-background);
         padding: 1rem 1.1rem;
         margin-bottom: .75rem;
-        box-shadow: 0 4px 14px -10px rgba(0, 0, 0, .18);
+        box-shadow: var(--xshop-shadow-md);
         transition: transform .2s ease, box-shadow .2s ease;
 
         &:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 24px -12px rgba(0, 0, 0, .26);
+            transform: translateY(var(--xshop-lift));
+            box-shadow: var(--xshop-shadow-lg);
         }
 
         .avisa-credit-top {
@@ -1545,7 +1545,7 @@
         background: var(--xshop-background);
         padding: 1.1rem 1.2rem;
         margin-bottom: .9rem;
-        box-shadow: 0 4px 14px -10px rgba(0, 0, 0, .16);
+        box-shadow: var(--xshop-shadow-md);
 
         h3 {
             font-size: 16px;
@@ -1595,7 +1595,7 @@
                     margin: 0 .75rem .75rem;
                     padding: .35rem .9rem;
                     background: var(--xshop-background);
-                    box-shadow: 0 4px 14px -10px rgba(0, 0, 0, .2);
+                    box-shadow: var(--xshop-shadow-md);
 
                     &:hover {
                         background: var(--xshop-background);
@@ -1677,7 +1677,7 @@
         background: var(--xshop-background);
         padding: 1.1rem 1.25rem;
         margin-bottom: .9rem;
-        box-shadow: 0 6px 18px -10px rgba(0, 0, 0, .16);
+        box-shadow: var(--xshop-shadow-lg);
 
         .avisa-profile-avatar {
             width: 74px;
@@ -1691,7 +1691,7 @@
             transition: transform .2s ease;
 
             &:hover {
-                transform: scale(1.04);
+                transform: scale(1.06);
             }
         }
 
@@ -1760,12 +1760,12 @@
     // ---- Profile Likes & Bookmarks Product Cards ----
     .avisa-profile-product-card {
         background: var(--xshop-background, #fff);
-        border: 1px solid color-mix(in srgb, var(--xshop-primary, #d4af37) 15%, transparent) !important;
+        border: 1px solid var(--xshop-border-soft) !important;
         transition: transform 0.25s ease, box-shadow 0.25s ease;
 
         &:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08) !important;
+            transform: translateY(var(--xshop-lift));
+            box-shadow: var(--xshop-shadow-lg) !important;
         }
 
         .hover-primary {
@@ -1830,7 +1830,7 @@
             transition: transform 0.3s ease;
         }
         &:hover .empty-tab-icon-box {
-            transform: scale(1.08);
+            transform: scale(1.1);
         }
     }
 }

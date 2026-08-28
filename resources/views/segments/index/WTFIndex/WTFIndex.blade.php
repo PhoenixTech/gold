@@ -23,7 +23,7 @@
                     @foreach($mainCategory->children()->where('hide',0)->orderBy('sort')->get() as $childCategory)
                         <div class="col-6 col-sm-4 col-md-3">
                             <a class="wtf-cat-card card border-0 shadow-sm rounded-4 overflow-hidden text-decoration-none h-100 transition-all d-block position-relative" href="{{$childCategory->webUrl()}}">
-                                <div class="card-img-box position-relative bg-dark overflow-hidden" style="height: 200px;">
+                                <div class="card-img-box position-relative bg-dark overflow-hidden">
                                     <img src="{{$childCategory->imgUrl()}}" alt="{{$childCategory->name}}" class="w-100 h-100 object-fit-cover cat-img-hover opacity-85" loading="lazy">
                                     <div class="card-overlay-vignette position-absolute inset-0"></div>
                                     <div class="position-absolute bottom-0 start-0 end-0 p-3 text-center z-2">

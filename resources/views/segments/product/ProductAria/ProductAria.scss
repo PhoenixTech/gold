@@ -1,6 +1,10 @@
 #ProductAria {
     padding: 1.5rem 0;
 
+    .gallery-main-img {
+        aspect-ratio: 4 / 3;
+    }
+
     .fav-btn, .compare-btn, .bookmark-btn, .comment-btn, .share-btn {
         cursor: pointer;
         transition: all 0.2s ease;
@@ -49,7 +53,7 @@
 
     .product-main-card {
         background: var(--xshop-background);
-        border: 1px solid color-mix(in srgb, var(--xshop-primary) 15%, transparent) !important;
+        border: 1px solid var(--xshop-border-soft) !important;
     }
 
     .hover-primary {

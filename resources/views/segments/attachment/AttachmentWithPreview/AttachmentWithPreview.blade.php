@@ -1,6 +1,6 @@
 <section class='AttachmentWithPreview live-setting' data-live="{{$data->area_name.'_'.$data->part}}">
 <div class="{{gfx()['container']}}">
-        <h3>
+        <h3 class="section-head">
             {{$attachment->title}}
         </h3>
         <div class="alert alert-info">

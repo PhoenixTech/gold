@@ -24,12 +24,12 @@
         -webkit-backdrop-filter: blur(16px);
         border: 1px solid color-mix(in srgb, var(--xshop-primary) 30%, transparent);
         border-radius: 1.25rem;
-        box-shadow: 0 12px 32px -10px rgba(0, 0, 0, .14), 0 4px 16px -4px color-mix(in srgb, var(--xshop-primary) 20%, transparent);
+        box-shadow: var(--xshop-shadow-2xl);
         overflow: hidden;
         transition: all .3s ease;
 
         &:hover {
-            box-shadow: 0 16px 40px -10px rgba(0, 0, 0, .18), 0 6px 20px -4px color-mix(in srgb, var(--xshop-primary) 25%, transparent);
+            box-shadow: var(--xshop-shadow-2xl);
         }
     }
 
@@ -137,7 +137,7 @@
             &:focus {
                 border-color: var(--xshop-primary);
                 background: var(--xshop-background);
-                box-shadow: 0 0 0 4px color-mix(in srgb, var(--xshop-primary) 15%, transparent);
+                box-shadow: var(--xshop-ring);
                 outline: none;
             }
 
@@ -176,7 +176,7 @@
         }
 
         .login-card-footer {
-            border-color: color-mix(in srgb, var(--xshop-primary) 15%, transparent) !important;
+            border-color: var(--xshop-border-soft) !important;
 
             .text-primary-theme {
                 color: var(--xshop-primary);

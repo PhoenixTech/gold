@@ -16,11 +16,11 @@
         list-style: none;
         margin-top: 1rem;
         a{
-            border-color: #a4a4a4;
+            border-color: var(--xshop-gray-400);
             border-width: 2.5px;
             border-style: solid;
             display: inline-block;
-            color: #000000;
+            color: var(--xshop-diff);
             border-radius: var(--xshop-border-radius);
             padding: .4rem;
             padding-top: .5rem;
@@ -40,7 +40,7 @@
     .nsp{
         display: inline-block;
         width: 25%;
-        border-bottom: 2px solid gray;
+        border-bottom: 2px solid var(--xshop-gray-400);
         margin: 0 10px;
         position: relative;
         top: -4px;

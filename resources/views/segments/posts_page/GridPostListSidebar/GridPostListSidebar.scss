@@ -1,12 +1,12 @@
 .GridPostListSidebar {
     .grid-post-card {
         background: var(--xshop-background);
-        border: 1px solid color-mix(in srgb, var(--xshop-primary) 15%, transparent) !important;
+        border: 1px solid var(--xshop-border-soft) !important;
         transition: transform 0.25s ease, box-shadow 0.25s ease;
 
         &:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1) !important;
+            transform: translateY(var(--xshop-lift));
+            box-shadow: var(--xshop-shadow-lg) !important;
 
             .post-card-img {
                 transform: scale(1.06);
@@ -15,7 +15,7 @@
 
         .card-img-wrapper {
             height: 190px;
-            background: #f8fafc;
+            background: var(--xshop-gray-50);
         }
 
         .post-card-img {
@@ -42,10 +42,10 @@
 
     .post-sidebar-widget {
         background: var(--xshop-background);
-        border: 1px solid color-mix(in srgb, var(--xshop-primary) 15%, transparent);
+        border: 1px solid var(--xshop-border-soft);
         border-radius: 1.1rem;
         padding: 1.25rem;
-        box-shadow: 0 4px 15px -5px rgba(0, 0, 0, .05);
+        box-shadow: var(--xshop-shadow-sm);
         margin-bottom: 1.5rem;
 
         .widget-title {

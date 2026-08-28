@@ -27,14 +27,16 @@
     --bs-primary-rgb: 219, 154, 0;
     --bs-primary-bg-subtle: rgba(219, 154, 0, 0.12);
     --bs-primary-border-subtle: rgba(219, 154, 0, 0.3);
-    --bs-primary-text-emphasis: #9a6c00;
-    --bs-link-color: var(--xshop-primary, #db9a00);
+    --bs-primary-text-emphasis: var(--xshop-primary-text, #8a5f00);
+    --bs-link-color: var(--xshop-primary-text, #8a5f00);
     --bs-link-hover-color: var(--xshop-secondary, #3d3846);
 }
 
 // Bootstrap Primary Utilities Overrides
+// Text on light backgrounds uses --xshop-primary-text (AA contrast),
+// backgrounds keep the brighter --xshop-primary.
 .text-primary {
-    color: var(--xshop-primary) !important;
+    color: var(--xshop-primary-text) !important;
 }
 
 .bg-primary {
@@ -56,7 +58,7 @@
 
 .badge.bg-primary-subtle {
     background-color: rgba(219, 154, 0, 0.12) !important;
-    color: var(--xshop-primary) !important;
+    color: var(--xshop-primary-text) !important;
     border-color: rgba(219, 154, 0, 0.3) !important;
 }
 
@@ -66,7 +68,7 @@
 
 a, a:visited {
     text-decoration: none;
-    color: var(--xshop-primary);
+    color: var(--xshop-primary-text);
 
     &:hover {
         color: var(--xshop-secondary);
@@ -100,7 +102,7 @@ a, a:visited {
 
 .btn-outline-primary {
     border-color: var(--xshop-primary);
-    color: var(--xshop-primary);
+    color: var(--xshop-primary-text);
 
     &:hover {
         border-color: var(--xshop-secondary);
@@ -155,7 +157,7 @@ ul.pagination {
 
     .page-item{
         .page-link{
-            color: var(--xshop-primary);
+            color: var(--xshop-primary-text);
 
             &:hover{
                 background: var(--xshop-secondary);

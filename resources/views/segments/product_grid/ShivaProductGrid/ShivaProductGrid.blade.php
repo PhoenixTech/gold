@@ -1,7 +1,7 @@
 <div class="ShivaProductGrid xshop-product-item h-100">
     <div class="product-card card h-100 border-0 shadow-sm rounded-4 overflow-hidden d-flex flex-column transition-all">
         <!-- Card Image Header -->
-        <div class="card-img-wrapper position-relative overflow-hidden bg-light" style="height: 220px;">
+        <div class="card-img-wrapper position-relative overflow-hidden bg-light">
             @if(!$product->isAvailable())
                 <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill position-absolute top-0 start-0 m-2.5 z-2 fs-11 px-2.5 py-1">
                     {{__("Not available")}}
@@ -62,7 +62,7 @@
 
         <!-- Card Body -->
         <div class="card-body p-3.5 d-flex flex-column flex-grow-1">
-            <h5 class="product-title fs-15 fw-bold mb-2">
+            <h5 class="product-title fs-14 fw-semibold mb-2">
                 <a href="{{$product->webUrl()}}" class="text-decoration-none text-dark hover-primary" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
                     {{$product->name}}
                 </a>
@@ -83,7 +83,7 @@
                                 {{$product->oldPrice()}}
                             </span>
                         @endif
-                        <span class="price fw-bold text-primary fs-15">
+                        <span class="price fw-bold text-primary fs-18">
                             {{$product->getPrice()}}
                         </span>
                     @else

@@ -830,13 +830,13 @@ export default {
 
 <style scoped>
 .checkout-card {
-    --ck-ink: #1a1612;
-    --ck-muted: #7a7064;
+    --ck-ink: var(--xshop-gray-900);
+    --ck-muted: var(--xshop-gray-500);
     --ck-line: rgba(61, 46, 20, 0.12);
-    --ck-soft: #fbf6ee;
-    --ck-paper: #fffdf8;
-    --ck-accent: var(--xshop-primary, #db9a00);
-    --ck-deep: #3d2e14;
+    --ck-soft: var(--xshop-gold-50);
+    --ck-paper: var(--xshop-gold-50);
+    --ck-accent: var(--xshop-primary);
+    --ck-deep: var(--xshop-gold-900);
     color: var(--ck-ink);
     padding-bottom: 0;
 }
@@ -850,13 +850,13 @@ export default {
     background:
         radial-gradient(circle at 0 50%, var(--ck-paper) 7px, transparent 8px),
         radial-gradient(circle at 100% 50%, var(--ck-paper) 7px, transparent 8px),
-        linear-gradient(180deg, #fff8e8, var(--ck-paper));
-    border: 1px solid #e4d2a8;
-    box-shadow: 0 10px 28px -22px #3d2e14;
+        linear-gradient(180deg, var(--xshop-gold-100), var(--ck-paper));
+    border: 1px solid var(--xshop-gold-300);
+    box-shadow: var(--xshop-shadow-lg);
 }
 
 .assay-ticket.urgent {
-    border-color: #e2a36a;
+    border-color: var(--xshop-gold-400);
 }
 
 .assay-copy {
@@ -908,7 +908,7 @@ export default {
     min-width: 7.2rem;
     padding: .85rem 1rem;
     background: color-mix(in srgb, var(--ck-accent) 10%, white);
-    border-inline-start: 1px dashed #e4d2a8;
+    border-inline-start: 1px dashed var(--xshop-gold-300);
 }
 
 .quote-timer span {
@@ -929,12 +929,12 @@ export default {
 }
 
 .quote-timer.urgent {
-    background: #fff4e6;
-    color: #9a3412;
+    background: var(--xshop-gold-100);
+    color: var(--xshop-danger);
 }
 
 .quote-timer.urgent em {
-    color: #9a3412;
+    color: var(--xshop-danger);
 }
 
 .checkout-progress {
@@ -1093,7 +1093,7 @@ export default {
 
 .piece-missing {
     margin: 0;
-    color: #9a3412;
+    color: var(--xshop-danger);
     font-size: .9rem;
 }
 
@@ -1117,7 +1117,7 @@ export default {
 .checkout-aside {
     position: sticky;
     top: 1rem;
-    background: linear-gradient(165deg, var(--ck-deep) 0%, color-mix(in srgb, var(--ck-accent) 55%, #1a1612) 100%);
+    background: linear-gradient(165deg, var(--ck-deep) 0%, color-mix(in srgb, var(--ck-accent) 55%, var(--xshop-gray-900)) 100%);
     color: #fff;
     border-radius: 1rem;
     padding: 1.2rem 1.2rem 1.1rem;
@@ -1252,7 +1252,7 @@ export default {
 
 .auth-tabs button.active {
     background: #fff;
-    box-shadow: 0 1px 2px rgba(0,0,0,.06);
+    box-shadow: var(--xshop-shadow-2xs);
 }
 
 .auth-form {
@@ -1355,7 +1355,7 @@ textarea.full {
     padding: 1rem;
     border-radius: .75rem;
     background: var(--ck-soft);
-    border: 1px solid #e4d2a8;
+    border: 1px solid var(--xshop-gold-300);
 }
 
 .bank-box h5 { margin: 0 0 .75rem; }
@@ -1384,8 +1384,8 @@ textarea.full {
 }
 
 .muted { color: var(--ck-muted); font-size: .88rem; margin: .75rem 0 0; }
-.ok-msg { color: #15803d; }
-.warn { color: #b91c1c; }
+.ok-msg { color: var(--xshop-success); }
+.warn { color: var(--xshop-danger); }
 
 .checkout-dock {
     display: none;
@@ -1401,7 +1401,7 @@ textarea.full {
     }
     .quote-timer {
         border-inline-start: 0;
-        border-top: 1px dashed #e4d2a8;
+        border-top: 1px dashed var(--xshop-gold-300);
         min-width: 0;
         flex-direction: row;
         justify-content: space-between;
@@ -1443,7 +1443,7 @@ textarea.full {
         background: var(--ck-deep);
         color: #fff;
         border-radius: 1rem;
-        box-shadow: 0 12px 30px -16px #1a1612;
+        box-shadow: var(--xshop-shadow-lg);
     }
     .dock-meta {
         display: grid;
@@ -1457,7 +1457,7 @@ textarea.full {
         display: inline-block;
     }
     .dock-meta small.urgent {
-        color: #fdba74;
+        color: var(--xshop-gold-400);
     }
     .dock-meta strong {
         font-size: 1.05rem;

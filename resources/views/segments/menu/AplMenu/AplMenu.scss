@@ -4,7 +4,7 @@
     top: 0;
     right: 0;
     z-index: 9999;
-    background: #434344;
+    background: var(--xshop-gray-700);
     transition: 200ms;
 
     #logo-menu{
@@ -23,7 +23,7 @@
     }
 
     &:hover{
-        background: #202124;
+        background: var(--xshop-gray-900);
     }
 
     > ul {
@@ -45,7 +45,7 @@
                 position: absolute;
                 top: 100%;
                 width: 100vw;
-                background: #202124;
+                background: var(--xshop-gray-900);
                 left: 0;
                 max-height: 0;
                 transition: 900ms;

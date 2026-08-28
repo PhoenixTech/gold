@@ -16,7 +16,7 @@
     .nsp{
         display: inline-block;
         width: 25%;
-        border-bottom: 2px solid gray;
+        border-bottom: 2px solid var(--xshop-gray-400);
         margin-top: -.75em 5px 0 5px;
         max-width: 110px;
 
@@ -28,7 +28,7 @@
     }
 
     .link{
-       color: #444444;
+       color: var(--xshop-gray-600);
     }
 
     .btm{
@@ -41,7 +41,7 @@
         a{
             border-width: 0px;
             color: black;
-            background: #d5d5d5;
+            background: var(--xshop-gray-300);
             border-radius: 0;
             padding: .4rem .7rem;
             padding-top: .5rem;

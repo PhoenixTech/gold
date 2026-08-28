@@ -33,7 +33,7 @@
         }
         i{
             font-size: 30px;
-            color: #666666;
+            color: var(--xshop-gray-500);
         }
     }
 
@@ -63,7 +63,7 @@
 
             i{
                 font-size: 20px;
-                color: #444444;
+                color: var(--xshop-gray-600);
             }
         }
     }

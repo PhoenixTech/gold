@@ -28,7 +28,7 @@
                 <div class="col-lg-5">
                     <div id="preview" class="main-image-box position-relative overflow-hidden rounded-4 border bg-light mb-3">
                         <a href="{{$product->originalImageUrl()}}" id="aria-main-img" class="light-box d-block" data-gallery="aria-products">
-                            <img src="{{$product->originalImageUrl()}}" alt="{{$product->name}}" class="img-fluid w-100 object-fit-cover rounded-4" style="height: 380px;">
+                            <img src="{{$product->originalImageUrl()}}" alt="{{$product->name}}" class="img-fluid w-100 object-fit-cover rounded-4 gallery-main-img">
                         </a>
                     </div>
 
@@ -363,8 +363,8 @@
         <!-- Related Products Section -->
         @if($product->category && $product->category->products()->where('status',1)->where('id', '<>', $product->id)->count() > 0)
             <div class="related-products-section mb-4">
-                <h5 class="fs-4 fw-bold text-dark mb-4 pb-2 border-bottom d-flex align-items-center gap-2">
-                    <i class="ri-grid-fill text-primary"></i>
+                <h5 class="section-head">
+                    <i class="ri-grid-fill"></i>
                     <span>{{__("Related products")}}</span>
                 </h5>
                 <div class="row g-3 g-md-4">

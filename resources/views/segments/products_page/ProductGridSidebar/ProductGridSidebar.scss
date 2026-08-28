@@ -29,13 +29,13 @@
             padding: 0.4rem 0.9rem 0.4rem 0.5rem;
             white-space: nowrap;
             transition: all 0.2s ease;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+            box-shadow: var(--xshop-shadow-xs);
 
             .category-chip-icon {
                 width: 32px;
                 height: 32px;
                 border-radius: 50%;
-                background: #f8fafc;
+                background: var(--xshop-gray-50);
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -59,16 +59,16 @@
 
             .category-chip-count {
                 background: rgba(0, 0, 0, 0.05);
-                color: #64748b;
+                color: var(--xshop-gray-500);
                 font-size: 11px;
                 padding: 0.1rem 0.45rem;
                 border-radius: 9999px;
             }
 
             &:hover {
-                transform: translateY(-2px);
+                transform: translateY(var(--xshop-lift));
                 border-color: var(--xshop-primary);
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+                box-shadow: var(--xshop-shadow-sm);
 
                 .category-chip-title {
                     color: var(--xshop-primary);
@@ -78,7 +78,7 @@
             &.active {
                 background: var(--xshop-primary);
                 border-color: var(--xshop-primary);
-                box-shadow: 0 4px 14px rgba(219, 154, 0, 0.25);
+                box-shadow: 0 4px 14px color-mix(in srgb, var(--xshop-primary) 25%, transparent);
 
                 .category-chip-icon {
                     background: #ffffff;
@@ -111,11 +111,11 @@
             border: 1px solid rgba(0, 0, 0, 0.08);
             border-radius: max(var(--xshop-border-radius), 14px);
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+            box-shadow: var(--xshop-shadow-xs);
 
             .filter-card-header {
                 padding: 0.75rem 1rem;
-                background: #fbfbfb;
+                background: var(--xshop-gray-50);
                 border-bottom: 1px solid rgba(0, 0, 0, 0.05);
             }
 
@@ -129,7 +129,7 @@
                 transition: background 0.15s ease;
 
                 &:hover {
-                    background: #f8fafc;
+                background: var(--xshop-gray-50);
                 }
             }
 
@@ -182,11 +182,11 @@
                 background-color: var(--xshop-primary);
                 border-color: var(--xshop-primary);
                 color: #ffffff;
-                box-shadow: 0 2px 8px rgba(219, 154, 0, 0.25);
+                box-shadow: 0 2px 8px color-mix(in srgb, var(--xshop-primary) 25%, transparent);
             }
 
             &:not(.btn-primary):hover {
-                background-color: #f1f5f9;
+                background-color: var(--xshop-gray-100);
                 color: var(--xshop-primary);
             }
         }
@@ -199,7 +199,7 @@
         }
 
         .hover-danger:hover {
-            color: #dc3545 !important;
+            color: var(--xshop-danger) !important;
         }
     }
 
@@ -217,7 +217,7 @@
 
     // Trust Banner
     .products-trust-banner {
-        background: #f8fafc !important;
+        background: var(--xshop-gray-50) !important;
         border: 1px solid rgba(0, 0, 0, 0.06) !important;
 
         .trust-item {
@@ -227,7 +227,7 @@
             }
 
             &:hover i {
-                transform: scale(1.15);
+                transform: scale(1.1);
             }
         }
     }

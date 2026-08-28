@@ -7,7 +7,7 @@
         border-radius: 1.2rem;
         background: var(--xshop-background);
         padding: 1.25rem;
-        box-shadow: 0 8px 24px -12px rgba(0, 0, 0, .18);
+        box-shadow: var(--xshop-shadow-lg);
     }
 
     .liana-head {
@@ -377,12 +377,12 @@
         }
 
         &.is-expired {
-            border-color: color-mix(in srgb, var(--xshop-danger, #dc3545) 45%, transparent);
-            background: color-mix(in srgb, var(--xshop-danger, #dc3545) 12%, var(--xshop-background));
+            border-color: color-mix(in srgb, var(--xshop-danger) 45%, transparent);
+            background: color-mix(in srgb, var(--xshop-danger) 12%, var(--xshop-background));
 
             > i,
             b {
-                color: var(--xshop-danger, #dc3545);
+                color: var(--xshop-danger);
             }
         }
     }
@@ -474,7 +474,7 @@
                 font-size: 12px;
                 font-weight: 800;
                 color: var(--xshop-diff2);
-                background: color-mix(in srgb, var(--xshop-primary) 70%, #777);
+                background: color-mix(in srgb, var(--xshop-primary) 70%, var(--xshop-gray-500));
             }
 
             strong {
@@ -901,7 +901,7 @@
                     margin-bottom: .7rem;
                     padding: .4rem .8rem;
                     background: var(--xshop-background);
-                    box-shadow: 0 4px 12px -8px rgba(0, 0, 0, .2);
+                    box-shadow: var(--xshop-shadow-md);
 
                     td {
                         display: flex;
@@ -965,7 +965,7 @@
 
                     td {
                         display: table-cell;
-                        border-bottom: 1px solid #cccccc;
+                        border-bottom: 1px solid var(--xshop-gray-300);
                         padding: .5rem .6rem;
 
                         &::before {

@@ -4,7 +4,7 @@
     bottom: 1rem;
     right: 4rem;
     left: 4rem;
-    border: 3px solid #c4c5c0;
+    border: 3px solid var(--xshop-gray-300);
     background: #ffffff;
 
     border-radius: 10px;
@@ -25,7 +25,7 @@
     }
 
     a{
-        color: #222222;
+        color: var(--xshop-gray-800);
         position: relative;
         font-size: 11px;
     }

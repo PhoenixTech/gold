@@ -23,15 +23,15 @@
     -webkit-backdrop-filter: blur(20px) saturate(190%) !important;
     border-radius: 18px !important;
     border: 1px solid rgba(0, 0, 0, 0.08) !important;
-    box-shadow: 0 18px 40px -6px rgba(0, 0, 0, 0.14), 0 6px 18px rgba(0, 0, 0, 0.05) !important;
+    box-shadow: var(--xshop-shadow-2xl) !important;
     min-width: 320px !important;
     max-width: 460px !important;
     overflow: hidden !important;
     transition: transform 0.25s ease, box-shadow 0.25s ease, opacity 0.25s ease !important;
 
     &:hover {
-        transform: translateY(-2px) scale(1.01) !important;
-        box-shadow: 0 22px 48px -6px rgba(0, 0, 0, 0.18), 0 8px 24px rgba(0, 0, 0, 0.07) !important;
+        transform: translateY(var(--xshop-lift)) scale(1.01) !important;
+        box-shadow: var(--xshop-shadow-2xl) !important;
     }
 
     .toast-content {
@@ -50,7 +50,7 @@
     }
 
     .toast-body {
-        color: #0f172a !important;
+        color: var(--xshop-text) !important;
         font-size: 14px !important;
         font-weight: 600 !important;
         line-height: 1.55 !important;
@@ -76,41 +76,41 @@
 
     // Success (Gold theme)
     &.toast-success {
-        border-color: rgba(219, 154, 0, 0.3) !important;
+        border-color: color-mix(in srgb, var(--xshop-primary) 30%, transparent) !important;
 
         .toast-icon-badge {
-            background-color: var(--xshop-primary, #db9a00) !important;
-            box-shadow: 0 4px 14px rgba(219, 154, 0, 0.4) !important;
+            background-color: var(--xshop-primary) !important;
+            box-shadow: 0 4px 14px color-mix(in srgb, var(--xshop-primary) 40%, transparent) !important;
         }
     }
 
     // Error
     &.toast-error {
-        border-color: rgba(239, 68, 68, 0.28) !important;
+        border-color: color-mix(in srgb, var(--xshop-danger) 28%, transparent) !important;
 
         .toast-icon-badge {
-            background-color: #ef4444 !important;
-            box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35) !important;
+            background-color: var(--xshop-danger) !important;
+            box-shadow: 0 4px 14px color-mix(in srgb, var(--xshop-danger) 35%, transparent) !important;
         }
     }
 
     // Warning
     &.toast-warning {
-        border-color: rgba(245, 158, 11, 0.3) !important;
+        border-color: color-mix(in srgb, var(--xshop-warning) 30%, transparent) !important;
 
         .toast-icon-badge {
-            background-color: #f59e0b !important;
-            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35) !important;
+            background-color: var(--xshop-warning) !important;
+            box-shadow: 0 4px 14px color-mix(in srgb, var(--xshop-warning) 35%, transparent) !important;
         }
     }
 
     // Info
     &.toast-info {
-        border-color: rgba(59, 130, 246, 0.28) !important;
+        border-color: color-mix(in srgb, var(--xshop-info) 28%, transparent) !important;
 
         .toast-icon-badge {
-            background-color: #3b82f6 !important;
-            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35) !important;
+            background-color: var(--xshop-info) !important;
+            box-shadow: 0 4px 14px color-mix(in srgb, var(--xshop-info) 35%, transparent) !important;
         }
     }
 

@@ -1,11 +1,11 @@
 .TypicalFooter {
     margin-top: 4rem;
-    background: var(--xshop-tf-bg, #181b20);
-    color: #cbd5e1;
+    background: var(--xshop-tf-bg, var(--xshop-gray-900));
+    color: var(--xshop-gray-300);
     font-size: 14px;
 
     a {
-        color: #94a3b8;
+        color: var(--xshop-gray-400);
         text-decoration: none;
         transition: color 0.2s ease;
 
@@ -49,7 +49,7 @@
 
     .tf-about {
         line-height: 1.9;
-        color: #94a3b8;
+        color: var(--xshop-gray-400);
     }
 
     .tf-links,
@@ -109,13 +109,13 @@
 
                 i {
                     font-size: 20px;
-                    color: #e2e8f0;
+                    color: var(--xshop-gray-200);
                 }
 
                 &:hover {
                     border-color: var(--xshop-tf-accent, var(--xshop-primary));
                     background: var(--xshop-tf-accent, var(--xshop-primary));
-                    transform: translateY(-3px);
+                    transform: translateY(var(--xshop-lift));
 
                     i {
                         color: #ffffff;
@@ -130,6 +130,6 @@
         padding: 1.25rem 0;
         text-align: center;
         font-size: 13px;
-        color: #64748b;
+        color: var(--xshop-gray-500);
     }
 }

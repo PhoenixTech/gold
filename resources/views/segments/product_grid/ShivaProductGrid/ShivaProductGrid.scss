@@ -1,12 +1,16 @@
 .ShivaProductGrid {
+    .card-img-wrapper {
+        aspect-ratio: 1 / 1;
+    }
+
     .product-card {
         background: var(--xshop-background);
-        border: 1px solid color-mix(in srgb, var(--xshop-primary) 15%, transparent) !important;
+        border: 1px solid var(--xshop-border-soft) !important;
         transition: transform 0.25s ease, box-shadow 0.25s ease;
 
         &:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1) !important;
+            transform: translateY(var(--xshop-lift));
+            box-shadow: var(--xshop-shadow-lg) !important;
 
             .product-img-hover {
                 transform: scale(1.06);
