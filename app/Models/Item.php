@@ -41,15 +41,24 @@ class Item extends Model
         }
 
         if (!empty($this->meta)) {
+            $url = $this->meta;
+
+            // If the stored URL contains a local/test domain, convert to current domain
+            $parsed = parse_url($url);
+            if (isset($parsed['host']) && in_array($parsed['host'], ['zhonella.test', 'localhost', '127.0.0.1'])) {
+                $path = ($parsed['path'] ?? '/') . (isset($parsed['query']) ? '?' . $parsed['query'] : '');
+                $url = url($path);
+            }
+
             if (config('app.xlang.active') && app()->getLocale() != config('app.xlang.main')) {
-                if ($this->meta[0] != '/') {
+                if ($url[0] != '/') {
                     $welcome = \route('client.welcome');
-                    return str_replace($welcome, $welcome . '/' . app()->getLocale(), $this->meta);
+                    return str_replace($welcome, $welcome . '/' . app()->getLocale(), $url);
                 } else {
-                    return '/' . app()->getLocale() . $this->meta;
+                    return '/' . app()->getLocale() . $url;
                 }
             }
-            return $this->meta;
+            return $url;
         }
 
         return '#';
