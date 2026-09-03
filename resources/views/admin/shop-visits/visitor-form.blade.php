@@ -305,11 +305,11 @@
                 if (mobile) {
                     mobile.addEventListener('input', function () {
                         mobile.value = mobile.value
-                            .replace(/[۰-۹]/g, function (digit) {
-                                return String('۰۱۲۳۴۵۶۷۸۹'.indexOf(digit));
+                            .replace(/[\u06F0-\u06F9]/g, function (digit) {
+                                return String('\u06F0\u06F1\u06F2\u06F3\u06F4\u06F5\u06F6\u06F7\u06F8\u06F9'.indexOf(digit));
                             })
-                            .replace(/[٠-٩]/g, function (digit) {
-                                return String('٠١٢٣٤٥٦٧٨٩'.indexOf(digit));
+                            .replace(/[\u0660-\u0669]/g, function (digit) {
+                                return String('\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669'.indexOf(digit));
                             })
                             .replace(/[^0-9]/g, '')
                             .slice(0, 11);
