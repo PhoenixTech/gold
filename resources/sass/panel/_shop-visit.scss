@@ -1,0 +1,316 @@
+// Shop visit - visitor two-step form
+// Matches panel dashboard design tokens (item-list, avisa-summary, etc.)
+// No inline <style> in blade to avoid FOUC/minify flicker.
+
+.shop-visit {
+  max-width: 760px;
+  margin: 0 auto 2.5rem;
+  // prevent flash of unstyled content - reserve space before css loads
+  min-height: 420px;
+
+  &__head {
+    margin-bottom: 1rem;
+    padding: 0 .15rem;
+    display: flex;
+    flex-direction: column;
+    gap: .35rem;
+
+    h1 {
+      display: flex;
+      align-items: center;
+      gap: .55rem;
+      margin: 0;
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #2b2b2b;
+      letter-spacing: -.015em;
+
+      i {
+        width: 2.25rem;
+        height: 2.25rem;
+        display: inline-grid;
+        place-items: center;
+        border-radius: .65rem;
+        background: rgba($primary-color-panel, .12);
+        color: $primary-color-panel;
+        font-size: 1.2rem;
+      }
+    }
+
+    p {
+      margin: 0;
+      color: #6b7280;
+      font-size: .88rem;
+      line-height: 1.6;
+    }
+  }
+
+  &__card {
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, .06);
+    border-radius: 14px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, .03);
+    overflow: hidden;
+  }
+
+  &__progress {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .75rem;
+    list-style: none;
+    margin: 0;
+    padding: 1.15rem 1.25rem 0;
+    background: #fff;
+
+    li {
+      display: flex;
+      align-items: center;
+      gap: .7rem;
+      padding: .75rem .85rem;
+      border-radius: 10px;
+      border: 1px solid rgba(0, 0, 0, .06);
+      background: #f8fafc;
+      color: #64748b;
+      transition: background-color .18s ease, border-color .18s ease, color .18s ease;
+      min-height: 58px;
+    }
+
+    &-num {
+      flex: 0 0 2rem;
+      width: 2rem;
+      height: 2rem;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 50%;
+      border: 1px solid #e2e8f0;
+      background: #fff;
+      font-size: .82rem;
+      font-weight: 700;
+      color: #64748b;
+    }
+
+    &-label {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.25;
+
+      strong {
+        font-size: .84rem;
+        font-weight: 700;
+        color: #334155;
+      }
+      small {
+        font-size: .72rem;
+        color: #94a3b8;
+        font-weight: 600;
+      }
+    }
+
+    li.is-current {
+      background: $secondary-color-panel;
+      border-color: $secondary-color-panel;
+      color: #fff;
+
+      .shop-visit__progress-num {
+        background: $primary-color-panel;
+        border-color: $primary-color-panel;
+        color: #fff;
+      }
+      .shop-visit__progress-label strong,
+      .shop-visit__progress-label small {
+        color: #fff;
+      }
+      .shop-visit__progress-label small {
+        color: rgba(255, 255, 255, .72);
+      }
+    }
+
+    li.is-done {
+      background: #fff;
+      border-color: rgba($primary-color-panel, .35);
+
+      .shop-visit__progress-num {
+        background: $primary-color-panel;
+        border-color: $primary-color-panel;
+        color: #fff;
+      }
+    }
+  }
+
+  &__body {
+    padding: 1.25rem 1.5rem 1.5rem;
+    background: #fff;
+  }
+
+  &__recap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem 1rem;
+    align-items: center;
+    padding: .75rem 1rem;
+    margin-bottom: 1.25rem;
+    background: #f8fafc;
+    border: 1px solid rgba(0, 0, 0, .06);
+    border-radius: 10px;
+    font-size: .88rem;
+
+    span { color: #64748b; font-weight: 500; }
+    strong { color: #1e293b; }
+    .recap-divider { color: #cbd5e1; }
+  }
+
+  // form controls - reuse panel focus style
+  .form-control,
+  .form-select {
+    border-radius: 10px;
+    border-color: rgba(0, 0, 0, .08);
+    min-height: 44px;
+    font-size: .88rem;
+    background-color: #fff;
+    transition: border-color .18s ease, box-shadow .18s ease;
+
+    &:focus {
+      border-color: rgba($primary-color-panel, .45);
+      box-shadow: 0 0 0 .25rem rgba($primary-color-panel, .15);
+    }
+  }
+
+  label {
+    font-size: .82rem;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: .35rem;
+  }
+
+  &__choice,
+  &__check {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem .75rem;
+  }
+
+  &__choice label,
+  &__check label {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    margin: 0;
+    padding: .5rem .75rem;
+    border-radius: 999px;
+    border: 1px solid rgba(0, 0, 0, .07);
+    background: #f8fafc;
+    font-weight: 500;
+    font-size: .86rem;
+    color: #334155;
+    cursor: pointer;
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+    user-select: none;
+
+    &:hover {
+      border-color: rgba($primary-color-panel, .35);
+      background: #fff;
+    }
+
+    &:has(input:checked) {
+      background: rgba($primary-color-panel, .11);
+      border-color: rgba($primary-color-panel, .45);
+      color: #7a4d00;
+    }
+  }
+
+  // fallback for browsers without :has
+  &__choice label.is-checked,
+  &__check label.is-checked {
+    background: rgba($primary-color-panel, .11);
+    border-color: rgba($primary-color-panel, .45);
+    color: #7a4d00;
+  }
+
+  input[type="radio"],
+  input[type="checkbox"] {
+    width: 1.05rem;
+    height: 1.05rem;
+    margin: 0;
+    accent-color: $primary-color-panel;
+    flex-shrink: 0;
+  }
+
+  &__reason {
+    display: none;
+    margin-top: .85rem;
+    padding: 1rem;
+    background: #fffbeb;
+    border: 1px dashed rgba($primary-color-panel, .45);
+    border-radius: 10px;
+
+    &.is-open { display: block; }
+
+    &-title {
+      font-size: .82rem;
+      font-weight: 700;
+      color: #92400e;
+      margin-bottom: .65rem;
+      display: flex;
+      align-items: center;
+      gap: .35rem;
+      i { color: $primary-color-panel; }
+    }
+  }
+
+  &__actions {
+    margin-top: 1.5rem;
+    display: flex;
+    gap: .75rem;
+
+    .btn {
+      border-radius: 10px;
+      font-weight: 700;
+      padding: .75rem 1.25rem;
+      min-height: 46px;
+      font-size: .9rem;
+    }
+    .btn-primary {
+      flex: 1 1 auto;
+      box-shadow: 0 6px 16px -8px rgba($primary-color-panel, .6);
+    }
+  }
+
+  // error alerts inside card
+  .alert {
+    border-radius: 10px;
+    font-size: .86rem;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .shop-visit {
+    &__progress {
+      grid-template-columns: 1fr;
+      padding: 1rem 1rem 0;
+    }
+    &__body {
+      padding: 1rem 1rem 1.25rem;
+    }
+    &__actions {
+      position: sticky;
+      bottom: 0;
+      z-index: 2;
+      margin: 1rem -1rem -1.25rem;
+      padding: .85rem 1rem calc(.85rem + env(safe-area-inset-bottom));
+      background: #fff;
+      border-top: 1px solid rgba(0, 0, 0, .06);
+      border-radius: 0 0 14px 14px;
+    }
+  }
+}
+
+// Prevent Vue cloak flicker - hide until mounted
+[v-cloak] { display: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .shop-visit__progress li,
+  .shop-visit .form-control,
+  .shop-visit .form-select {
+    transition: none;
+  }
+}
