@@ -33,9 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\RestrictVisitorToPanel::class,
             \App\Http\Middleware\RestrictCourierToPanel::class,
-            \Fahlisaputra\Minify\Middleware\MinifyHtml::class,
-            \Fahlisaputra\Minify\Middleware\MinifyCss::class,
-            // MinifyJavascript breaks inline scripts (Laravel Boost logger, etc.)
+            // MinifyHtml removed: was encoding Persian/Arabic digits to HTML entities and breaking inline JS regexes
         ]);
 
     })
