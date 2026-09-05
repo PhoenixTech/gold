@@ -110,3 +110,22 @@
         </div>
     </div>
 </footer>
+
+@php
+    $footerCats = function_exists('getCategoriesSet') ? getCategoriesSet('index_WTFFooter_categories') : collect();
+@endphp
+@if($footerCats && $footerCats->isNotEmpty())
+    <nav class="WTFFooter fixed-bottom-categories d-md-none" aria-label="Mobile Category Navigation">
+        @foreach($footerCats as $k => $mainCategory)
+            <a class="wtfooter-btn" href="{{$mainCategory->webUrl()}}">
+                @if($k == 3 && file_exists(public_path('assets/default/ballon.webp')))
+                    <img id="ballon" src="{{asset('assets/default/ballon.webp')}}" alt="" loading="lazy">
+                @endif
+                @if($mainCategory->svg)
+                    <img src="{{$mainCategory->svgUrl()}}" alt="{{$mainCategory->name}}" class="cat-icon">
+                @endif
+                <span class="cat-name">{{$mainCategory->name}}</span>
+            </a>
+        @endforeach
+    </nav>
+@endif

@@ -183,3 +183,53 @@
         }
     }
 }
+
+// Mobile Bottom Category Bar
+.WTFFooter {
+    position: fixed;
+    bottom: 1rem;
+    right: 1.5rem;
+    left: 1.5rem;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 0.35rem 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+    z-index: 1030;
+
+    .wtfooter-btn {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-decoration: none;
+        color: var(--xshop-text, #111111);
+        font-size: 11px;
+        position: relative;
+        min-width: 50px;
+
+        img.cat-icon {
+            max-height: 28px;
+            width: auto;
+            margin-bottom: 2px;
+        }
+
+        #ballon {
+            width: 32px;
+            position: absolute;
+            height: auto;
+            inset-inline-end: -6px;
+            top: -18px;
+            pointer-events: none;
+        }
+    }
+}
+
+@media (max-width: 767.98px) {
+    body {
+        padding-bottom: 4.5rem;
+    }
+}
