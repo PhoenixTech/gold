@@ -133,9 +133,11 @@ class ProductPriceCalculator
         $firstAvailable = $available->sortBy('id')->first();
         $product->price = $firstAvailable !== null ? (int) $firstAvailable->price : 0;
 
-        if ($product->stock_quantity > 0 && $product->price > 0) {
+        $isBelowBuyPrice = (int) ($product->buy_price ?? 0) > 0 && $product->price < (int) $product->buy_price;
+
+        if ($product->stock_quantity > 0 && $product->price > 0 && ! $isBelowBuyPrice) {
             $product->stock_status = 'IN_STOCK';
-        } elseif ($product->stock_quantity <= 0) {
+        } else {
             $product->stock_status = 'OUT_STOCK';
         }
 
@@ -151,7 +153,9 @@ class ProductPriceCalculator
         $product->stock_quantity = (int) $available->sum('count');
         $product->price = (int) ($available->clone()->value('price') ?? 0);
 
-        if ($product->stock_quantity <= 0 || $product->price <= 0) {
+        $isBelowBuyPrice = (int) ($product->buy_price ?? 0) > 0 && $product->price < (int) $product->buy_price;
+
+        if ($product->stock_quantity <= 0 || $product->price <= 0 || $isBelowBuyPrice) {
             $product->stock_status = 'OUT_STOCK';
         }
 

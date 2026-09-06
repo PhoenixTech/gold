@@ -125,6 +125,113 @@ class ProductLowStockTest extends TestCase
         $response->assertSee(__('Low stock alert'));
     }
 
+    public function test_product_helper_identifies_below_buy_price(): void
+    {
+        $belowPriceProduct = new Product([
+            'buy_price' => 10000000,
+            'price' => 9000000,
+            'stock_status' => 'IN_STOCK',
+            'stock_quantity' => 5,
+        ]);
+        $this->assertTrue($belowPriceProduct->isBelowBuyPrice());
+        $this->assertFalse($belowPriceProduct->canBeSold());
+
+        $normalPriceProduct = new Product([
+            'buy_price' => 10000000,
+            'price' => 12000000,
+            'stock_status' => 'IN_STOCK',
+            'stock_quantity' => 5,
+        ]);
+        $this->assertFalse($normalPriceProduct->isBelowBuyPrice());
+        $this->assertTrue($normalPriceProduct->canBeSold());
+
+        $zeroBuyPriceProduct = new Product([
+            'buy_price' => 0,
+            'price' => 5000000,
+            'stock_status' => 'IN_STOCK',
+            'stock_quantity' => 5,
+        ]);
+        $this->assertFalse($zeroBuyPriceProduct->isBelowBuyPrice());
+        $this->assertTrue($zeroBuyPriceProduct->canBeSold());
+    }
+
+    public function test_product_cannot_be_added_to_cart_when_below_buy_price(): void
+    {
+        $product = $this->makeProduct([
+            'buy_price' => 10000000,
+            'price' => 8000000,
+            'stock_status' => 'IN_STOCK',
+            'stock_quantity' => 5,
+        ]);
+
+        $response = $this->getJson(route('client.product-card-toggle', $product));
+
+        $response->assertStatus(422);
+        $response->assertJson([
+            'OK' => false,
+        ]);
+    }
+
+    public function test_admin_can_filter_below_buy_price_products_in_list(): void
+    {
+        $this->actingAsAdmin();
+
+        $belowProduct = $this->makeProduct([
+            'name' => 'Floor Breached Product',
+            'buy_price' => 5000000,
+            'price' => 4000000,
+        ]);
+
+        $normalProduct = $this->makeProduct([
+            'name' => 'Profitable Product',
+            'buy_price' => 5000000,
+            'price' => 6000000,
+        ]);
+
+        $response = $this->get(route('admin.product.index', [
+            'filter' => ['below_buy_price' => '1'],
+        ]));
+
+        $response->assertOk();
+        $response->assertSee($belowProduct->name);
+        $response->assertDontSee($normalProduct->name);
+    }
+
+    public function test_admin_product_list_displays_below_buy_price_badge(): void
+    {
+        $this->actingAsAdmin();
+
+        $belowProduct = $this->makeProduct([
+            'name' => 'Floor Badge Item',
+            'buy_price' => 5000000,
+            'price' => 3000000,
+        ]);
+
+        $response = $this->get(route('admin.product.index'));
+
+        $response->assertOk();
+        $response->assertSee(__('Below purchase price'));
+    }
+
+    public function test_dashboard_and_summary_display_below_buy_price_notice(): void
+    {
+        $this->actingAsAdmin();
+
+        $this->makeProduct([
+            'name' => 'Dashboard Floor Item',
+            'buy_price' => 7000000,
+            'price' => 5000000,
+        ]);
+
+        $dashResponse = $this->get(route('home'));
+        $dashResponse->assertOk();
+        $dashResponse->assertSee(__('Price below purchase price notice'));
+
+        $summaryResponse = $this->get(route('admin.summary.index'));
+        $summaryResponse->assertOk();
+        $summaryResponse->assertSee(__('Price below purchase price notice'));
+    }
+
     protected function actingAsAdmin(): User
     {
         Role::findOrCreate('admin', 'web');

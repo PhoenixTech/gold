@@ -64,6 +64,11 @@ abstract class XController extends Controller
                     ->whereColumn('stock_quantity', '<', 'min_stock_level')
                     ->count();
             }
+            if (\Illuminate\Support\Facades\Schema::hasColumn($table, 'buy_price') && \Illuminate\Support\Facades\Schema::hasColumn($table, 'price')) {
+                $quickCounts['below_buy_price'] = $this->_MODEL_::where('buy_price', '>', 0)
+                    ->whereColumn('price', '<', 'buy_price')
+                    ->count();
+            }
             if (\Illuminate\Support\Facades\Schema::hasColumn($table, 'status')) {
                 $sample = $this->_MODEL_::whereNotNull('status')->first();
                 if ($sample && (is_numeric($sample->status) || in_array(strtolower((string)$sample->status), ['0', '1', 'published', 'draft']))) {

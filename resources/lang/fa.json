@@ -1716,5 +1716,17 @@
     "Submit comment": "ارسال دیدگاه",
     "Related products": "محصولات مرتبط",
     "Please select an item first": "لطفاً ابتدا یک قطعه را انتخاب نمایید",
-    "SKU": "کد کالا (SKU)"
+    "SKU": "کد کالا (SKU)",
+    "Below purchase price": "کمتر از قیمت خرید",
+    "All price states": "همه وضعیت‌های قیمتی",
+    "Price below purchase price notice": "هشدار افت قیمت زیر قیمت خرید",
+    ":count products have calculated price below purchase price and sales are paused.": ":count محصول دارای قیمت محاسبه‌شده کمتر از قیمت خرید هستند و فروش آن‌ها متوقف شده است.",
+    "Selling price (:price) is below purchase price (:buy_price)": "قیمت فروش (:price) کمتر از قیمت خرید (:buy_price) است",
+    "Price floor breached": "افت زیر قیمت خرید",
+    "Auto-calculated based on stock items": "محاسبه خودکار بر اساس قطعات موجودی",
+    "Auto-calculated": "محاسبه خودکار",
+    "Minimum price floor. If dynamic price is below this, product cannot be sold.": "کف قیمت مجاز. در صورتی که قیمت محاسبه‌شده کمتر از این مبلغ شود، فروش کالا متوقف می‌شود.",
+    "Minimum floor price. If the dynamic price drops below this value, sales are paused automatically.": "حداقل کف قیمت فروش. در صورتی که قیمت لحظه‌ای از این مبلغ کمتر شود، فروش محصول به صورت خودکار مسدود می‌شود.",
+    "View products": "مشاهده محصولات",
+    "This product is not available for purchase": "این محصول در حال حاضر امکان خرید ندارد."
 }

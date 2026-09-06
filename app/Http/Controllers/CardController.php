@@ -74,6 +74,15 @@ class CardController extends Controller
             $qs = array_values($qs);
             $msg = __('Product removed from card');
         } else {
+            if ($product->isBelowBuyPrice()) {
+                $msg = __('This product is not available for purchase');
+                if (request()->expectsJson() || request()->ajax()) {
+                    return errors([], 422, $msg);
+                }
+
+                return redirect()->back()->withErrors($msg);
+            }
+
             $cards[] = $product->id;
             $qs[] = $quantity;
             $msg = __('Product added to card');
@@ -169,6 +178,11 @@ class CardController extends Controller
                 $productsTotal = 0;
                 foreach ($request->product_id as $i => $productId) {
                     $product = Product::query()->lockForUpdate()->findOrFail($productId);
+                    if ($product->isBelowBuyPrice()) {
+                        throw ValidationException::withMessages([
+                            'product_id' => __('This product is not available for purchase'),
+                        ]);
+                    }
                     $order = new Order;
                     $order->product_id = $product->id;
                     $order->invoice_id = $invoice->id;

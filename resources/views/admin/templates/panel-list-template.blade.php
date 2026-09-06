@@ -13,7 +13,8 @@
                         $currentStatus = request()->input('filter.status', null);
                         $currentMetal = request()->input('filter.metal_type', null);
                         $currentLowStock = request()->input('filter.low_stock', null);
-                        $isAll = $currentStatus === null && $currentMetal === null && $currentLowStock === null && !request()->routeIs('*trashed*');
+                        $currentBelowBuyPrice = request()->input('filter.below_buy_price', null);
+                        $isAll = $currentStatus === null && $currentMetal === null && $currentLowStock === null && $currentBelowBuyPrice === null && !request()->routeIs('*trashed*');
                     @endphp
                     <li class="list-inline-item m-0">
                         <a href="{{$baseUrl}}" class="text-decoration-none @if($isAll) fw-bold text-primary @else text-dark @endif">
@@ -55,6 +56,22 @@
                         <li class="list-inline-item m-0">
                             <a href="{{$baseUrl}}?{{http_build_query(['filter' => $lowStockFilter])}}" class="text-decoration-none @if($currentLowStock === '1') fw-bold text-danger @else text-dark @endif">
                                 {{__("Low stock")}} <span class="@if(($quickCounts['low_stock'] ?? 0) > 0) text-danger fw-bold @else text-muted @endif">({{number_format($quickCounts['low_stock'])}})</span>
+                            </a>
+                        </li>
+                    @endif
+                    @if(isset($quickCounts['below_buy_price']))
+                        @php
+                            $belowBuyPriceFilter = request()->input('filter', []);
+                            if ($currentBelowBuyPrice === '1') {
+                                unset($belowBuyPriceFilter['below_buy_price']);
+                            } else {
+                                $belowBuyPriceFilter['below_buy_price'] = '1';
+                            }
+                        @endphp
+                        <li class="list-inline-item m-0 text-black-50">|</li>
+                        <li class="list-inline-item m-0">
+                            <a href="{{$baseUrl}}?{{http_build_query(['filter' => $belowBuyPriceFilter])}}" class="text-decoration-none @if($currentBelowBuyPrice === '1') fw-bold text-danger @else text-dark @endif">
+                                {{__("Below purchase price")}} <span class="@if(($quickCounts['below_buy_price'] ?? 0) > 0) text-danger fw-bold @else text-muted @endif">({{number_format($quickCounts['below_buy_price'])}})</span>
                             </a>
                         </li>
                     @endif
@@ -361,6 +378,11 @@
                                                               @if($isLowStock)
                                                                   <span class="badge bg-danger-subtle text-danger border border-danger-subtle" title="{{__('Below minimum stock (:min)', ['min' => $item->min_stock_level])}}">
                                                                       <i class="ri-alarm-warning-line me-1"></i>{{__('Low stock')}}
+                                                                  </span>
+                                                              @endif
+                                                              @if(method_exists($item, 'isBelowBuyPrice') && $item->isBelowBuyPrice())
+                                                                  <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle" title="{{__('Selling price (:price) is below purchase price (:buy_price)', ['price' => number_format($item->price ?? 0), 'buy_price' => number_format($item->buy_price ?? 0)])}}">
+                                                                      <i class="ri-error-warning-line me-1"></i>{{__('Below purchase price')}}
                                                                   </span>
                                                               @endif
                                                           </div>

@@ -56,6 +56,7 @@ class AdminDashboardStats
             'stockStats' => $this->stockStats(),
             'soldStats' => $this->soldStats(),
             'lowStockCount' => Product::query()->lowStock()->count(),
+            'belowBuyPriceCount' => Product::query()->belowBuyPrice()->count(),
         ];
     }
 

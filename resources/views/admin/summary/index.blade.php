@@ -37,6 +37,23 @@
             </div>
         @endif
 
+        @if(($belowBuyPriceCount ?? 0) > 0)
+            <div class="alert alert-danger border border-danger-subtle shadow-sm d-flex align-items-center justify-content-between flex-wrap gap-2 p-3 mb-4 rounded-3" role="alert">
+                <div class="d-flex align-items-center gap-2.5">
+                    <i class="ri-error-warning-fill text-danger fs-3"></i>
+                    <div>
+                        <strong class="d-block text-dark">{{ __('Price below purchase price notice') }}</strong>
+                        <span class="text-muted fs-13">
+                            {{ __(':count products have calculated price below purchase price and sales are paused.', ['count' => number_format($belowBuyPriceCount)]) }}
+                        </span>
+                    </div>
+                </div>
+                <a href="{{ route('admin.product.index', ['filter' => ['below_buy_price' => '1']]) }}" class="btn btn-sm btn-danger text-white fw-bold px-3">
+                    <i class="ri-eye-line me-1"></i>{{ __('View products') }}
+                </a>
+            </div>
+        @endif
+
         <section class="summary-sales mb-4" aria-labelledby="sales-overview-title">
             <div class="summary-section-heading">
                 <div>
@@ -147,6 +164,17 @@
                             </a>
                         </div>
                     @endif
+                    @if(($belowBuyPriceCount ?? 0) > 0)
+                        <div class="mt-2 pt-2 border-top d-flex align-items-center justify-content-between">
+                            <span class="text-warning-emphasis fw-semibold fs-13 d-flex align-items-center gap-1">
+                                <i class="ri-error-warning-line"></i>
+                                {{ __('Below purchase price') }}: {{ number_format($belowBuyPriceCount) }} {{ __('products') }}
+                            </span>
+                            <a href="{{ route('admin.product.index', ['filter' => ['below_buy_price' => '1']]) }}" class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle text-decoration-none">
+                                {{ __('Filter') }} <i class="ri-arrow-left-line"></i>
+                            </a>
+                        </div>
+                    @endif
                 </section>
             </div>
         </div>
@@ -206,6 +234,12 @@
                     <span>{{ __('Low stock') }}</span>
                     <strong class="@if(($lowStockCount ?? 0) > 0) text-danger @endif">{{ number_format($lowStockCount ?? 0) }}</strong>
                     <small class="@if(($lowStockCount ?? 0) > 0) text-danger @endif">{{ __('Below minimum stock') }}</small>
+                </a>
+                <a href="{{ route('admin.product.index', ['filter' => ['below_buy_price' => '1']]) }}" class="summary-pulse-item @if(($belowBuyPriceCount ?? 0) > 0) border-danger-subtle @endif">
+                    <i class="ri-error-warning-line @if(($belowBuyPriceCount ?? 0) > 0) text-danger @endif"></i>
+                    <span>{{ __('Below purchase price') }}</span>
+                    <strong class="@if(($belowBuyPriceCount ?? 0) > 0) text-danger @endif">{{ number_format($belowBuyPriceCount ?? 0) }}</strong>
+                    <small class="@if(($belowBuyPriceCount ?? 0) > 0) text-danger @endif">{{ __('Price floor breached') }}</small>
                 </a>
             </div>
         </section>

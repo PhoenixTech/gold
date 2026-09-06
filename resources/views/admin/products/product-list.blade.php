@@ -25,6 +25,13 @@
             {{__("Below minimum stock")}}
         </option>
     </select>
+
+    <select name="filter[below_buy_price]" class="form-select form-select-sm w-auto">
+        <option value="">{{__("All price states")}}</option>
+        <option value="1" @if(request()->input('filter.below_buy_price') === '1') selected @endif>
+            {{__("Below purchase price")}}
+        </option>
+    </select>
 @endsection
 @section('bulk')
     <option value="publish"> {{__("Publish")}} </option>

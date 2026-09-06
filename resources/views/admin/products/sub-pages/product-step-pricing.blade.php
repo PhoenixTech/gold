@@ -4,6 +4,7 @@
             <label for="buy_price" class="fw-semibold">{{__('Purchase price')}}</label>
             <currency-input xname="buy_price" xid="buy_price" @error('buy_price')
             :err="true" @enderror :xvalue="{{old('buy_price',$item->buy_price??0)}}"></currency-input>
+            <small class="text-muted">{{__('Minimum price floor. If dynamic price is below this, product cannot be sold.')}}</small>
         </div>
     </div>
     <div class="col-lg-6">

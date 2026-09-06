@@ -24,13 +24,31 @@
 <div class="row g-4">
     <div class="col-md-4">
         <div class="form-group">
-            <label for="stock_quantity" class="fw-semibold">{{__('Stock quantity')}}</label>
-            <input type="number" id="stock_quantity" name="stock_quantity"
-                   value="{{old('stock_quantity',$item->stock_quantity??0)}}"
-                   placeholder="{{__('Stock quantity')}}"
-                   class="form-control"
-                   readonly>
-            <small class="text-muted">{{__('Auto-calculated from available stock pieces.')}}</small>
+            <label for="stock_quantity" class="fw-semibold d-flex align-items-center justify-content-between">
+                <span>{{__('Stock quantity')}}</span>
+                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle fs-11">
+                    <i class="ri-lock-line me-1"></i>{{__('Auto-calculated')}}
+                </span>
+            </label>
+            <div class="input-group">
+                <span class="input-group-text bg-light text-muted border-end-0">
+                    <i class="ri-archive-line"></i>
+                </span>
+                <input type="number" id="stock_quantity" name="stock_quantity"
+                       value="{{old('stock_quantity',$item->stock_quantity??0)}}"
+                       placeholder="{{__('Stock quantity')}}"
+                       class="form-control bg-light text-dark fw-bold border-start-0 border-end-0"
+                       readonly
+                       tabindex="-1"
+                       style="cursor: not-allowed;">
+                <span class="input-group-text bg-light text-muted border-start-0 fs-12">
+                    {{__('pieces')}}
+                </span>
+            </div>
+            <small class="text-muted d-flex align-items-center gap-1 mt-1">
+                <i class="ri-information-line text-primary"></i>
+                {{__('Auto-calculated from available stock pieces.')}}
+            </small>
         </div>
     </div>
     <div class="col-md-4">

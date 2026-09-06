@@ -14,6 +14,9 @@
             </a>
         </li>
         {{lastCrump()}}
+        <li class="breadcrumb-item active d-none" id="breadcrumb-product-sku-item">
+            <code class="fw-bold text-primary font-monospace bg-primary-subtle px-2 py-0.5 rounded border border-primary-subtle fs-12" id="breadcrumb-product-sku"></code>
+        </li>
     </ol>
 </nav>
 @endif

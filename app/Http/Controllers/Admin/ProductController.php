@@ -17,7 +17,7 @@ class ProductController extends XController
 
     protected $cols = ['name', 'sku', 'metal_type', 'target_group', 'weight', 'category_id', 'stock_quantity', 'status'];
 
-    protected $extra_cols = ['id', 'slug', 'image_index', 'min_stock_level'];
+    protected $extra_cols = ['id', 'slug', 'image_index', 'min_stock_level', 'price', 'buy_price'];
 
     protected $searchable = ['name', 'slug', 'description', 'excerpt', 'sku', 'table'];
 
@@ -40,9 +40,11 @@ class ProductController extends XController
     protected function makeSortAndFilter()
     {
         $lowStock = request()->input('filter.low_stock');
-        if ($lowStock !== null && $lowStock !== '') {
+        $belowBuyPrice = request()->input('filter.below_buy_price');
+
+        if ($lowStock !== null && $lowStock !== '' || $belowBuyPrice !== null && $belowBuyPrice !== '') {
             $filters = request()->input('filter', []);
-            unset($filters['low_stock']);
+            unset($filters['low_stock'], $filters['below_buy_price']);
             request()->merge(['filter' => $filters]);
         }
 
@@ -62,6 +64,23 @@ class ProductController extends XController
 
             request()->merge([
                 'filter' => array_merge(request()->input('filter', []), ['low_stock' => $lowStock]),
+            ]);
+        }
+
+        if ($belowBuyPrice !== null && $belowBuyPrice !== '') {
+            if ((string) $belowBuyPrice === '1') {
+                $query->where('buy_price', '>', 0)
+                    ->whereColumn('price', '<', 'buy_price');
+            } elseif ((string) $belowBuyPrice === '0') {
+                $query->where(function ($q) {
+                    $q->where('buy_price', '<=', 0)
+                        ->orWhereNull('buy_price')
+                        ->orWhereColumn('price', '>=', 'buy_price');
+                });
+            }
+
+            request()->merge([
+                'filter' => array_merge(request()->input('filter', []), ['below_buy_price' => $belowBuyPrice]),
             ]);
         }
 

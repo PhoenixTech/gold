@@ -83,6 +83,26 @@ class Product extends Model implements HasMedia
             ->whereColumn('stock_quantity', '<', 'min_stock_level');
     }
 
+    public function isBelowBuyPrice(): bool
+    {
+        return (int) ($this->buy_price ?? 0) > 0 && (int) ($this->price ?? 0) < (int) $this->buy_price;
+    }
+
+    public function canBeSold(): bool
+    {
+        if ($this->isBelowBuyPrice()) {
+            return false;
+        }
+
+        return $this->stock_status === 'IN_STOCK' && (int) ($this->stock_quantity ?? 0) > 0;
+    }
+
+    public function scopeBelowBuyPrice($query)
+    {
+        return $query->where('buy_price', '>', 0)
+            ->whereColumn('price', '<', 'buy_price');
+    }
+
     public function getQzAttribute()
     {
         $result = [];

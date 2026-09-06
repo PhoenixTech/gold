@@ -150,7 +150,7 @@ class ProductPriceCalculatorTest extends TestCase
             'wage' => 0,
             'profit' => 0,
             'tax' => 0,
-            'buy_price' => 2_050_000,
+            'buy_price' => 1_900_000,
             'status' => 1,
         ]);
         $quantity = Quantity::factory()->create([
@@ -181,6 +181,35 @@ class ProductPriceCalculatorTest extends TestCase
         $quantity->refresh();
         $this->assertSame(2_100_000, $quantity->price);
         $this->assertSame('IN_STOCK', $product->fresh()->stock_status);
+    }
+
+    public function test_reprice_marks_out_stock_when_price_falls_below_buy_price(): void
+    {
+        $product = $this->makeProduct([
+            'metal_type' => 'gold',
+            'labor_charge_1' => 0,
+            'profit' => 0,
+            'tax' => 0,
+            'buy_price' => 2_050_000,
+            'status' => 1,
+        ]);
+        $quantity = Quantity::factory()->create([
+            'product_id' => $product->id,
+            'weight' => 1,
+            'count' => 1,
+            'code' => 'S-'.uniqid(),
+        ]);
+
+        $setting = Setting::query()->where('key', 'min')->firstOrFail();
+        $setting->update([
+            'value' => '100',
+            'raw' => '100',
+        ]);
+
+        $this->calculator->repriceProduct($product->fresh(['quantities']));
+        $quantity->refresh();
+        $this->assertSame(2_000_000, $quantity->price);
+        $this->assertSame('OUT_STOCK', $product->fresh()->stock_status);
     }
 
     public function test_sold_piece_is_excluded_from_product_min_price(): void

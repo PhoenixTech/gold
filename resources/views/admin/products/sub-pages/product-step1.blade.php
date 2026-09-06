@@ -120,6 +120,16 @@ document.addEventListener('DOMContentLoaded', function () {
     const targetSelect = document.getElementById('target_group');
     const metalSelect = document.getElementById('metal_type');
 
+    function syncSkuToBreadcrumb(sku) {
+        if (!sku) return;
+        const breadcrumbSku = document.getElementById('breadcrumb-product-sku');
+        const breadcrumbSkuItem = document.getElementById('breadcrumb-product-sku-item');
+        if (breadcrumbSku && breadcrumbSkuItem) {
+            breadcrumbSku.textContent = sku;
+            breadcrumbSkuItem.classList.remove('d-none');
+        }
+    }
+
     function updateDynamicSku() {
         if (!skuInput) return;
         const targetVal = targetSelect ? targetSelect.value : 'women';
@@ -138,7 +148,9 @@ document.addEventListener('DOMContentLoaded', function () {
             seq = curr.slice(-4);
         }
 
-        skuInput.value = `${t}${m}${c}${seq}`;
+        const newSku = `${t}${m}${c}${seq}`;
+        skuInput.value = newSku;
+        syncSkuToBreadcrumb(newSku);
     }
 
     if (targetSelect) targetSelect.addEventListener('change', updateDynamicSku);
@@ -155,6 +167,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (!skuInput.value) {
         updateDynamicSku();
+    } else {
+        syncSkuToBreadcrumb(skuInput.value);
     }
+    skuInput.addEventListener('input', function () {
+        syncSkuToBreadcrumb(skuInput.value);
+    });
 });
 </script>

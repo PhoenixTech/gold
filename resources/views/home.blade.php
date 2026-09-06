@@ -35,6 +35,23 @@
             </div>
         @endif
 
+        @if(($belowBuyPriceCount ?? 0) > 0)
+            <div class="alert alert-danger border border-danger-subtle shadow-sm d-flex align-items-center justify-content-between flex-wrap gap-2 p-3 mb-4 rounded-3" role="alert">
+                <div class="d-flex align-items-center gap-2.5">
+                    <i class="ri-error-warning-fill text-danger fs-3"></i>
+                    <div>
+                        <strong class="d-block text-dark">{{ __('Price below purchase price notice') }}</strong>
+                        <span class="text-muted fs-13">
+                            {{ __(':count products have calculated price below purchase price and sales are paused.', ['count' => number_format($belowBuyPriceCount)]) }}
+                        </span>
+                    </div>
+                </div>
+                <a href="{{ route('admin.product.index', ['filter' => ['below_buy_price' => '1']]) }}" class="btn btn-sm btn-danger text-white fw-bold px-3">
+                    <i class="ri-eye-line me-1"></i>{{ __('View products') }}
+                </a>
+            </div>
+        @endif
+
         <div class="dash-rates mb-4">
             @foreach($rates as $rate)
                 @if($canEditPrices)
@@ -140,6 +157,12 @@
                             <div class="mt-2 pt-2 border-top d-flex align-items-center justify-content-between text-danger fs-12">
                                 <span><i class="ri-alarm-warning-line me-1"></i>{{ __('Low stock alert') }}: <b>{{ number_format($lowStockCount) }}</b> {{ __('products') }}</span>
                                 <span class="badge bg-danger-subtle text-danger border border-danger-subtle">{{ __('Filter') }} &larr;</span>
+                            </div>
+                        @endif
+                        @if(($belowBuyPriceCount ?? 0) > 0)
+                            <div class="mt-1 pt-1 border-top d-flex align-items-center justify-content-between text-warning-emphasis fs-12">
+                                <span><i class="ri-error-warning-line me-1"></i>{{ __('Below purchase price') }}: <b>{{ number_format($belowBuyPriceCount) }}</b> {{ __('products') }}</span>
+                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">{{ __('Filter') }} &larr;</span>
                             </div>
                         @endif
                     </div>
