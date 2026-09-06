@@ -95,7 +95,7 @@
     <div class="col-12">
         <div class="form-group">
             <label for="description" class="fw-semibold">{{__('Description Text')}}</label>
-            <textarea name="desc" class="form-control quill-editor seo-analyze @error('description') is-invalid @enderror"
+            <textarea name="desc" class="form-control quill-editor @error('description') is-invalid @enderror"
                       placeholder="{{__('Description Text')}}"
                       id="description"
                       rows="8">{{old('description',$item->description??null)}}</textarea>
@@ -103,11 +103,10 @@
     </div>
     <div class="col-12">
         <div class="form-group">
-            <label for="keyword" class="fw-semibold">{{__('Keyword')}} [{{__("SEO")}}]</label>
+            <label for="keyword" class="fw-semibold">{{__('Keyword')}}</label>
             <input name="keyword" type="text" id="keyword"
                    class="form-control @error('keyword') is-invalid @enderror"
                    placeholder="{{__('Keyword')}}" value="{{old('keyword',$item->keyword??null)}}"/>
-            <div id="seo-hint"></div>
         </div>
     </div>
 </div>

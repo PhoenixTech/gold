@@ -814,6 +814,10 @@
     "Offline payment deadline": "مهلت پرداخت آفلاین",
     "Offline payment deadline (hours)": "مهلت پرداخت آفلاین (ساعت)",
     "Offline payment deadline passed": "مهلت پرداخت آفلاین گذشته است",
+    "Old Homepage": "صفحه اصلی قبلی",
+    "Old Homepage (Archived Design)": "صفحه اصلی قبلی (طراحی آرشیو)",
+    "New Homepage": "صفحه اصلی جدید",
+    "View new homepage": "مشاهده صفحه اصلی جدید",
     "On a paid invoice, set the status to :status, pick a courier, and save. A 4-digit code is SMS’d to the customer (the :template template in :settings).": "روی فاکتور پرداخت‌شده، وضعیت را :status بگذارید، پیک را انتخاب کنید و ذخیره کنید. یک کد ۴ رقمی با پیامک برای مشتری می‌رود (قالب :template در :settings).",
     "On the product, set :wage, :profit, and :tax. Tax is applied to wage and profit, not to the gold itself. :addon is added at the end for stones or extra work.": "روی محصول :wage، :profit و :tax را بگذارید. مالیات روی اجرت و سود است، نه روی اصل طلا. :addon در پایان برای نگین یا کار اضافه اضافه می‌شود.",
     "One active bank card": "یک کارت بانکی فعال",
@@ -1728,5 +1732,16 @@
     "Minimum price floor. If dynamic price is below this, product cannot be sold.": "کف قیمت مجاز. در صورتی که قیمت محاسبه‌شده کمتر از این مبلغ شود، فروش کالا متوقف می‌شود.",
     "Minimum floor price. If the dynamic price drops below this value, sales are paused automatically.": "حداقل کف قیمت فروش. در صورتی که قیمت لحظه‌ای از این مبلغ کمتر شود، فروش محصول به صورت خودکار مسدود می‌شود.",
     "View products": "مشاهده محصولات",
-    "This product is not available for purchase": "این محصول در حال حاضر امکان خرید ندارد."
+    "This product is not available for purchase": "این محصول در حال حاضر امکان خرید ندارد.",
+    "Product image guidelines": "راهنمای تصاویر محصول",
+    "Double click on an image to set it as the main image.": "برای تعیین به عنوان تصویر شاخص، روی تصویر دوبار کلیک کنید.",
+    "You can select and upload multiple images at once.": "امکان انتخاب و بارگذاری چندین تصویر به صورت هم‌زمان وجود دارد.",
+    "Supported formats: JPG, PNG, GIF, WebP.": "فرمت‌های مجاز: JPG، PNG، GIF، WebP",
+    "Click to upload or drag and drop images here": "جهت بارگذاری کلیک کنید یا تصاویر را اینجا رها کنید",
+    "Upload high quality product photos to showcase your jewelry pieces": "تصاویر باکیفیت و مناسب برای نمایش جلوه بهتر محصول بارگذاری نمایید",
+    "Select images": "انتخاب تصاویر",
+    "Product gallery": "گالری تصاویر محصول",
+    "Main image": "تصویر شاخص",
+    "Remove image": "حذف تصویر",
+    "Double click to set as main": "دوبار کلیک برای تعیین به عنوان شاخص"
 }

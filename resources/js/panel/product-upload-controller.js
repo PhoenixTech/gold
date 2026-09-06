@@ -12,11 +12,21 @@ function previewImage(input, i) {
             const uploadingImages = document.querySelector('#uploading-images');
             const newDiv = document.createElement('div');
             newDiv.dataset.id = i;
-            newDiv.className = 'col-xl-3 col-md-4 border p-3';
+            newDiv.className = 'col-xl-3 col-md-4 col-sm-6 mb-3 image-index';
             newDiv.innerHTML = `
-        <div class="img-preview" style="background-image: url('${img}')"></div>
-        <div class="btn btn-danger upload-remove-image d-block">
-          <span class="ri-close-line"></span>
+        <div class="card h-100 shadow-sm border rounded-3 overflow-hidden position-relative product-media-card">
+            <span class="badge bg-success position-absolute top-0 start-0 m-2 shadow-sm" style="z-index: 2;">
+                <i class="ri-add-line me-1"></i>New
+            </span>
+            <button type="button" class="btn btn-danger upload-remove-image position-absolute top-0 end-0 m-2 shadow-sm rounded-circle d-flex align-items-center justify-content-center p-0" style="width: 30px; height: 30px; z-index: 2;" title="Remove">
+                <i class="ri-delete-bin-line fs-14"></i>
+            </button>
+            <div class="ratio ratio-1x1 bg-light">
+                <div class="img-preview w-100 h-100" style="background-image: url('${img}'); background-size: cover; background-position: center;"></div>
+            </div>
+            <div class="card-footer bg-white border-top py-2 px-2.5 text-center">
+                <small class="text-muted fs-11">${input.name ? (input.name.length > 20 ? input.name.substring(0, 18) + '...' : input.name) : ''}</small>
+            </div>
         </div>
       `;
             uploadingImages.appendChild(newDiv);
@@ -149,7 +159,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.addEventListener('click', (e) => {
         if (e.target.closest('.upload-remove-image')) {
-            const parentCol = e.target.closest('.col-md-4');
+            const parentCol = e.target.closest('.col-md-4, .image-index');
+            if (!parentCol) return;
             const dataId = parentCol.dataset.id;
             delete uploadFormData[dataId - 1];
             parentCol.style.transition = 'opacity 400ms';
