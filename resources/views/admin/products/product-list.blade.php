@@ -18,6 +18,13 @@
             </option>
         @endforeach
     </select>
+
+    <select name="filter[low_stock]" class="form-select form-select-sm w-auto">
+        <option value="">{{__("All stock levels")}}</option>
+        <option value="1" @if(request()->input('filter.low_stock') === '1') selected @endif>
+            {{__("Below minimum stock")}}
+        </option>
+    </select>
 @endsection
 @section('bulk')
     <option value="publish"> {{__("Publish")}} </option>

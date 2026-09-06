@@ -59,6 +59,11 @@ abstract class XController extends Controller
                 $quickCounts['gold'] = $this->_MODEL_::where('metal_type', 'gold')->count();
                 $quickCounts['silver'] = $this->_MODEL_::where('metal_type', 'silver')->count();
             }
+            if (\Illuminate\Support\Facades\Schema::hasColumn($table, 'min_stock_level') && \Illuminate\Support\Facades\Schema::hasColumn($table, 'stock_quantity')) {
+                $quickCounts['low_stock'] = $this->_MODEL_::where('min_stock_level', '>', 0)
+                    ->whereColumn('stock_quantity', '<', 'min_stock_level')
+                    ->count();
+            }
             if (\Illuminate\Support\Facades\Schema::hasColumn($table, 'status')) {
                 $sample = $this->_MODEL_::whereNotNull('status')->first();
                 if ($sample && (is_numeric($sample->status) || in_array(strtolower((string)$sample->status), ['0', '1', 'published', 'draft']))) {

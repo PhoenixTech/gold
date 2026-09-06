@@ -17,7 +17,7 @@ class ProductController extends XController
 
     protected $cols = ['name', 'sku', 'metal_type', 'target_group', 'weight', 'category_id', 'stock_quantity', 'status'];
 
-    protected $extra_cols = ['id', 'slug', 'image_index'];
+    protected $extra_cols = ['id', 'slug', 'image_index', 'min_stock_level'];
 
     protected $searchable = ['name', 'slug', 'description', 'excerpt', 'sku', 'table'];
 
@@ -35,6 +35,37 @@ class ProductController extends XController
     public function __construct()
     {
         parent::__construct(Product::class, ProductSaveRequest::class);
+    }
+
+    protected function makeSortAndFilter()
+    {
+        $lowStock = request()->input('filter.low_stock');
+        if ($lowStock !== null && $lowStock !== '') {
+            $filters = request()->input('filter', []);
+            unset($filters['low_stock']);
+            request()->merge(['filter' => $filters]);
+        }
+
+        $query = parent::makeSortAndFilter();
+
+        if ($lowStock !== null && $lowStock !== '') {
+            if ((string) $lowStock === '1') {
+                $query->where('min_stock_level', '>', 0)
+                    ->whereColumn('stock_quantity', '<', 'min_stock_level');
+            } elseif ((string) $lowStock === '0') {
+                $query->where(function ($q) {
+                    $q->where('min_stock_level', '<=', 0)
+                        ->orWhereNull('min_stock_level')
+                        ->orWhereColumn('stock_quantity', '>=', 'min_stock_level');
+                });
+            }
+
+            request()->merge([
+                'filter' => array_merge(request()->input('filter', []), ['low_stock' => $lowStock]),
+            ]);
+        }
+
+        return $query;
     }
 
     /**
@@ -65,12 +96,12 @@ class ProductController extends XController
         $product->metal_type = $request->input('metal_type', 'gold');
         $product->keyword = $request->input('keyword');
         $product->stock_status = $request->input('stock_status');
-        $product->price = $request->input('price', 0);
+        $product->price = $request->input('price', $product->price ?? 0);
         $product->buy_price = $request->input('buy_price', 0);
 
         if (! $request->has('quantity')) {
-            $product->price = $request->input('price', 0);
-            $product->stock_quantity = $request->input('stock_quantity');
+            $product->price = $request->input('price', $product->price ?? 0);
+            $product->stock_quantity = $request->input('stock_quantity', $product->stock_quantity ?? 0);
         }
         $product->average_rating = $request->input('average_rating', 0);
         $product->average_rating = $request->input('average_rating', 0);

@@ -12,7 +12,8 @@
                         $baseUrl = hasRoute('index') ? getRoute('index') : str_replace('/trashed', '', request()->url());
                         $currentStatus = request()->input('filter.status', null);
                         $currentMetal = request()->input('filter.metal_type', null);
-                        $isAll = $currentStatus === null && $currentMetal === null && !request()->routeIs('*trashed*');
+                        $currentLowStock = request()->input('filter.low_stock', null);
+                        $isAll = $currentStatus === null && $currentMetal === null && $currentLowStock === null && !request()->routeIs('*trashed*');
                     @endphp
                     <li class="list-inline-item m-0">
                         <a href="{{$baseUrl}}" class="text-decoration-none @if($isAll) fw-bold text-primary @else text-dark @endif">
@@ -38,6 +39,22 @@
                         <li class="list-inline-item m-0">
                             <a href="{{$baseUrl}}?{{http_build_query(['filter' => $silverFilter])}}" class="text-decoration-none @if($currentMetal === 'silver') fw-bold text-secondary @else text-dark @endif">
                                 {{__("Silver")}} <span class="text-muted">({{number_format($quickCounts['silver'])}})</span>
+                            </a>
+                        </li>
+                    @endif
+                    @if(isset($quickCounts['low_stock']))
+                        @php
+                            $lowStockFilter = request()->input('filter', []);
+                            if ($currentLowStock === '1') {
+                                unset($lowStockFilter['low_stock']);
+                            } else {
+                                $lowStockFilter['low_stock'] = '1';
+                            }
+                        @endphp
+                        <li class="list-inline-item m-0 text-black-50">|</li>
+                        <li class="list-inline-item m-0">
+                            <a href="{{$baseUrl}}?{{http_build_query(['filter' => $lowStockFilter])}}" class="text-decoration-none @if($currentLowStock === '1') fw-bold text-danger @else text-dark @endif">
+                                {{__("Low stock")}} <span class="@if(($quickCounts['low_stock'] ?? 0) > 0) text-danger fw-bold @else text-muted @endif">({{number_format($quickCounts['low_stock'])}})</span>
                             </a>
                         </li>
                     @endif
@@ -330,6 +347,23 @@
                                                          @break
                                                       @case('sku')
                                                           <code class="fw-bold text-primary">{{ $item->sku ?: '-' }}</code>
+                                                          @break
+                                                      @case('stock_quantity')
+                                                          @php
+                                                              $isLowStock = method_exists($item, 'isLowStock')
+                                                                  ? $item->isLowStock()
+                                                                  : (($item->min_stock_level ?? 0) > 0 && ($item->stock_quantity ?? 0) < ($item->min_stock_level ?? 0));
+                                                          @endphp
+                                                          <div class="d-inline-flex align-items-center gap-1.5 flex-wrap">
+                                                              <span class="@if($isLowStock) text-danger fw-bold @endif">
+                                                                  {{ number_format($item->stock_quantity ?? 0) }}
+                                                              </span>
+                                                              @if($isLowStock)
+                                                                  <span class="badge bg-danger-subtle text-danger border border-danger-subtle" title="{{__('Below minimum stock (:min)', ['min' => $item->min_stock_level])}}">
+                                                                      <i class="ri-alarm-warning-line me-1"></i>{{__('Low stock')}}
+                                                                  </span>
+                                                              @endif
+                                                          </div>
                                                           @break
                                                      @case('icon')
                                                          <i class="{{$item->$col}}"></i>

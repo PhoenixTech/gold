@@ -32,7 +32,8 @@ class AdminDashboardStats
      *     recentInvoices: Collection<int, Invoice>,
      *     today: string|null,
      *     stockStats: array{total_count: int, total_weight: float, gold_count: int, gold_weight: float, silver_count: int, silver_weight: float},
-     *     soldStats: array{total_count: int, total_weight: float, gold_count: int, gold_weight: float, silver_count: int, silver_weight: float}
+     *     soldStats: array{total_count: int, total_weight: float, gold_count: int, gold_weight: float, silver_count: int, silver_weight: float},
+     *     lowStockCount: int
      * }
      */
     public function data(): array
@@ -54,6 +55,7 @@ class AdminDashboardStats
             'today' => now()->ldate('Y/m/d'),
             'stockStats' => $this->stockStats(),
             'soldStats' => $this->soldStats(),
+            'lowStockCount' => Product::query()->lowStock()->count(),
         ];
     }
 

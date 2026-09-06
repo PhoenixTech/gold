@@ -460,7 +460,7 @@ export default {
                         value: this.formatPrice(rounded),
                     },
                     {
-                        label: 'اضافه کردن مبلغ جانبی',
+                        label: 'اضافه کردن اقلام اضافه',
                         math: `${this.formatPlain(rounded)} + ${this.formatPlain(addon)}`,
                         value: this.formatPrice(final),
                     },

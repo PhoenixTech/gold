@@ -72,6 +72,17 @@ class Product extends Model implements HasMedia
 
     protected $guarded = [];
 
+    public function isLowStock(): bool
+    {
+        return (int) ($this->min_stock_level ?? 0) > 0 && (int) ($this->stock_quantity ?? 0) < (int) $this->min_stock_level;
+    }
+
+    public function scopeLowStock($query)
+    {
+        return $query->where('min_stock_level', '>', 0)
+            ->whereColumn('stock_quantity', '<', 'min_stock_level');
+    }
+
     public function getQzAttribute()
     {
         $result = [];

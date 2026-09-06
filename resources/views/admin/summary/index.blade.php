@@ -20,6 +20,23 @@
             </div>
         </header>
 
+        @if(($lowStockCount ?? 0) > 0)
+            <div class="alert alert-warning border border-warning-subtle shadow-sm d-flex align-items-center justify-content-between flex-wrap gap-2 p-3 mb-4 rounded-3" role="alert">
+                <div class="d-flex align-items-center gap-2.5">
+                    <i class="ri-alarm-warning-fill text-warning fs-3"></i>
+                    <div>
+                        <strong class="d-block text-dark">{{ __('Low stock notice') }}</strong>
+                        <span class="text-muted fs-13">
+                            {{ __(':count products have fallen below minimum stock level and need attention.', ['count' => number_format($lowStockCount)]) }}
+                        </span>
+                    </div>
+                </div>
+                <a href="{{ route('admin.product.index', ['filter' => ['low_stock' => '1']]) }}" class="btn btn-sm btn-warning text-dark fw-bold px-3">
+                    <i class="ri-eye-line me-1"></i>{{ __('View low stock products') }}
+                </a>
+            </div>
+        @endif
+
         <section class="summary-sales mb-4" aria-labelledby="sales-overview-title">
             <div class="summary-section-heading">
                 <div>
@@ -119,6 +136,17 @@
                             <em>{{ \App\Services\AdminDashboardStats::formatWeight($stockStats['silver_weight']) }} {{ __('g') }}</em>
                         </div>
                     </div>
+                    @if(($lowStockCount ?? 0) > 0)
+                        <div class="mt-3 pt-2.5 border-top d-flex align-items-center justify-content-between">
+                            <span class="text-danger fw-semibold fs-13 d-flex align-items-center gap-1">
+                                <i class="ri-alarm-warning-line"></i>
+                                {{ __('Low stock alert') }}: {{ number_format($lowStockCount) }} {{ __('products') }}
+                            </span>
+                            <a href="{{ route('admin.product.index', ['filter' => ['low_stock' => '1']]) }}" class="badge bg-danger-subtle text-danger border border-danger-subtle text-decoration-none">
+                                {{ __('Filter') }} <i class="ri-arrow-left-line"></i>
+                            </a>
+                        </div>
+                    @endif
                 </section>
             </div>
         </div>
@@ -172,6 +200,12 @@
                     <span>{{ __('Active bank account') }}</span>
                     <strong>{{ $bankAccount?->bank_name ?? '—' }}</strong>
                     <small>{{ $bankAccount?->account_holder_name ?? __('No active bank account') }}</small>
+                </a>
+                <a href="{{ route('admin.product.index', ['filter' => ['low_stock' => '1']]) }}" class="summary-pulse-item @if(($lowStockCount ?? 0) > 0) border-danger-subtle @endif">
+                    <i class="ri-alarm-warning-line @if(($lowStockCount ?? 0) > 0) text-danger @endif"></i>
+                    <span>{{ __('Low stock') }}</span>
+                    <strong class="@if(($lowStockCount ?? 0) > 0) text-danger @endif">{{ number_format($lowStockCount ?? 0) }}</strong>
+                    <small class="@if(($lowStockCount ?? 0) > 0) text-danger @endif">{{ __('Below minimum stock') }}</small>
                 </a>
             </div>
         </section>

@@ -18,6 +18,23 @@
             </div>
         </div>
 
+        @if(($lowStockCount ?? 0) > 0)
+            <div class="alert alert-warning border border-warning-subtle shadow-sm d-flex align-items-center justify-content-between flex-wrap gap-2 p-3 mb-4 rounded-3" role="alert">
+                <div class="d-flex align-items-center gap-2.5">
+                    <i class="ri-alarm-warning-fill text-warning fs-3"></i>
+                    <div>
+                        <strong class="d-block text-dark">{{ __('Low stock notice') }}</strong>
+                        <span class="text-muted fs-13">
+                            {{ __(':count products have fallen below minimum stock level and need attention.', ['count' => number_format($lowStockCount)]) }}
+                        </span>
+                    </div>
+                </div>
+                <a href="{{ route('admin.product.index', ['filter' => ['low_stock' => '1']]) }}" class="btn btn-sm btn-warning text-dark fw-bold px-3">
+                    <i class="ri-eye-line me-1"></i>{{ __('View low stock products') }}
+                </a>
+            </div>
+        @endif
+
         <div class="dash-rates mb-4">
             @foreach($rates as $rate)
                 @if($canEditPrices)
@@ -119,6 +136,12 @@
                             <span class="me-2"><i class="ri-coins-line text-warning me-1"></i>{{ __('Gold') }}: {{ number_format($stockStats['gold_count']) }} {{ __('items') }} ({{ \App\Services\AdminDashboardStats::formatWeight($stockStats['gold_weight']) }} {{ __('g') }})</span>
                             <span><i class="ri-vip-diamond-line text-secondary me-1"></i>{{ __('Silver') }}: {{ number_format($stockStats['silver_count']) }} {{ __('items') }} ({{ \App\Services\AdminDashboardStats::formatWeight($stockStats['silver_weight']) }} {{ __('g') }})</span>
                         </small>
+                        @if(($lowStockCount ?? 0) > 0)
+                            <div class="mt-2 pt-2 border-top d-flex align-items-center justify-content-between text-danger fs-12">
+                                <span><i class="ri-alarm-warning-line me-1"></i>{{ __('Low stock alert') }}: <b>{{ number_format($lowStockCount) }}</b> {{ __('products') }}</span>
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle">{{ __('Filter') }} &larr;</span>
+                            </div>
+                        @endif
                     </div>
                 </a>
             </div>

@@ -40,6 +40,7 @@
                    value="{{old('min_stock_level',$item->min_stock_level??0)}}"
                    placeholder="{{__('Minimum stock level')}}"
                    class="form-control">
+            <small class="text-muted">{{__('If stock is below this number, we will notify you.')}}</small>
         </div>
     </div>
     <div class="col-md-4">

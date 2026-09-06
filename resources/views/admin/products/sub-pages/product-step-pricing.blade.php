@@ -1,21 +1,12 @@
 <div class="row g-3">
-    <div class="col-lg-4">
-        <div class="form-group">
-            <label for="price" class="fw-semibold">{{__('Base price')}}</label>
-            <currency-input xname="price" xid="price" @error('price')
-            :err="true" @enderror xtitle="{{__('Base price')}}"
-                            :xvalue="{{old('price',$item->price??null)}}"></currency-input>
-            <small class="text-muted">{{__('Overwritten by the lowest available stock piece price.')}}</small>
-        </div>
-    </div>
-    <div class="col-lg-4">
+    <div class="col-lg-6">
         <div class="form-group">
             <label for="buy_price" class="fw-semibold">{{__('Purchase price')}}</label>
             <currency-input xname="buy_price" xid="buy_price" @error('buy_price')
             :err="true" @enderror :xvalue="{{old('buy_price',$item->buy_price??0)}}"></currency-input>
         </div>
     </div>
-    <div class="col-lg-4">
+    <div class="col-lg-6">
         <div class="form-group">
             <label for="addon" class="fw-semibold">{{__('Addon price')}}</label>
             <currency-input xname="addon" xid="addon" @error('addon')
