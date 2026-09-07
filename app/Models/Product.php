@@ -103,6 +103,42 @@ class Product extends Model implements HasMedia
             ->whereColumn('price', '<', 'buy_price');
     }
 
+    public function totalStockWeight(): float
+    {
+        $available = $this->relationLoaded('quantities')
+            ? $this->quantities->where('count', '>', 0)
+            : $this->quantities()->where('count', '>', 0)->get();
+
+        if ($available->isNotEmpty()) {
+            return round((float) $available->sum(fn ($q) => (float) ($q->weight ?? 0) * (int) ($q->count ?? 1)), 3);
+        }
+
+        return round((float) ($this->weight ?? 0) * (int) ($this->stock_quantity ?? 0), 3);
+    }
+
+    public function totalStockPrice(): int
+    {
+        $available = $this->relationLoaded('quantities')
+            ? $this->quantities->where('count', '>', 0)
+            : $this->quantities()->where('count', '>', 0)->get();
+
+        if ($available->isNotEmpty()) {
+            return (int) $available->sum(fn ($q) => (int) ($q->price ?? 0) * (int) ($q->count ?? 1));
+        }
+
+        return (int) (($this->price ?? 0) * ($this->stock_quantity ?? 0));
+    }
+
+    public function getTotalWeightAttribute(): float
+    {
+        return $this->totalStockWeight();
+    }
+
+    public function getTotalPriceAttribute(): int
+    {
+        return $this->totalStockPrice();
+    }
+
     public function getQzAttribute()
     {
         $result = [];

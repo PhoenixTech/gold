@@ -43,6 +43,12 @@
                                 {{__('Products')}}
                             </a>
                         </li>
+                        <li>
+                            <a href="{{route('admin.stock.index')}}" class="{{ request()->routeIs('admin.stock.*') ? 'active' : '' }}">
+                                <i class="ri-archive-stack-fill"></i>
+                                {{__('Stock inventory')}}
+                            </a>
+                        </li>
                     @endif
                     @if(auth()->user()->hasAnyAccess('category'))
                         <li>

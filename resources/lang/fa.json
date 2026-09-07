@@ -1614,7 +1614,7 @@
     "status": "وضعیت",
     "step-one": "مرحله اول",
     "step-two": "مرحله دوم",
-    "stock_quantity": "موجودی انبار",
+    "stock_quantity": "تعداد موجودی",
     "store": "ذخیره",
     "subject": "موضوع",
     "submitted_at": "تاریخ ثبت",
@@ -1626,6 +1626,7 @@
     "times": "مرتبه",
     "title": "عنوان",
     "total_price": "مبلغ کل",
+    "total_weight": "وزن کل",
     "translate": "ترجمه",
     "translates": "ترجمه‌ها",
     "transport": "حمل و نقل",
@@ -1743,5 +1744,15 @@
     "Product gallery": "گالری تصاویر محصول",
     "Main image": "تصویر شاخص",
     "Remove image": "حذف تصویر",
-    "Double click to set as main": "دوبار کلیک برای تعیین به عنوان شاخص"
+    "Double click to set as main": "دوبار کلیک برای تعیین به عنوان شاخص",
+    "Stock inventory": "موجودی انبار",
+    "Total stock count": "جمع کل تعداد موجودی",
+    "Total stock weight": "جمع کل وزن موجودی",
+    "Total inventory value": "ارزش کل موجودی",
+    "In-stock products": "کالاهای دارای موجودی",
+    "Active products currently in stock": "کالاهای فعال که در انبار موجود هستند",
+    "Live calculated retail value": "ارزش کل بر اساس قیمت محاسبه‌شده روز",
+    "All metals": "همه فلزات",
+    "pieces": "عدد",
+    "products": "محصول"
 }

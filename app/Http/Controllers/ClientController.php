@@ -87,6 +87,62 @@ class ClientController extends Controller
         return view('client.home', compact('title', 'subtitle', 'mainCategories', 'latestProducts', 'latestPosts', 'introText', 'newsText'));
     }
 
+    public function oldHome()
+    {
+        $title = config('app.name');
+        $subtitle = getSetting('subtitle');
+
+        $mainCategories = getCategoriesSet('index_WTFIndex_categories');
+        if ($mainCategories->isEmpty()) {
+            $mainCategories = Category::where('hide', 0)
+                ->where(function ($q) {
+                    $q->whereNull('parent_id')->orWhere('parent_id', 0);
+                })
+                ->orderBy('sort')
+                ->take(4)
+                ->with(['children' => function ($q) {
+                    $q->where('hide', 0)->orderBy('sort');
+                }])
+                ->get();
+        }
+
+        $footerCategories = getCategoriesSet('index_WTFFooter_categories');
+        if ($footerCategories->isEmpty()) {
+            $footerCategories = Category::where('hide', 0)
+                ->where(function ($q) {
+                    $q->whereNull('parent_id')->orWhere('parent_id', 0);
+                })
+                ->orderBy('sort')
+                ->take(4)
+                ->get();
+        }
+
+        $zarMenuItems = collect(getMenuBySettingItems('index_ZarMenu_menu'));
+        if ($zarMenuItems->isEmpty()) {
+            $menu = \App\Models\Menu::first();
+            $zarMenuItems = ($menu && $menu->items) ? collect($menu->items) : collect();
+        }
+
+        $nataliaText = getSetting('index_Natalia2Categories_text') ?: getSetting('about');
+        $neginTitle = getSetting('index_NeginNews_title');
+        $neginText = getSetting('index_NeginNews_text');
+        $goldPrice = getSetting('gold');
+        $socials = getSettingsGroup('social_') ?: [];
+
+        return view('client.old', compact(
+            'title',
+            'subtitle',
+            'mainCategories',
+            'footerCategories',
+            'zarMenuItems',
+            'nataliaText',
+            'neginTitle',
+            'neginText',
+            'goldPrice',
+            'socials'
+        ));
+    }
+
     public function post($slug)
     {
 

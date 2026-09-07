@@ -293,6 +293,12 @@ Route::prefix(config('app.panel.prefix'))->name('admin.')->group(
                         Route::post('category/save/{item}', [\App\Http\Controllers\Admin\ProductController::class, 'categorySave'])->name('category-save');
 
                     });
+                Route::prefix('stock')->name('stock.')->group(
+                    function () {
+                        Route::get('', [\App\Http\Controllers\Admin\StockController::class, 'index'])->name('index');
+                        Route::get('edit/{item}', fn ($item) => redirect()->route('admin.product.edit', $item))->name('edit');
+                        Route::get('show/{item}', fn ($item) => redirect()->route('admin.product.show', $item))->name('show');
+                    });
                 Route::prefix('props')->name('prop.')->group(
                     function () {
                         Route::get('', [\App\Http\Controllers\Admin\PropController::class, 'index'])->name('index');
@@ -444,6 +450,7 @@ Route::middleware([\App\Http\Middleware\VisitorCounter::class])
     ->name('client.')->group(function () {
         // index
         Route::get('/', [ClientController::class, 'welcome'])->name('welcome');
+        Route::get('/old', [ClientController::class, 'oldHome'])->name('old');
         Route::get('/posts', [ClientController::class, 'posts'])->name('posts');
         Route::get('/post/{post}', [ClientController::class, 'post'])->name('post');
         Route::get('/customer/sign-out', [ClientController::class, 'signOut'])->name('sign-out');

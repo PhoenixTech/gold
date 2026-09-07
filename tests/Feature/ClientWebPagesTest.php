@@ -21,6 +21,15 @@ class ClientWebPagesTest extends TestCase
         $response->assertStatus(200);
     }
 
+    public function test_web_client_old_home(): void
+    {
+        $response = $this->get(route('client.old'));
+
+        $response->assertStatus(200);
+        $response->assertSee('ZarMenu');
+        $response->assertSee('WTFIndex');
+    }
+
     public function test_web_client_posts(): void
     {
         $response = $this->get(route('client.posts'));

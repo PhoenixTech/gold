@@ -3,6 +3,9 @@
 @section('content')
     <div class="mb-5 pb-5">
         @include('components.err')
+        @hasSection('top-content')
+            @yield('top-content')
+        @endif
 
         {{-- WordPress Style Quick Filters Links Bar (All (10) | Mine (5) | Published (7) | Draft (2) | Trashed (1)) --}}
         @if(isset($quickCounts) && count($quickCounts) > 0)
@@ -359,22 +362,35 @@
                                                              {{ $tgVal }}
                                                          </span>
                                                          @break
-                                                     @case('weight')
-                                                         <span>{{ number_format($item->weight ?? 0, 3) }} {{__('g')}}</span>
-                                                         @break
-                                                      @case('sku')
-                                                          <code class="fw-bold text-primary">{{ $item->sku ?: '-' }}</code>
+                                                      @case('weight')
+                                                          <span>{{ number_format($item->weight ?? 0, 3) }} {{__('g')}}</span>
                                                           @break
-                                                      @case('stock_quantity')
-                                                          @php
-                                                              $isLowStock = method_exists($item, 'isLowStock')
-                                                                  ? $item->isLowStock()
-                                                                  : (($item->min_stock_level ?? 0) > 0 && ($item->stock_quantity ?? 0) < ($item->min_stock_level ?? 0));
-                                                          @endphp
-                                                          <div class="d-inline-flex align-items-center gap-1.5 flex-wrap">
-                                                              <span class="@if($isLowStock) text-danger fw-bold @endif">
-                                                                  {{ number_format($item->stock_quantity ?? 0) }}
-                                                              </span>
+                                                      @case('total_weight')
+                                                          <span class="fw-semibold text-dark">{{ \App\Services\AdminDashboardStats::formatWeight($item->total_weight ?? ($item->weight ?? 0)) }}</span>
+                                                          <small class="text-muted fs-12">{{__('g')}}</small>
+                                                          @break
+                                                       @case('price')
+                                                           <span class="fw-bold text-dark">{{ number_format($item->price ?? 0) }}</span>
+                                                           <small class="text-muted fs-12">{{ __('Toman') }}</small>
+                                                           @break
+                                                      @case('total_price')
+                                                          <span class="fw-bold text-dark">{{ number_format($item->total_price ?? ($item->price ?? 0)) }}</span>
+                                                          <small class="text-muted fs-12">{{ __('Toman') }}</small>
+                                                          @break
+                                                       @case('sku')
+                                                           <code class="fw-bold text-primary">{{ $item->sku ?: '-' }}</code>
+                                                           @break
+                                                       @case('stock_quantity')
+                                                           @php
+                                                               $isLowStock = method_exists($item, 'isLowStock')
+                                                                   ? $item->isLowStock()
+                                                                   : (($item->min_stock_level ?? 0) > 0 && ($item->stock_quantity ?? 0) < ($item->min_stock_level ?? 0));
+                                                           @endphp
+                                                           <div class="d-inline-flex align-items-center gap-1.5 flex-wrap">
+                                                               <span class="@if($isLowStock) text-danger fw-bold @endif">
+                                                                   {{ number_format($item->stock_quantity ?? 0) }}
+                                                               </span>
+                                                               <small class="text-muted fs-12">{{ __('pieces') }}</small>
                                                               @if($isLowStock)
                                                                   <span class="badge bg-danger-subtle text-danger border border-danger-subtle" title="{{__('Below minimum stock (:min)', ['min' => $item->min_stock_level])}}">
                                                                       <i class="ri-alarm-warning-line me-1"></i>{{__('Low stock')}}
@@ -429,9 +445,12 @@
                                                 </a>
                                                 <ul class="dropdown-menu">
                                                     @foreach($buttons as $btn => $btnData)
+                                                        @php
+                                                            $btnUrl = isset($btnData['route']) ? route($btnData['route'], $item->{$item->getRouteKeyName()}) : getRoute($btn,$item->{$item->getRouteKeyName()});
+                                                        @endphp
                                                         <li>
                                                             <a class="dropdown-item {{$btnData['class']}}"
-                                                               href="{{getRoute($btn,$item->{$item->getRouteKeyName()})}}">
+                                                               href="{{$btnUrl}}">
                                                                 <i class="{{$btnData['icon']}}"></i>
                                                                 &nbsp;
                                                                 {{__($btnData['title'])}}
@@ -457,35 +476,41 @@
                                                 @if(strpos($btnData['class'],'delete') == false )
                                                     @if(strpos(request()->url(),'trashed') == false)
 
-                                                        <a href="{{getRoute($btn,$item->{$item->getRouteKeyName()})}}"
-                                                           class="btn {{$btnData['class']}} btn-sm mx-1"
-                                                           data-bs-toggle="tooltip"
-                                                           data-bs-placement="top"
-                                                           data-bs-custom-class="custom-tooltip"
-                                                           data-bs-title="{{__($btnData['title'])}}">
-                                                            <i class="{{$btnData['icon']}}"></i>
-                                                        </a>
-                                                    @endif
-                                                @else
-                                                    @if( hasRoute('restore') && $item->trashed())
-                                                        <a class="btn btn-success btn-sm mx-1"
-                                                           href="{{getRoute('restore',$item->id)}}"
-                                                           {{--dont change this id to getRouteKeyName --}}
-                                                           data-bs-toggle="tooltip"
-                                                           data-bs-placement="top"
-                                                           data-bs-custom-class="custom-tooltip"
-                                                           data-bs-title="{{__("Restore")}}">
-                                                            <i class="ri-recycle-line"></i>
-                                                        </a>
-                                                    @else
-                                                        <a href="{{getRoute($btn,$item->{$item->getRouteKeyName()})}}"
-                                                           class="btn {{$btnData['class']}} btn-sm mx-1"
-                                                           data-bs-toggle="tooltip"
-                                                           data-bs-placement="top"
-                                                           data-bs-custom-class="custom-tooltip"
-                                                           data-bs-title="{{__($btnData['title'])}}">
-                                                            <i class="{{$btnData['icon']}}"></i>
-                                                        </a>
+                                                         @php
+                                                             $btnUrl = isset($btnData['route']) ? route($btnData['route'], $item->{$item->getRouteKeyName()}) : getRoute($btn,$item->{$item->getRouteKeyName()});
+                                                         @endphp
+                                                         <a href="{{$btnUrl}}"
+                                                            class="btn {{$btnData['class']}} btn-sm mx-1"
+                                                            data-bs-toggle="tooltip"
+                                                            data-bs-placement="top"
+                                                            data-bs-custom-class="custom-tooltip"
+                                                            data-bs-title="{{__($btnData['title'])}}">
+                                                             <i class="{{$btnData['icon']}}"></i>
+                                                         </a>
+                                                     @endif
+                                                 @else
+                                                     @if( hasRoute('restore') && $item->trashed())
+                                                         <a class="btn btn-success btn-sm mx-1"
+                                                            href="{{getRoute('restore',$item->id)}}"
+                                                            {{--dont change this id to getRouteKeyName --}}
+                                                            data-bs-toggle="tooltip"
+                                                            data-bs-placement="top"
+                                                            data-bs-custom-class="custom-tooltip"
+                                                            data-bs-title="{{__("Restore")}}">
+                                                             <i class="ri-recycle-line"></i>
+                                                         </a>
+                                                     @else
+                                                         @php
+                                                             $btnUrl = isset($btnData['route']) ? route($btnData['route'], $item->{$item->getRouteKeyName()}) : getRoute($btn,$item->{$item->getRouteKeyName()});
+                                                         @endphp
+                                                         <a href="{{$btnUrl}}"
+                                                            class="btn {{$btnData['class']}} btn-sm mx-1"
+                                                            data-bs-toggle="tooltip"
+                                                            data-bs-placement="top"
+                                                            data-bs-custom-class="custom-tooltip"
+                                                            data-bs-title="{{__($btnData['title'])}}">
+                                                             <i class="{{$btnData['icon']}}"></i>
+                                                         </a>
                                                     @endif
                                                 @endif
                                             @endforeach
