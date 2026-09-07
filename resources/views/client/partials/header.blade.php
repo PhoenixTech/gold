@@ -124,11 +124,9 @@
                 <!-- Cart Action -->
                 <a href="{{route('client.card')}}" class="nav-action-btn position-relative" title="{{__('Cart')}}">
                     <i class="ri-shopping-bag-2-line"></i>
-                    @if(cardCount() > 0)
-                        <span class="badge bg-danger rounded-pill cart-badge-count">
-                            {{cardCount()}}
-                        </span>
-                    @endif
+                    <span class="badge bg-danger rounded-pill cart-badge-count @if(cardCount() <= 0)d-none @endif">
+                        {{cardCount()}}
+                    </span>
                 </a>
 
                 <!-- User Profile / Login Action -->

@@ -128,9 +128,7 @@ export default {
                 let resp = await axios.get(this.cardLink + '?quantity=' + this.qz[this.selected].id);
                 if (resp.data.OK || resp.data.success) {
                     window.$toast.success(resp.data.message);
-                    document.querySelectorAll('.card-count')?.forEach(function (el2) {
-                        el2.innerText = resp.data.data.count;
-                    });
+                    window.updateCardCount(resp.data.data.count);
                 } else {
                     window.$toast.error(resp.data.message || "Error!");
                 }

@@ -2,6 +2,15 @@ import axios from 'axios';
 
 window.axios = axios;
 
+// Keep every cart count badge (e.g. header nav icon) in sync without page reload.
+window.updateCardCount = function (count) {
+    const number = Math.max(0, parseInt(count, 10) || 0);
+    document.querySelectorAll('.cart-badge-count').forEach((el) => {
+        el.innerText = number;
+        el.classList.toggle('d-none', number <= 0);
+    });
+};
+
 window.addEventListener('load', function () {
 
     function makeActionUrl(selector, fallback, slug) {
@@ -182,9 +191,7 @@ window.addEventListener('load', function () {
                 const resp = await axios.get(targetUrl);
                 if (resp.data.OK) {
                     window.$toast?.success(resp.data.message);
-                    document.querySelectorAll('.card-count')?.forEach(function (el2) {
-                        el2.innerText = resp.data.data.count;
-                    });
+                    window.updateCardCount(resp.data.data.count);
                 } else {
                     window.$toast?.error(resp.data.message || "خطا در افزودن به سبد خرید");
                 }
