@@ -5,9 +5,19 @@ window.axios = axios;
 // Keep every cart count badge (e.g. header nav icon) in sync without page reload.
 window.updateCardCount = function (count) {
     const number = Math.max(0, parseInt(count, 10) || 0);
+    const prev = window.__cardCount ?? null;
+    window.__cardCount = number;
+
     document.querySelectorAll('.cart-badge-count').forEach((el) => {
         el.innerText = number;
         el.classList.toggle('d-none', number <= 0);
+
+        // Pop the badge in when the count grows (added to cart).
+        if (number > 0 && prev !== null && number > prev) {
+            el.classList.remove('cart-badge-bump');
+            void el.offsetWidth; // force reflow so the animation restarts
+            el.classList.add('cart-badge-bump');
+        }
     });
 };
 
