@@ -62,3 +62,25 @@ Always prioritize native Bootstrap 5 components and utility classes over custom 
 1. **Native Components First**: Use standard Bootstrap components (`alert`, `badge`, `input-group`, `btn`, `table`, `card`, `modal`, `form-control`, `form-select`) and utility classes (flexbox, spacing, sizing, borders, colors) whenever possible.
 2. **Avoid Redundant Custom CSS**: Never write custom CSS rules or inline styles when an existing native Bootstrap utility or component can achieve the same result.
 3. **Custom Styling as a Last Resort**: Only introduce custom CSS or classes when Bootstrap lacks a native equivalent or when an existing bespoke design system strictly requires it.
+
+## Admin Sidebar Menu Conventions
+
+When adding a new resource or view to the admin panel sidebar (`resources/views/components/panel-side-navbar.blade.php`):
+
+1. **Permission Check**:
+   - Wrap the item with `@if(auth()->user()->hasAnyAccess('permission_name'))`.
+   - If adding to a dropdown group (e.g. `#shop`, `#content`), ensure the parent group's `@if(auth()->user()->hasAnyAccesses([...]))` includes the corresponding permission.
+
+2. **Active State Highlighting**:
+   - Use `class="{{ request()->routeIs('admin.<name>.*') ? 'active' : '' }}"` on the `<a>` tag so the item highlights when visiting list, show, or edit sub-pages.
+
+3. **Icon Selection**:
+   - Use filled RemixIcon icons (`ri-*-fill` or `ri-*-line`) consistent with adjacent items in the same section.
+
+4. **Localization & Translations**:
+   - Wrap the menu label with `{{ __('Label text') }}`.
+   - Follow the **Localization & Persian Translations** rule: add exact matching English key and natural Persian translation into `resources/lang/fa.json`.
+
+5. **Route Naming**:
+   - Use standard admin prefix routes (e.g. `route('admin.<resource>.index')`).
+
