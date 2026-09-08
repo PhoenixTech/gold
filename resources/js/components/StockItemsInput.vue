@@ -8,6 +8,12 @@
                     <span class="badge text-bg-light border">{{ items.length.toLocaleString('fa-IR') }}</span>
                     <span class="badge text-bg-success">{{ availableCount.toLocaleString('fa-IR') }} {{ availableLabel }}</span>
                     <span v-if="soldCount > 0" class="badge text-bg-secondary">{{ soldCount.toLocaleString('fa-IR') }} {{ soldLabel }}</span>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle" :title="wageTooltip">
+                        <i class="ri-percent-line me-1"></i>{{ totalWageLabel }}: {{ formatPercent(formula.feePercent) }}
+                        <span v-if="formula.fee2 > 0 || formula.fee3 > 0" class="text-muted ms-1 fs-11">
+                            ({{ formatPercent(formula.fee1) }} + {{ formatPercent(formula.fee2) }} + {{ formatPercent(formula.fee3) }})
+                        </span>
+                    </span>
                 </div>
             </div>
             <div class="stock-toolbar-actions">
@@ -245,12 +251,19 @@ export default {
             type: String,
             default: 'جستجوی SKU یا وزن',
         },
+        totalWageLabel: {
+            type: String,
+            default: 'مجموع اجرت',
+        },
     },
     data() {
         return {
             items: this.normalize(this.xvalue),
             formula: {
                 metalType: 'gold',
+                fee1: 15,
+                fee2: 0,
+                fee3: 0,
                 feePercent: 15,
                 profitPercent: 7,
                 taxPercent: 9,
@@ -332,6 +345,10 @@ export default {
                 return code.includes(q) || weight.includes(q);
             });
         },
+        wageTooltip() {
+            this.formulaTick;
+            return `${this.totalWageLabel}: ${this.formatPercent(this.formula.fee1)} + ${this.formatPercent(this.formula.fee2)} + ${this.formatPercent(this.formula.fee3)} = ${this.formatPercent(this.formula.feePercent)}`;
+        },
     },
     mounted() {
         this.formEl = this.$el.closest('form');
@@ -375,10 +392,19 @@ export default {
             }
 
             const metalType = this.readField('#metal_type') || this.readField('[name="metal_type"]') || 'gold';
-            const feePercent = toNumber(
-                this.readField('input[name="labor_charge_1"]') ?? this.readField('#labor_charge_1'),
+            const fee1 = toNumber(
+                this.readField('input[name="labor_charge_1"]') ?? this.readField('#labor_charge_1') ?? this.readField('input[name="wage"]') ?? this.readField('#wage'),
                 15
             );
+            const fee2 = toNumber(
+                this.readField('input[name="labor_charge_2"]') ?? this.readField('#labor_charge_2'),
+                0
+            );
+            const fee3 = toNumber(
+                this.readField('input[name="labor_charge_3"]') ?? this.readField('#labor_charge_3'),
+                0
+            );
+            const feePercent = fee1 + fee2 + fee3;
             const profitPercent = toNumber(this.readField('#profit') ?? this.readField('input[name="profit"]'), 7);
             const taxPercent = toNumber(this.readField('#tax') ?? this.readField('input[name="tax"]'), 9);
             const addon = toNumber(
@@ -388,6 +414,9 @@ export default {
 
             this.formula = {
                 metalType,
+                fee1,
+                fee2,
+                fee3,
                 feePercent,
                 profitPercent,
                 taxPercent,
@@ -402,6 +431,9 @@ export default {
             const marketMetalPrice = this.marketMetalUnitPrice;
             const minimumPercent = this.minimumPercentValue;
             const metalPrice = this.metalUnitPrice;
+            const fee1 = Number(this.formula.fee1 || 0);
+            const fee2 = Number(this.formula.fee2 || 0);
+            const fee3 = Number(this.formula.fee3 || 0);
             const feePercent = Number(this.formula.feePercent || 0);
             const profitPercent = Number(this.formula.profitPercent || 0);
             const taxPercent = Number(this.formula.taxPercent || 0);
@@ -435,8 +467,12 @@ export default {
                         value: this.formatPrice(p),
                     },
                     {
-                        label: `اجرت ${this.formatPercent(feePercent)}`,
-                        math: `${this.formatPlain(p)} + (${this.formatPlain(p)} × ${this.formatPercent(feePercent)})`,
+                        label: (fee2 > 0 || fee3 > 0)
+                            ? `${this.totalWageLabel} ${this.formatPercent(feePercent)}`
+                            : `اجرت ${this.formatPercent(feePercent)}`,
+                        math: (fee2 > 0 || fee3 > 0)
+                            ? `(${this.formatPercent(fee1)} + ${this.formatPercent(fee2)} + ${this.formatPercent(fee3)}) ${this.formatPlain(p)} + (${this.formatPlain(p)} × ${this.formatPercent(feePercent)})`
+                            : `${this.formatPlain(p)} + (${this.formatPlain(p)} × ${this.formatPercent(feePercent)})`,
                         value: this.formatPrice(Math.round(n1)),
                     },
                     {

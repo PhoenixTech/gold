@@ -99,6 +99,7 @@
             metal-gold-label="{{__('Gold')}}"
             metal-silver-label="{{__('Silver')}}"
             search-placeholder="{{__('Search SKU or weight')}}"
+            total-wage-label="{{__('Total wage')}}"
         ></stock-items-input>
     </div>
 </div>

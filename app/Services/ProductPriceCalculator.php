@@ -29,13 +29,15 @@ class ProductPriceCalculator
 
     public function feePercent(Product $product): float
     {
-        $fee = $product->labor_charge_1;
-
-        if ($fee === null || $fee === '') {
-            $fee = $product->wage;
+        $fee1 = $product->labor_charge_1;
+        if ($fee1 === null || $fee1 === '') {
+            $fee1 = $product->wage;
         }
 
-        return (float) ($fee ?? 0);
+        $fee2 = $product->labor_charge_2 ?? 0;
+        $fee3 = $product->labor_charge_3 ?? 0;
+
+        return (float) (($fee1 ?? 0) + ($fee2 ?? 0) + ($fee3 ?? 0));
     }
 
     public function profitRate(Product $product): float

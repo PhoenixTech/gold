@@ -72,6 +72,33 @@ class ProductPriceCalculatorTest extends TestCase
         );
     }
 
+    public function test_calculate_uses_sum_of_all_three_labor_charges(): void
+    {
+        $product = $this->makeProduct([
+            'metal_type' => 'gold',
+            'labor_charge_1' => 10,
+            'labor_charge_2' => 3.5,
+            'labor_charge_3' => 1.5,
+            'profit' => 5,
+            'tax' => 10,
+            'addon' => 1000,
+        ]);
+
+        $expectedFee = 15.0; // 10 + 3.5 + 1.5
+        $this->assertSame($expectedFee, $this->calculator->feePercent($product));
+
+        $expected = $this->calculator->calculateFromParts(
+            $this->calculator->baseMetalPrice($product),
+            1.5,
+            15.0,
+            0.05,
+            0.10,
+            1000,
+        );
+
+        $this->assertSame($expected, $this->calculator->calculate($product, 1.5));
+    }
+
     public function test_silver_products_use_silver_setting(): void
     {
         $product = $this->makeProduct([
