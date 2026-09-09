@@ -353,7 +353,7 @@ export default {
     background: #00000033;
     backdrop-filter: blur(5px);
     z-index: 10;
-    //display: none;
+    /* display: none; */
 }
 
 .img-index{

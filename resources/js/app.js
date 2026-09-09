@@ -17,7 +17,6 @@ import './bootstrap';
 import { createApp } from 'vue';
 import bsToast, { ToastPlugin } from './bs-toast.js';
 import store from "./components/libs/store.js";
-import chartjs from 'chart.js/auto';
 import './panel/raw.js';
 import './panel/navbar.js';
 import './panel/list-checkboxs.js';
@@ -33,15 +32,6 @@ import './panel/responsive-control.js';
 import './panel/fast-edit.js';
 import './panel/fast-attachment.js';
 // import './panel/seo-analyzer.js';
-
-// chartjs.defaults.defaultFontFamily = "Vazir";
-// chartjs.defaults.defaultFontSize = 18;
-
-chartjs.defaults.borderColor = 'rgba(0, 0, 0, 0.08)';
-chartjs.defaults.color = '#334155';
-
-window.chartjs = chartjs;
-window.isPaintedChart = false;
 
 /**
  * Next, we will create a fresh Vue application instance. You may then begin

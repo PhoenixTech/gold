@@ -1,7 +1,6 @@
 import { createApp } from 'vue';
 import bsToast, { ToastPlugin } from '../bs-toast.js';
 import store from "../client-vuex/client-store.js";
-import chartjs from 'chart.js/auto';
 
 const app = createApp({});
 const $toast = bsToast;
