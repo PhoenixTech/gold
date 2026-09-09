@@ -9,21 +9,195 @@
 
 @section('custom-head')
 <style>
+/* Base Reset & Variables */
+body {
+    background-color: #ffffff;
+    color: #111111;
+    padding-bottom: 6rem;
+}
+
+/* Old Design Top Archived Notice */
+.old-home-notice {
+    background: #1e293b;
+    color: #f8fafc;
+    font-size: 12px;
+}
+
+/* ZarMenu Header (Row 1 & Row 2) */
 .ZarMenu {
     background: #ffffff;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    border-bottom: 1px solid #e5e7eb;
 }
-.white-space-nowrap {
-    white-space: nowrap !important;
+.zar-top-bar {
+    padding: 0.6rem 1rem;
 }
-.hover-bg-warning-subtle:hover {
-    background-color: rgba(219, 154, 0, 0.12) !important;
-    color: var(--xshop-primary, #db9a00) !important;
+.zar-sub-bar {
+    padding: 0.35rem 1rem 0.6rem 1rem;
 }
-.hover-text-primary:hover {
-    color: var(--xshop-primary, #db9a00) !important;
+.zar-icon-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    color: #222222;
+    cursor: pointer;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    font-size: 24px;
 }
+.zar-icon-btn:hover {
+    color: var(--xshop-primary, #db9a00);
+}
+
+/* WTF Category Tabs (Row 3) */
+.wtf-tabs {
+    direction: ltr;
+    display: flex;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+.wtf-tab-btn {
+    flex: 1;
+    border: none;
+    padding: 0.8rem 0.5rem;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: center;
+    line-height: 1.2;
+    transition: opacity 0.2s ease;
+}
+.wtf-tab-btn:hover {
+    opacity: 0.9;
+}
+
+/* WTF Category Grid */
+.WTFIndex {
+    background: #ffffff;
+}
+.cat-item-link {
+    text-decoration: none;
+    color: #111111;
+    display: block;
+}
+.cat-item-link:hover .cat-thumb-img {
+    transform: scale(1.03);
+}
+.cat-img-box {
+    width: 100%;
+    aspect-ratio: 1 / 1.22;
+    overflow: hidden;
+    background-color: #f3f4f6;
+}
+.cat-thumb-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    border-radius: 0;
+    transition: transform 0.25s ease;
+}
+.cat-item-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: #000000;
+    text-align: center;
+    margin-top: 0.5rem;
+    margin-bottom: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.4;
+}
+@media (max-width: 575.98px) {
+    .cat-item-title {
+        font-size: 11.5px;
+    }
+}
+
+/* Natalia2Categories (Model & text section) */
+.Natalia2Categories {
+    background: #ffffff;
+}
+.natalia-text-content ol,
+.natalia-text-content ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.natalia-text-content li {
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 0.6rem;
+    color: #111111;
+}
+.natalia-text-content a {
+    color: #111111;
+    text-decoration: none;
+}
+.natalia-woman-img {
+    max-height: 280px;
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+/* WTFFooter (Fixed Floating Bottom Bar) */
+.WTFFooter {
+    position: fixed;
+    bottom: 1.25rem;
+    right: 1.25rem;
+    left: 1.25rem;
+    max-width: 480px;
+    margin-inline: auto;
+    border: 2px solid #b5b5b5;
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 0.45rem 0.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.1);
+    z-index: 1040;
+}
+.wtfooter-btn {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: #111111;
+    position: relative;
+    min-width: 55px;
+}
+.wtfooter-btn .cat-icon {
+    max-height: 28px;
+    width: auto;
+    max-width: 34px;
+    margin-bottom: 3px;
+    object-fit: contain;
+}
+.wtfooter-btn .cat-name {
+    font-size: 11.5px;
+    font-weight: 500;
+    color: #111111;
+    white-space: nowrap;
+}
+.wtfooter-btn #ballon {
+    width: 32px;
+    position: absolute;
+    height: auto;
+    inset-inline-end: 2px;
+    top: -18px;
+    pointer-events: none;
+    z-index: 2;
+}
+
+/* Slide-out Zar Drawer Menu */
 #zar-menu {
     display: none;
     position: fixed;
@@ -59,39 +233,6 @@
     text-decoration: none;
     font-weight: 500;
 }
-.BottomBar {
-    margin-bottom: 5.5rem;
-}
-.BottomBar ul li a {
-    font-size: 34px;
-    color: var(--xshop-primary, #db9a00);
-    opacity: 0.8;
-    transition: all 0.2s ease;
-}
-.BottomBar ul li a:hover {
-    opacity: 1;
-    transform: scale(1.12);
-}
-.WTFFooter {
-    max-width: 640px;
-    margin-inline: auto;
-}
-.natalia-woman-full-body {
-    max-height: 540px;
-    width: auto;
-    max-width: 100%;
-    object-fit: contain;
-    filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.12));
-    transition: transform 0.3s ease;
-}
-.natalia-woman-full-body:hover {
-    transform: scale(1.02);
-}
-@media (max-width: 767.98px) {
-    .natalia-woman-full-body {
-        max-height: 420px;
-    }
-}
 </style>
 @endsection
 
@@ -99,8 +240,8 @@
 <div class="old-homepage-wrapper position-relative">
 
     <!-- Top Notice Banner for Archived Design Preview -->
-    <div class="old-home-notice bg-dark text-white py-1.5 px-3 fs-12 border-bottom border-warning border-2">
-        <div class="{{gfx()['container']}} d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div class="old-home-notice py-1.5 px-3 border-bottom border-warning border-2">
+        <div class="container d-flex align-items-center justify-content-between flex-wrap gap-2">
             <span class="d-flex align-items-center gap-2">
                 <i class="ri-history-line text-warning fs-15"></i>
                 <span class="fw-semibold">{{__('Old Homepage (Archived Design)')}}</span>
@@ -112,73 +253,75 @@
         </div>
     </div>
 
-    <!-- ZarMenu (Old Homepage Header: clean horizontal single row) -->
-    <nav class="ZarMenu live-setting sticky-top py-2.5">
-        <div class="{{gfx()['container']}}">
-            <div class="d-flex align-items-center justify-content-between flex-row flex-nowrap w-100 gap-2">
-                <!-- Home / Brand Icon (Start) -->
-                <div class="d-flex align-items-center flex-shrink-0">
-                    <a href="{{route('client.welcome')}}" class="d-inline-flex align-items-center gap-2 text-decoration-none text-dark p-1 rounded" title="{{config('app.name')}}">
-                        <i class="ri-home-7-line text-warning fs-3 lh-1"></i>
-                        <span class="fw-bold fs-15 d-none d-sm-inline">{{config('app.name')}}</span>
-                    </a>
-                </div>
+    <!-- ZarMenu (Old Homepage Header matching zhonella-core.jpg) -->
+    <header class="ZarMenu live-setting sticky-top">
+        <!-- Row 1: Action Icons (Home on right, Search/Cart/Menu on left) -->
+        <div class="zar-top-bar">
+            <div class="container d-flex align-items-center justify-content-between">
+                <!-- Start in RTL (Right): Home Icon -->
+                <a href="{{route('client.welcome')}}" class="zar-icon-btn" title="{{config('app.name')}}">
+                    <i class="ri-home-7-line"></i>
+                </a>
 
-                <!-- Info & Status Items (Desktop: Gold Price, Credit, Profile) -->
-                <div class="d-none d-lg-flex align-items-center justify-content-center gap-4 flex-grow-1 mx-3 text-secondary fs-13">
-                    <span class="d-inline-flex align-items-center gap-1.5 white-space-nowrap">
-                        <i class="ri-line-chart-line text-warning fs-17"></i>
-                        <span>{{__("Gold price")}}:</span>
-                        <strong class="text-dark font-monospace">{{number_format((int) $goldPrice)}} {{config('app.currency.symbol')}}</strong>
-                    </span>
-
-                    <a href="{{route('client.profile')}}" class="d-inline-flex align-items-center gap-1.5 text-secondary text-decoration-none hover-text-primary white-space-nowrap">
-                        <i class="ri-trophy-line text-warning fs-17"></i>
-                        <span>{{__("Credit")}}</span>
-                    </a>
-
-                    <a href="{{route('client.profile')}}" class="d-inline-flex align-items-center gap-1.5 text-secondary text-decoration-none hover-text-primary white-space-nowrap">
-                        <i class="ri-account-circle-line text-warning fs-17"></i>
-                        <span>
-                            @if(auth('customer')->check())
-                                {{auth('customer')->user()->name}}
-                            @else
-                                {{__("Guest")}}
-                            @endif
-                        </span>
-                    </a>
-                </div>
-
-                <!-- Mobile Compact Gold Price Badge -->
-                <div class="d-flex d-lg-none align-items-center flex-shrink-0">
-                    <span class="badge bg-warning-subtle text-dark border border-warning-subtle d-inline-flex align-items-center gap-1 px-2.5 py-1.5 fs-12">
-                        <i class="ri-line-chart-line text-warning"></i>
-                        <span class="font-monospace fw-bold">{{number_format((int) $goldPrice)}}</span>
-                        <span class="fs-10 text-muted">{{config('app.currency.symbol')}}</span>
-                    </span>
-                </div>
-
-                <!-- Action Buttons (Search, Cart, Profile on Mobile, Menu Toggle) (End) -->
-                <div class="d-flex align-items-center gap-1 gap-sm-2 flex-shrink-0">
-                    <a href="{{route('client.profile')}}" class="btn btn-sm btn-light border-0 rounded-circle d-inline-flex d-lg-none align-items-center justify-content-center p-2 text-secondary hover-bg-warning-subtle" title="{{auth('customer')->check() ? auth('customer')->user()->name : __('Guest')}}" style="width: 38px; height: 38px;">
-                        <i class="ri-account-circle-line fs-18"></i>
-                    </a>
-
-                    <button type="button" class="btn btn-sm btn-light border-0 rounded-circle d-inline-flex align-items-center justify-content-center p-2 text-secondary hover-bg-warning-subtle" id="open-zar-2" title="{{__('Search')}}" aria-label="{{__('Search')}}" style="width: 38px; height: 38px;">
-                        <i class="ri-search-line fs-18"></i>
+                <!-- End in RTL (Left): Search, Cart, Menu Icons -->
+                <div class="d-flex align-items-center gap-4">
+                    <button type="button" class="zar-icon-btn" id="open-zar-2" title="{{__('Search')}}" aria-label="{{__('Search')}}">
+                        <i class="ri-search-line"></i>
                     </button>
-
-                    <a href="{{route('client.card')}}" class="btn btn-sm btn-light border-0 rounded-circle d-inline-flex align-items-center justify-content-center p-2 text-secondary hover-bg-warning-subtle position-relative" title="{{__('Cart')}}" aria-label="{{__('Cart')}}" style="width: 38px; height: 38px;">
-                        <i class="ri-shopping-bag-4-line fs-18"></i>
+                    <a href="{{route('client.card')}}" class="zar-icon-btn" title="{{__('Cart')}}" aria-label="{{__('Cart')}}">
+                        <i class="ri-shopping-bag-line"></i>
                     </a>
-
-                    <button type="button" class="btn btn-sm btn-light border-0 rounded-circle d-inline-flex align-items-center justify-content-center p-2 text-secondary hover-bg-warning-subtle" id="open-zar-1" title="{{__('Menu')}}" aria-label="{{__('Menu')}}" style="width: 38px; height: 38px;">
-                        <i class="ri-menu-line fs-18"></i>
+                    <button type="button" class="zar-icon-btn" id="open-zar-1" title="{{__('Menu')}}" aria-label="{{__('Menu')}}">
+                        <i class="ri-menu-line"></i>
                     </button>
                 </div>
             </div>
         </div>
-    </nav>
+
+        <!-- Row 2: Info & Status Bar (Profile, Credit, Gold Price) -->
+        <div class="zar-sub-bar">
+            <div class="container d-flex align-items-center justify-content-between">
+                <!-- Right in RTL: User Profile / Guest -->
+                <a href="{{route('client.profile')}}" class="d-inline-flex align-items-center gap-1.5 text-dark text-decoration-none">
+                    <i class="ri-account-circle-line fs-18"></i>
+                    <span class="fs-14 fw-medium">{{auth('customer')->check() ? auth('customer')->user()->name : __('Guest')}}</span>
+                </a>
+
+                <!-- Middle in RTL: Credit -->
+                <a href="{{route('client.profile')}}" class="d-inline-flex align-items-center gap-1.5 text-dark text-decoration-none">
+                    <i class="ri-trophy-line fs-18"></i>
+                    <span class="fs-14 fw-medium">{{__('Credit')}}</span>
+                </a>
+
+                <!-- Left in RTL: Live Gold Price -->
+                <span class="d-inline-flex align-items-center gap-1.5 text-dark">
+                    <i class="ri-line-chart-line fs-18"></i>
+                    <span class="fs-14 fw-bold font-monospace">{{number_format((int) $goldPrice)}}</span>
+                    <span class="fs-12 text-muted">{{config('app.currency.symbol') ?: 'تومان'}}</span>
+                </span>
+            </div>
+        </div>
+
+        <!-- Row 3: Category Tabs (طلا on left, نقره on right) -->
+        @if(isset($mainCategories) && $mainCategories->isNotEmpty())
+            <div id="wtf-main-btns" class="wtf-tabs">
+                @foreach($mainCategories as $k => $mainCategory)
+                    @php
+                        $tabName = explode(' ', $mainCategory->name)[0];
+                        $defaultBg = ($k == 0) ? '#caa867' : '#cccccc';
+                        $bgColor = $mainCategory->bg_color ?: $defaultBg;
+                        $textColor = $mainCategory->color ?: '#111111';
+                    @endphp
+                    <button type="button" 
+                            class="wtf-tab-btn @if($k == 0) active @endif" 
+                            style="background-color: {{$bgColor}}; color: {{$textColor}};"
+                            data-id="#wtf-{{$mainCategory->id}}">
+                        {{$tabName}}
+                    </button>
+                @endforeach
+            </div>
+        @endif
+    </header>
 
     <!-- Zar Drawer Menu -->
     <div id="zar-menu">
@@ -220,7 +363,7 @@
                 <li class="d-lg-none py-1 border-bottom">
                     <a href="{{route('client.profile')}}" class="d-flex align-items-center gap-2 py-1 text-secondary text-decoration-none">
                         <i class="ri-trophy-line text-warning fs-18"></i>
-                        <span>{{__("Credit")}}</span>
+                        <span>{{__('Credit')}}</span>
                     </a>
                 </li>
                 @foreach($zarMenuItems as $item)
@@ -234,130 +377,73 @@
         </nav>
     </div>
 
-    <!-- WTFIndex (Category Tabs Explorer) -->
+    <!-- WTFIndex (Category Grid: 4 columns x 3 rows with clean square thumbs & titles) -->
     @if(isset($mainCategories) && $mainCategories->isNotEmpty())
-        <section class="WTFIndex live-setting my-4">
-            <!-- Category Tabs Bar -->
-            <div class="wtf-tabs-container bg-white border-top border-bottom shadow-sm mb-4">
-                <div class="{{gfx()['container']}}">
-                    <div id="wtf-main-btns" class="wtf-main-btns py-3">
-                        @foreach($mainCategories as $k => $mainCategory)
-                            <button type="button" class="btn main-dir rounded-pill px-4 py-2 fw-bold fs-14 transition-all @if($k == 0) active @endif shadow-sm"
-                                    style="background: {{$mainCategory->bg_color ?: 'var(--xshop-primary)'}}; color: {{$mainCategory->color ?: '#ffffff'}};"
-                                    data-id="#wtf-{{$mainCategory->id}}">
-                                {{$mainCategory->name}}
-                            </button>
+        <section class="WTFIndex live-setting pt-4 pb-2">
+            @foreach($mainCategories as $k => $mainCategory)
+                @php($words = explode(' ', $mainCategory->name))
+                <div class="wtf-section container px-2 px-sm-3" id="wtf-{{$mainCategory->id}}" @if($k == 0) style="display: block" @else style="display: none" @endif>
+                    <div class="row g-2 g-sm-3" dir="rtl">
+                        @foreach($mainCategory->children()->where('hide', 0)->get() as $childCategory)
+                            <div class="col-3 text-center mb-3">
+                                <a href="{{$childCategory->webUrl()}}" class="d-block text-decoration-none text-dark cat-item-link">
+                                    <div class="cat-img-box">
+                                        <img src="{{$childCategory->imgUrl()}}" 
+                                             onerror="this.onerror=null;this.src='{{$childCategory->imgOriginalUrl()}}';" 
+                                             alt="{{$childCategory->name}}" 
+                                             class="w-100 cat-thumb-img" 
+                                             loading="lazy">
+                                    </div>
+                                    <h5 class="cat-item-title">
+                                        {{implode(' ', array_diff(explode(' ', $childCategory->name), $words)) ?: $childCategory->name}}
+                                    </h5>
+                                </a>
+                            </div>
                         @endforeach
                     </div>
                 </div>
-            </div>
-
-            <!-- Category Content Panels -->
-            <div class="py-2">
-                @foreach($mainCategories as $k => $mainCategory)
-                    @php($words = explode(' ', $mainCategory->name))
-                    <div class="{{gfx()['container']}} wtf-section" id="wtf-{{$mainCategory->id}}" @if($k == 0) style="display: block" @endif>
-                        <div class="row g-3 g-md-4">
-                            @foreach($mainCategory->children()->where('hide', 0)->orderBy('sort')->get() as $childCategory)
-                                <div class="col-6 col-sm-4 col-md-3">
-                                    <a class="wtf-cat-card card border-0 shadow-sm rounded-4 overflow-hidden text-decoration-none h-100 transition-all d-block position-relative" href="{{$childCategory->webUrl()}}">
-                                        <div class="card-img-box position-relative bg-dark overflow-hidden">
-                                            <img src="{{$childCategory->imgUrl()}}" alt="{{$childCategory->name}}" class="w-100 h-100 object-fit-cover cat-img-hover opacity-85" loading="lazy">
-                                            <div class="card-overlay-vignette position-absolute inset-0"></div>
-                                            <div class="position-absolute bottom-0 start-0 end-0 p-3 text-center z-2">
-                                                <h5 class="cat-title fs-15 fw-bold text-white mb-1 text-shadow">
-                                                    {{implode(' ', array_diff(explode(' ', $childCategory->name), $words)) ?: $childCategory->name}}
-                                                </h5>
-                                                <span class="badge bg-white-20 text-white rounded-pill px-2.5 py-0.5 fs-12 border border-white-30 backdrop-blur d-inline-flex align-items-center gap-1">
-                                                    <span>{{__("View category")}}</span>
-                                                    <i class="ri-arrow-left-s-line"></i>
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </a>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                @endforeach
-            </div>
+            @endforeach
         </section>
     @endif
 
-    <!-- Natalia2Categories (About / Intro Banner) -->
+    <!-- Natalia2Categories (Collection Banner with Model on right) -->
     @if(!empty($nataliaText))
-        <section class="Natalia2Categories live-setting position-relative py-5 bg-light-subtle border-top border-bottom overflow-hidden">
-            <div class="{{gfx()['container']}}">
-                <div class="row align-items-center g-4">
-                    <div class="col-12 col-md-7 col-lg-8">
-                        <div class="main-dir card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white position-relative z-2">
+        <section class="Natalia2Categories live-setting position-relative py-4 bg-white overflow-hidden">
+            <div class="container px-3">
+                <div class="row align-items-center g-3" style="direction: ltr;">
+                    <!-- Left: Styled text links -->
+                    <div class="col-7 col-sm-8 text-start">
+                        <div class="natalia-text-content ps-2" dir="rtl">
                             {!! $nataliaText !!}
                         </div>
                     </div>
-                    <div class="col-12 col-md-5 col-lg-4 text-center d-flex align-items-center justify-content-center">
-                        <img src="{{asset('upload/images/index.Natalia2Categories.webp')}}" onerror="this.src='{{asset('assets/default/logo.png')}}'" alt="{{config('app.name')}}" class="natalia-woman-full-body img-fluid" loading="lazy">
+                    <!-- Right: Model Image -->
+                    <div class="col-5 col-sm-4 text-end">
+                        <img src="{{asset('upload/images/index.Natalia2Categories.webp')}}" 
+                             onerror="this.onerror=null;this.src='{{asset('assets/default/logo.png')}}';" 
+                             alt="{{config('app.name')}}" 
+                             class="natalia-woman-img img-fluid" 
+                             loading="lazy">
                     </div>
                 </div>
             </div>
         </section>
     @endif
 
-    <!-- NeginNews (News & Education Banner) -->
-    @if(!empty($neginTitle) || !empty($neginText))
-        <section class="NeginNews live-setting py-5 bg-white border-bottom">
-            <div class="{{gfx()['container']}}">
-                <div class="row align-items-center g-4">
-                    @if(!empty($neginTitle))
-                        <div class="col-12 col-md-7 col-lg-8 main-dir">
-                            <div class="card border-0 shadow-sm rounded-4 p-4 bg-light-subtle">
-                                {!! $neginTitle !!}
-                            </div>
-                        </div>
-                    @endif
-                    <div class="col-12 col-md-5 col-lg-4 text-center">
-                        <div class="position-relative overflow-hidden rounded-4 shadow-sm bg-light p-2">
-                            <img src="{{asset('upload/images/index.NeginNews.webp')}}" onerror="this.src='{{asset('assets/default/logo.png')}}'" alt="{{config('app.name')}}" class="img-fluid rounded-4 object-fit-cover w-100" style="max-height: 280px;">
-                        </div>
-                    </div>
-                    @if(!empty($neginText))
-                        <div class="col-12 btm mt-4">
-                            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
-                                {!! $neginText !!}
-                            </div>
-                        </div>
-                    @endif
-                </div>
-            </div>
-        </section>
-    @endif
-
-    <!-- BottomBar (Social Icons) -->
-    @if(!empty($socials))
-        <section class="BottomBar live-setting py-4">
-            <div class="{{gfx()['container']}} text-center">
-                <ul class="d-flex align-items-center justify-content-center gap-4 list-unstyled m-0 p-0">
-                    @foreach($socials as $k => $social)
-                        <li>
-                            <a href="{{$social}}" target="_blank" rel="noopener noreferrer" class="d-inline-block text-decoration-none">
-                                <i class="ri-{{$k}}-line"></i>
-                            </a>
-                        </li>
-                    @endforeach
-                </ul>
-            </div>
-        </section>
-    @endif
-
-    <!-- WTFFooter (Fixed Bottom Category Navigation) -->
+    <!-- WTFFooter (Fixed Floating Bottom Bar matching zhonella-core.jpg) -->
     @if(isset($footerCategories) && $footerCategories->isNotEmpty())
         <nav class="WTFFooter fixed-bottom-categories" aria-label="Footer Categories">
-            @foreach($footerCategories as $k => $mainCategory)
-                <a class="wtfooter-btn" href="{{$mainCategory->webUrl()}}">
-                    @if($k == 3)
-                        <img id="ballon" src="{{asset('assets/default/ballon.webp')}}" alt="">
+            @foreach($footerCategories as $k => $footerCat)
+                <a class="wtfooter-btn" href="{{$footerCat->webUrl()}}">
+                    @if($k == 3 && file_exists(public_path('assets/default/ballon.webp')))
+                        <img id="ballon" src="{{asset('assets/default/ballon.webp')}}" alt="ballon" loading="lazy">
                     @endif
-                    <img class="cat-icon" src="{{$mainCategory->svgUrl()}}" alt="{{$mainCategory->name}}">
-                    <span>{{$mainCategory->name}}</span>
+                    @if($footerCat->id == 61)
+                        <img class="cat-icon" src="{{Storage::url('categories/1741370193-هدیه طلا.jpg')}}" alt="{{$footerCat->name}}">
+                    @else
+                        <img class="cat-icon" src="{{$footerCat->svgUrl()}}" alt="{{$footerCat->name}}">
+                    @endif
+                    <span class="cat-name">{{$footerCat->name}}</span>
                 </a>
             @endforeach
         </nav>
@@ -402,7 +488,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (closeZar) closeZar.addEventListener('click', closeZarMenu);
 
     // WTF Category Tabs
-    const tabBtns = document.querySelectorAll('#wtf-main-btns .main-dir');
+    const tabBtns = document.querySelectorAll('#wtf-main-btns .wtf-tab-btn');
     tabBtns.forEach(function (btn) {
         btn.addEventListener('click', function (e) {
             e.preventDefault();
