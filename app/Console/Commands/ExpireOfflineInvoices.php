@@ -39,6 +39,10 @@ class ExpireOfflineInvoices extends Command
             ->whereDoesntHave('paymentReceipts')
             ->chunkById(100, function ($invoices) use (&$expired) {
                 foreach ($invoices as $invoice) {
+                    if (! $invoice->isOfflinePaymentExpired()) {
+                        continue;
+                    }
+
                     $invoice->expireOfflinePayment();
                     $expired++;
                 }

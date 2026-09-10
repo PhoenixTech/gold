@@ -145,6 +145,77 @@
 }
 
 /* ==========================================================================
+   Status Stepper (Admin Invoice Edit)
+   ========================================================================== */
+
+.invoice-stepper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    padding: .85rem 1rem;
+    background: #fff;
+    border: 1px solid rgba(61, 56, 70, .08);
+    border-radius: 12px;
+
+    &__item {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        flex: 1 1 140px;
+        min-width: 0;
+        color: #9a949e;
+        font-size: .82rem;
+        font-weight: 600;
+
+        &:not(:last-child)::after {
+            content: '';
+            flex: 1 1 auto;
+            height: 1px;
+            margin-inline-start: .35rem;
+            background: rgba(61, 56, 70, .12);
+        }
+    }
+
+    &__dot {
+        display: inline-grid;
+        place-items: center;
+        width: 26px;
+        height: 26px;
+        flex: 0 0 26px;
+        border-radius: 50%;
+        border: 1px solid rgba(61, 56, 70, .2);
+        background: #fff;
+        font-size: .78rem;
+        font-weight: 700;
+    }
+
+    &__label {
+        white-space: nowrap;
+    }
+
+    &__item.is-done {
+        color: var(--invoice-gold);
+
+        .invoice-stepper__dot {
+            background: var(--invoice-gold);
+            border-color: var(--invoice-gold);
+            color: #fff;
+        }
+    }
+
+    &__item.is-current {
+        color: var(--invoice-ink);
+
+        .invoice-stepper__dot {
+            background: #fff;
+            border-color: var(--invoice-gold);
+            color: var(--invoice-gold);
+            box-shadow: 0 0 0 3px rgba(219, 154, 0, .15);
+        }
+    }
+}
+
+/* ==========================================================================
    Admin Invoice Show & Printable Factor Layout
    ========================================================================== */
 

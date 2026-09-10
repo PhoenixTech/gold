@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\XController;
 use App\Http\Requests\InvoiceSaveRequest;
 use App\Models\Credit;
-use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Order;
 use App\Models\Payment;
@@ -14,6 +13,7 @@ use App\Services\DeliveryService;
 use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class InvoiceController extends XController
 {
@@ -66,9 +66,18 @@ class InvoiceController extends XController
             sendingSMS(getSetting('sent'), $invoice->customer->mobile, $args);
         }
 
-        $invoice->transport_id = $request->input('transport_id', null);
-        $invoice->address_id = $request->input('address_id', null);
-        $invoice->tracking_code = $request->tracking_code;
+        if ($request->has('transport_id')) {
+            $invoice->transport_id = $request->input('transport_id');
+        }
+
+        if ($request->has('address_id')) {
+            $invoice->address_id = $request->input('address_id');
+        }
+
+        if ($request->has('tracking_code')) {
+            $invoice->tracking_code = $request->tracking_code;
+        }
+
         $invoice->save();
         $invoice->load('transport');
 
@@ -200,6 +209,47 @@ class InvoiceController extends XController
             ->with(['message' => __('Payment confirmed. The invoice is now paid.')]);
     }
 
+    public function declinePayment(Request $request, Invoice $item)
+    {
+        if ($item->status !== Invoice::AWAITING_PAYMENT) {
+            return redirect()
+                ->back()
+                ->withErrors(__('Only invoices awaiting payment can be declined.'));
+        }
+
+        $payment = $item->payments()
+            ->where('type', 'CARD')
+            ->where('status', Payment::PENDING)
+            ->latest('id')
+            ->first();
+
+        if ($payment === null || ! $item->hasUploadedReceipt()) {
+            return redirect()
+                ->back()
+                ->withErrors(__('No pending receipt found for this invoice.'));
+        }
+
+        $reason = trim((string) $request->input('reason', ''));
+
+        $item->paymentReceipts()->delete();
+
+        $meta = $item->meta ?? [];
+        $meta['decline_reason'] = $reason !== '' ? $reason : null;
+        $meta['declined_at'] = now()->toDateTimeString();
+        $item->meta = $meta;
+        $item->extendOfflinePaymentDeadline();
+        $item->save();
+
+        $payment->comment = $reason !== ''
+            ? $reason
+            : 'Payment receipt declined by admin.';
+        $payment->save();
+
+        return redirect()
+            ->route('admin.invoice.edit', $item)
+            ->with(['message' => __('Receipt declined. The customer can upload a new receipt.')]);
+    }
+
     public function bulk(Request $request)
     {
 
@@ -245,24 +295,47 @@ class InvoiceController extends XController
 
     public function removeOrder(Order $order)
     {
+        $invoice = $order->invoice;
 
-        $customer = Customer::whereId($order->invoice->customer_id)->first();
-        if ($order->price_total > 0) {
-            $diff = $order->price_total;
-            $customer->credit += $diff;
-            $customer->save();
-            $cr = new Credit;
-            $cr->customer_id = $customer->id;
-            $cr->amount = $diff;
-            $cr->data = json_encode([
-                'user_id' => auth()->user()->id,
-                'message' => __('Increase by Admin removed:').' '.$order->product->name.__('Invoice').' : '.$order->invoice->hash,
-            ]);
-            $cr->save();
-            $order->delete();
+        if ($invoice === null) {
+            return redirect()->back()->withErrors(__('Order not found.'));
         }
 
-        return redirect()->back()->with('message', __('Order removed successfully'));
+        $amount = (int) $order->price_total;
+        $refund = $amount > 0
+            && in_array($invoice->status, Invoice::successfulStatuses(), true);
+
+        DB::transaction(function () use ($order, $invoice, $amount, $refund): void {
+            if ($refund) {
+                $customer = $invoice->customer;
+                if ($customer !== null) {
+                    $customer->credit += $amount;
+                    $customer->save();
+
+                    $credit = new Credit;
+                    $credit->customer_id = $customer->id;
+                    $credit->invoice_id = $invoice->id;
+                    $credit->amount = $amount;
+                    $credit->data = json_encode([
+                        'user_id' => auth()->id(),
+                        'message' => __('Increase by Admin removed:').' '.($order->product->name ?? '').' '.__('Invoice').' : '.$invoice->hash,
+                    ]);
+                    $credit->save();
+                }
+            }
+
+            $invoice->releaseReservedStockFor($order);
+            $order->delete();
+            $invoice->recalculateTotals();
+
+            if (! $invoice->orders()->exists()) {
+                app(DeliveryService::class)->applyAdminStatus($invoice, Invoice::CANCELED, null);
+            }
+        });
+
+        return redirect()->back()->with('message', $refund
+            ? __('Order removed and the amount was returned to the customer credit.')
+            : __('Order removed successfully'));
     }
     /* restore* */
 

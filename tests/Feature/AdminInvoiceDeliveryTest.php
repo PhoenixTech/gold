@@ -269,6 +269,22 @@ class AdminInvoiceDeliveryTest extends TestCase
         $this->assertContains(Invoice::OUT_FOR_DELIVERY, Invoice::adminFilterStatuses());
     }
 
+    public function test_paid_invoice_edit_shows_shipping_step_with_courier_assignment(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        $this->actingAsAdmin();
+        [$invoice] = $this->makePaidCourierInvoice();
+
+        $response = $this->get(route('admin.invoice.edit', $invoice));
+
+        $response->assertOk();
+        $response->assertSee(__('Shipping'), false);
+        $response->assertSee(__('Send for delivery'), false);
+        $response->assertSee(__('Select a courier'), false);
+        $response->assertSee('پیک تست', false);
+    }
+
     public function test_admin_can_toggle_requires_delivery_code_on_transport(): void
     {
         $this->actingAsAdmin();

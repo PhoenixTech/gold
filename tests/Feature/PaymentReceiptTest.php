@@ -285,11 +285,91 @@ class PaymentReceiptTest extends TestCase
 
         $response->assertOk();
         $response->assertSee(__('WAITING_RECEIPT'), false);
-        $response->assertSee(__('Shipping and tracking'), false);
-        $response->assertSee(__('Delivery address'), false);
+        $response->assertSee(__('Payment'), false);
+        $response->assertSee(__('Waiting for the customer to pay by card-to-card and upload a receipt.'), false);
+        $response->assertDontSee(__('Delivery address'), false);
         $response->assertSee(Invoice::formatPersianDateTime($invoice->offlinePaymentDeadline()), false);
         $response->assertDontSee($invoice->offlinePaymentDeadline()->format('Y-m-d H:i'), false);
         $response->assertDontSee('value="PENDING"', false);
+    }
+
+    public function test_admin_invoice_review_step_shows_confirm_and_decline(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        Storage::fake('public');
+        [$customer, $invoice] = $this->createAwaitingCardInvoice();
+
+        $this->actingAs($customer, 'customer')->post(route('client.invoice.receipts.store', $invoice), [
+            'receipts' => [UploadedFile::fake()->image('receipt.jpg')],
+        ])->assertRedirect();
+
+        Role::findOrCreate('admin', 'web');
+        $admin = User::factory()->create(['role' => 'ADMIN']);
+        $admin->assignRole('admin');
+
+        $response = $this->actingAs($admin)->get(route('admin.invoice.edit', $invoice));
+
+        $response->assertOk();
+        $response->assertSee(__('Payment review'), false);
+        $response->assertSee(__('Confirm payment'), false);
+        $response->assertSee(__('Decline payment'), false);
+    }
+
+    public function test_admin_can_decline_receipt_and_customer_can_upload_again(): void
+    {
+        Storage::fake('public');
+        [$customer, $invoice, $payment] = $this->createAwaitingCardInvoice();
+
+        $this->actingAs($customer, 'customer')->post(route('client.invoice.receipts.store', $invoice), [
+            'receipts' => [UploadedFile::fake()->image('receipt.jpg')],
+        ])->assertRedirect();
+
+        $this->assertSame(1, PaymentReceipt::query()->where('invoice_id', $invoice->id)->count());
+
+        Role::findOrCreate('admin', 'web');
+        $admin = User::factory()->create(['role' => 'ADMIN']);
+        $admin->assignRole('admin');
+
+        $this->actingAs($admin)
+            ->post(route('admin.invoice.decline-payment', $invoice), ['reason' => 'مبلغ واریزی مطابقت ندارد'])
+            ->assertRedirect(route('admin.invoice.edit', $invoice));
+
+        $invoice->refresh();
+        $this->assertSame(Invoice::AWAITING_PAYMENT, $invoice->status);
+        $this->assertSame(Payment::PENDING, $payment->fresh()->status);
+        $this->assertSame(0, PaymentReceipt::query()->where('invoice_id', $invoice->id)->count());
+        $this->assertSame('مبلغ واریزی مطابقت ندارد', $invoice->declinedReceiptReason());
+        $this->assertTrue($invoice->offlinePaymentDeadline()->isFuture());
+        $this->assertSame(Invoice::WAITING_RECEIPT, $invoice->fresh()->load('paymentReceipts')->displayStatusKey());
+
+        $this->actingAs($customer, 'customer')->post(route('client.invoice.receipts.store', $invoice), [
+            'receipts' => [UploadedFile::fake()->image('receipt-again.jpg')],
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertSame(1, PaymentReceipt::query()->where('invoice_id', $invoice->id)->count());
+    }
+
+    public function test_declined_invoice_deadline_is_not_expired_by_command(): void
+    {
+        Storage::fake('public');
+        [$customer, $invoice] = $this->createAwaitingCardInvoice();
+
+        $this->actingAs($customer, 'customer')->post(route('client.invoice.receipts.store', $invoice), [
+            'receipts' => [UploadedFile::fake()->image('receipt.jpg')],
+        ])->assertRedirect();
+
+        Role::findOrCreate('admin', 'web');
+        $admin = User::factory()->create(['role' => 'ADMIN']);
+        $admin->assignRole('admin');
+
+        $this->actingAs($admin)->post(route('admin.invoice.decline-payment', $invoice));
+
+        $invoice->forceFill(['created_at' => now()->subHours(Invoice::offlinePaymentHours() + 2)])->save();
+
+        $this->artisan('offline:expire')->assertSuccessful();
+
+        $this->assertSame(Invoice::AWAITING_PAYMENT, $invoice->fresh()->status);
     }
 
     public function test_admin_can_filter_invoices_waiting_for_confirmation(): void
@@ -342,7 +422,7 @@ class PaymentReceiptTest extends TestCase
         $response->assertOk();
         $response->assertSee('List Date Customer', false);
         $response->assertSee(__('created_at'), false);
-        $response->assertDontSee('<th>' . __('hash') . '</th>', false);
+        $response->assertDontSee('<th>'.__('hash').'</th>', false);
         $response->assertSee(Invoice::formatPersianDateTime($invoice->created_at), false);
         $response->assertDontSee($invoice->created_at->format('Y-m-d H:i'), false);
     }

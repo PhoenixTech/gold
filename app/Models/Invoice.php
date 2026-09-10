@@ -190,11 +190,43 @@ class Invoice extends Model
 
     public function offlinePaymentDeadline(): ?\Carbon\Carbon
     {
+        $meta = $this->meta ?? [];
+        $override = $meta['offline_deadline_at'] ?? null;
+
+        if (is_string($override) && trim($override) !== '') {
+            try {
+                return \Carbon\Carbon::parse($override);
+            } catch (\Throwable $exception) {
+                // Fall back to the calculated deadline below.
+            }
+        }
+
         if ($this->created_at === null) {
             return null;
         }
 
         return $this->created_at->copy()->addHours(self::offlinePaymentHours());
+    }
+
+    /**
+     * Push the offline payment deadline into the future, e.g. after a
+     * receipt is declined and the customer must upload a new one.
+     */
+    public function extendOfflinePaymentDeadline(?int $hours = null): void
+    {
+        $meta = $this->meta ?? [];
+        $meta['offline_deadline_at'] = now()
+            ->addHours($hours ?? self::offlinePaymentHours())
+            ->toDateTimeString();
+        $this->meta = $meta;
+    }
+
+    public function declinedReceiptReason(): ?string
+    {
+        $meta = $this->meta ?? [];
+        $reason = $meta['decline_reason'] ?? null;
+
+        return is_string($reason) && trim($reason) !== '' ? $reason : null;
     }
 
     /**
@@ -238,22 +270,51 @@ class Invoice extends Model
 
     public function releaseReservedStock(): void
     {
-        $calculator = app(\App\Services\ProductPriceCalculator::class);
-
         foreach ($this->orders as $order) {
-            if (! $order->quantity_id) {
-                continue;
-            }
-
-            $quantity = \App\Models\Quantity::query()->find($order->quantity_id);
-            if ($quantity === null) {
-                continue;
-            }
-
-            $quantity->count = 1;
-            $quantity->save();
-            $calculator->syncProductAggregates($quantity->product);
+            $this->releaseReservedStockFor($order);
         }
+    }
+
+    /**
+     * Return a single reserved stock piece to the shelf and refresh the
+     * product aggregates. Used when an admin removes an order line.
+     */
+    public function releaseReservedStockFor(Order $order): void
+    {
+        if (! $order->quantity_id) {
+            return;
+        }
+
+        $quantity = \App\Models\Quantity::query()->find($order->quantity_id);
+        if ($quantity === null) {
+            return;
+        }
+
+        $quantity->count = 1;
+        $quantity->save();
+        app(\App\Services\ProductPriceCalculator::class)->syncProductAggregates($quantity->product);
+    }
+
+    /**
+     * Recompute the invoice items total (with discount) and item count.
+     * Used after an order line is added or removed.
+     */
+    public function recalculateTotals(): void
+    {
+        $ordersTotal = (int) $this->orders()->sum('price_total');
+
+        if ($this->discount_id) {
+            $discount = Discount::query()->find($this->discount_id);
+            if ($discount) {
+                $ordersTotal = $discount->type === 'PERCENT'
+                    ? (int) (((100 - $discount->amount) * $ordersTotal) / 100)
+                    : max(0, $ordersTotal - (int) $discount->amount);
+            }
+        }
+
+        $this->total_price = $ordersTotal + (int) $this->transport_price;
+        $this->count = (int) $this->orders()->sum('count');
+        $this->save();
     }
 
     public function needsReceiptUpload(): bool
