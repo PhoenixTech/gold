@@ -19,194 +19,223 @@
         };
     @endphp
 
-    <style ignore--minify>
-        .courier-board { max-width: 820px; margin: 0 auto 3rem; }
-        .courier-board__head { margin-bottom: 1.25rem; }
-        .courier-board__head h1 { font-size: 1.35rem; font-weight: 700; margin: 0 0 .35rem; }
-        .courier-board__head p { color: #5c5c5c; margin: 0; font-size: .9rem; }
-        .courier-card {
-            background: #fff;
-            border: 1px solid #e6d7b0;
-            box-shadow: 0 10px 30px rgba(20, 20, 20, .04);
-            margin-bottom: 1rem;
-        }
-        .courier-card__top {
-            display: flex;
-            justify-content: space-between;
-            gap: .75rem;
-            align-items: flex-start;
-            padding: 1rem 1.15rem .75rem;
-            border-bottom: 1px solid #f0e6cc;
-        }
-        .courier-card__top h2 { font-size: 1.05rem; margin: 0 0 .2rem; font-weight: 700; }
-        .courier-card__body { padding: 1rem 1.15rem 1.15rem; }
-        .courier-meta { display: grid; gap: .55rem; margin: 0 0 1rem; }
-        .courier-meta div { display: flex; justify-content: space-between; gap: 1rem; font-size: .9rem; }
-        .courier-meta span { color: #6b6b6b; }
-        .courier-items { list-style: none; padding: 0; margin: 0 0 1rem; }
-        .courier-items li {
-            display: flex;
-            justify-content: space-between;
-            gap: .75rem;
-            padding: .45rem 0;
-            border-bottom: 1px dashed #efe6d2;
-            font-size: .9rem;
-        }
-        .courier-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
-        .courier-pin {
-            display: flex;
-            gap: .5rem;
-            align-items: center;
-            margin-bottom: .75rem;
-        }
-        .courier-pin input {
-            max-width: 8rem;
-            letter-spacing: .35em;
-            text-align: center;
-            font-weight: 700;
-            font-size: 1.15rem;
-        }
-        .courier-empty {
-            padding: 2rem 1rem;
-            text-align: center;
-            color: #6b6b6b;
-            border: 1px dashed #e6d7b0;
-            background: #fff;
-        }
-    </style>
-
-    <section class="courier-board">
-        <div class="courier-board__head">
-            <h1>{{ __('Deliveries') }}</h1>
-            <p>{{ __('Ask the customer for the SMS code before handing over the gold. The code is not shown here.') }}</p>
-        </div>
-
-        @include('components.err')
-
-        @if($deliveries->isEmpty())
-            <div class="courier-empty">
-                {{ __('No deliveries waiting for you right now.') }}
-            </div>
-        @endif
-
-        @foreach($deliveries as $delivery)
-            @php
-                $invoice = $delivery->invoice;
-                $address = $invoice->address;
-                $fullAddress = $formatAddress($invoice);
-                $mapQuery = ($address?->lat && $address?->lng)
-                    ? $address->lat.','.$address->lng
-                    : $fullAddress;
-            @endphp
-            <article class="courier-card">
-                <div class="courier-card__top">
+    <div class="row">
+        <div class="col-12 col-xl-10 col-xxl-9 mx-auto">
+            <div class="item-list mb-3">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 p-3">
                     <div>
-                        <h2>{{ __('Invoice') }} #{{ $invoice->hash }}</h2>
-                        <div class="text-muted fs-xs">{{ $invoice->transport?->title }}</div>
+                        <h1 class="h4 mb-1"><i class="ri-motorbike-line me-1"></i>{{ __('Deliveries') }}</h1>
+                        <p class="text-muted mb-0 fs-13">
+                            {{ __('Ask the customer for the SMS code before handing over the gold. The code is not shown here.') }}
+                        </p>
                     </div>
-                    <span class="{{ $delivery->status->badgeClass() }}">{{ $delivery->status->label() }}</span>
-                </div>
-                <div class="courier-card__body">
-                    <div class="courier-meta">
-                        <div>
-                            <span>{{ __('Customer') }}</span>
-                            <b>{{ $invoice->customer?->name ?? __('Guest') }}</b>
-                        </div>
-                        <div>
-                            <span>{{ __('Mobile') }}</span>
-                            @if($invoice->customer?->mobile)
-                                <a href="tel:{{ $invoice->customer->mobile }}" dir="ltr">{{ $invoice->customer->mobile }}</a>
-                            @else
-                                <b>---</b>
-                            @endif
-                        </div>
-                        <div>
-                            <span>{{ __('Address') }}</span>
-                            <b class="text-end">{{ $fullAddress }}</b>
-                        </div>
-                    </div>
-
-                    <ul class="courier-items">
-                        @forelse($invoice->orders as $order)
-                            <li>
-                                <span>{{ $order->product?->name ?? __('Product removed') }}</span>
-                                <span>
-                                    × {{ number_format($order->count) }}
-                                    @if($order->quantity?->weight)
-                                        — {{ $order->quantity->weight }}g
-                                    @endif
-                                </span>
-                            </li>
-                        @empty
-                            <li><span>{{ __('No items') }}</span></li>
-                        @endforelse
-                    </ul>
-
-                    <div class="courier-actions mb-3">
-                        <a class="btn btn-outline-secondary btn-sm" href="https://maps.google.com/?q={{ urlencode($mapQuery) }}" target="_blank" rel="noopener">
-                            <i class="ri-map-pin-line"></i>
-                            {{ __('Open map') }}
-                        </a>
-                        @if($invoice->customer?->mobile)
-                            <a class="btn btn-outline-secondary btn-sm" href="tel:{{ $invoice->customer->mobile }}">
-                                <i class="ri-phone-line"></i>
-                                {{ __('Call customer') }}
-                            </a>
-                        @endif
-                    </div>
-
-                    @if($delivery->isPending())
-                        <div class="courier-actions">
-                            <form method="post" action="{{ route('admin.delivery.accept', $delivery) }}">
-                                @csrf
-                                <button class="btn btn-primary" type="submit">{{ __('Accept delivery') }}</button>
-                            </form>
-                            <form method="post" action="{{ route('admin.delivery.reject', $delivery) }}" class="flex-grow-1">
-                                @csrf
-                                <div class="input-group">
-                                    <input name="reason" class="form-control" required minlength="3" placeholder="{{ __('Why are you rejecting this delivery?') }}">
-                                    <button class="btn btn-outline-danger" type="submit">{{ __('Reject') }}</button>
-                                </div>
-                            </form>
-                        </div>
-                    @endif
-
-                    @if($delivery->isAccepted())
-                        <form method="post" action="{{ route('admin.delivery.confirm', $delivery) }}" class="mb-3">
-                            @csrf
-                            <label class="form-label fw-semibold" for="code-{{ $delivery->id }}">{{ __('Customer delivery code') }}</label>
-                            <div class="courier-pin">
-                                <input id="code-{{ $delivery->id }}" name="code" class="form-control @error('code') is-invalid @enderror"
-                                       inputmode="numeric" autocomplete="one-time-code" maxlength="4" required
-                                       placeholder="••••">
-                                <button class="btn btn-success" type="submit">{{ __('Confirm handover') }}</button>
-                            </div>
-                        </form>
-                        <form method="post" action="{{ route('admin.delivery.fail', $delivery) }}">
-                            @csrf
-                            <div class="input-group">
-                                <input name="reason" class="form-control" placeholder="{{ __('Customer was not available') }}">
-                                <button class="btn btn-outline-secondary" type="submit">{{ __('Could not deliver') }}</button>
-                            </div>
-                        </form>
+                    @if($deliveries->isNotEmpty())
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
+                            {{ number_format($deliveries->count()) }} {{ __('Open deliveries') }}
+                        </span>
                     @endif
                 </div>
-            </article>
-        @endforeach
+            </div>
 
-        @if($history->isNotEmpty())
-            <h2 class="h5 mt-4 mb-3">{{ __('Recent deliveries') }}</h2>
-            @foreach($history as $delivery)
-                <article class="courier-card">
-                    <div class="courier-card__top">
+            @include('components.err')
+
+            @if($deliveries->isEmpty())
+                <div class="alert alert-info border border-info-subtle shadow-sm d-flex align-items-center gap-2 mb-3 rounded-3">
+                    <i class="ri-information-line fs-4"></i>
+                    <span>{{ __('No deliveries waiting for you right now.') }}</span>
+                </div>
+            @endif
+
+            @foreach($deliveries as $delivery)
+                @php
+                    $invoice = $delivery->invoice;
+                    $address = $invoice->address;
+                    $fullAddress = $formatAddress($invoice);
+                    $hasLocation = $address?->lat && $address?->lng;
+                @endphp
+                <div class="item-list mb-3">
+                    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 p-3 border-bottom">
                         <div>
-                            <h2>{{ __('Invoice') }} #{{ $delivery->invoice?->hash }}</h2>
-                            <div class="text-muted fs-xs">{{ $delivery->invoice?->customer?->name }}</div>
+                            <h2 class="h5 mb-1">{{ __('Invoice') }} #{{ $invoice->hash }}</h2>
+                            <div class="text-muted fs-13">{{ $invoice->transport?->title }}</div>
                         </div>
                         <span class="{{ $delivery->status->badgeClass() }}">{{ $delivery->status->label() }}</span>
                     </div>
-                </article>
+
+                    <div class="p-3">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <div class="text-muted fs-13">{{ __('Customer') }}</div>
+                                <div class="fw-semibold">{{ $invoice->customer?->name ?? __('Guest') }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="text-muted fs-13">{{ __('Mobile') }}</div>
+                                @if($invoice->customer?->mobile)
+                                    <a href="tel:{{ $invoice->customer->mobile }}" dir="ltr" class="fw-semibold">{{ $invoice->customer->mobile }}</a>
+                                @else
+                                    <span class="fw-semibold">---</span>
+                                @endif
+                            </div>
+                            <div class="col-12">
+                                <div class="text-muted fs-13">{{ __('Address') }}</div>
+                                <div class="fw-semibold">{{ $fullAddress }}</div>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive mb-3">
+                            <table class="table table-sm align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>{{ __('Product') }}</th>
+                                        <th class="text-end">{{ __('Count') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse($invoice->orders as $order)
+                                        <tr>
+                                            <td>{{ $order->product?->name ?? __('Product removed') }}</td>
+                                            <td class="text-end">
+                                                × {{ number_format($order->count) }}
+                                                @if($order->quantity?->weight)
+                                                    — {{ $order->quantity->weight }}g
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="2" class="text-muted">{{ __('No items') }}</td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            @if($hasLocation)
+                                <a class="btn btn-outline-secondary btn-sm"
+                                   href="https://maps.google.com/?q={{ $address->lat }},{{ $address->lng }}"
+                                   target="_blank" rel="noopener">
+                                    <i class="ri-map-pin-line"></i> {{ __('Open map') }}
+                                </a>
+                            @endif
+                            @if($invoice->customer?->mobile)
+                                <a class="btn btn-outline-secondary btn-sm" href="tel:{{ $invoice->customer->mobile }}">
+                                    <i class="ri-phone-line"></i> {{ __('Call customer') }}
+                                </a>
+                            @endif
+                            @if($delivery->sms_sent_at)
+                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle align-self-center">
+                                    <i class="ri-message-2-line me-1"></i>{{ __('SMS sent') }} {{ \App\Models\Invoice::formatPersianDateTime($delivery->sms_sent_at) }}
+                                </span>
+                            @endif
+                            @if($delivery->failed_attempts)
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle align-self-center">
+                                    {{ __('Failed attempts') }}: {{ $delivery->failed_attempts }}
+                                </span>
+                            @endif
+                        </div>
+
+                        @if($delivery->isPending())
+                            <div class="border border-primary-subtle rounded-3 p-3 bg-primary-subtle bg-opacity-10 mb-0">
+                                <div class="d-flex align-items-center gap-2 mb-3">
+                                    <i class="ri-motorbike-line fs-4 text-primary"></i>
+                                    <div>
+                                        <strong class="d-block">{{ __('Accept this delivery') }}</strong>
+                                        <span class="text-muted fs-13">{{ __('Accept to claim the job. The code entry appears after you accept.') }}</span>
+                                    </div>
+                                </div>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <form method="post" action="{{ route('admin.delivery.accept', $delivery) }}">
+                                        @csrf
+                                        <button class="btn btn-primary" type="submit">
+                                            <i class="ri-check-line"></i> {{ __('Accept delivery') }}
+                                        </button>
+                                    </form>
+                                    <form method="post" action="{{ route('admin.delivery.reject', $delivery) }}" class="flex-grow-1">
+                                        @csrf
+                                        <div class="input-group">
+                                            <input name="reason" class="form-control" required minlength="3" placeholder="{{ __('Why are you rejecting this delivery?') }}">
+                                            <button class="btn btn-outline-danger" type="submit">{{ __('Reject') }}</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        @endif
+
+                        @if($delivery->isAccepted())
+                            <div class="border border-success-subtle rounded-3 p-3 bg-success-subtle bg-opacity-10 mb-0">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <i class="ri-lock-password-line fs-4 text-success"></i>
+                                    <div>
+                                        <strong class="d-block">{{ __('Customer delivery code') }}</strong>
+                                        <span class="text-muted fs-13">{{ __('Ask the customer for the 4-digit SMS code and enter it here.') }}</span>
+                                    </div>
+                                </div>
+
+                                @if($delivery->isLocked())
+                                    <div class="alert alert-danger border border-danger-subtle mb-3 d-flex align-items-center gap-2 rounded-3">
+                                        <i class="ri-error-warning-line fs-4"></i>
+                                        <span>{{ __('Too many incorrect attempts. Ask the admin to send a new code.') }}</span>
+                                    </div>
+                                @else
+                                    <form method="post" action="{{ route('admin.delivery.confirm', $delivery) }}" class="row g-2 align-items-center mb-3">
+                                        @csrf
+                                        <div class="col-6 col-sm-4 col-md-3">
+                                            <input id="code-{{ $delivery->id }}" name="code"
+                                                   class="form-control form-control-lg text-center font-monospace @error('code') is-invalid @enderror"
+                                                   inputmode="numeric" autocomplete="one-time-code" maxlength="4" required
+                                                   placeholder="••••" value="{{ old('code') }}">
+                                        </div>
+                                        <div class="col-auto">
+                                            <button class="btn btn-success" type="submit">
+                                                <i class="ri-check-double-line"></i> {{ __('Confirm handover') }}
+                                            </button>
+                                        </div>
+                                    </form>
+                                @endif
+
+                                <form method="post" action="{{ route('admin.delivery.fail', $delivery) }}">
+                                    @csrf
+                                    <div class="input-group">
+                                        <input name="reason" class="form-control" placeholder="{{ __('Customer was not available') }}">
+                                        <button class="btn btn-outline-secondary" type="submit">
+                                            <i class="ri-close-circle-line"></i> {{ __('Could not deliver') }}
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        @endif
+                    </div>
+                </div>
             @endforeach
-        @endif
-    </section>
+
+            @if($history->isNotEmpty())
+                <div class="item-list mb-3">
+                    <h2 class="h5 p-3 border-bottom mb-0">{{ __('Recent deliveries') }}</h2>
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>{{ __('Invoice') }}</th>
+                                    <th>{{ __('Customer') }}</th>
+                                    <th class="text-end">{{ __('Status') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($history as $delivery)
+                                    <tr>
+                                        <td class="font-monospace">{{ $delivery->invoice?->hash }}</td>
+                                        <td>{{ $delivery->invoice?->customer?->name }}</td>
+                                        <td class="text-end">
+                                            <span class="{{ $delivery->status->badgeClass() }}">{{ $delivery->status->label() }}</span>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            @endif
+        </div>
+    </div>
 @endsection
