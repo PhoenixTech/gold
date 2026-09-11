@@ -6,10 +6,7 @@ use App\Console\Commands\GoldFreePriceUpdate;
 use App\Console\Commands\GoldPriceUpdate;
 use App\Helpers\TDate;
 use App\Http\Middleware\Acl;
-use App\Models\Area;
-use App\Models\Part;
 use App\Models\Setting;
-use App\Observers\PartObsever;
 use App\Observers\SettingObsever;
 use Carbon\Carbon;
 use Illuminate\Pagination\Paginator;
@@ -67,7 +64,6 @@ class AppServiceProvider extends ServiceProvider
             }
         });
 
-        Part::observe(PartObsever::class);
         Setting::observe(SettingObsever::class);
 
 

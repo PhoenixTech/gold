@@ -13,7 +13,7 @@ class CustomerTest extends TestCase
 
     public function check()
     {
-        $this->seed([\Database\Seeders\GfxSeeder::class, \Database\Seeders\AreaSeeder::class]);
+        $this->seed(\Database\Seeders\GfxSeeder::class);
         if (Customer::count() === 0) {
             Customer::factory(1)->create();
         }

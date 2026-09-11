@@ -211,16 +211,6 @@ class CheckoutFlowTest extends TestCase
         $this->assertSame($quantity->id, $lines[0]['selected_quantity_id']);
 
         $this->seed(\Database\Seeders\GfxSeeder::class);
-        $this->seed(\Database\Seeders\AreaSeeder::class);
-
-        $area = \App\Models\Area::where('name', 'card')->first();
-        $part = new \App\Models\Part;
-        $part->area_id = $area->id;
-        $part->segment = 'card';
-        $part->part = 'NsCard';
-        $part->data = '[]';
-        $part->sort = 1;
-        $part->save();
 
         $response = $this->withCookie('card', json_encode([$product->id]))
             ->withCookie('q', json_encode([$quantity->id]))

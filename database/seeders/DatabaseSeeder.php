@@ -35,13 +35,11 @@ class DatabaseSeeder extends Seeder
 //                CommentSeeder::class,
                 SettingSeeder::class,
                 GfxSeeder::class,
-                AreaSeeder::class,
 //                InvoiceSeeder::class,
                 VisitorSeeder::class,
                 TransportSeeder::class,
                 MenuSeeder::class,
                 SliderSeeder::class,
-                PartSeeder::class,
                 EvaluationSeeder::class,
             ]
         );

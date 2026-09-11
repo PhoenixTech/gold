@@ -1,10 +1,8 @@
 <?php
 
-use App\Models\Area;
 use App\Models\Category;
 use App\Models\Group;
 use App\Models\Menu;
-use App\Models\Part;
 use App\Models\Post;
 use App\Models\Product;
 use App\Models\Rate;
@@ -737,46 +735,6 @@ function nestedWithData($items, $parent_id = null)
     $r .= '</ol>'.PHP_EOL;
 
     return $r;
-}
-
-/**
- * check has part if return first
- *
- * @return \App\Models\Part|false
- */
-function hasPart($areaName)
-{
-    $a = Area::where('name', $areaName)->first();
-    if ($a == null) {
-        return false;
-    }
-
-    $p = Part::where('area_id', $a->id)->first();
-    if ($p == null) {
-        return false;
-    }
-
-    return $p;
-
-}
-
-/**
- * get parts of area
- *
- * @param  null  $custom  custom theme
- * @return Part[]|\Illuminate\Database\Eloquent\Collection|\LaravelIdea\Helper\App\Models\_IH_Part_C
- */
-function getParts($areaName, $custom = null)
-{
-    if ($custom != null) {
-
-        $customs = Part::where('custom', $custom)->orderBy('sort');
-        if ($customs->count() > 0) {
-            return $customs->get();
-        }
-    }
-
-    return Area::where('name', $areaName)->first()->parts()->orderBy('sort')->get();
 }
 
 /**
@@ -1539,21 +1497,6 @@ function detectRateCustomer($type, $id, $evaluation)
         return $rate->first()->rate;
     }
 
-}
-
-/**
- * @param  $name  string area name
- * @param  $model  \Illuminate\Database\Eloquent\Model $custom model
- * @return Area|mixed
- */
-function findArea($name, $model = null)
-{
-
-    if ($model != null && $model->theme != null) {
-        return json_decode($model->theme);
-    }
-
-    return \App\Models\Area::where('name', $name)->first();
 }
 
 /**

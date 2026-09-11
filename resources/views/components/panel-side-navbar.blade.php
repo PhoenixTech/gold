@@ -159,7 +159,7 @@
             </li>
         @endif
 
-        @if(auth()->user()->hasAnyAccesses(['menu', 'slider']) || auth()->user()->hasRole('developer'))
+        @if(auth()->user()->hasAnyAccesses(['menu', 'slider']))
             <li>
                 <a href="#appearance" class="dsb-item">
                     <i class="ri-palette-line"></i>
@@ -172,10 +172,6 @@
                     @endif
                     @if(auth()->user()->hasAnyAccess('slider'))
                         <li><a href="{{route('admin.slider.index')}}"><i class="ri-image-fill"></i>{{__("Slider")}}</a></li>
-                    @endif
-                    @if(auth()->user()->hasRole('developer'))
-                        <li><a href="{{route('admin.gfx.index')}}"><i class="ri-color-filter-line"></i>{{__("Colors")}}</a></li>
-                        <li><a href="{{route('admin.area.index')}}"><i class="ri-paint-brush-line"></i>{{__("Page layout")}}</a></li>
                     @endif
                 </ul>
             </li>

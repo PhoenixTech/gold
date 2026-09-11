@@ -72,7 +72,7 @@
 
                 <h3>
                     @if(isset($item))
-                        {{__("Edit group")}} [{{$item->name}}] <a href="{{route('admin.area.design.model',['group','Group',$item->id])}}" class="btn btn-secondary"> <i class="ri-palette-line"></i> </a>
+                        {{__("Edit group")}} [{{$item->name}}]
                     @else
                         {{__("Add new group")}}
                     @endif
