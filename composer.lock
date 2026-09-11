@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1b282cf6ed744b869022d8d04579ccf6",
+    "content-hash": "97ab407f9d5db9d9d53b68fb61c71b98",
     "packages": [
         {
             "name": "brick/math",
@@ -432,86 +432,6 @@
             "time": "2024-09-19T14:15:21+00:00"
         },
         {
-            "name": "darkaonline/l5-swagger",
-            "version": "8.6.3",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/DarkaOnLine/L5-Swagger.git",
-                "reference": "b37695804b786c04ab4077ceb6c0f2907ccd0153"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/DarkaOnLine/L5-Swagger/zipball/b37695804b786c04ab4077ceb6c0f2907ccd0153",
-                "reference": "b37695804b786c04ab4077ceb6c0f2907ccd0153",
-                "shasum": ""
-            },
-            "require": {
-                "doctrine/annotations": "^1.0 || ^2.0",
-                "ext-json": "*",
-                "laravel/framework": "^11.0 || ^10.0 || ^9.0 || >=8.40.0 || ^7.0",
-                "php": "^7.2 || ^8.0",
-                "swagger-api/swagger-ui": "^3.0 || >=4.1.3",
-                "symfony/yaml": "^5.0 || ^6.0 || ^7.0",
-                "zircote/swagger-php": "^3.2.0 || ^4.0.0"
-            },
-            "require-dev": {
-                "mockery/mockery": "1.*",
-                "orchestra/testbench": "^9.0 || ^8.0 || 7.* || ^6.15 || 5.*",
-                "php-coveralls/php-coveralls": "^2.0",
-                "phpunit/phpunit": "^11.0 || ^10.0 || ^9.5"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "aliases": {
-                        "L5Swagger": "L5Swagger\\L5SwaggerFacade"
-                    },
-                    "providers": [
-                        "L5Swagger\\L5SwaggerServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "files": [
-                    "src/helpers.php"
-                ],
-                "psr-4": {
-                    "L5Swagger\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Darius Matulionis",
-                    "email": "darius@matulionis.lt"
-                }
-            ],
-            "description": "OpenApi or Swagger integration to Laravel",
-            "keywords": [
-                "api",
-                "documentation",
-                "laravel",
-                "openapi",
-                "specification",
-                "swagger",
-                "ui"
-            ],
-            "support": {
-                "issues": "https://github.com/DarkaOnLine/L5-Swagger/issues",
-                "source": "https://github.com/DarkaOnLine/L5-Swagger/tree/8.6.3"
-            },
-            "funding": [
-                {
-                    "url": "https://github.com/DarkaOnLine",
-                    "type": "github"
-                }
-            ],
-            "time": "2024-10-28T06:29:43+00:00"
-        },
-        {
             "name": "dflydev/dot-access-data",
             "version": "v3.0.3",
             "source": {
@@ -585,82 +505,6 @@
                 "source": "https://github.com/dflydev/dflydev-dot-access-data/tree/v3.0.3"
             },
             "time": "2024-07-08T12:26:09+00:00"
-        },
-        {
-            "name": "doctrine/annotations",
-            "version": "2.0.2",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/doctrine/annotations.git",
-                "reference": "901c2ee5d26eb64ff43c47976e114bf00843acf7"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/annotations/zipball/901c2ee5d26eb64ff43c47976e114bf00843acf7",
-                "reference": "901c2ee5d26eb64ff43c47976e114bf00843acf7",
-                "shasum": ""
-            },
-            "require": {
-                "doctrine/lexer": "^2 || ^3",
-                "ext-tokenizer": "*",
-                "php": "^7.2 || ^8.0",
-                "psr/cache": "^1 || ^2 || ^3"
-            },
-            "require-dev": {
-                "doctrine/cache": "^2.0",
-                "doctrine/coding-standard": "^10",
-                "phpstan/phpstan": "^1.10.28",
-                "phpunit/phpunit": "^7.5 || ^8.5 || ^9.5",
-                "symfony/cache": "^5.4 || ^6.4 || ^7",
-                "vimeo/psalm": "^4.30 || ^5.14"
-            },
-            "suggest": {
-                "php": "PHP 8.0 or higher comes with attributes, a native replacement for annotations"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Doctrine\\Common\\Annotations\\": "lib/Doctrine/Common/Annotations"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Guilherme Blanco",
-                    "email": "guilhermeblanco@gmail.com"
-                },
-                {
-                    "name": "Roman Borschel",
-                    "email": "roman@code-factory.org"
-                },
-                {
-                    "name": "Benjamin Eberlei",
-                    "email": "kontakt@beberlei.de"
-                },
-                {
-                    "name": "Jonathan Wage",
-                    "email": "jonwage@gmail.com"
-                },
-                {
-                    "name": "Johannes Schmitt",
-                    "email": "schmittjoh@gmail.com"
-                }
-            ],
-            "description": "Docblock Annotations Parser",
-            "homepage": "https://www.doctrine-project.org/projects/annotations.html",
-            "keywords": [
-                "annotations",
-                "docblock",
-                "parser"
-            ],
-            "support": {
-                "issues": "https://github.com/doctrine/annotations/issues",
-                "source": "https://github.com/doctrine/annotations/tree/2.0.2"
-            },
-            "time": "2024-09-05T10:17:24+00:00"
         },
         {
             "name": "doctrine/inflector",
@@ -829,193 +673,6 @@
                 }
             ],
             "time": "2024-02-05T11:56:58+00:00"
-        },
-        {
-            "name": "dpsoft/mellat",
-            "version": "v1.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/dpsoft-official/mellat.git",
-                "reference": "c954d9826c788179b0e0ececd670f12bec026c94"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/dpsoft-official/mellat/zipball/c954d9826c788179b0e0ececd670f12bec026c94",
-                "reference": "c954d9826c788179b0e0ececd670f12bec026c94",
-                "shasum": ""
-            },
-            "require": {
-                "ext-soap": "*",
-                "php": "^7.1|^8"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "^7.0|^9.0"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Dpsoft\\Mellat\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "GPL-2.0-or-later"
-            ],
-            "authors": [
-                {
-                    "name": "Dpsoft.ir",
-                    "email": "daneshpajouhan.ac.ir@gmail.com",
-                    "role": "Developer"
-                }
-            ],
-            "description": "Mellat bank online payment - درگاه پرداخت بانک ملت به زبان PHP",
-            "homepage": "https://github.com/dpsoft/mellat",
-            "keywords": [
-                "dpsoft",
-                "mellat"
-            ],
-            "support": {
-                "issues": "https://github.com/dpsoft-official/mellat/issues",
-                "source": "https://github.com/dpsoft-official/mellat/tree/v1.1"
-            },
-            "time": "2022-07-22T20:55:27+00:00"
-        },
-        {
-            "name": "dpsoft/parsian-payment",
-            "version": "v1.0.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/dpsoft-official/parsian.git",
-                "reference": "52c09be063529e6a1a9e9b68b64e9b46d693ee7e"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/dpsoft-official/parsian/zipball/52c09be063529e6a1a9e9b68b64e9b46d693ee7e",
-                "reference": "52c09be063529e6a1a9e9b68b64e9b46d693ee7e",
-                "shasum": ""
-            },
-            "require": {
-                "ext-soap": "*"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "^6.5.6"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Dpsoft\\Parsian\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "GPL-3.0-only"
-            ],
-            "authors": [
-                {
-                    "name": "DaneshPajouhan",
-                    "email": "dpsoft@dpsoft.ir"
-                }
-            ],
-            "description": "Parsian bank payment",
-            "support": {
-                "issues": "https://github.com/dpsoft-official/parsian/issues",
-                "source": "https://github.com/dpsoft-official/parsian/tree/master"
-            },
-            "time": "2018-11-20T14:02:15+00:00"
-        },
-        {
-            "name": "dpsoft/pay.ir",
-            "version": "dev-master",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/dpsoft-official/pay.ir.git",
-                "reference": "9bae732281827b9a2581dd4078f1241bd229a4cf"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/dpsoft-official/pay.ir/zipball/9bae732281827b9a2581dd4078f1241bd229a4cf",
-                "reference": "9bae732281827b9a2581dd4078f1241bd229a4cf",
-                "shasum": ""
-            },
-            "require": {
-                "ext-json": "*",
-                "php": "^7.1|^8",
-                "rmccue/requests": ">=1.0"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "^7.0|^9.0"
-            },
-            "default-branch": true,
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Dpsoft\\Pay\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Dpsoft",
-                    "email": "info@dpsoft.ir",
-                    "role": "Developer"
-                }
-            ],
-            "description": "Pay.ir online payment - درگاه پرداخت آسان پرداخت به زبان PHP",
-            "homepage": "https://github.com/dpsoft/pay.ir",
-            "keywords": [
-                "dpsoft",
-                "pay.ir"
-            ],
-            "support": {
-                "issues": "https://github.com/dpsoft-official/pay.ir/issues",
-                "source": "https://github.com/dpsoft-official/pay.ir/tree/master"
-            },
-            "time": "2022-05-28T02:31:52+00:00"
-        },
-        {
-            "name": "dpsoft/saderat",
-            "version": "v4.0.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/dpsoft-official/SaderatBankPayment.git",
-                "reference": "39f11e56841deb8d4333cb508b322664724f454b"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/dpsoft-official/SaderatBankPayment/zipball/39f11e56841deb8d4333cb508b322664724f454b",
-                "reference": "39f11e56841deb8d4333cb508b322664724f454b",
-                "shasum": ""
-            },
-            "require": {
-                "ext-json": "*",
-                "guzzlehttp/guzzle": "^6.0|^7.0",
-                "php": "^7.1|^8.0"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "^9.0"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Dpsoft\\Saderat\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "authors": [
-                {
-                    "name": "DaneshPajouhan",
-                    "email": "dpsoft@dpsoft.ir"
-                }
-            ],
-            "description": "Saderat bank payment",
-            "support": {
-                "issues": "https://github.com/dpsoft-official/SaderatBankPayment/issues",
-                "source": "https://github.com/dpsoft-official/SaderatBankPayment/tree/v4.0.1"
-            },
-            "time": "2021-11-21T06:08:01+00:00"
         },
         {
             "name": "dpsoft/zibal",
@@ -1199,72 +856,6 @@
                 }
             ],
             "time": "2024-12-27T00:36:43+00:00"
-        },
-        {
-            "name": "fahlisaputra/laravel-minify",
-            "version": "v1.1.5",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/fahlisaputra/laravel-minify.git",
-                "reference": "6246821a15b70a5f91928c7b684837fa63bf0081"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/fahlisaputra/laravel-minify/zipball/6246821a15b70a5f91928c7b684837fa63bf0081",
-                "reference": "6246821a15b70a5f91928c7b684837fa63bf0081",
-                "shasum": ""
-            },
-            "require": {
-                "illuminate/http": "^6.0 || ^7.0 || ^8.0 || ^9.0 || ^10.0 || ^11.0",
-                "illuminate/support": "^6.0 || ^7.0 || ^8.0 || ^9.0 || ^10.0 || ^11.0",
-                "illuminate/view": "^6.0 || ^7.0 || ^8.0 || ^9.0 || ^10.0 || ^11.0",
-                "php": "^7.2.5 || ^8.0 || ^8.1 || ^8.2 || ^8.3"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "Fahlisaputra\\Minify\\MinifyServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "files": [
-                    "src/Helpers.php"
-                ],
-                "psr-4": {
-                    "Fahlisaputra\\Minify\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "fahlisaputra",
-                    "email": "saputra@fahli.net"
-                }
-            ],
-            "description": "Minify your blade views, html, css and js files on the fly for Laravel 6, 7, 8, 9 and 10",
-            "keywords": [
-                "css-minifier",
-                "html-minifier",
-                "js-minifier",
-                "js-obfuscate",
-                "laravel"
-            ],
-            "support": {
-                "issues": "https://github.com/fahlisaputra/laravel-minify/issues",
-                "source": "https://github.com/fahlisaputra/laravel-minify/tree/v1.1.5"
-            },
-            "funding": [
-                {
-                    "url": "https://github.com/fahlisaputra",
-                    "type": "github"
-                }
-            ],
-            "time": "2024-03-14T02:52:29+00:00"
         },
         {
             "name": "fruitcake/php-cors",
@@ -3827,65 +3418,6 @@
             "time": "2024-07-20T21:41:07+00:00"
         },
         {
-            "name": "pishran/zarinpal",
-            "version": "v4.3.4",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/pishran/Zarinpal.git",
-                "reference": "1c58eb636b11ec0f07fbd0147b26a3ea86e66858"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/pishran/Zarinpal/zipball/1c58eb636b11ec0f07fbd0147b26a3ea86e66858",
-                "reference": "1c58eb636b11ec0f07fbd0147b26a3ea86e66858",
-                "shasum": ""
-            },
-            "require": {
-                "laravel/framework": "^7.0|^8.0|^9.0|^10.0|^11.0",
-                "php": "^7.2|^8.0"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "Pishran\\Zarinpal\\ServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "files": [
-                    "src/helpers.php"
-                ],
-                "psr-4": {
-                    "Pishran\\Zarinpal\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Farid Aghili",
-                    "email": "farid@pishranit.ir",
-                    "homepage": "https://www.faridaghili.ir",
-                    "role": "Developer"
-                }
-            ],
-            "description": "Zarinpal library for Laravel.",
-            "homepage": "https://github.com/pishran/zarinpal",
-            "keywords": [
-                "laravel",
-                "payment",
-                "zarinpal"
-            ],
-            "support": {
-                "issues": "https://github.com/pishran/Zarinpal/issues",
-                "source": "https://github.com/pishran/Zarinpal/tree/v4.3.4"
-            },
-            "time": "2024-03-27T07:33:29+00:00"
-        },
-        {
             "name": "plank/laravel-metable",
             "version": "6.1.0",
             "source": {
@@ -3945,55 +3477,6 @@
                 "source": "https://github.com/plank/laravel-metable/tree/6.1.0"
             },
             "time": "2024-12-05T02:34:26+00:00"
-        },
-        {
-            "name": "psr/cache",
-            "version": "3.0.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/php-fig/cache.git",
-                "reference": "aa5030cfa5405eccfdcb1083ce040c2cb8d253bf"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/php-fig/cache/zipball/aa5030cfa5405eccfdcb1083ce040c2cb8d253bf",
-                "reference": "aa5030cfa5405eccfdcb1083ce040c2cb8d253bf",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=8.0.0"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "1.0.x-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Psr\\Cache\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "PHP-FIG",
-                    "homepage": "https://www.php-fig.org/"
-                }
-            ],
-            "description": "Common interface for caching libraries",
-            "keywords": [
-                "cache",
-                "psr",
-                "psr-6"
-            ],
-            "support": {
-                "source": "https://github.com/php-fig/cache/tree/3.0.0"
-            },
-            "time": "2021-02-03T23:26:27+00:00"
         },
         {
             "name": "psr/clock",
@@ -4799,80 +4282,6 @@
             "time": "2024-12-11T09:46:32+00:00"
         },
         {
-            "name": "ryangjchandler/blade-cache-directive",
-            "version": "v1.0.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/ryangjchandler/blade-cache-directive.git",
-                "reference": "00b950f3e14a06d58528293e237d58795abe7df3"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/ryangjchandler/blade-cache-directive/zipball/00b950f3e14a06d58528293e237d58795abe7df3",
-                "reference": "00b950f3e14a06d58528293e237d58795abe7df3",
-                "shasum": ""
-            },
-            "require": {
-                "illuminate/contracts": "^11.0",
-                "php": "^8.2",
-                "spatie/laravel-package-tools": "^1.16"
-            },
-            "require-dev": {
-                "brianium/paratest": "^7.4",
-                "nunomaduro/collision": "^8.0",
-                "orchestra/testbench": "^9.0",
-                "phpunit/phpunit": "^10.0",
-                "spatie/laravel-ray": "^1.9",
-                "vimeo/psalm": "^4.4|^5.22"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "aliases": {
-                        "BladeCacheDirective": "RyanChandler\\BladeCacheDirective\\BladeCacheDirectiveFacade"
-                    },
-                    "providers": [
-                        "RyanChandler\\BladeCacheDirective\\BladeCacheDirectiveServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "RyanChandler\\BladeCacheDirective\\": "src",
-                    "RyanChandler\\BladeCacheDirective\\Database\\Factories\\": "database/factories"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Ryan Chandler",
-                    "email": "support@ryangjchandler.co.uk",
-                    "role": "Developer"
-                }
-            ],
-            "description": "Cache chunks of your Blade markup with ease.",
-            "homepage": "https://github.com/ryangjchandler/blade-cache-directive",
-            "keywords": [
-                "blade-cache-directive",
-                "laravel",
-                "ryangjchandler"
-            ],
-            "support": {
-                "issues": "https://github.com/ryangjchandler/blade-cache-directive/issues",
-                "source": "https://github.com/ryangjchandler/blade-cache-directive/tree/v1.0.0"
-            },
-            "funding": [
-                {
-                    "url": "https://github.com/ryangjchandler",
-                    "type": "github"
-                }
-            ],
-            "time": "2024-03-13T00:05:30+00:00"
-        },
-        {
             "name": "setasign/fpdi",
             "version": "v2.6.2",
             "source": {
@@ -5611,67 +5020,6 @@
                 }
             ],
             "time": "2023-12-25T11:46:58+00:00"
-        },
-        {
-            "name": "swagger-api/swagger-ui",
-            "version": "v5.18.2",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/swagger-api/swagger-ui.git",
-                "reference": "3c7e281d97fd3e70b25f7ff4a001eabd56e375d7"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/swagger-api/swagger-ui/zipball/3c7e281d97fd3e70b25f7ff4a001eabd56e375d7",
-                "reference": "3c7e281d97fd3e70b25f7ff4a001eabd56e375d7",
-                "shasum": ""
-            },
-            "type": "library",
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "Apache-2.0"
-            ],
-            "authors": [
-                {
-                    "name": "Anna Bodnia",
-                    "email": "anna.bodnia@gmail.com"
-                },
-                {
-                    "name": "Buu Nguyen",
-                    "email": "buunguyen@gmail.com"
-                },
-                {
-                    "name": "Josh Ponelat",
-                    "email": "jponelat@gmail.com"
-                },
-                {
-                    "name": "Kyle Shockey",
-                    "email": "kyleshockey1@gmail.com"
-                },
-                {
-                    "name": "Robert Barnwell",
-                    "email": "robert@robertismy.name"
-                },
-                {
-                    "name": "Sahar Jafari",
-                    "email": "shr.jafari@gmail.com"
-                }
-            ],
-            "description": " Swagger UI is a collection of HTML, Javascript, and CSS assets that dynamically generate beautiful documentation from a Swagger-compliant API.",
-            "homepage": "http://swagger.io",
-            "keywords": [
-                "api",
-                "documentation",
-                "openapi",
-                "specification",
-                "swagger",
-                "ui"
-            ],
-            "support": {
-                "issues": "https://github.com/swagger-api/swagger-ui/issues",
-                "source": "https://github.com/swagger-api/swagger-ui/tree/v5.18.2"
-            },
-            "time": "2024-11-07T14:02:16+00:00"
         },
         {
             "name": "symfony/clock",
@@ -7902,78 +7250,6 @@
             "time": "2024-11-08T15:48:14+00:00"
         },
         {
-            "name": "symfony/yaml",
-            "version": "v7.2.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/symfony/yaml.git",
-                "reference": "099581e99f557e9f16b43c5916c26380b54abb22"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/symfony/yaml/zipball/099581e99f557e9f16b43c5916c26380b54abb22",
-                "reference": "099581e99f557e9f16b43c5916c26380b54abb22",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=8.2",
-                "symfony/deprecation-contracts": "^2.5|^3.0",
-                "symfony/polyfill-ctype": "^1.8"
-            },
-            "conflict": {
-                "symfony/console": "<6.4"
-            },
-            "require-dev": {
-                "symfony/console": "^6.4|^7.0"
-            },
-            "bin": [
-                "Resources/bin/yaml-lint"
-            ],
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Symfony\\Component\\Yaml\\": ""
-                },
-                "exclude-from-classmap": [
-                    "/Tests/"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Fabien Potencier",
-                    "email": "fabien@symfony.com"
-                },
-                {
-                    "name": "Symfony Community",
-                    "homepage": "https://symfony.com/contributors"
-                }
-            ],
-            "description": "Loads and dumps YAML files",
-            "homepage": "https://symfony.com",
-            "support": {
-                "source": "https://github.com/symfony/yaml/tree/v7.2.0"
-            },
-            "funding": [
-                {
-                    "url": "https://symfony.com/sponsor",
-                    "type": "custom"
-                },
-                {
-                    "url": "https://github.com/fabpot",
-                    "type": "github"
-                },
-                {
-                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
-                    "type": "tidelift"
-                }
-            ],
-            "time": "2024-10-23T06:56:12+00:00"
-        },
-        {
             "name": "thiagocordeiro/laravel-translator",
             "version": "v1.2.3",
             "source": {
@@ -8300,87 +7576,6 @@
                 "source": "https://github.com/webmozarts/assert/tree/1.11.0"
             },
             "time": "2022-06-03T18:03:27+00:00"
-        },
-        {
-            "name": "zircote/swagger-php",
-            "version": "4.11.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/zircote/swagger-php.git",
-                "reference": "7df10e8ec47db07c031db317a25bef962b4e5de1"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/zircote/swagger-php/zipball/7df10e8ec47db07c031db317a25bef962b4e5de1",
-                "reference": "7df10e8ec47db07c031db317a25bef962b4e5de1",
-                "shasum": ""
-            },
-            "require": {
-                "ext-json": "*",
-                "php": ">=7.2",
-                "psr/log": "^1.1 || ^2.0 || ^3.0",
-                "symfony/deprecation-contracts": "^2 || ^3",
-                "symfony/finder": ">=2.2",
-                "symfony/yaml": ">=3.3"
-            },
-            "require-dev": {
-                "composer/package-versions-deprecated": "^1.11",
-                "doctrine/annotations": "^1.7 || ^2.0",
-                "friendsofphp/php-cs-fixer": "^2.17 || 3.62.0",
-                "phpstan/phpstan": "^1.6",
-                "phpunit/phpunit": ">=8",
-                "vimeo/psalm": "^4.23"
-            },
-            "suggest": {
-                "doctrine/annotations": "^1.7 || ^2.0"
-            },
-            "bin": [
-                "bin/openapi"
-            ],
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "4.x-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "OpenApi\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "Apache-2.0"
-            ],
-            "authors": [
-                {
-                    "name": "Robert Allen",
-                    "email": "zircote@gmail.com"
-                },
-                {
-                    "name": "Bob Fanger",
-                    "email": "bfanger@gmail.com",
-                    "homepage": "https://bfanger.nl"
-                },
-                {
-                    "name": "Martin Rademacher",
-                    "email": "mano@radebatz.net",
-                    "homepage": "https://radebatz.net"
-                }
-            ],
-            "description": "swagger-php - Generate interactive documentation for your RESTful API using phpdoc annotations",
-            "homepage": "https://github.com/zircote/swagger-php/",
-            "keywords": [
-                "api",
-                "json",
-                "rest",
-                "service discovery"
-            ],
-            "support": {
-                "issues": "https://github.com/zircote/swagger-php/issues",
-                "source": "https://github.com/zircote/swagger-php/tree/4.11.1"
-            },
-            "time": "2024-10-15T19:20:02+00:00"
         }
     ],
     "packages-dev": [
@@ -11467,6 +10662,78 @@
             "time": "2024-10-20T05:08:20+00:00"
         },
         {
+            "name": "symfony/yaml",
+            "version": "v7.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/yaml.git",
+                "reference": "099581e99f557e9f16b43c5916c26380b54abb22"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/yaml/zipball/099581e99f557e9f16b43c5916c26380b54abb22",
+                "reference": "099581e99f557e9f16b43c5916c26380b54abb22",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.2",
+                "symfony/deprecation-contracts": "^2.5|^3.0",
+                "symfony/polyfill-ctype": "^1.8"
+            },
+            "conflict": {
+                "symfony/console": "<6.4"
+            },
+            "require-dev": {
+                "symfony/console": "^6.4|^7.0"
+            },
+            "bin": [
+                "Resources/bin/yaml-lint"
+            ],
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Symfony\\Component\\Yaml\\": ""
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Fabien Potencier",
+                    "email": "fabien@symfony.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Loads and dumps YAML files",
+            "homepage": "https://symfony.com",
+            "support": {
+                "source": "https://github.com/symfony/yaml/tree/v7.2.0"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2024-10-23T06:56:12+00:00"
+        },
+        {
             "name": "theseer/tokenizer",
             "version": "1.2.3",
             "source": {
@@ -11519,9 +10786,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "dpsoft/pay.ir": 20
-    },
+    "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
@@ -11530,5 +10795,5 @@
         "ext-zip": "*"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }
