@@ -32,8 +32,8 @@ Route::prefix(config('app.panel.prefix'))->name('admin.')->group(
                     function () {
                         Route::get('customer/{item}', [\App\Http\Controllers\Admin\AddressController::class, 'customer'])->name('customer');
                         Route::post('add/{item}', [\App\Http\Controllers\Admin\AddressController::class, 'store'])->name('store');
-                        Route::post('update/{item}', [\App\Http\Controllers\Admin\AddressController::class, 'update'])->name('update');
-                        Route::get('destroy/{item}', [\App\Http\Controllers\Admin\AddressController::class, 'destroy'])->name('destroy');
+                        Route::post('update/{item?}', [\App\Http\Controllers\Admin\AddressController::class, 'update'])->name('update');
+                        Route::get('destroy/{item?}', [\App\Http\Controllers\Admin\AddressController::class, 'destroy'])->name('destroy');
                     });
                 Route::prefix('adv')->name('adv.')->group(
                     function () {
@@ -53,7 +53,7 @@ Route::prefix(config('app.panel.prefix'))->name('admin.')->group(
                         Route::get('index', [\App\Http\Controllers\Admin\AreaController::class, 'index'])->name('index');
                         Route::get('design/{area}', [\App\Http\Controllers\Admin\AreaController::class, 'design'])->name('design');
                         Route::get('design/model/{area}/{model}/{id}', [\App\Http\Controllers\Admin\AreaController::class, 'designModel'])->name('design.model');
-                        Route::get('image/{segment}/{part}', [\App\Http\Controllers\Admin\AreaController::class, 'image'])->name('image');
+                        Route::get('image/{segment?}/{part?}', [\App\Http\Controllers\Admin\AreaController::class, 'image'])->name('image');
                         //                        Route::post('store', [\App\Http\Controllers\Admin\SettingController::class, "store"])->name('store');
                         Route::post('update/{area}', [\App\Http\Controllers\Admin\AreaController::class, 'update'])->name('update');
                         Route::post('update/model/{model}/{id}', [\App\Http\Controllers\Admin\AreaController::class, 'updateModel'])->name('update.model');
@@ -72,7 +72,7 @@ Route::prefix(config('app.panel.prefix'))->name('admin.')->group(
                         Route::get('edit/{item}', [\App\Http\Controllers\Admin\AttachmentController::class, 'edit'])->name('edit');
                         Route::post('update/{item}', [\App\Http\Controllers\Admin\AttachmentController::class, 'update'])->name('update');
                         Route::get('delete/{item}', [\App\Http\Controllers\Admin\AttachmentController::class, 'destroy'])->name('destroy');
-                        Route::get('detach/{item}', [\App\Http\Controllers\Admin\AttachmentController::class, 'detach'])->name('detach');
+                        Route::get('detach/{item?}', [\App\Http\Controllers\Admin\AttachmentController::class, 'detach'])->name('detach');
                         Route::post('bulk', [\App\Http\Controllers\Admin\AttachmentController::class, 'bulk'])->name('bulk');
                         Route::post('attaching', [\App\Http\Controllers\Admin\AttachmentController::class, 'attaching'])->name('attaching');
                     });
@@ -274,7 +274,7 @@ Route::prefix(config('app.panel.prefix'))->name('admin.')->group(
                         Route::get('restore/{item}', [\App\Http\Controllers\Admin\PostController::class, 'restore'])->name('restore');
                         Route::post('bulk', [\App\Http\Controllers\Admin\PostController::class, 'bulk'])->name('bulk');
                         Route::get('trashed', [\App\Http\Controllers\Admin\PostController::class, 'trashed'])->name('trashed');
-                        Route::get('group/edit/{id}', [\App\Http\Controllers\Admin\PostController::class, 'groupEdit'])->name('group-edit');
+                        Route::get('group/edit/{id?}', [\App\Http\Controllers\Admin\PostController::class, 'groupEdit'])->name('group-edit');
                         Route::post('group/save/{item}', [\App\Http\Controllers\Admin\PostController::class, 'groupSave'])->name('group-save');
                     });
                 Route::prefix('products')->name('product.')->group(
@@ -284,13 +284,13 @@ Route::prefix(config('app.panel.prefix'))->name('admin.')->group(
                         Route::post('store', [\App\Http\Controllers\Admin\ProductController::class, 'store'])->name('store');
                         Route::get('show/{item}', [\App\Http\Controllers\Admin\ProductController::class, 'show'])->name('show');
                         Route::post('title/update', [\App\Http\Controllers\Admin\ProductController::class, 'updateTitle'])->name('title');
-                        Route::get('edit/{item}', [\App\Http\Controllers\Admin\ProductController::class, 'edit'])->name('edit');
-                        Route::post('update/{item}', [\App\Http\Controllers\Admin\ProductController::class, 'update'])->name('update');
+                        Route::get('edit/{item?}', [\App\Http\Controllers\Admin\ProductController::class, 'edit'])->name('edit');
+                        Route::post('update/{item?}', [\App\Http\Controllers\Admin\ProductController::class, 'update'])->name('update');
                         Route::get('delete/{item}', [\App\Http\Controllers\Admin\ProductController::class, 'destroy'])->name('destroy');
                         Route::get('restore/{item}', [\App\Http\Controllers\Admin\ProductController::class, 'restore'])->name('restore');
                         Route::post('bulk', [\App\Http\Controllers\Admin\ProductController::class, 'bulk'])->name('bulk');
                         Route::get('trashed', [\App\Http\Controllers\Admin\ProductController::class, 'trashed'])->name('trashed');
-                        Route::get('category/edit/{id}', [\App\Http\Controllers\Admin\ProductController::class, 'categoryEdit'])->name('category-edit');
+                        Route::get('category/edit/{id?}', [\App\Http\Controllers\Admin\ProductController::class, 'categoryEdit'])->name('category-edit');
                         Route::post('category/save/{item}', [\App\Http\Controllers\Admin\ProductController::class, 'categorySave'])->name('category-save');
 
                     });
@@ -335,7 +335,7 @@ Route::prefix(config('app.panel.prefix'))->name('admin.')->group(
                         Route::post('store', [\App\Http\Controllers\Admin\SettingController::class, 'store'])->name('store');
                         Route::post('update', [\App\Http\Controllers\Admin\SettingController::class, 'update'])->name('update');
                         Route::get('cache/clear', [\App\Http\Controllers\Admin\SettingController::class, 'cacheClear'])->name('cache-clear');
-                        Route::get('live/{slug}', [\App\Http\Controllers\Admin\SettingController::class, 'liveEdit'])->name('live');
+                        Route::get('live/{slug?}', [\App\Http\Controllers\Admin\SettingController::class, 'liveEdit'])->name('live');
                     }
                 );
                 Route::prefix('sliders')->name('slider.')->group(
@@ -461,7 +461,7 @@ Route::middleware([\App\Http\Middleware\VisitorCounter::class])
         Route::post('/customer/sign-up/now', [ClientController::class, 'signUpNow'])->name('sign-up-now');
         Route::get('/customer/send/auth-code', [ClientController::class, 'sendSms'])->name('send-sms');
         Route::get('/customer/check/auth-code', [ClientController::class, 'checkAuth'])->name('check-auth');
-        Route::get('/customer/profile', [ClientController::class, 'profile'])->name('profile');
+        Route::get('/customer/profile', [\App\Http\Controllers\CustomerController::class, 'profile'])->name('customer.profile');
         Route::post('/customer/rate', [ClientController::class, 'rate'])->name('rate');
         Route::get('/compare', [ClientController::class, 'compare'])->name('compare');
         Route::get('/contact-us', [ClientController::class, 'contact'])->name('contact');
@@ -474,14 +474,14 @@ Route::middleware([\App\Http\Middleware\VisitorCounter::class])
         Route::post('/card/complete-profile', [\App\Http\Controllers\CardController::class, 'completeCheckoutProfile'])
             ->middleware('auth:customer')
             ->name('card.complete-profile');
-        Route::get('/card/discount/{code}', [\App\Http\Controllers\CardController::class, 'discount'])->name('card.discount');
+        Route::get('/card/discount/{code?}', [\App\Http\Controllers\CardController::class, 'discount'])->name('card.discount');
         Route::get('/card', [\App\Http\Controllers\CardController::class, 'index'])->name('card');
         Route::get('/cardClear', [\App\Http\Controllers\CardController::class, 'clearing'])->name('card.clear');
         Route::get('/profile', [\App\Http\Controllers\CustomerController::class, 'profile'])->name('profile');
         Route::get('/addresses', [\App\Http\Controllers\CustomerController::class, 'addresses'])->name('addresses');
         Route::post('/address/store', [\App\Http\Controllers\CustomerController::class, 'addressStore'])->name('address.store');
-        Route::post('/address/update/{address}', [\App\Http\Controllers\CustomerController::class, 'addressUpdate'])->name('address.update');
-        Route::get('/address/destroy/{address}', [\App\Http\Controllers\CustomerController::class, 'addressDestroy'])->name('address.destroy');
+        Route::post('/address/update/{address?}', [\App\Http\Controllers\CustomerController::class, 'addressUpdate'])->name('address.update');
+        Route::get('/address/destroy/{address?}', [\App\Http\Controllers\CustomerController::class, 'addressDestroy'])->name('address.destroy');
         Route::post('/profile/save', [\App\Http\Controllers\CustomerController::class, 'save'])->name('profile.save');
         Route::post('/ticket/submit', [\App\Http\Controllers\CustomerController::class, 'submitTicket'])->name('ticket.submit');
         Route::post('/ticket/answer/{ticket}', [\App\Http\Controllers\CustomerController::class, 'ticketAnswer'])->name('ticket.answer');
@@ -495,7 +495,7 @@ Route::middleware([\App\Http\Middleware\VisitorCounter::class])
         Route::get('/category/{category}', function ($category) {
             return redirect()->to(route('client.category', $category), 301);
         });
-        Route::get('/product/{product}', [ClientController::class, 'product'])->name('product');
+        Route::get('/product/{product?}', [ClientController::class, 'product'])->name('product');
         Route::get('/attachments', [ClientController::class, 'attachments'])->name('attachments');
         Route::get('/attachment/{attachment}', [ClientController::class, 'attachment'])->name('attachment');
         Route::get('/tag/{slug}', [ClientController::class, 'tag'])->name('tag');
@@ -506,10 +506,10 @@ Route::middleware([\App\Http\Middleware\VisitorCounter::class])
         Route::get('attach/download/{attachment}', [ClientController::class, 'attachDl'])->name('attach-dl');
         Route::get('pay/{invoice}', [ClientController::class, 'pay'])->name('pay');
 
-        Route::get('product/fav/toggle/{product}', [\App\Http\Controllers\CustomerController::class, 'ProductFavToggle'])->name('product-fav-toggle');
-        Route::get('product/bookmark/toggle/{product}', [\App\Http\Controllers\CustomerController::class, 'ProductBookmarkToggle'])->name('product-bookmark-toggle');
-        Route::get('product/compare/toggle/{product}', [\App\Http\Controllers\CardController::class, 'productCompareToggle'])->name('product-compare-toggle');
-        Route::get('card/toggle/{product}', [\App\Http\Controllers\CardController::class, 'productCardToggle'])->name('product-card-toggle');
+        Route::get('product/fav/toggle/{product?}', [\App\Http\Controllers\CustomerController::class, 'ProductFavToggle'])->name('product-fav-toggle');
+        Route::get('product/bookmark/toggle/{product?}', [\App\Http\Controllers\CustomerController::class, 'ProductBookmarkToggle'])->name('product-bookmark-toggle');
+        Route::get('product/compare/toggle/{product?}', [\App\Http\Controllers\CardController::class, 'productCompareToggle'])->name('product-compare-toggle');
+        Route::get('card/toggle/{product?}', [\App\Http\Controllers\CardController::class, 'productCardToggle'])->name('product-card-toggle');
 
         Route::post('/comment/submit', [ClientController::class, 'submitComment'])->name('comment.submit');
     });
