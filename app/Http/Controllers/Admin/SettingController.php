@@ -252,18 +252,4 @@ class SettingController extends Controller
 
         return redirect()->back()->with(['message' => __('Cache cleared')]);
     }
-
-    public function liveEdit($slug)
-    {
-        $settings = Setting::where('active', true)->where('key', 'LIKE', $slug.'%')
-            ->orderBy('section')->get();
-        $cats = Category::all(['id', 'name'])->toArray();
-        $catz = array_merge([['id' => 0, 'name' => __('All')]], $cats);
-        $menus = Menu::all(['id', 'name']);
-        $groups = Group::all(['id', 'name'])->toArray();
-        $groupz = array_merge([['id' => 0, 'name' => __('All')]], $groups);
-
-        return view('admin.commons.live',
-            compact('settings', 'cats', 'groups', 'menus', 'catz', 'groupz'));
-    }
 }

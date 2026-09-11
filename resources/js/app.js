@@ -93,11 +93,6 @@ app.component('stock-items-input', StockItemsInput);
 import MorphSelector from "./components/MorphSelector.vue";
 app.component('morph-selector', MorphSelector);
 
-import Gfxer from "./components/Gfxer.vue";
-app.component('gfxer', Gfxer);
-
-import AreaDesginer from "./components/AreaDesginer.vue";
-app.component('area-designer', AreaDesginer);
 
 import Latlng from "./components/latlng.vue";
 app.component('lat-lng', Latlng);

@@ -1,0 +1,48 @@
+// Client Theme & Styles
+$xshop-background:#ffffff;
+$xshop-primary:#db9a00;
+$xshop-diff:#000000;
+$xshop-diff2:#ffffff;
+$xshop-secondary:#3d3846;
+$xshop-text:#111111;
+$xshop-border-radius:0px;
+$xshop-shadow:2px 2px 4px #feffff;
+$xshop-success:#2e7d5b;
+$xshop-danger:#c0392b;
+$xshop-warning:#a16207;
+$xshop-info:#2f5b66;
+:root{
+--xshop-background:#ffffff;
+--xshop-primary:#db9a00;
+--xshop-diff:#000000;
+--xshop-diff2:#ffffff;
+--xshop-secondary:#3d3846;
+--xshop-text:#111111;
+--xshop-border-radius:0px;
+--xshop-shadow:2px 2px 4px #feffff;
+--xshop-success:#2e7d5b;
+--xshop-danger:#c0392b;
+--xshop-warning:#a16207;
+--xshop-info:#2f5b66;
+}
+
+@import "client-custom/assetsNode";
+@import "client-custom/general";
+@import "client-custom/semantic";
+@import "client-custom/toast";
+@import "client-custom/tokens";
+@import "client-custom/utilities";
+@import "client-custom/zfix";
+
+// Client Components
+@import "client/header";
+@import "client/footer";
+@import "client/home";
+@import "client/products";
+@import "client/cart";
+@import "client/customer";
+@import "client/auth";
+@import "client/posts";
+@import "client/media";
+@import "client/contact";
+
