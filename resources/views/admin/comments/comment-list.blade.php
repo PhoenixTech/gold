@@ -93,7 +93,7 @@
                                 </a>
                             @else
                                 <a
-                                    class="btn btn-sm btn-light ms-2" data-bs-toggle="tooltip" data-bs-placement="top"
+                                    class="btn btn-sm btn-outline-primary ms-2" data-bs-toggle="tooltip" data-bs-placement="top"
                                     data-bs-custom-class="custom-tooltip"
                                     data-bs-title="{{__("Reply")}}"
                                     href="{{route('admin.comment.reply',$item->id)}}">
@@ -199,7 +199,7 @@
                     <div class="col-md-3 text-start">
                         <div
                             id="toggle-select"
-                            class="btn btn-outline-light mx-2"
+                            class="btn btn-sm btn-outline-secondary mx-2"
                             data-bs-toggle="tooltip"
                             data-bs-placement="top"
                             data-bs-custom-class="custom-tooltip"
@@ -221,17 +221,13 @@
 @endsection
 
 @section('filter')
-    <h2>
-        <i class="ri-info-i"></i>
-        {{__("Status")}}:
-    </h2>
     <searchable-multi-select
         :items='@json(commentStatuses())'
         title-field="name"
         value-field="id"
         xname="filter[status]"
-        :xvalue='{{request()->input('filter.status','[]')}}'
-        :close-on-Select="true"></searchable-multi-select>
+        xtitle="{{ __('Status') }}"
+        :xvalue='@json(request()->input('filter.status', []))'></searchable-multi-select>
 @endsection
 
 @section('bulk')

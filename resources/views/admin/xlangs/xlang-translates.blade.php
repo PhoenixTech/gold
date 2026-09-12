@@ -15,12 +15,12 @@
                     @if($lang->tag != 'en')
 
                         <a href="{{route('admin.lang.download',$lang->tag)}}"
-                           class="btn btn-outline-light w-100 mb-3 btn-sm">
+                           class="btn btn-outline-secondary w-100 mb-3 btn-sm">
                             <i class="ri-download-2-line"></i>
                             {{__("Download json file")}}
                         </a>
                     @else
-                        <a class="btn btn-outline-light w-100 mb-3 btn-sm disabled">
+                        <a class="btn btn-outline-secondary w-100 mb-3 btn-sm disabled">
                             <i class="ri-download-2-line"></i>
                             {{__("Download json file")}}
                         </a>

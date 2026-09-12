@@ -65,7 +65,11 @@ class Attachment extends Model
 
     public function webUrl()
     {
-        return fixUrlLang(route('client.attachment',$this->slug));
+        return fixUrlLang(route('client.attachment', $this->slug));
     }
 
+    public function dlUrl()
+    {
+        return fixUrlLang(route('client.attach-dl', $this->slug ?? $this->id));
+    }
 }

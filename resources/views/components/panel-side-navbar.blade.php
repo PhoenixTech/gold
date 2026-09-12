@@ -126,7 +126,7 @@
             </li>
         @endif
 
-        @if(auth()->user()->hasAnyAccesses(['post', 'group', 'adv', 'gallery', 'clip', 'attachment', 'tags']))
+        @if(auth()->user()->hasAnyAccesses(['post', 'group', 'gallery', 'clip', 'attachment', 'tags']))
             <li>
                 <a href="#website" class="dsb-item">
                     <i class="ri-article-line"></i>
@@ -146,9 +146,6 @@
                     @if(auth()->user()->hasAnyAccess('clip'))
                         <li><a href="{{route('admin.clip.index')}}"><i class="ri-video-fill"></i>{{__("Videos")}}</a></li>
                     @endif
-                    @if(auth()->user()->hasAnyAccess('adv'))
-                        <li><a href="{{route('admin.adv.index')}}"><i class="ri-advertisement-line"></i>{{__("Ads")}}</a></li>
-                    @endif
                     @if(auth()->user()->hasAnyAccess('tags'))
                         <li><a href="{{route('admin.tag.index')}}"><i class="ri-price-tag-3-line"></i>{{__("Tags")}}</a></li>
                     @endif
@@ -159,7 +156,7 @@
             </li>
         @endif
 
-        @if(auth()->user()->hasAnyAccesses(['menu', 'slider']))
+        @if(auth()->user()->hasAnyAccess('menu'))
             <li>
                 <a href="#appearance" class="dsb-item">
                     <i class="ri-palette-line"></i>
@@ -167,12 +164,7 @@
                     <i class="ri-arrow-down-s-line nav-chevron"></i>
                 </a>
                 <ul id="appearance">
-                    @if(auth()->user()->hasAnyAccess('menu'))
-                        <li><a href="{{route('admin.menu.index')}}"><i class="ri-list-check"></i>{{__("Menus")}}</a></li>
-                    @endif
-                    @if(auth()->user()->hasAnyAccess('slider'))
-                        <li><a href="{{route('admin.slider.index')}}"><i class="ri-image-fill"></i>{{__("Slider")}}</a></li>
-                    @endif
+                    <li><a href="{{route('admin.menu.index')}}"><i class="ri-list-check"></i>{{__("Menus")}}</a></li>
                 </ul>
             </li>
         @endif
@@ -201,7 +193,7 @@
             </li>
         @endif
 
-        @if(auth()->user()->hasAnyAccesses(['user', 'state', 'city', 'adminlog', 'guestlog', 'shop-visit']))
+        @if(auth()->user()->hasAnyAccesses(['user', 'adminlog', 'shop-visit']))
             <li>
                 <a href="#staff" class="dsb-item">
                     <i class="ri-shield-user-line"></i>
@@ -215,17 +207,8 @@
                     @if(auth()->user()->hasAnyAccess('shop-visit'))
                         <li><a href="{{route('admin.shop-visit.index')}}"><i class="ri-walk-line"></i>{{__('Shop visits')}}</a></li>
                     @endif
-                    @if(auth()->user()->hasAnyAccess('state'))
-                        <li><a href="{{route('admin.state.index')}}"><i class="ri-map-line"></i>{{__("Provinces")}}</a></li>
-                    @endif
-                    @if(auth()->user()->hasAnyAccess('city'))
-                        <li><a href="{{route('admin.city.index')}}"><i class="ri-map-2-line"></i>{{__("Cities")}}</a></li>
-                    @endif
                     @if(auth()->user()->hasAnyAccess('adminlog'))
                         <li><a href="{{route('admin.adminlog.index')}}"><i class="ri-list-check-3"></i>{{__('Admin logs')}}</a></li>
-                    @endif
-                    @if(auth()->user()->hasAnyAccess('guestlog'))
-                        <li><a href="{{route('admin.guestlog.index')}}"><i class="ri-eye-line"></i>{{__('Visitor logs')}}</a></li>
                     @endif
                     @if(auth()->user()->hasRole('developer') && config('app.xlang.active'))
                         <li><a href="{{ route('admin.lang.index') }}"><i class="ri-global-fill"></i>{{__("Languages")}}</a></li>

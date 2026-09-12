@@ -8,7 +8,7 @@ class SeedImageAll extends Command
 {
 
 
-    public $models = ['Category', 'Group', 'Slider', 'Post', 'Product'];
+    public $models = ['Category', 'Group', 'Post', 'Product'];
     /**
      * The name and signature of the console command.
      *

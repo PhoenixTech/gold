@@ -21,8 +21,8 @@ class ShopVisitController extends XController
     protected $formView = 'admin.shop-visits.shop-visit-show';
 
     protected $buttons = [
-        'show' => ['title' => 'Detail', 'class' => 'btn-outline-light', 'icon' => 'ri-eye-line'],
-        'destroy' => ['title' => 'Remove', 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-close-line'],
+        'show' => ['title' => 'Detail', 'class' => 'btn-outline-secondary', 'icon' => 'ri-eye-line'],
+        'destroy' => ['title' => 'Remove', 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-delete-bin-line'],
     ];
 
     public function __construct()
@@ -59,6 +59,8 @@ class ShopVisitController extends XController
                 $msg = __(':COUNT items deleted successfully', ['COUNT' => count($ids)]);
                 $this->_MODEL_::destroy($ids);
                 break;
+            case 'export':
+                return $this->export(is_array($ids) ? array_values($ids) : null);
             default:
                 $msg = __('Unknown bulk action : :ACTION', ['ACTION' => $action]);
         }
@@ -71,11 +73,11 @@ class ShopVisitController extends XController
         return parent::delete($item);
     }
 
-    public function export(): StreamedResponse
+    public function export(?array $ids = null): StreamedResponse
     {
         $filename = 'shop-visits-'.now()->format('Y-m-d-His').'.csv';
 
-        return response()->streamDownload(function (): void {
+        return response()->streamDownload(function () use ($ids): void {
             $handle = fopen('php://output', 'w');
             fwrite($handle, "\xEF\xBB\xBF");
             fputcsv($handle, [
@@ -95,10 +97,15 @@ class ShopVisitController extends XController
                 'submitted_at',
             ]);
 
-            ShopVisit::query()
+            $query = ShopVisit::query()
                 ->with(['user', 'state', 'city'])
-                ->completed()
-                ->orderByDesc('id')
+                ->completed();
+
+            if (!empty($ids)) {
+                $query->whereIn('id', $ids);
+            }
+
+            $query->orderByDesc('id')
                 ->chunk(200, function ($visits) use ($handle): void {
                     foreach ($visits as $visit) {
                         fputcsv($handle, [

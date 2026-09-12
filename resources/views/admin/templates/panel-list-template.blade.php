@@ -115,7 +115,7 @@
         @endif
 
         {{-- WordPress Style Compact Single Action & Filter Row --}}
-        <div class="wp-tablenav mb-3 p-2 bg-white border rounded-3 shadow-sm d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div class="wp-tablenav overflow-visible mb-3 p-2 bg-white border rounded-3 shadow-sm d-flex flex-wrap align-items-center justify-content-between gap-2">
             <!-- Left Actions & Custom Filters -->
             <form action="" method="GET" class="d-flex flex-wrap align-items-center gap-2 flex-grow-1 mb-0">
                 @if(hasRoute('bulk'))
@@ -447,13 +447,14 @@
                                                     @foreach($buttons as $btn => $btnData)
                                                         @php
                                                             $btnUrl = isset($btnData['route']) ? route($btnData['route'], $item->{$item->getRouteKeyName()}) : getRoute($btn,$item->{$item->getRouteKeyName()});
+                                                            $isDelete = strpos($btnData['class'], 'delete') !== false;
+                                                            $dropItemClass = 'dropdown-item d-flex align-items-center gap-2 ' . ($isDelete ? 'delete-confirm text-danger' : 'text-dark');
                                                         @endphp
                                                         <li>
-                                                            <a class="dropdown-item {{$btnData['class']}}"
+                                                            <a class="{{$dropItemClass}}"
                                                                href="{{$btnUrl}}">
                                                                 <i class="{{$btnData['icon']}}"></i>
-                                                                &nbsp;
-                                                                {{__($btnData['title'])}}
+                                                                <span>{{__($btnData['title'])}}</span>
                                                             </a>
                                                         </li>
                                                     @endforeach
@@ -538,7 +539,7 @@
                                     <div class="col-md-3 text-start">
                                         <div
                                             id="toggle-select"
-                                            class="btn btn-outline-light mx-2"
+                                            class="btn btn-sm btn-outline-secondary mx-2"
                                             data-bs-toggle="tooltip"
                                             data-bs-placement="top"
                                             data-bs-custom-class="custom-tooltip"

@@ -6,6 +6,10 @@
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
     transition: all 0.2s ease;
 
+    &.overflow-visible {
+        overflow: visible !important;
+    }
+
     .img-fluid {
         max-height: 128px;
         display: block;
@@ -130,6 +134,34 @@
 
         th {
             padding: 0.85rem 1rem;
+        }
+    }
+
+    .btn.btn-sm {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 32px;
+        height: 32px;
+        padding: 0 6px;
+        font-size: 0.95rem;
+        border-radius: 6px;
+        transition: all 0.15s ease-in-out;
+
+        i {
+            line-height: 1;
+        }
+
+        &.btn-outline-light {
+            color: #495057 !important;
+            border-color: #ced4da !important;
+            background-color: #ffffff !important;
+
+            &:hover {
+                color: #212529 !important;
+                background-color: #f8f9fa !important;
+                border-color: #adb5bd !important;
+            }
         }
     }
 }

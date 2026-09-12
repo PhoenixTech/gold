@@ -223,7 +223,6 @@ return [
          * Application Service Providers...
          */
         App\Providers\AppServiceProvider::class,
-        Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class,
         Translator\Framework\TranslatorServiceProvider::class,
         \App\Providers\BladeServiceProvider::class,
 

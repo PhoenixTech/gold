@@ -19,7 +19,6 @@ use App\Models\Post;
 use App\Models\Product;
 use App\Models\Prop;
 use App\Models\Setting;
-use App\Models\Slider;
 use App\Models\State;
 use App\Models\Transport;
 use App\Models\XLang;
@@ -44,7 +43,6 @@ class XLangController extends XController
         Category::class,
         Post::class,
         Group::class,
-        Slider::class,
         Item::class,
         Gallery::class,
         Clip::class,

@@ -156,6 +156,7 @@ document.addEventListener('click', function (e) {
     // Close open dropdown menus when clicking outside
     if (!e.target.closest('.dropdown-menu')) {
         document.querySelectorAll('.dropdown-menu.show').forEach(function (m) {
+            if (m.closest('.searchable-multi-select-component')) return;
             m.classList.remove('show');
         });
         document.querySelectorAll('[data-bs-toggle="dropdown"].show').forEach(function (t) {

@@ -111,6 +111,31 @@ class ShopVisitAdminTest extends TestCase
         $response->assertDontSee($visit->submitted_at->format('Y-m-d H:i'), false);
     }
 
+    public function test_admin_can_bulk_export_selected_shop_visits_as_csv(): void
+    {
+        $this->actingAsAdmin();
+        $visit1 = ShopVisit::factory()->create([
+            'mobile' => '09121113333',
+            'first_name' => 'SelectedUser',
+        ]);
+        $visit2 = ShopVisit::factory()->create([
+            'mobile' => '09129990000',
+            'first_name' => 'NotSelectedUser',
+        ]);
+
+        $response = $this->post(route('admin.shop-visit.bulk'), [
+            'action' => 'export',
+            'id' => [$visit1->id],
+        ]);
+
+        $response->assertOk();
+        $content = $response->streamedContent();
+        $this->assertStringContainsString('09121113333', $content);
+        $this->assertStringContainsString('SelectedUser', $content);
+        $this->assertStringNotContainsString('09129990000', $content);
+        $this->assertStringNotContainsString('NotSelectedUser', $content);
+    }
+
     public function test_guest_is_redirected_from_shop_visit_list(): void
     {
         $this->get(route('admin.shop-visit.index'))->assertRedirect();

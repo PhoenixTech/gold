@@ -5,7 +5,7 @@
         @include('components.err')
 
         {{-- Minimal Horizontal Filter Bar --}}
-        <div class="item-list mb-3 p-2 p-md-3">
+        <div class="item-list overflow-visible mb-3 p-2 p-md-3">
             <form action="" method="GET" class="d-flex flex-wrap align-items-center justify-content-between gap-2">
                 <div class="d-flex flex-wrap align-items-center gap-2 flex-grow-1">
                     {{-- Search Input --}}

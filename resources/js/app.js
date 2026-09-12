@@ -75,9 +75,6 @@ app.component('increment', Increment);
 import TagInput from "./components/TagInput.vue";
 app.component('tag-input', TagInput);
 
-import SliderData from "./components/SliderData.vue";
-app.component('slider-data', SliderData);
-
 import AddressInput from "./components/AddressInput.vue";
 app.component('address-input', AddressInput);
 

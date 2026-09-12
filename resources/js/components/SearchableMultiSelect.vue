@@ -1,79 +1,111 @@
 <template>
-    <div id="searchable-select" ref="main">
-        <div id="ss-modal" @click.self="hideModal" v-if="modalShow">
-            <div id="ss-selector">
-                <div class="p-2">
-                    <input type="text" class="form-control search" v-model="q" :placeholder="xtitle">
-                </div>
-                <div class="p-2">
-                    <ul id="vue-search-list" class="list-group list-group-flush">
-                        <template v-for="(item,i) in items">
-                            <li
-                                tabindex="-1"
-                                v-if="finder(item[titleField])"
-                                @click="selecting(item[valueField])"
-                                :class="`list-group-item ${val.indexOf(item[valueField]) !== -1?'selected':''} ${focsed == i?'focused':''}`">
-                                <template v-if="xlang == null">
-                                    {{ item[titleField] }}
-                                </template>
-                                <template v-else>
-                                    {{ item[titleField]?.[xlang] ?? item[titleField] }}
-                                </template>
+    <div class="dropdown searchable-multi-select-component d-inline-block position-relative" ref="dropdownRef">
+        <!-- Trigger Button -->
+        <button
+            type="button"
+            class="btn btn-sm btn-outline-secondary dropdown-toggle d-inline-flex align-items-center gap-1 bg-white text-dark border shadow-none"
+            :class="[getClass, customClass]"
+            :id="xid || undefined"
+            @click.stop="toggleDropdown"
+            :aria-expanded="isOpen"
+            style="min-height: 31px;"
+        >
+            <i class="ri-filter-3-line text-muted fs-14"></i>
+            <span class="fs-13 fw-normal">{{ buttonLabel }}</span>
+            <span v-if="val.length > 0" class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill ms-1 fs-11">
+                {{ val.length }}
+            </span>
+        </button>
 
-                            </li>
-                        </template>
-                    </ul>
+        <!-- Dropdown Menu -->
+        <div
+            v-if="isOpen"
+            class="dropdown-menu show shadow-sm border p-2 mt-1 start-0"
+            style="display: block !important; min-width: 250px; max-width: 320px; z-index: 1055; position: absolute; top: 100%;"
+            @click.stop
+        >
+            <!-- Search Input -->
+            <div class="mb-2">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-light border-end-0 text-muted">
+                        <i class="ri-search-line"></i>
+                    </span>
+                    <input
+                        type="search"
+                        class="form-control border-start-0"
+                        v-model="q"
+                        ref="searchInput"
+                        :placeholder="isFa ? 'جستجو...' : 'Search...'"
+                    >
+                    <button v-if="q" class="btn btn-outline-secondary border-start-0" type="button" @click="q = ''">
+                        <i class="ri-close-line"></i>
+                    </button>
                 </div>
             </div>
-        </div>
-        <div class="input-group mb-3">
-            <div class="input-group-prepend" id="vue-search-btn">
-                <button class="input-group-text" id="basic-addon1" type="button" @click="showModal">
-                    <i class="ri-check-line"></i>
+
+            <!-- Quick Action Links -->
+            <div class="d-flex align-items-center justify-content-between px-1 mb-2 pb-1 border-bottom fs-12">
+                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-primary fs-12" @click="selectAll">
+                    {{ isFa ? 'انتخاب همه' : 'Select all' }}
+                </button>
+                <button v-if="val.length > 0" type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-danger fs-12" @click="clearAll">
+                    {{ isFa ? 'پاک کردن' : 'Clear' }} ({{ val.length }})
                 </button>
             </div>
-            <div class="form-control" id="vue-lst" @click.self="showModal">
-                <template v-for="item in items">
-                    <span class="tag-select" v-if=" val.indexOf(item[valueField]) !== -1">
-                        <template v-if="xlang == null">
-                                    {{ item[titleField] }}
-                        </template>
-                        <template v-else>
-                            {{ item[titleField]?.[xlang] ?? item[titleField] }}
-                        </template>
-                        <i class="ri-close-line" @click="rem(item[valueField])"></i>
-                    </span>
-                </template>
 
+            <!-- Items List -->
+            <div class="overflow-y-auto" style="max-height: 220px;">
+                <label
+                    v-for="item in filteredItems"
+                    :key="item[valueField]"
+                    class="dropdown-item d-flex align-items-center gap-2 py-1 px-2 rounded-1 user-select-none"
+                    style="cursor: pointer;"
+                >
+                    <input
+                        type="checkbox"
+                        class="form-check-input mt-0 flex-shrink-0"
+                        :checked="isSelected(item[valueField])"
+                        @change="selecting(item[valueField])"
+                    >
+                    <span class="fs-13 text-dark text-truncate">{{ getItemTitle(item) }}</span>
+                </label>
+                <div v-if="filteredItems.length === 0" class="text-center py-2 text-muted fs-13">
+                    {{ isFa ? 'موردی یافت نشد' : 'No results found' }}
+                </div>
             </div>
         </div>
+
+        <!-- Optional Selected Tags Below -->
+        <div v-if="showTags && val.length > 0" class="d-flex flex-wrap gap-1 mt-1">
+            <span
+                v-for="item in selectedItems"
+                :key="item[valueField]"
+                class="badge bg-secondary-subtle text-dark border border-secondary-subtle d-inline-flex align-items-center gap-1 fs-12 fw-normal"
+            >
+                {{ getItemTitle(item) }}
+                <i class="ri-close-line text-muted" style="cursor: pointer;" @click.stop="rem(item[valueField])"></i>
+            </span>
+        </div>
+
+        <!-- Hidden input for native form submission -->
+        <input type="hidden" :name="xname" :value="val.length > 0 ? JSON.stringify(val) : ''">
     </div>
-    <input type="hidden" :name="xname" :value="JSON.stringify(val)">
 </template>
 
 <script>
 export default {
-    name: "searchable-select",
-    components: {},
-    data: () => {
-        return {
-            modalShow: false, // modal handle
-            q: '', // search query
-            val: [],
-            focsed: -1,
-        }
-    },
+    name: "searchable-multi-select",
     emits: ['update:modelValue'],
     props: {
         xlang: {
-            default: null
+            default: null,
         },
         modelValue: {
             default: 'nop',
         },
         items: {
             required: true,
-            default: [],
+            default: () => [],
             type: Array,
         },
         valueField: {
@@ -93,8 +125,7 @@ export default {
             type: String,
         },
         xvalue: {
-            default: [],
-            type: Array,
+            default: () => [],
         },
         xid: {
             default: "",
@@ -108,207 +139,185 @@ export default {
             default: false,
             type: Boolean,
         },
-
+        showTags: {
+            default: false,
+            type: Boolean,
+        },
         onSelect: {
-            default: function () {
-
-            },
+            default: () => {},
             type: Function,
         },
+        closeOnSelect: {
+            default: false,
+            type: Boolean,
+        },
+    },
+    data() {
+        return {
+            isOpen: false,
+            q: '',
+            val: [],
+        };
     },
     mounted() {
-        if (this.modelValue != 'nop') {
-            this.val = this.modelValue;
-        } else {
-            this.val = this.xvalue;
+        let initial = [];
+        if (this.modelValue !== 'nop' && this.modelValue !== undefined && this.modelValue !== null) {
+            initial = this.modelValue;
+        } else if (this.xvalue) {
+            initial = this.xvalue;
         }
+
+        if (typeof initial === 'string') {
+            try {
+                let parsed = JSON.parse(initial);
+                if (typeof parsed === 'string') {
+                    try {
+                        parsed = JSON.parse(parsed);
+                    } catch (e) {}
+                }
+                this.val = Array.isArray(parsed) ? parsed : [parsed];
+            } catch (e) {
+                this.val = initial.trim() !== '' ? [initial.trim()] : [];
+            }
+        } else if (Array.isArray(initial)) {
+            if (initial.length === 1 && typeof initial[0] === 'string' && (initial[0].startsWith('[') || initial[0].startsWith('{'))) {
+                try {
+                    const parsed = JSON.parse(initial[0]);
+                    this.val = Array.isArray(parsed) ? parsed : [parsed];
+                } catch (e) {
+                    this.val = [...initial];
+                }
+            } else {
+                this.val = [...initial];
+            }
+        } else if (initial !== null && initial !== undefined && initial !== '') {
+            this.val = [initial];
+        } else {
+            this.val = [];
+        }
+
+        document.addEventListener('click', this.handleClickOutside);
+        document.addEventListener('keydown', this.handleKeyDown);
+    },
+    beforeUnmount() {
+        document.removeEventListener('click', this.handleClickOutside);
+        document.removeEventListener('keydown', this.handleKeyDown);
     },
     computed: {
-        getClass: function () {
-            if (this.err == true || (typeof this.err == 'String' && this.err.trim() == '1')) {
-                return 'form-control is-invalid ' + this.customClass;
+        isFa() {
+            return (document.documentElement.lang || 'fa') === 'fa';
+        },
+        getClass() {
+            if (this.err === true || (typeof this.err === 'string' && this.err.trim() === '1')) {
+                return 'is-invalid';
             }
-            return 'form-control ' + this.customClass;
+            return '';
+        },
+        buttonLabel() {
+            if (this.val.length === 0) {
+                return this.xtitle || (this.isFa ? 'انتخاب' : 'Select');
+            }
+            if (this.val.length === 1) {
+                const selected = this.items.find(i => String(i[this.valueField]) === String(this.val[0]));
+                if (selected) {
+                    return (this.xtitle ? this.xtitle + ': ' : '') + this.getItemTitle(selected);
+                }
+            }
+            return (this.xtitle || (this.isFa ? 'انتخاب‌شده' : 'Selected')) + ' (' + this.val.length + ')';
+        },
+        filteredItems() {
+            if (!this.q || this.q.trim() === '') {
+                return this.items;
+            }
+            const query = this.q.trim().toLowerCase();
+            return this.items.filter(item => {
+                const title = this.getItemTitle(item).toLowerCase();
+                return title.includes(query);
+            });
+        },
+        selectedItems() {
+            return this.items.filter(item => this.isSelected(item[this.valueField]));
         },
     },
     methods: {
-        finder(term = '') {
-            //(q != '' && item[titleField].indexOf(q) != -1) || (q == '')
-            if (this.q == '' || term == '') {
-                return true;
-            }
-            if (typeof term == 'string' && term.toLocaleLowerCase().indexOf(this.q.toLocaleLowerCase()) != -1) {
-                return true
-            } else if (typeof term == 'object') {
-                try {
-                    for (const t in term) {
-                        if (term[t].toLowerCase().indexOf(this.q.toLocaleLowerCase()) != -1) {
-                            return true;
-                        }
+        toggleDropdown() {
+            this.isOpen = !this.isOpen;
+            if (this.isOpen) {
+                this.$nextTick(() => {
+                    if (this.$refs.searchInput) {
+                        this.$refs.searchInput.focus();
                     }
-                } catch (e) {
-
-                    console.log(e.message);
-                }
+                });
+            }
+        },
+        handleClickOutside(e) {
+            if (!this.isOpen) return;
+            if (this.$refs.dropdownRef && !this.$refs.dropdownRef.contains(e.target)) {
+                this.isOpen = false;
+            }
+        },
+        handleKeyDown(e) {
+            if (e.key === 'Escape' && this.isOpen) {
+                this.isOpen = false;
+            }
+        },
+        getItemTitle(item) {
+            if (!item) return '';
+            let val = item[this.titleField];
+            if (this.xlang && typeof val === 'object' && val !== null) {
+                return val[this.xlang] ?? Object.values(val)[0] ?? '';
+            }
+            if (typeof val === 'object' && val !== null) {
+                const lang = document.documentElement.lang || 'fa';
+                return val[lang] ?? Object.values(val)[0] ?? '';
+            }
+            return String(val ?? '');
+        },
+        isSelected(v) {
+            return this.val.some(item => String(item) === String(v));
+        },
+        selecting(v) {
+            const idx = this.val.findIndex(item => String(item) === String(v));
+            if (idx === -1) {
+                this.val.push(v);
             } else {
-                return true;
+                this.val.splice(idx, 1);
             }
-            return false;
-        },
-        rem(i) {
-            this.val.splice(this.val.indexOf(i), 1);
-            this.onSelect(this.val, i);
-        },
-        selecting(i) {
-            if (this.val.indexOf(i) == -1) {
-                this.val.push(i);
-            } else {
-                this.val.splice(this.val.indexOf(i), 1);
+            this.emitChange(v);
+            if (this.closeOnSelect) {
+                this.isOpen = false;
             }
-            this.onSelect(this.val, i);
         },
-        select() {
-            this.onSelect(this.val);
-        },
-        hideModal: function () {
-            this.modalShow = false;
-            document.removeEventListener('keydown', this.keyHandle);
-        },
-        showModal() {
-            this.modalShow = true;
-            setTimeout(() => {
-                if (this.$refs.main.querySelector('.search') != null) {
-                    this.$refs.main.querySelector('.search').focus();
-                }
-            }, 100);
-            // this.$refs.main.querySelector('.search').focus();
-            document.addEventListener('keydown', this.keyHandle);
-        },
-        keyHandle(e) {
-            if (e.key == 'Escape') {
-                this.hideModal();
+        rem(v) {
+            const idx = this.val.findIndex(item => String(item) === String(v));
+            if (idx !== -1) {
+                this.val.splice(idx, 1);
+                this.emitChange(v);
             }
-            try {
-                if (this.$refs.main.querySelector('.search') == document.activeElement) {
-                    if (e.code == 'Tab') {
-                        e.preventDefault();
-                        this.$refs.main.querySelector('.search').blur();
-                        this.focsed = 0;
-                    }
-                    return;
-                }
-            } catch {
+        },
+        selectAll() {
+            const allIds = this.filteredItems.map(item => item[this.valueField]);
+            const set = new Set([...this.val.map(String), ...allIds.map(String)]);
+            this.val = Array.from(set);
+            this.emitChange();
+        },
+        clearAll() {
+            this.val = [];
+            this.emitChange();
+        },
+        emitChange(lastChanged = null) {
+            if (this.modelValue !== 'nop') {
+                this.$emit('update:modelValue', this.val);
             }
-
-            e.preventDefault();
-            if (e.key == 'ArrowDown') {
-                this.focsed++;
-                if (this.focsed > this.items.length - 1) {
-                    this.focsed = this.items.length - 1;
-                }
-            } else if (e.key == 'ArrowUp') {
-                this.focsed--;
-                if (this.focsed < -1) {
-                    this.focsed = -1;
-                }
-            } else if (e.key == ' ' || e.key == 'Enter') {
-                this.selecting(this.items[this.focsed][this.valueField]);
-            }
-            return false;
-            // console.log(e.key);
-        }
+            this.onSelect(this.val, lastChanged);
+        },
     },
     watch: {
-        val(newValue) {
-            if (this.modelValue != 'nop') {
-                this.$emit('update:modelValue', newValue);
+        modelValue(newVal) {
+            if (newVal !== 'nop' && Array.isArray(newVal)) {
+                this.val = [...newVal];
             }
-        }
-    }
-}
+        },
+    },
+};
 </script>
-
-<style scoped>
-#searchable-select {
-
-}
-
-#vue-search-btn {
-    cursor: pointer;
-    user-select: none;
-}
-
-#vue-search-btn:hover .input-group-text {
-    background: deepskyblue;
-}
-
-
-#ss-modal {
-    position: fixed;
-    left: 0;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    z-index: 999;
-    background: #00000033;
-    backdrop-filter: blur(4px);
-    user-select: none;
-}
-
-#ss-selector {
-    height: 60vh;
-    border-radius: 7px;
-    min-width: 350px;
-    width: 400px;
-    max-width: 90%;
-    margin: 20vh auto;
-    background: #282D47;
-    box-shadow: 0 0 4px gray;
-    padding: 5px;
-}
-
-#vue-search-list {
-    height: calc(60vh - 90px);
-    overflow-x: auto;
-}
-
-#vue-search-list .list-group-item:hover, #vue-search-list .list-group-item.focused {
-    background: #6610F2;
-}
-
-#vue-search-list .list-group-item.selected {
-    background: darkred;
-    color: white;;
-}
-
-#vue-search-list .list-group-item.selected:hover, #vue-search-list .list-group-item.selected.focused {
-    background: #6610F2 !important;
-}
-
-#vue-lst {
-    user-select: none;
-    white-space: nowrap;
-    overflow: hidden;
-}
-
-.tag-select {
-    display: inline-block;
-    padding: 0 4px 0 20px;
-    margin-right: 5px;
-    background: #282c34dd;
-    color: white;
-    position: relative;
-    border-radius: 3px;
-}
-
-.tag-select i {
-    font-size: 20px;
-    position: absolute;
-    left: 0;
-    top: -5px;
-}
-
-.tag-select i:hover {
-    color: red;
-}
-</style>

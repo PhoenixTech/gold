@@ -978,37 +978,6 @@ function readable($text)
 }
 
 /**
- * register guest logs
- *
- * @return void
- */
-function guestLog($action, $type = null, $id = null)
-{
-    $gl = new \App\Models\GuestLog;
-    $gl->action = $action;
-    $gl->ip = request()->ip();
-    $gl->loggable_type = $type;
-    $gl->loggable_id = $id;
-    $gl->save();
-}
-
-/**
- * is user try more than allowed or not
- *
- * @return bool
- */
-function isGuestMaxAttemptTry($action, $max = 5, $minutes = 60)
-{
-    if (\App\Models\GuestLog::where('ip', request()->ip())
-        ->where('action', $action)
-        ->where('created_at', '>', time() - ($minutes * 60))->count() >= $max) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-/**
  * home url to best experience for multi lang shops
  *
  * @return string

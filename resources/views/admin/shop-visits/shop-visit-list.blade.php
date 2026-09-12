@@ -10,6 +10,7 @@
 @section('filter')
 @endsection
 @section('bulk')
+    <option value="export">{{ __('Export CSV') }}</option>
 @endsection
 @section('list-foot')
     <a href="{{ route('admin.shop-visit.export') }}" class="btn btn-outline-primary mt-3">

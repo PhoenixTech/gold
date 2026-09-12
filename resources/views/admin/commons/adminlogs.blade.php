@@ -1,5 +1,14 @@
 @extends('admin.templates.panel-list-template-raw')
 
+@section('side-raw')
+    <form method="POST" action="{{ route('admin.adminlog.cleanup') }}" class="d-inline" onsubmit="return confirm('{{ __('Are you sure you want to delete logs older than 1 month?') }}');">
+        @csrf
+        <button type="submit" class="btn btn-outline-danger px-3">
+            <i class="ri-delete-bin-2-line me-1"></i>{{ __('Clean up older than 1 month') }}
+        </button>
+    </form>
+@endsection
+
 @section('table')
     <table class="table table-hover align-middle">
 
@@ -101,12 +110,15 @@
                                 </a>
                                 <ul class="dropdown-menu">
                                     @foreach($buttons as $btn => $btnData)
+                                        @php
+                                            $isDelete = strpos($btnData['class'], 'delete') !== false;
+                                            $dropItemClass = 'dropdown-item d-flex align-items-center gap-2 ' . ($isDelete ? 'delete-confirm text-danger' : 'text-dark');
+                                        @endphp
                                         <li>
-                                            <a class="dropdown-item {{$btnData['class']}}"
+                                            <a class="{{$dropItemClass}}"
                                                href="{{getRoute($btn,$item->{$item->getRouteKeyName()})}}">
                                                 <i class="{{$btnData['icon']}}"></i>
-                                                &nbsp;
-                                                {{__($btnData['title'])}}
+                                                <span>{{__($btnData['title'])}}</span>
                                             </a>
                                         </li>
                                     @endforeach
@@ -168,7 +180,7 @@
                     <div class="col-md-3 text-start">
                         <div
                             id="toggle-select"
-                            class="btn btn-outline-light mx-2"
+                            class="btn btn-sm btn-outline-secondary mx-2"
                             data-bs-toggle="tooltip"
                             data-bs-placement="top"
                             data-bs-custom-class="custom-tooltip"
@@ -190,15 +202,11 @@
 @endsection
 
 @section('filter')
-    <h2>
-        <i class="ri-shield-check-line"></i>
-        {{__("User filter")}}:
-    </h2>
     <searchable-multi-select
-        :items='{{\App\Models\User::all('id','name')}}'
+        :items='@json(\App\Models\User::all(['id', 'name']))'
         title-field="name"
         value-field="id"
         xname="filter[user_id]"
-        :xvalue='{{request()->input('filter.user_id','[]')}}'
-        :close-on-Select="true"></searchable-multi-select>
+        xtitle="{{ __('User') }}"
+        :xvalue='@json(request()->input('filter.user_id', []))'></searchable-multi-select>
 @endsection

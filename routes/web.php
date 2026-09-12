@@ -20,9 +20,9 @@ Route::prefix(config('app.panel.prefix'))->name('admin.')->group(
                     ->where('topic', '[a-z0-9\-]+');
 
                 Route::get('adminlogs', [\App\Http\Controllers\Admin\AdminLogController::class, 'index'])->name('adminlog.index');
+                Route::post('adminlogs/cleanup', [\App\Http\Controllers\Admin\AdminLogController::class, 'cleanup'])->name('adminlog.cleanup');
                 Route::get('adminlogs/{user}', [\App\Http\Controllers\Admin\AdminLogController::class, 'log'])->name('adminlog.show');
                 Route::post('ckeditor/upload', [\App\Http\Controllers\Admin\CkeditorController::class, 'upload'])->name('ckeditor.upload');
-                Route::get('guestlog', [\App\Http\Controllers\Admin\GuestLogController::class, 'index'])->name('guestlog.index');
                 Route::post('images/store/{gallery}', [\App\Http\Controllers\Admin\ImageController::class, 'store'])->name('image.store');
                 Route::get('images/destroy/{image}', [\App\Http\Controllers\Admin\ImageController::class, 'destroy'])->name('image.destroy');
                 Route::any('logout', [\App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
@@ -34,19 +34,6 @@ Route::prefix(config('app.panel.prefix'))->name('admin.')->group(
                         Route::post('add/{item}', [\App\Http\Controllers\Admin\AddressController::class, 'store'])->name('store');
                         Route::post('update/{item?}', [\App\Http\Controllers\Admin\AddressController::class, 'update'])->name('update');
                         Route::get('destroy/{item?}', [\App\Http\Controllers\Admin\AddressController::class, 'destroy'])->name('destroy');
-                    });
-                Route::prefix('adv')->name('adv.')->group(
-                    function () {
-                        Route::get('', [\App\Http\Controllers\Admin\AdvController::class, 'index'])->name('index');
-                        Route::get('create', [\App\Http\Controllers\Admin\AdvController::class, 'create'])->name('create');
-                        Route::post('store', [\App\Http\Controllers\Admin\AdvController::class, 'store'])->name('store');
-                        Route::get('show/{item}', [\App\Http\Controllers\Admin\AdvController::class, 'show'])->name('show');
-                        Route::get('edit/{item}', [\App\Http\Controllers\Admin\AdvController::class, 'edit'])->name('edit');
-                        Route::post('update/{item}', [\App\Http\Controllers\Admin\AdvController::class, 'update'])->name('update');
-                        Route::get('delete/{item}', [\App\Http\Controllers\Admin\AdvController::class, 'destroy'])->name('destroy');
-                        Route::get('restore/{item}', [\App\Http\Controllers\Admin\AdvController::class, 'restore'])->name('restore');
-                        Route::post('bulk', [\App\Http\Controllers\Admin\AdvController::class, 'bulk'])->name('bulk');
-                        Route::get('trashed', [\App\Http\Controllers\Admin\AdvController::class, 'trashed'])->name('trashed');
                     });
                 Route::prefix('attachments')->name('attachment.')->group(
                     function () {
@@ -315,18 +302,6 @@ Route::prefix(config('app.panel.prefix'))->name('admin.')->group(
                         Route::get('cache/clear', [\App\Http\Controllers\Admin\SettingController::class, 'cacheClear'])->name('cache-clear');
                     }
                 );
-                Route::prefix('sliders')->name('slider.')->group(
-                    function () {
-                        Route::get('', [\App\Http\Controllers\Admin\SliderController::class, 'index'])->name('index');
-                        Route::get('create', [\App\Http\Controllers\Admin\SliderController::class, 'create'])->name('create');
-                        Route::post('store', [\App\Http\Controllers\Admin\SliderController::class, 'store'])->name('store');
-                        Route::get('show/{item}', [\App\Http\Controllers\Admin\SliderController::class, 'show'])->name('show');
-                        Route::post('title/update', [\App\Http\Controllers\Admin\SliderController::class, 'updateTitle'])->name('title');
-                        Route::get('edit/{item}', [\App\Http\Controllers\Admin\SliderController::class, 'edit'])->name('edit');
-                        Route::post('update/{item}', [\App\Http\Controllers\Admin\SliderController::class, 'update'])->name('update');
-                        Route::get('delete/{item}', [\App\Http\Controllers\Admin\SliderController::class, 'destroy'])->name('destroy');
-                        Route::post('bulk', [\App\Http\Controllers\Admin\SliderController::class, 'bulk'])->name('bulk');
-                    });
                 Route::prefix('states')->name('state.')->group(
                     function () {
                         Route::get('', [\App\Http\Controllers\Admin\StateController::class, 'index'])->name('index');

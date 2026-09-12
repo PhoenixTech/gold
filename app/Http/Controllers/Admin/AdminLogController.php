@@ -39,5 +39,11 @@ class AdminLogController extends XController
         return redirect()->route('admin.adminlog.index',['filter[user_id]'=> '['.$item->id.']']);
     }
 
+    public function cleanup()
+    {
+        $count = AdminLog::where('created_at', '<=', now()->subMonth())->delete();
 
+        return redirect()->route('admin.adminlog.index')
+            ->with('message', __(':COUNT items deleted successfully', ['COUNT' => $count]));
+    }
 }

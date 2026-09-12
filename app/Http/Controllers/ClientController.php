@@ -148,7 +148,7 @@ class ClientController extends Controller
 
         $post = Post::where('slug', $slug)->firstOrFail();
 
-        if ($post->status = 0 && ! auth()->check()) {
+        if ($post->status == 0 && ! auth()->check()) {
             return abort(403);
         }
         $area = 'post';
@@ -169,7 +169,7 @@ class ClientController extends Controller
 
         $clip = Clip::where('slug', $slug)->firstOrFail();
 
-        if ($clip->status = 0 && ! auth()->check()) {
+        if ($clip->status == 0 && ! auth()->check()) {
             return abort(403);
         }
         $title = $clip->title;
@@ -187,7 +187,7 @@ class ClientController extends Controller
     {
 
         $gallery = Gallery::where('slug', $slug)->firstOrFail();
-        if ($gallery->status = 0 && ! auth()->check()) {
+        if ($gallery->status == 0 && ! auth()->check()) {
             return abort(403);
         }
         $title = $gallery->title;
@@ -421,13 +421,6 @@ class ClientController extends Controller
 
     public function search(Request $request)
     {
-
-        if (isGuestMaxAttemptTry('search', 5, 1)) {
-            return abort(403);
-        }
-
-        guestLog('search');
-
         $q = trim($request->input('q'));
         if (mb_strlen($q) < 3) {
             return abort(403, __('Search word is too short'));
@@ -484,7 +477,7 @@ class ClientController extends Controller
     {
 
         $product = Product::where('slug', $slug)->firstOrFail();
-        if ($product->status = 0 && ! auth()->check()) {
+        if ($product->status == 0 && ! auth()->check()) {
             return abort(403);
         }
         $title = $product->name;
@@ -652,12 +645,18 @@ class ClientController extends Controller
 
     public function attachDl($slug)
     {
-        $attachment = Attachment::where('slug', $slug)->firstOrFail();
-        $attachment->increment('downloads');
-        $file = (storage_path().'/app/public/attachments/'.$attachment->file);
+        $attachment = Attachment::where('slug', $slug)->orWhere('id', $slug)->firstOrFail();
+        if (!$attachment->file) {
+            abort(404);
+        }
+
+        $file = storage_path('app/public/attachments/' . $attachment->file);
         if (file_exists($file)) {
+            $attachment->increment('downloads');
             return response()->download($file);
         }
+
+        abort(404);
     }
 
     public function compare()
@@ -743,16 +742,6 @@ class ClientController extends Controller
 
         $wantsJson = $this->wantsJsonResponse($request);
 
-        if (isGuestMaxAttemptTry('email', 1, 5)) {
-            $msg = __('You try attempts, Try it a few minutes');
-
-            return $wantsJson
-                ? errors([], 429, $msg)
-                : redirect()->back()->withErrors($msg);
-        }
-
-        guestLog('email');
-
         $passwd = generateUniqueID(12);
         Mail::to($request->input('email'))->send(new AuthMail($passwd));
 
@@ -792,7 +781,6 @@ class ClientController extends Controller
 
     public function singInDo(Request $request)
     {
-        $max = 3;
         $request->validate([
             'email' => 'required|string|email|max:255',
             'password' => 'required|string|min:6',
@@ -800,15 +788,6 @@ class ClientController extends Controller
 
         $wantsJson = $this->wantsJsonResponse($request);
 
-        if (isGuestMaxAttemptTry('login', $max)) {
-            $msg = __('You try more than :COUNT attempts, Try it later', ['COUNT' => $max]);
-
-            return $wantsJson
-                ? errors([], 429, $msg)
-                : redirect()->back()->withErrors([$msg]);
-        }
-
-        guestLog('login');
         $customer = Customer::where('email', $request->input('email'));
         if ($customer->count() == 0) {
             $msg = __('Email or password is incorrect');
@@ -849,15 +828,6 @@ class ClientController extends Controller
 
     public function sendSms(Request $request)
     {
-
-        if (isGuestMaxAttemptTry('sms', 1, 2)) {
-            return [
-                'OK' => false,
-                'message' => __('You try attempts, Try it a few minutes'),
-                'error' => __('You try attempts, Try it a few minutes'),
-            ];
-        }
-        guestLog('sms');
         $customer = Customer::where('mobile', $request->input('tel'));
         $code = rand(11111, 99999);
 
@@ -896,17 +866,10 @@ class ClientController extends Controller
 
     public function checkAuth(Request $request)
     {
-        $max = 3;
         $request->validate([
             'tel' => 'required|string|min:6',
             'code' => 'required|string|min:5',
         ]);
-
-        if (isGuestMaxAttemptTry('login', $max)) {
-            return redirect()->back()->withErrors([__('You try more than :COUNT attempts, Try it later', ['COUNT' => $max])]);
-        }
-
-        guestLog('login');
 
         $customer = Customer::where('mobile', $request->input('tel'))
             ->where('code', $request->input('code'))->first();
@@ -1123,18 +1086,6 @@ class ClientController extends Controller
             'rateable_id' => ['required', 'integer'],
             'rateable_type' => ['required', 'string'],
         ]);
-
-        //        return $request->all();
-
-        if (isGuestMaxAttemptTry('rate', 5, 10)) {
-            return [
-                'OK' => false,
-                'message' => __('You try attempts, Try it a few minutes'),
-                'error' => __('You try attempts, Try it a few minutes'),
-            ];
-        }
-
-        guestLog('rate');
 
         $changed = false;
         foreach ($request->rate as $k => $rt) {

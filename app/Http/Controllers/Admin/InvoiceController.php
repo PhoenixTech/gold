@@ -32,9 +32,9 @@ class InvoiceController extends XController
 
     protected $buttons = [
         'edit' => ['title' => 'Edit', 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
-        'show' => ['title' => 'Detail', 'class' => 'btn-outline-light', 'icon' => 'ri-eye-line'],
+        'show' => ['title' => 'Detail', 'class' => 'btn-outline-secondary', 'icon' => 'ri-eye-line'],
         'print' => ['title' => 'Print', 'class' => 'btn-outline-secondary', 'icon' => 'ri-printer-line'],
-        'destroy' => ['title' => 'Remove', 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-close-line'],
+        'destroy' => ['title' => 'Remove', 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-delete-bin-line'],
     ];
 
     public function __construct()

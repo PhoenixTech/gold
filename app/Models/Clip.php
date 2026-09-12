@@ -43,7 +43,31 @@ class Clip extends Model
             return null;
         }
 
+        if (filter_var($this->file, FILTER_VALIDATE_URL)) {
+            return $this->file;
+        }
+
         return \Storage::url('clips/' . $this->file);
+    }
+
+    public function player()
+    {
+        if (empty($this->file)) {
+            return '<div class="text-center py-5 text-white-50"><i class="ri-video-line fs-1 d-block mb-2"></i>' . __('Video not available') . '</div>';
+        }
+
+        if (str_starts_with(trim($this->file), '<iframe')) {
+            return '<div class="ratio ratio-16x9">' . $this->file . '</div>';
+        }
+
+        $fileUrl = $this->fileUrl();
+        $coverUrl = $this->cover ? $this->imgUrl() : null;
+        $posterAttr = $coverUrl ? ' poster="' . e($coverUrl) . '"' : '';
+
+        return '<div id="video-preview-botz">' .
+            '<video controls playsinline class="w-100 d-block" style="max-height: 540px; background: #000;"' . $posterAttr . ' src="' . e($fileUrl) . '"></video>' .
+            '</div>' .
+            '<mp4player asset="' . e($fileUrl) . '"' . ($coverUrl ? ' cover="' . e($coverUrl) . '"' : '') . '></mp4player>';
     }
 
     public function author()

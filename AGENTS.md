@@ -2,7 +2,7 @@
 
 ## Localization & Persian (`fa`)
 - **Primary Language**: Persian (`XLANG_MAIN=fa`).
-- **Translation Rule**: Every `__('English Key')` must exist verbatim in `resources/lang/fa.json` with a natural Persian translation.
+- **Translation Rule**: Every `__('English Key')` must exist verbatim in `resources/lang/fa.json` with a natural Persian translation, no ai smell.
 - **Verification**: Ensure valid JSON in `resources/lang/fa.json` and clear cache via `php artisan optimize:clear`.
 
 ## Admin UI Patterns (Native Bootstrap 5)
