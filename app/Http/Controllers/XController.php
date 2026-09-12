@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Traits\HandlesAdminFilters;
+use App\Http\Controllers\Traits\HandlesAdminSlugs;
+use App\Http\Controllers\Traits\HandlesAdminUploads;
 use App\Http\Requests\UserSaveRequest;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
@@ -9,6 +12,9 @@ use Illuminate\Http\Request;
 
 abstract class XController extends Controller
 {
+    use HandlesAdminFilters;
+    use HandlesAdminSlugs;
+    use HandlesAdminUploads;
 
     protected $_MODEL_ = User::class;
     protected $SAVE_REQUEST = UserSaveRequest::class;
@@ -16,31 +22,171 @@ abstract class XController extends Controller
     protected $extra_cols = ['id'];
     protected $listView = 'admin.users.user-list';
     protected $formView = 'admin.users.user-form';
-
     protected $searchable = [];
+
+    protected $buttons = [
+        'edit' => ['title' => 'Edit', 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
+        'destroy' => ['title' => 'Remove', 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-delete-bin-line'],
+    ];
 
     public function __construct($model = null, $request = null)
     {
-        if ($model != null) {
+        if ($model !== null) {
             $this->_MODEL_ = $model;
         }
-        if ($request != null) {
+        if ($request !== null) {
             $this->SAVE_REQUEST = $request;
         }
     }
 
-
-    protected $buttons = [
-        'edit' =>
-            ['title' => "Edit", 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
-        'destroy' =>
-            ['title' => "Remove", 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-delete-bin-line'],
-    ];
-
-
+    /**
+     * Child classes should persist and return the model item.
+     */
     public function save($item, $request)
     {
+        return $item;
+    }
 
+    // =========================================================================
+    // Core List & Resource Actions
+    // =========================================================================
+
+    public function index()
+    {
+        $query = $this->makeSortAndFilter();
+        return $this->showList($query);
+    }
+
+    public function store(Request $request)
+    {
+        $saveRequest = $this->resolveSaveRequest($request);
+        $item = new ($this->_MODEL_)();
+        $savedItem = $this->save($item, $saveRequest);
+        logAdmin(__METHOD__, $this->_MODEL_, $savedItem->id);
+
+        return $this->respondAfterSave($savedItem, __('As you wished created successfully'));
+    }
+
+    public function show($item)
+    {
+        $target = $this->resolveItem($item);
+        if ($target && method_exists($target, 'webUrl')) {
+            return redirect($target->webUrl());
+        }
+    }
+
+    public function trashed()
+    {
+        $query = $this->makeSortAndFilter()->onlyTrashed();
+        return $this->showList($query);
+    }
+
+    public function bulk(Request $request)
+    {
+        $data = explode('.', (string) $request->input('action'));
+        $action = $data[0];
+        $ids = (array) $request->input('id', []);
+
+        switch ($action) {
+            case 'delete':
+                $this->_MODEL_::destroy($ids);
+                $msg = __(':COUNT items deleted successfully', ['COUNT' => count($ids)]);
+                break;
+
+            case 'restore':
+                foreach ($ids as $id) {
+                    $this->_MODEL_::withTrashed()->find($id)?->restore();
+                }
+                $msg = __(':COUNT items restored successfully', ['COUNT' => count($ids)]);
+                break;
+
+            default:
+                $msg = __('Unknown bulk action : :ACTION', ['ACTION' => $action]);
+        }
+
+        return $this->do_bulk($msg, $action, $ids);
+    }
+
+    // =========================================================================
+    // CRUD Handlers (Invoked directly or through fallback __call)
+    // =========================================================================
+
+    public function bringUp(Request $request, $item)
+    {
+        $target = $this->resolveItem($item);
+        $saveRequest = $this->resolveSaveRequest($request);
+        $savedItem = $this->save($target, $saveRequest);
+        logAdmin(__METHOD__, $this->_MODEL_, $savedItem->id);
+
+        return $this->respondAfterSave($savedItem, __('As you wished updated successfully'));
+    }
+
+    public function delete($item)
+    {
+        $target = $this->resolveItem($item);
+        if ($target) {
+            logAdmin(__METHOD__, $this->_MODEL_, $target->id);
+            $target->delete();
+        }
+
+        return redirect()->back()->with(['message' => __('As you wished removed successfully')]);
+    }
+
+    public function restoreing($item)
+    {
+        if ($item instanceof Model) {
+            $target = $item;
+        } else {
+            $dummy = new ($this->_MODEL_);
+            $routeKey = $dummy->getRouteKeyName();
+            $target = $this->_MODEL_::withTrashed()->where($routeKey, $item)->first()
+                ?? $this->_MODEL_::withTrashed()->find($item);
+        }
+
+        if ($target) {
+            logAdmin(__METHOD__, $this->_MODEL_, $target->id);
+            $target->restore();
+        }
+
+        return redirect()->back()->with(['message' => __('As you wished restored successfully')]);
+    }
+
+    // =========================================================================
+    // Dynamic Fallback for standard methods (create, edit, update, destroy, restore)
+    // Allows child controllers to omit them without signature conflict errors.
+    // =========================================================================
+
+    public function __call($method, $parameters)
+    {
+        switch ($method) {
+            case 'create':
+                return view($this->formView);
+
+            case 'edit':
+                $item = $this->resolveItem($parameters[0] ?? null);
+                return view($this->formView, compact('item'));
+
+            case 'update':
+                return $this->bringUp($parameters[0], $parameters[1]);
+
+            case 'destroy':
+                return $this->delete($parameters[0]);
+
+            case 'restore':
+                return $this->restoreing($parameters[0]);
+        }
+
+        return parent::__call($method, $parameters);
+    }
+
+    // =========================================================================
+    // Helper Methods
+    // =========================================================================
+
+    protected function do_bulk($msg, $action, $ids)
+    {
+        logAdminBatch(__METHOD__ . '.' . $action, $this->_MODEL_, $ids);
+        return redirect()->back()->with(['message' => $msg]);
     }
 
     protected function showList($query)
@@ -49,272 +195,54 @@ abstract class XController extends Controller
             $this->extra_cols[] = 'deleted_at';
         }
 
-        $quickCounts = [];
-        try {
-            $model = new ($this->_MODEL_);
-            $table = $model->getTable();
-            $quickCounts['all'] = $this->_MODEL_::count();
+        $quickCounts = $this->getQuickCounts();
 
-            if (\Illuminate\Support\Facades\Schema::hasColumn($table, 'metal_type')) {
-                $quickCounts['gold'] = $this->_MODEL_::where('metal_type', 'gold')->count();
-                $quickCounts['silver'] = $this->_MODEL_::where('metal_type', 'silver')->count();
-            }
-            if (\Illuminate\Support\Facades\Schema::hasColumn($table, 'min_stock_level') && \Illuminate\Support\Facades\Schema::hasColumn($table, 'stock_quantity')) {
-                $quickCounts['low_stock'] = $this->_MODEL_::where('min_stock_level', '>', 0)
-                    ->whereColumn('stock_quantity', '<', 'min_stock_level')
-                    ->count();
-            }
-            if (\Illuminate\Support\Facades\Schema::hasColumn($table, 'buy_price') && \Illuminate\Support\Facades\Schema::hasColumn($table, 'price')) {
-                $quickCounts['below_buy_price'] = $this->_MODEL_::where('buy_price', '>', 0)
-                    ->whereColumn('price', '<', 'buy_price')
-                    ->count();
-            }
-            if (\Illuminate\Support\Facades\Schema::hasColumn($table, 'status')) {
-                $sample = $this->_MODEL_::whereNotNull('status')->first();
-                if ($sample && (is_numeric($sample->status) || in_array(strtolower((string)$sample->status), ['0', '1', 'published', 'draft']))) {
-                    $quickCounts['published'] = $this->_MODEL_::whereIn('status', [1, '1', 'published'])->count();
-                    $quickCounts['draft'] = $this->_MODEL_::whereIn('status', [0, '0', 'draft'])->count();
-                }
-            }
-            if (in_array(\Illuminate\Database\Eloquent\SoftDeletes::class, class_uses_recursive($model))) {
-                $quickCounts['trashed'] = $this->_MODEL_::onlyTrashed()->count();
-            }
-        } catch (\Throwable $e) {
-            $quickCounts = [];
-        }
+        $items = $query->paginate(
+            config('app.panel.page_count', 15),
+            array_merge($this->extra_cols, $this->cols)
+        );
 
-        $items = $query->paginate(config('app.panel.page_count'),
-            array_merge($this->extra_cols, $this->cols));
         $cols = $this->cols;
         $buttons = $this->buttons;
+
         return view($this->listView, compact('items', 'cols', 'buttons', 'quickCounts'));
     }
 
-    protected function makeSortAndFilter()
+    protected function resolveItem($item)
     {
-
-
-        if (!\request()->has('sort') || !in_array(\request('sort'), $this->cols)) {
-            $query = $this->_MODEL_::orderByDesc('id');
-        } else {
-            $query = $this->_MODEL_::orderBy(\request('sort'), \request('sortType', 'asc'));
+        if ($item instanceof Model) {
+            return $item;
         }
 
-        foreach (\request()->input('filter', []) as $col => $filter) {
-            if (is_array($filter)) {
-                $cleanFilter = array_filter($filter, fn($v) => $v !== null && $v !== '');
-                if (count($cleanFilter) > 0) {
-                    $query->whereIn($col, $cleanFilter);
-                }
-            } elseif (is_string($filter) && isJson($filter)) {
-                $vals = json_decode($filter, true);
-                if (is_array($vals)) {
-                    $cleanVals = array_filter($vals, fn($v) => $v !== null && $v !== '');
-                    if (count($cleanVals) > 0) {
-                        $query->whereIn($col, $cleanVals);
-                    }
-                } else {
-                    $query->where($col, $vals);
-                }
-            } else {
-                if ($filter !== null && $filter !== '') {
-                    $query->where($col, $filter);
-                }
-            }
+        $dummy = new ($this->_MODEL_);
+        $routeKey = $dummy->getRouteKeyName();
+
+        return $this->_MODEL_::where($routeKey, $item)->first()
+            ?? $this->_MODEL_::find($item);
+    }
+
+    protected function resolveSaveRequest(Request $request): Request
+    {
+        if ($this->SAVE_REQUEST && class_exists($this->SAVE_REQUEST)) {
+            return app()->make($this->SAVE_REQUEST)->merge($request->all());
         }
 
-        if (mb_strlen(trim(\request()->input('q', ''))) > 0) {
-            foreach ($this->searchable as $col) {
-                $query->where(function ($query) {
-                    foreach ($this->searchable as $key => $col) {
-                        if ($key === 0) {
-                            $query->where($col, 'LIKE', '%' . \request()->input('q', '') . '%');
-                        } else {
-                            $query->orWhere($col, 'LIKE', '%' . \request()->input('q', '') . '%');
-                        }
-                    }
-                });
-            }
-        }
-        return $query;
+        return $request;
     }
 
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    protected function respondAfterSave($item, string $message)
     {
-
-        $query = $this->makeSortAndFilter();
-        return $this->showList($query);
-
-    }
-
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-
-        $validatedRequest = app()->make($this->SAVE_REQUEST)->merge($request->all());
-
-        $item = new ($this->_MODEL_)();
-        $item = $this->save($item, $request);
-        logAdmin(__METHOD__, $this->_MODEL_, $item->id);
-
-        if ($request->ajax()) {
-            return ['OK' => true, "message" => __('As you wished created successfully'),
-                "id" => $item->id,
-                "data" => modelWithCustomAttrs($item) ,
-                'url' => getRoute('edit', $item->{$item->getRouteKeyName()})];
-        } else {
-            return redirect(getRoute('edit', $item->{$item->getRouteKeyName()}))
-                ->with(['message' => __('As you wished created successfully')]);
-        }
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show($item)
-    {
-        $x = new $this->_MODEL_();
-        $m = $this->_MODEL_::where($x->getRouteKeyName(), $item)->first();
-        //
-        if (method_exists($m,'webUrl')){
-            return redirect($m->webUrl());
-        }
-    }
-
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function bringUp(Request $request, $item)
-    {
-        //
-
-        $validatedRequest = app()->make($this->SAVE_REQUEST)->merge($request->all());
-        $item = $this->save($item, $request);
-        logAdmin(__METHOD__, $this->_MODEL_, $item->id);
-
-        if ($request->ajax()) {
-            return ['OK' => true,
-                "data" => modelWithCustomAttrs($item) ,
-                "message" => __('As you wished updated successfully'), "id" => $item->id];
-        } else {
-            return redirect(getRoute('edit', $item->{$item->getRouteKeyName()}))
-                ->with(['message' => __('As you wished updated successfully')]);
-        }
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function delete($item)
-    {
-        //
-        logAdmin(__METHOD__, $this->_MODEL_, $item->id);
-        $item->delete();
-        return redirect()->back()->with(['message' => __('As you wished removed successfully')]);
-    }
-
-    /**
-     * restore removed the specified resource from storage.
-     */
-    public function restoreing($item)
-    {
-        //
-        logAdmin(__METHOD__, $this->_MODEL_, $item->id);
-        $item->restore();
-        return redirect()->back()->with(['message' => __('As you wished restored successfully')]);
-    }
-
-
-    /**
-     * Show list of trashed
-     */
-    public function trashed()
-    {
-        $query = $this->makeSortAndFilter()->onlyTrashed();
-        return $this->showList($query);
-    }
-
-    /**
-     * do bulk actions
-     * @param $msg
-     * @param $action
-     * @param $ids
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    protected function do_bulk($msg, $action, $ids)
-    {
-        logAdminBatch(__METHOD__ . '.' . $action, $this->_MODEL_, $ids);
-        return redirect()->back()->with(['message' => $msg]);
-    }
-
-    /**
-     * @param $key request key as column's name
-     * @param $model Model
-     * @param $folder string save directory name
-     * @return string|null
-     */
-    public function storeFile($key, $model, $folder)
-    {
-        if (\request()->hasFile($key)) {
-            $name = time() . '-' . request()->file($key)->getClientOriginalName() ;
-            request()->file($key)->storeAs('public/' . $folder, $name);
-            return $name;
-        }
-        return null;
-    }
-
-    /**
-     * @param $model Model
-     * @param $key string key of slug request
-     * @param $name base slug col
-     * @return void
-     */
-    public function getSlug($model, $key = 'slug', $name = 'name')
-    {
-        if (!\request()->has('slug') || request()->input('slug') == null) {
-            $slug = sluger($model->$name);
-        } else {
-            $slug = sluger(\request()->input($key, $model->$name));
+        if (request()->ajax()) {
+            return [
+                'OK' => true,
+                'message' => $message,
+                'id' => $item->id,
+                'data' => modelWithCustomAttrs($item),
+                'url' => getRoute('edit', $item->{$item->getRouteKeyName()}),
+            ];
         }
 
-        return $this->createUniqueSlug($slug,$model->id);
+        return redirect(getRoute('edit', $item->{$item->getRouteKeyName()}))
+            ->with(['message' => $message]);
     }
-
-
-    /**
-     * create unique slug
-     * @param $slug
-     * @param $id integer|null
-     * @return mixed|string
-     */
-    public function createUniqueSlug($slug,$id = null)
-    {
-        $originalSlug = $slug;
-        $counter = 1;
-
-        $q  = $this->_MODEL_::where('slug', $slug);
-        if ($id != null){
-            $q = $q->where('id','<>',$id);
-        }
-
-        while ($q->count() > 0) {
-            $slug = $originalSlug . '-' . $counter;
-            $counter++;
-            $q  = $this->_MODEL_::where('slug', $slug);
-            if ($id != null){
-                $q = $q->where('id','<>',$id);
-            }
-        }
-
-        return $slug;
-    }
-
 }
