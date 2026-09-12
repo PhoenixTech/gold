@@ -65,19 +65,6 @@ Route::prefix(config('app.panel.prefix'))->name('admin.')->group(
                         Route::post('sort/save', [\App\Http\Controllers\Admin\CategoryController::class, 'sortSave'])->name('sort-save');
                         Route::get('sort', [\App\Http\Controllers\Admin\CategoryController::class, 'sort'])->name('sort');
                     });
-                Route::prefix('cities')->name('city.')->group(
-                    function () {
-                        Route::get('', [\App\Http\Controllers\Admin\CityController::class, 'index'])->name('index');
-                        Route::get('create', [\App\Http\Controllers\Admin\CityController::class, 'create'])->name('create');
-                        Route::post('store', [\App\Http\Controllers\Admin\CityController::class, 'store'])->name('store');
-                        Route::get('show/{item}', [\App\Http\Controllers\Admin\CityController::class, 'show'])->name('show');
-                        Route::get('edit/{item}', [\App\Http\Controllers\Admin\CityController::class, 'edit'])->name('edit');
-                        Route::post('update/{item}', [\App\Http\Controllers\Admin\CityController::class, 'update'])->name('update');
-                        Route::get('delete/{item}', [\App\Http\Controllers\Admin\CityController::class, 'destroy'])->name('destroy');
-                        Route::get('restore/{item}', [\App\Http\Controllers\Admin\CityController::class, 'restore'])->name('restore');
-                        Route::post('bulk', [\App\Http\Controllers\Admin\CityController::class, 'bulk'])->name('bulk');
-                        Route::get('trashed', [\App\Http\Controllers\Admin\CityController::class, 'trashed'])->name('trashed');
-                    });
                 Route::prefix('clips')->name('clip.')->group(
                     function () {
                         Route::get('', [\App\Http\Controllers\Admin\ClipController::class, 'index'])->name('index');
@@ -302,19 +289,6 @@ Route::prefix(config('app.panel.prefix'))->name('admin.')->group(
                         Route::get('cache/clear', [\App\Http\Controllers\Admin\SettingController::class, 'cacheClear'])->name('cache-clear');
                     }
                 );
-                Route::prefix('states')->name('state.')->group(
-                    function () {
-                        Route::get('', [\App\Http\Controllers\Admin\StateController::class, 'index'])->name('index');
-                        Route::get('create', [\App\Http\Controllers\Admin\StateController::class, 'create'])->name('create');
-                        Route::post('store', [\App\Http\Controllers\Admin\StateController::class, 'store'])->name('store');
-                        Route::get('show/{item}', [\App\Http\Controllers\Admin\StateController::class, 'show'])->name('show');
-                        Route::get('edit/{item}', [\App\Http\Controllers\Admin\StateController::class, 'edit'])->name('edit');
-                        Route::post('update/{item}', [\App\Http\Controllers\Admin\StateController::class, 'update'])->name('update');
-                        Route::get('delete/{item}', [\App\Http\Controllers\Admin\StateController::class, 'destroy'])->name('destroy');
-                        Route::get('restore/{item}', [\App\Http\Controllers\Admin\StateController::class, 'restore'])->name('restore');
-                        Route::post('bulk', [\App\Http\Controllers\Admin\StateController::class, 'bulk'])->name('bulk');
-                        Route::get('trashed', [\App\Http\Controllers\Admin\StateController::class, 'trashed'])->name('trashed');
-                    });
                 Route::prefix('tags')->name('tag.')->group(
                     function () {
                         Route::get('', [\App\Http\Controllers\Admin\TagController::class, 'index'])->name('index');
