@@ -23,14 +23,10 @@
             </p>
         @endif
 
-        <div class="mt-auto pt-3 border-top border-light-subtle d-flex align-items-center justify-content-between text-muted fs-12">
+        <div class="mt-auto pt-3 border-top border-light-subtle d-flex align-items-center text-muted fs-12">
             <span class="d-inline-flex align-items-center">
                 <i class="ri-calendar-line text-warning me-1"></i>
                 {{$post->created_at->format('Y/m/d')}}
-            </span>
-            <span class="d-inline-flex align-items-center">
-                <i class="ri-eye-line text-warning me-1"></i>
-                {{number_format($post->view)}}
             </span>
         </div>
     </div>

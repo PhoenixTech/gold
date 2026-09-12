@@ -154,7 +154,6 @@ class ClientController extends Controller
         $area = 'post';
         $title = $post->title;
         $subtitle = $post->subtitle;
-        $post->increment('view');
         $breadcrumb = [
             __('Posts') => postsUrl(),
             $post->mainGroup->name => $post->mainGroup->webUrl(),

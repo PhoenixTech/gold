@@ -18,7 +18,7 @@ class PostController extends XController
     // protected  $_MODEL_ = Post::class;
     // protected  $SAVE_REQUEST = PostSaveRequest::class;
 
-    protected $cols = ['title','hash','view','status'];
+    protected $cols = ['title','hash','status'];
     protected $extra_cols = ['id', 'slug'];
 
     protected $searchable = ['title','subtitle','body'];

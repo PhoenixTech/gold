@@ -61,10 +61,6 @@
                             <span>{{__("Time spend")}}: {{$post->spendTime()}}</span>
                         </div>
                         <div class="d-flex align-items-center gap-1">
-                            <i class="ri-eye-line text-primary"></i>
-                            <span>{{number_format($post->view)}} {{__("views")}}</span>
-                        </div>
-                        <div class="d-flex align-items-center gap-1">
                             <i class="ri-chat-3-line text-primary"></i>
                             <span>{{number_format($post->approvedComments()->count())}} {{__("Comments")}}</span>
                         </div>

@@ -132,14 +132,10 @@
                                                 {{$post->subtitle}}
                                             </p>
                                         @endif
-                                        <div class="mt-auto pt-3 border-top d-flex align-items-center justify-content-between text-muted fs-13">
+                                        <div class="mt-auto pt-3 border-top d-flex align-items-center text-muted fs-13">
                                             <span class="d-inline-flex align-items-center">
                                                 <i class="ri-calendar-line text-primary me-1"></i>
                                                 {{$post->created_at->ldate('Y/m/d')}}
-                                            </span>
-                                            <span class="d-inline-flex align-items-center">
-                                                <i class="ri-eye-line text-primary me-1"></i>
-                                                {{number_format($post->view)}}
                                             </span>
                                         </div>
                                     </div>

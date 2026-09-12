@@ -553,11 +553,6 @@ class Product extends Model implements HasMedia
     "priceCurrency": "$currency",
     "price": "{{$this->price}}"
   },
-   "interactionStatistic": {
-    "@type": "InteractionCounter",
-    "interactionType": "http://schema.org/PlayAction",
-    "userInteractionCount": {$this->view}
-  },
   "aggregateRating": {
     "@type": "AggregateRating",
     "ratingValue": "{$this->average_rating}",
