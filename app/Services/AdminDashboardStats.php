@@ -51,7 +51,7 @@ class AdminDashboardStats
             'monthlySales' => (int) Invoice::query()->soldThisMonth()->sum('total_price'),
             'monthlyVisitors' => Visitor::query()->where('created_at', '>=', now()->subMonth())->count(),
             'bankAccount' => BankAccount::activeAccount(),
-            'recentInvoices' => Invoice::query()->with('customer')->latest('id')->limit(8)->get(),
+            'recentInvoices' => Invoice::query()->with('customer')->withCount('paymentReceipts')->latest('id')->limit(8)->get(),
             'today' => now()->ldate('Y/m/d'),
             'stockStats' => $this->stockStats(),
             'soldStats' => $this->soldStats(),
@@ -72,6 +72,7 @@ class AdminDashboardStats
             'salesSummary' => $this->salesSummary(),
             'recentSales' => Invoice::query()
                 ->with('customer')
+                ->withCount('paymentReceipts')
                 ->whereIn('status', $this->successfulInvoiceStatuses())
                 ->latest('id')
                 ->limit(6)

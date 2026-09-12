@@ -242,6 +242,11 @@ function logAdmin($method, $cls, $id): void
 
 function gfx()
 {
+    static $gfxCache = null;
+    if ($gfxCache !== null) {
+        return $gfxCache;
+    }
+
     $defaults = [
         'container' => 'container',
         'dark' => 0,
@@ -255,7 +260,8 @@ function gfx()
     try {
         $db = \App\Models\Gfx::pluck('value', 'key')->toArray();
 
-        return array_merge($defaults, $db);
+        $gfxCache = array_merge($defaults, $db);
+        return $gfxCache;
     } catch (\Throwable $e) {
         return $defaults;
     }
@@ -664,6 +670,29 @@ function validateSettingRequest($setting, $newValue)
     return $newValue;
 }
 
+function clearSettingsCache()
+{
+    getAllSettings(true);
+}
+
+function getAllSettings($fresh = false)
+{
+    static $settings = null;
+    if ($fresh || $settings === null) {
+        try {
+            if (! \Schema::hasTable('settings')) {
+                $settings = collect();
+                return $settings;
+            }
+            $settings = Setting::all()->keyBy('key');
+        } catch (\Throwable $e) {
+            $settings = collect();
+        }
+    }
+
+    return $settings;
+}
+
 /***
  * get setting by key
  * @param string $key setting key
@@ -671,16 +700,13 @@ function validateSettingRequest($setting, $newValue)
  */
 function getSetting($key)
 {
-    try {
-        if (! \Schema::hasTable('settings')) {
-            return false;
-        }
-    } catch (\Throwable $e) {
+    $settings = getAllSettings();
+    if ($settings->isEmpty() && ! \Schema::hasTable('settings')) {
         return false;
     }
-    $x = Setting::where('key', $key)->first();
+
+    $x = $settings->get($key);
     if ($x == null) {
-        //        $a = new \stdClass();
         return '';
     }
 
@@ -744,10 +770,10 @@ function nestedWithData($items, $parent_id = null)
  */
 function getSettingsGroup($group)
 {
+    $settings = getAllSettings();
     $result = [];
-    foreach (Setting::where('key', 'LIKE', $group.'%')
-        ->whereNotNull('value')->get(['key', 'value']) as $r) {
-        if ($r->value != null && $r->value != '') {
+    foreach ($settings as $r) {
+        if (str_starts_with($r->key, $group) && $r->value !== null && $r->value !== '') {
             $result[substr($r->key, mb_strlen($group))] = $r->value;
         }
     }
@@ -817,7 +843,35 @@ function getMenuBySettingItems($key)
         $r = Menu::first();
     }
 
-    return $r->items;
+    return $r ? $r->items : [];
+}
+
+/**
+ * get primary navigation menu memoized for current request with eager-loaded relations
+ */
+function getPrimaryMenu($fresh = false): ?\App\Models\Menu
+{
+    static $menu = false;
+    if ($fresh || $menu === false) {
+        $menu = \App\Models\Menu::with(['items.dest'])->first();
+    }
+
+    return $menu;
+}
+
+function clearMenuCache(): void
+{
+    getPrimaryMenu(true);
+}
+
+/**
+ * get primary navigation menu items memoized for current request
+ */
+function getPrimaryMenuItems($fresh = false): \Illuminate\Support\Collection
+{
+    $menu = getPrimaryMenu($fresh);
+
+    return ($menu && $menu->items) ? collect($menu->items) : collect();
 }
 
 /**
@@ -1151,6 +1205,11 @@ function cardItems(): array
         ->get()
         ->keyBy('id');
 
+    $quantityIdsClean = array_values(array_filter($quantityIds));
+    $pieces = !empty($quantityIdsClean)
+        ? \App\Models\Quantity::query()->whereIn('id', $quantityIdsClean)->get()->keyBy('id')
+        : collect();
+
     $lines = [];
     foreach ($cardIds as $index => $productId) {
         $product = $products->get($productId);
@@ -1163,9 +1222,7 @@ function cardItems(): array
         $selected = null;
 
         if ($selectedId !== null && $selectedId !== '') {
-            $piece = $product->quantities()
-                ->whereKey($selectedId)
-                ->first();
+            $piece = $pieces->get($selectedId);
 
             if ($piece !== null) {
                 $selected = (new \App\Http\Resources\QunatityCollection($piece))->resolve();

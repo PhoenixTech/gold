@@ -72,11 +72,13 @@ class ClientController extends Controller
         }
 
         $latestProducts = Product::where('status', 1)
+            ->with(['category', 'availableQuantities', 'activeDiscounts', 'media'])
             ->orderByDesc('id')
             ->take(8)
             ->get();
 
         $latestPosts = Post::where('status', 1)
+            ->with('mainGroup')
             ->orderByDesc('id')
             ->take(4)
             ->get();
@@ -146,7 +148,7 @@ class ClientController extends Controller
     public function post($slug)
     {
 
-        $post = Post::where('slug', $slug)->firstOrFail();
+        $post = Post::where('slug', $slug)->with('mainGroup')->firstOrFail();
 
         if ($post->status == 0 && ! auth()->check()) {
             return abort(403);
@@ -205,6 +207,7 @@ class ClientController extends Controller
         $title = __('Posts list');
         $subtitle = '';
         $posts = Post::where('status', 1)
+            ->with('mainGroup')
             ->orderByDesc('id')->paginate($this->paginate);
 
         return view('client.posts.index', compact('posts', 'title', 'subtitle'));
@@ -216,7 +219,7 @@ class ClientController extends Controller
         $title = __('Products list');
         $subtitle = '';
 
-        $query = Product::query()->where('status', 1);
+        $query = Product::query()->where('status', 1)->with(['category', 'availableQuantities', 'activeDiscounts', 'media']);
 
         // Keyword Search
         if ($request->filled('q')) {
@@ -449,11 +452,15 @@ class ClientController extends Controller
     public function group($slug)
     {
 
-        $group = Group::where('slug', $slug)->firstOrFail();
+        $group = Group::where('slug', $slug)->with('parent')->firstOrFail();
         $area = 'group';
         $title = $group->name;
         $subtitle = $group->subtitle;
-        $posts = $group->posts()->where('status', 1)->orderByDesc('id')->paginate($this->paginate);
+        $posts = $group->posts()
+            ->where('status', 1)
+            ->with('mainGroup')
+            ->orderByDesc('id')
+            ->paginate($this->paginate);
 
         if ($group->parent_id == null) {
             $breadcrumb = [
@@ -475,7 +482,9 @@ class ClientController extends Controller
     public function product($slug)
     {
 
-        $product = Product::where('slug', $slug)->firstOrFail();
+        $product = Product::where('slug', $slug)
+            ->with(['category.parent', 'media', 'availableQuantities', 'activeDiscounts'])
+            ->firstOrFail();
         if ($product->status == 0 && ! auth()->check()) {
             return abort(403);
         }
@@ -495,10 +504,12 @@ class ClientController extends Controller
 
     public function category($slug, Request $request)
     {
-        $category = Category::where('slug', $slug)->firstOrFail();
+        $category = Category::where('slug', $slug)->with(['parent', 'children'])->firstOrFail();
         $title = $category->name;
         $subtitle = $category->subtitle;
-        $query = $category->products()->where('status', 1);
+        $query = $category->products()
+            ->where('status', 1)
+            ->with(['category', 'availableQuantities', 'activeDiscounts', 'media']);
 
         // Keyword Search inside Category
         if ($request->filled('q')) {

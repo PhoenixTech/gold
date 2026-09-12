@@ -458,26 +458,36 @@
         </div>
 
         <!-- Related Products Section -->
-        @if($product->category && $product->category->products()->where('status', 1)->where('id', '<>', $product->id)->count() > 0)
-            <div class="related-products-section mb-4">
-                <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
-                    <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2 fs-18">
-                        <i class="ri-grid-fill text-warning"></i>
-                        <span>{{__("Related products")}}</span>
-                    </h5>
-                    <a href="{{$product->category->webUrl()}}" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1.5">
-                        <span>{{__("View category")}}</span>
-                        <i class="ri-arrow-left-line"></i>
-                    </a>
+        @if($product->category)
+            @php
+                $relatedProducts = $product->category->products()
+                    ->where('status', 1)
+                    ->where('id', '<>', $product->id)
+                    ->with(['category', 'availableQuantities', 'activeDiscounts'])
+                    ->take(4)
+                    ->get();
+            @endphp
+            @if($relatedProducts->isNotEmpty())
+                <div class="related-products-section mb-4">
+                    <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
+                        <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2 fs-18">
+                            <i class="ri-grid-fill text-warning"></i>
+                            <span>{{__("Related products")}}</span>
+                        </h5>
+                        <a href="{{$product->category->webUrl()}}" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1.5">
+                            <span>{{__("View category")}}</span>
+                            <i class="ri-arrow-left-line"></i>
+                        </a>
+                    </div>
+                    <div class="row g-3 g-md-4">
+                        @foreach($relatedProducts as $relatedProduct)
+                            <div class="col-6 col-md-4 col-lg-3">
+                                @include('client.partials.product-card', ['product' => $relatedProduct])
+                            </div>
+                        @endforeach
+                    </div>
                 </div>
-                <div class="row g-3 g-md-4">
-                    @foreach($product->category->products()->where('status', 1)->where('id', '<>', $product->id)->take(4)->get() as $relatedProduct)
-                        <div class="col-6 col-md-4 col-lg-3">
-                            @include('client.partials.product-card', ['product' => $relatedProduct])
-                        </div>
-                    @endforeach
-                </div>
-            </div>
+            @endif
         @endif
     </div>
 

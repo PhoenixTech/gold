@@ -272,6 +272,10 @@ class Product extends Model implements HasMedia
 
     public function firstAvailableQuantity(): ?Quantity
     {
+        if ($this->relationLoaded('availableQuantities')) {
+            return $this->availableQuantities->first();
+        }
+
         return $this->availableQuantities()->first();
     }
 
@@ -308,6 +312,10 @@ class Product extends Model implements HasMedia
     {
         if (! $this->isAvailable()) {
             return false;
+        }
+
+        if ($this->relationLoaded('activeDiscounts')) {
+            return $this->activeDiscounts->isNotEmpty();
         }
 
         return $this->discounts()
@@ -447,11 +455,15 @@ class Product extends Model implements HasMedia
         }
 
         if ($this->hasDiscount()) {
-            $d = $this->activeDiscounts()->first();
-            if ($d->type == 'PRICE') {
-                $price -= $d->amount;
-            } else {
-                $price = ((100 - $d->amount) * $price) / 100;
+            $d = $this->relationLoaded('activeDiscounts')
+                ? $this->activeDiscounts->first()
+                : $this->activeDiscounts()->first();
+            if ($d) {
+                if ($d->type == 'PRICE') {
+                    $price -= $d->amount;
+                } else {
+                    $price = ((100 - $d->amount) * $price) / 100;
+                }
             }
         }
 
@@ -487,11 +499,11 @@ class Product extends Model implements HasMedia
     public function isFav(): int
     {
         if (auth('customer')->check()) {
-            return auth('customer')->user()->favorites()->where('product_id', $this->id)->exists() ? 1 : 0;
+            return isset(auth('customer')->user()->favoriteProductIds()[$this->id]) ? 1 : 0;
         }
 
         if (auth('web')->check()) {
-            return auth('web')->user()->favorites()->where('product_id', $this->id)->exists() ? 1 : 0;
+            return isset(auth('web')->user()->favoriteProductIds()[$this->id]) ? 1 : 0;
         }
 
         return -1;
@@ -505,11 +517,11 @@ class Product extends Model implements HasMedia
     public function isBookmarked(): int
     {
         if (auth('customer')->check()) {
-            return auth('customer')->user()->bookmarks()->where('product_id', $this->id)->exists() ? 1 : 0;
+            return isset(auth('customer')->user()->bookmarkProductIds()[$this->id]) ? 1 : 0;
         }
 
         if (auth('web')->check()) {
-            return auth('web')->user()->bookmarks()->where('product_id', $this->id)->exists() ? 1 : 0;
+            return isset(auth('web')->user()->bookmarkProductIds()[$this->id]) ? 1 : 0;
         }
 
         return -1;

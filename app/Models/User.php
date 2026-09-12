@@ -92,9 +92,21 @@ class User extends Authenticatable
         return $this->hasMany(Product::class);
     }
 
+    protected ?array $memoizedFavoriteProductIds = null;
+    protected ?array $memoizedBookmarkProductIds = null;
+
     public function favorites(): BelongsToMany
     {
         return $this->belongsToMany(Product::class, 'user_product_favorites');
+    }
+
+    public function favoriteProductIds(): array
+    {
+        if ($this->memoizedFavoriteProductIds === null) {
+            $this->memoizedFavoriteProductIds = $this->favorites()->pluck('product_id')->flip()->toArray();
+        }
+
+        return $this->memoizedFavoriteProductIds;
     }
 
     public function likes(): BelongsToMany
@@ -105,6 +117,21 @@ class User extends Authenticatable
     public function bookmarks(): BelongsToMany
     {
         return $this->belongsToMany(Product::class, 'user_product_bookmarks');
+    }
+
+    public function bookmarkProductIds(): array
+    {
+        if ($this->memoizedBookmarkProductIds === null) {
+            $this->memoizedBookmarkProductIds = $this->bookmarks()->pluck('product_id')->flip()->toArray();
+        }
+
+        return $this->memoizedBookmarkProductIds;
+    }
+
+    public function clearProductInteractionCache(): void
+    {
+        $this->memoizedFavoriteProductIds = null;
+        $this->memoizedBookmarkProductIds = null;
     }
 
     public function productsPercent()
@@ -184,6 +211,17 @@ class User extends Authenticatable
         return $this->hasMany(Delivery::class, 'courier_id');
     }
 
+    protected ?array $memoizedAccessRoutes = null;
+
+    public function getAccessRoutes(): array
+    {
+        if ($this->memoizedAccessRoutes === null) {
+            $this->memoizedAccessRoutes = $this->accesses()->pluck('route')->toArray();
+        }
+
+        return $this->memoizedAccessRoutes;
+    }
+
     public function hasAnyAccess($name)
     {
         if ($this->hasRole('SUSPENDED')) {
@@ -193,7 +231,14 @@ class User extends Authenticatable
             return true;
         }
 
-        return $this->accesses()->where('route', 'LIKE', '%.'.$name.'.%')->count() > 0;
+        $needle = '.'.$name.'.';
+        foreach ($this->getAccessRoutes() as $route) {
+            if (str_contains($route, $needle)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function hasAnyAccesses($array)
@@ -209,6 +254,8 @@ class User extends Authenticatable
                 return true;
             }
         }
+
+        return false;
     }
 
     public function hasAccess($route)
@@ -217,7 +264,7 @@ class User extends Authenticatable
             return false;
         }
 
-        return $this->accesses()->where('route', $route)->count() > 0;
+        return in_array($route, $this->getAccessRoutes(), true);
     }
 
     public function evaluations()

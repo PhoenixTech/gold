@@ -186,6 +186,9 @@ class CustomerController extends Controller
         }
 
         $changes = $actor->{$relation}()->toggle($product->getKey());
+        if (method_exists($actor, 'clearProductInteractionCache')) {
+            $actor->clearProductInteractionCache();
+        }
         $isAttached = count($changes['attached']) > 0;
         $message = $isAttached ? $attachedMessage : $detachedMessage;
         $state = $isAttached ? '1' : '0';

@@ -48,7 +48,7 @@
             <!-- Price Row -->
             <div class="mt-auto pt-2 border-top border-light-subtle d-flex align-items-center justify-content-between flex-wrap gap-1">
                 @php
-                    $rawPrice = $product->quantities()->count() > 0 ? $product->quantities()->min('price') : $product->price;
+                    $rawPrice = $product->lowestAvailablePrice() ?: $product->price;
                     $hasNoPrice = ($rawPrice == 0 || $rawPrice == '' || $rawPrice == null);
                     $isAvailable = $product->isAvailable() && !$hasNoPrice;
                 @endphp

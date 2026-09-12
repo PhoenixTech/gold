@@ -80,9 +80,21 @@ class Customer extends Authenticatable
         return $missing;
     }
 
+    protected ?array $memoizedFavoriteProductIds = null;
+    protected ?array $memoizedBookmarkProductIds = null;
+
     public function favorites()
     {
         return $this->belongsToMany(Product::class, 'customer_product');
+    }
+
+    public function favoriteProductIds(): array
+    {
+        if ($this->memoizedFavoriteProductIds === null) {
+            $this->memoizedFavoriteProductIds = $this->favorites()->pluck('product_id')->flip()->toArray();
+        }
+
+        return $this->memoizedFavoriteProductIds;
     }
 
     public function likes()
@@ -93,6 +105,21 @@ class Customer extends Authenticatable
     public function bookmarks()
     {
         return $this->belongsToMany(Product::class, 'customer_bookmarks');
+    }
+
+    public function bookmarkProductIds(): array
+    {
+        if ($this->memoizedBookmarkProductIds === null) {
+            $this->memoizedBookmarkProductIds = $this->bookmarks()->pluck('product_id')->flip()->toArray();
+        }
+
+        return $this->memoizedBookmarkProductIds;
+    }
+
+    public function clearProductInteractionCache(): void
+    {
+        $this->memoizedFavoriteProductIds = null;
+        $this->memoizedBookmarkProductIds = null;
     }
 
     public function comments()

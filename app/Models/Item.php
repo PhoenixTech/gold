@@ -30,8 +30,14 @@ class Item extends Model
         return $this->hasMany(Item::class, 'parent');
     }
 
-    public function dest(){
-        return $this->morphTo('menuable','menuable_type','menuable_id');
+    public function dest()
+    {
+        return $this->morphTo('dest', 'menuable_type', 'menuable_id');
+    }
+
+    public function menuable()
+    {
+        return $this->dest();
     }
 
     public function webUrl()

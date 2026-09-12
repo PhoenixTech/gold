@@ -43,7 +43,7 @@
     @if(isset($breadcrumb))
 {!! markUpBreadcrumbList($breadcrumb) !!}
     @endif
-    @if(isset($post))
+    @if(isset($post) && !isset($posts) && !isset($latestPosts))
 {!! $post->markup() !!}
         <meta property="og:title" content="{{$post->title}}" />
         <meta property="og:description" content="{{$post->subtitle}}" />
@@ -57,7 +57,7 @@
             <link rel="canonical" href="{{$post->canonical}}" />
         @endif
 
-    @elseif(isset($product))
+    @elseif(isset($product) && !isset($products) && !isset($latestProducts))
 {!! $product->markup() !!}
         <meta property="og:title" content="{{$product->name}}"/>
         <meta property="og:description" content="{{$product->seoDesc()}}"/>

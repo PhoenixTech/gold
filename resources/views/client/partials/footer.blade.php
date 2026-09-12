@@ -1,6 +1,5 @@
 @php
-    $menu = \App\Models\Menu::first();
-    $menuItems = ($menu && $menu->items) ? $menu->items : [];
+    $menuItems = getPrimaryMenuItems();
     $socialsRaw = getSettingsGroup('social_');
     $socials = is_array($socialsRaw) ? $socialsRaw : [];
     $tel = getSetting('tel');
