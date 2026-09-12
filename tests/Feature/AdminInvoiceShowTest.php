@@ -32,7 +32,7 @@ class AdminInvoiceShowTest extends TestCase
         return $user;
     }
 
-    private function createSampleInvoice(): Invoice
+    private function createSampleInvoice(array $attributes = []): Invoice
     {
         $admin = User::factory()->create();
         $category = Category::factory()->create();
@@ -46,13 +46,13 @@ class AdminInvoiceShowTest extends TestCase
         $quantity = Quantity::factory()->create([
             'product_id' => $product->id,
             'weight' => 2.450,
-            'code' => 'ZN-1001',
+            'code' => 'ZN-'.rand(1000, 99999),
         ]);
 
         $customer = Customer::factory()->create([
-            'name' => 'علی رضایی',
-            'mobile' => '09121234567',
-            'email' => 'ali@example.com',
+            'name' => $attributes['customer_name'] ?? 'علی رضایی',
+            'mobile' => $attributes['customer_mobile'] ?? ('0912'.rand(1000000, 9999999)),
+            'email' => $attributes['customer_email'] ?? ('customer_'.uniqid().'@example.com'),
         ]);
 
         $address = new Address;
@@ -112,7 +112,7 @@ class AdminInvoiceShowTest extends TestCase
         $this->seed(GfxSeeder::class);
         $this->actingAsAdmin();
 
-        $invoice = $this->createSampleInvoice();
+        $invoice = $this->createSampleInvoice(['customer_mobile' => '09121234567']);
 
         $response = $this->get(route('admin.invoice.show', $invoice->hash));
 
@@ -177,5 +177,58 @@ class AdminInvoiceShowTest extends TestCase
         $response->assertOk();
         $response->assertSee(route('admin.invoice.confirm-payment', $invoice));
         $response->assertSee('sample.jpg');
+    }
+
+    public function test_admin_invoice_list_only_shows_print_button_for_accepted_invoices(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        $this->actingAsAdmin();
+
+        $accepted = $this->createSampleInvoice();
+        $accepted->status = Invoice::PAID;
+        $accepted->save();
+
+        $unaccepted = $this->createSampleInvoice();
+        $unaccepted->status = Invoice::AWAITING_PAYMENT;
+        $unaccepted->save();
+
+        $response = $this->get(route('admin.invoice.index'));
+
+        $response->assertOk();
+        $response->assertSee(route('admin.invoice.print', $accepted->hash));
+        $response->assertDontSee(route('admin.invoice.print', $unaccepted->hash));
+    }
+
+    public function test_admin_cannot_print_unaccepted_invoice(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        $this->actingAsAdmin();
+
+        $unaccepted = $this->createSampleInvoice();
+        $unaccepted->status = Invoice::AWAITING_PAYMENT;
+        $unaccepted->save();
+
+        $response = $this->get(route('admin.invoice.print', $unaccepted->hash));
+
+        $response->assertRedirect(route('admin.invoice.index'));
+        $response->assertSessionHasErrors();
+    }
+
+    public function test_admin_invoice_show_hides_print_button_for_unaccepted_invoice(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        $this->actingAsAdmin();
+
+        $unaccepted = $this->createSampleInvoice();
+        $unaccepted->status = Invoice::AWAITING_PAYMENT;
+        $unaccepted->save();
+
+        $response = $this->get(route('admin.invoice.show', $unaccepted->hash));
+
+        $response->assertOk();
+        $response->assertDontSee(__('Print invoice'));
     }
 }

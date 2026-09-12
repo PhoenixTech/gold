@@ -40,6 +40,8 @@ class InvoiceController extends XController
     public function __construct()
     {
         parent::__construct(Invoice::class, InvoiceSaveRequest::class);
+
+        $this->buttons['print']['can'] = fn (Invoice $item): bool => $item->canPrint();
     }
 
     /**
@@ -373,6 +375,13 @@ class InvoiceController extends XController
     public function print($item)
     {
         $invoice = $item instanceof Invoice ? $item : Invoice::where('hash', $item)->firstOrFail();
+
+        if (! $invoice->canPrint()) {
+            return redirect()
+                ->route('admin.invoice.index')
+                ->withErrors(__('Only accepted invoices in the fulfillment pipeline can be printed.'));
+        }
+
         $invoice->loadMissing([
             'customer.addresses.state',
             'customer.addresses.city',

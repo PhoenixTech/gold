@@ -95,6 +95,11 @@ class Invoice extends Model
         ];
     }
 
+    public function canPrint(): bool
+    {
+        return in_array($this->status, self::successfulStatuses(), true);
+    }
+
     /**
      * @param  Builder<Invoice>  $query
      * @return Builder<Invoice>

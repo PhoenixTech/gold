@@ -232,6 +232,50 @@ class ProductLowStockTest extends TestCase
         $summaryResponse->assertSee(__('Price below purchase price notice'));
     }
 
+    public function test_quick_filters_links_are_separate_and_not_merged(): void
+    {
+        $this->actingAsAdmin();
+
+        $this->makeProduct([
+            'name' => 'Sample Gold Ring',
+            'metal_type' => 'gold',
+            'min_stock_level' => 5,
+            'stock_quantity' => 2,
+            'status' => 1,
+        ]);
+
+        $response = $this->get(route('admin.product.index', [
+            'filter' => ['metal_type' => 'gold'],
+        ]));
+
+        $response->assertOk();
+        $content = $response->getContent();
+
+        preg_match('/<div class="wp-quick-filters[^"]*"[^>]*>([\s\S]*?)<\/div>/u', $content, $containerMatch);
+        $this->assertNotEmpty($containerMatch, 'wp-quick-filters container should exist');
+        $quickFiltersHtml = $containerMatch[1];
+
+        // Ensure Low stock link does NOT contain metal_type
+        preg_match('/<a[^>]+href="([^"]+)"[^>]*>\s*' . preg_quote(__('Low stock'), '/') . '/u', $quickFiltersHtml, $lowStockMatch);
+        $this->assertNotEmpty($lowStockMatch, 'Low stock link should be rendered in wp-quick-filters');
+        $lowStockHref = urldecode($lowStockMatch[1]);
+        $this->assertStringContainsString('filter[low_stock]=1', $lowStockHref);
+        $this->assertStringNotContainsString('metal_type', $lowStockHref);
+
+        // Ensure Published link does NOT contain metal_type
+        preg_match('/<a[^>]+href="([^"]+)"[^>]*>\s*' . preg_quote(__('Published'), '/') . '/u', $quickFiltersHtml, $pubMatch);
+        $this->assertNotEmpty($pubMatch, 'Published link should be rendered in wp-quick-filters');
+        $pubHref = urldecode($pubMatch[1]);
+        $this->assertStringContainsString('filter[status]=1', $pubHref);
+        $this->assertStringNotContainsString('metal_type', $pubHref);
+
+        // Ensure All link does NOT contain filter parameters
+        preg_match('/<a[^>]+href="([^"]+)"[^>]*>\s*' . preg_quote(__('All'), '/') . '/u', $quickFiltersHtml, $allMatch);
+        $this->assertNotEmpty($allMatch, 'All link should be rendered in wp-quick-filters');
+        $allHref = urldecode($allMatch[1]);
+        $this->assertStringNotContainsString('filter', $allHref);
+    }
+
     protected function actingAsAdmin(): User
     {
         Role::findOrCreate('admin', 'web');

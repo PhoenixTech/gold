@@ -827,6 +827,7 @@
     "Online Messaging": "پیام‌رسان‌ها و مشاوره آنلاین",
     "Online payment": "پرداخت آنلاین",
     "Only an accepted delivery can be marked as failed.": "فقط تحویل پذیرفته‌شده را می‌توان ناموفق زد.",
+    "Only accepted invoices in the fulfillment pipeline can be printed.": "فقط فاکتورهای تاییدشده در جریان سفارش امکان چاپ دارند.",
     "Only invoices awaiting payment can be confirmed.": "فقط فاکتورهای در انتظار پرداخت قابل تایید هستند.",
     "Only one bank account can be active at a time. The active account is shown to customers for card-to-card payment.": "در هر لحظه فقط یک حساب بانکی می‌تواند فعال باشد. حساب فعال برای پرداخت کارت‌به‌کارت به مشتری نمایش داده می‌شود.",
     "Open :settings. There you set :min, :quote, and :deadline.": "وارد بخش :settings شوید. در این قسمت مقادیر :min، :quote و :deadline را تعیین می‌کنید.",

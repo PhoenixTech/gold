@@ -18,94 +18,103 @@
                         $currentLowStock = request()->input('filter.low_stock', null);
                         $currentBelowBuyPrice = request()->input('filter.below_buy_price', null);
                         $isAll = $currentStatus === null && $currentMetal === null && $currentLowStock === null && $currentBelowBuyPrice === null && !request()->routeIs('*trashed*');
+
+                        $preservedParams = [];
+                        if (request()->filled('q')) {
+                            $preservedParams['q'] = request('q');
+                        }
+                        if (request()->filled('sort')) {
+                            $preservedParams['sort'] = request('sort');
+                            if (request()->filled('sortType')) {
+                                $preservedParams['sortType'] = request('sortType');
+                            }
+                        }
+                        $allQuery = count($preservedParams) ? '?' . http_build_query($preservedParams) : '';
                     @endphp
                     <li class="list-inline-item m-0">
-                        <a href="{{$baseUrl}}" class="text-decoration-none @if($isAll) fw-bold text-primary @else text-dark @endif">
+                        <a href="{{$baseUrl}}{{$allQuery}}" class="text-decoration-none @if($isAll) fw-bold text-primary @else text-dark @endif">
                             {{__("All")}} <span class="text-muted">({{number_format($quickCounts['all'] ?? 0)}})</span>
                         </a>
                     </li>
                     @if(isset($quickCounts['gold']))
                         @php
-                            $goldFilter = array_merge(request()->input('filter', []), ['metal_type' => 'gold']);
+                            $goldUrl = $baseUrl . '?' . http_build_query(array_merge($preservedParams, ['filter' => ['metal_type' => 'gold']]));
+                            $isGoldActive = $currentMetal === 'gold';
                         @endphp
                         <li class="list-inline-item m-0 text-black-50">|</li>
                         <li class="list-inline-item m-0">
-                            <a href="{{$baseUrl}}?{{http_build_query(['filter' => $goldFilter])}}" class="text-decoration-none @if($currentMetal === 'gold') fw-bold text-warning @else text-dark @endif">
+                            <a href="{{$goldUrl}}" class="text-decoration-none @if($isGoldActive) fw-bold text-warning @else text-dark @endif">
                                 {{__("Gold")}} <span class="text-muted">({{number_format($quickCounts['gold'])}})</span>
                             </a>
                         </li>
                     @endif
                     @if(isset($quickCounts['silver']))
                         @php
-                            $silverFilter = array_merge(request()->input('filter', []), ['metal_type' => 'silver']);
+                            $silverUrl = $baseUrl . '?' . http_build_query(array_merge($preservedParams, ['filter' => ['metal_type' => 'silver']]));
+                            $isSilverActive = $currentMetal === 'silver';
                         @endphp
                         <li class="list-inline-item m-0 text-black-50">|</li>
                         <li class="list-inline-item m-0">
-                            <a href="{{$baseUrl}}?{{http_build_query(['filter' => $silverFilter])}}" class="text-decoration-none @if($currentMetal === 'silver') fw-bold text-secondary @else text-dark @endif">
+                            <a href="{{$silverUrl}}" class="text-decoration-none @if($isSilverActive) fw-bold text-secondary @else text-dark @endif">
                                 {{__("Silver")}} <span class="text-muted">({{number_format($quickCounts['silver'])}})</span>
                             </a>
                         </li>
                     @endif
                     @if(isset($quickCounts['low_stock']))
                         @php
-                            $lowStockFilter = request()->input('filter', []);
-                            if ($currentLowStock === '1') {
-                                unset($lowStockFilter['low_stock']);
-                            } else {
-                                $lowStockFilter['low_stock'] = '1';
-                            }
+                            $lowStockUrl = $baseUrl . '?' . http_build_query(array_merge($preservedParams, ['filter' => ['low_stock' => '1']]));
+                            $isLowStockActive = $currentLowStock === '1';
                         @endphp
                         <li class="list-inline-item m-0 text-black-50">|</li>
                         <li class="list-inline-item m-0">
-                            <a href="{{$baseUrl}}?{{http_build_query(['filter' => $lowStockFilter])}}" class="text-decoration-none @if($currentLowStock === '1') fw-bold text-danger @else text-dark @endif">
+                            <a href="{{$lowStockUrl}}" class="text-decoration-none @if($isLowStockActive) fw-bold text-danger @else text-dark @endif">
                                 {{__("Low stock")}} <span class="@if(($quickCounts['low_stock'] ?? 0) > 0) text-danger fw-bold @else text-muted @endif">({{number_format($quickCounts['low_stock'])}})</span>
                             </a>
                         </li>
                     @endif
                     @if(isset($quickCounts['below_buy_price']))
                         @php
-                            $belowBuyPriceFilter = request()->input('filter', []);
-                            if ($currentBelowBuyPrice === '1') {
-                                unset($belowBuyPriceFilter['below_buy_price']);
-                            } else {
-                                $belowBuyPriceFilter['below_buy_price'] = '1';
-                            }
+                            $belowBuyPriceUrl = $baseUrl . '?' . http_build_query(array_merge($preservedParams, ['filter' => ['below_buy_price' => '1']]));
+                            $isBelowBuyPriceActive = $currentBelowBuyPrice === '1';
                         @endphp
                         <li class="list-inline-item m-0 text-black-50">|</li>
                         <li class="list-inline-item m-0">
-                            <a href="{{$baseUrl}}?{{http_build_query(['filter' => $belowBuyPriceFilter])}}" class="text-decoration-none @if($currentBelowBuyPrice === '1') fw-bold text-danger @else text-dark @endif">
+                            <a href="{{$belowBuyPriceUrl}}" class="text-decoration-none @if($isBelowBuyPriceActive) fw-bold text-danger @else text-dark @endif">
                                 {{__("Below purchase price")}} <span class="@if(($quickCounts['below_buy_price'] ?? 0) > 0) text-danger fw-bold @else text-muted @endif">({{number_format($quickCounts['below_buy_price'])}})</span>
                             </a>
                         </li>
                     @endif
                     @if(isset($quickCounts['published']))
                         @php
-                            $pubFilter = array_merge(request()->input('filter', []), ['status' => 1]);
-                            unset($pubFilter['user_id']);
+                            $pubUrl = $baseUrl . '?' . http_build_query(array_merge($preservedParams, ['filter' => ['status' => 1]]));
+                            $isPubActive = ($currentStatus === '1' || $currentStatus === 1);
                         @endphp
                         <li class="list-inline-item m-0 text-black-50">|</li>
                         <li class="list-inline-item m-0">
-                            <a href="{{$baseUrl}}?{{http_build_query(['filter' => $pubFilter])}}" class="text-decoration-none @if($currentStatus === '1' || $currentStatus === 1) fw-bold text-primary @else text-dark @endif">
+                            <a href="{{$pubUrl}}" class="text-decoration-none @if($isPubActive) fw-bold text-primary @else text-dark @endif">
                                 {{__("Published")}} <span class="text-muted">({{number_format($quickCounts['published'])}})</span>
                             </a>
                         </li>
                     @endif
                     @if(isset($quickCounts['draft']))
                         @php
-                            $draftFilter = array_merge(request()->input('filter', []), ['status' => 0]);
-                            unset($draftFilter['user_id']);
+                            $draftUrl = $baseUrl . '?' . http_build_query(array_merge($preservedParams, ['filter' => ['status' => 0]]));
+                            $isDraftActive = ($currentStatus === '0' || $currentStatus === 0);
                         @endphp
                         <li class="list-inline-item m-0 text-black-50">|</li>
                         <li class="list-inline-item m-0">
-                            <a href="{{$baseUrl}}?{{http_build_query(['filter' => $draftFilter])}}" class="text-decoration-none @if($currentStatus === '0' || $currentStatus === 0) fw-bold text-primary @else text-dark @endif">
+                            <a href="{{$draftUrl}}" class="text-decoration-none @if($isDraftActive) fw-bold text-primary @else text-dark @endif">
                                 {{__("Draft")}} <span class="text-muted">({{number_format($quickCounts['draft'])}})</span>
                             </a>
                         </li>
                     @endif
                     @if(isset($quickCounts['trashed']) && hasRoute('trashed'))
+                        @php
+                            $trashedUrl = getRoute('trashed') . (count($preservedParams) ? '?' . http_build_query($preservedParams) : '');
+                        @endphp
                         <li class="list-inline-item m-0 text-black-50">|</li>
                         <li class="list-inline-item m-0">
-                            <a href="{{getRoute('trashed')}}" class="text-decoration-none @if(request()->routeIs('*trashed*')) fw-bold text-danger @else text-dark @endif">
+                            <a href="{{$trashedUrl}}" class="text-decoration-none @if(request()->routeIs('*trashed*')) fw-bold text-danger @else text-dark @endif">
                                 {{__("Trashed")}} <span class="text-muted">({{number_format($quickCounts['trashed'])}})</span>
                             </a>
                         </li>
@@ -445,6 +454,9 @@
                                                 </a>
                                                 <ul class="dropdown-menu">
                                                     @foreach($buttons as $btn => $btnData)
+                                                        @if(isset($btnData['can']) && is_callable($btnData['can']) && ! $btnData['can']($item))
+                                                            @continue
+                                                        @endif
                                                         @php
                                                             $btnUrl = isset($btnData['route']) ? route($btnData['route'], $item->{$item->getRouteKeyName()}) : getRoute($btn,$item->{$item->getRouteKeyName()});
                                                             $isDelete = strpos($btnData['class'], 'delete') !== false;
@@ -473,6 +485,9 @@
                                         @endif
                                         <div class="d-none d-xl-block  d-xxl-block">
                                             @foreach($buttons as $btn => $btnData)
+                                                @if(isset($btnData['can']) && is_callable($btnData['can']) && ! $btnData['can']($item))
+                                                    @continue
+                                                @endif
 
                                                 @if(strpos($btnData['class'],'delete') == false )
                                                     @if(strpos(request()->url(),'trashed') == false)

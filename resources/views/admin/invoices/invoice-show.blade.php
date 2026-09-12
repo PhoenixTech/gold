@@ -42,10 +42,12 @@
             </div>
 
             <div class="d-flex align-items-center gap-2 flex-wrap">
-                <button type="button" class="btn btn-sm btn-primary d-inline-flex align-items-center gap-1 shadow-sm px-3" onclick="window.print()">
-                    <i class="ri-printer-line"></i>
-                    {{ __("Print invoice") }}
-                </button>
+                @if($invoice->canPrint())
+                    <button type="button" class="btn btn-sm btn-primary d-inline-flex align-items-center gap-1 shadow-sm px-3" onclick="window.print()">
+                        <i class="ri-printer-line"></i>
+                        {{ __("Print invoice") }}
+                    </button>
+                @endif
 
                 <a href="{{ route('admin.invoice.edit', $invoice) }}" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
                     <i class="ri-edit-2-line"></i>
