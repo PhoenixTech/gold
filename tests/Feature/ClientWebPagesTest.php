@@ -16,9 +16,29 @@ class ClientWebPagesTest extends TestCase
 
     public function test_web_client_index(): void
     {
+        if (Category::count() == 0) {
+            Category::factory(2)->create();
+        }
+
         $response = $this->get(route('client.welcome'));
 
         $response->assertStatus(200);
+        $response->assertSee('ZarMenu');
+        $response->assertSee('WTFIndex');
+        $response->assertSee('WTFFooter');
+    }
+
+    public function test_web_client_homev1(): void
+    {
+        if (Category::count() == 0) {
+            Category::factory(2)->create();
+        }
+
+        $response = $this->get(route('client.homev1'));
+
+        $response->assertStatus(200);
+        $response->assertSee('AplMenu');
+        $response->assertSee('WTFIndex');
     }
 
     public function test_web_client_old_home(): void

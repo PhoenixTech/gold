@@ -230,3 +230,102 @@
         font-weight: 400;
     }
 }
+
+// ZarMenu Header (Row 1, Row 2 & Row 3)
+.ZarMenu {
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+
+    .zar-top-bar {
+        padding: 0.6rem 1rem;
+    }
+
+    .zar-sub-bar {
+        padding: 0.35rem 1rem 0.6rem 1rem;
+    }
+
+    .zar-icon-btn {
+        background: none;
+        border: none;
+        padding: 0;
+        color: #222222;
+        cursor: pointer;
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        font-size: 24px;
+        transition: color 0.2s ease;
+
+        &:hover {
+            color: var(--xshop-primary, #db9a00);
+        }
+    }
+
+    // WTF Category Tabs (Row 3)
+    .wtf-tabs {
+        direction: ltr;
+        display: flex;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+
+        .wtf-tab-btn {
+            flex: 1;
+            border: none;
+            padding: 0.8rem 0.5rem;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            line-height: 1.2;
+            transition: opacity 0.2s ease;
+
+            &:hover {
+                opacity: 0.9;
+            }
+        }
+    }
+}
+
+// Slide-out Zar Drawer Menu
+#zar-menu {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(6px);
+    z-index: 9999;
+
+    nav {
+        height: 100%;
+    }
+
+    ul {
+        background: var(--xshop-background, #ffffff);
+        position: absolute;
+        inset-inline-end: 0;
+        top: 0;
+        bottom: 0;
+        width: 300px;
+        max-width: 85vw;
+        overflow-y: auto;
+        list-style: none;
+        padding: 1.25rem 1rem;
+        margin: 0;
+        box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
+
+        li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+
+            a {
+                display: block;
+                color: var(--xshop-text, #111111);
+                text-decoration: none;
+                font-weight: 500;
+            }
+        }
+    }
+}

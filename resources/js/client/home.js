@@ -1,6 +1,6 @@
 // Homepage Category Tabs JS
 function initHomepageTabs() {
-    const tabButtons = document.querySelectorAll('#wtf-main-btns .main-dir');
+    const tabButtons = document.querySelectorAll('#wtf-main-btns .wtf-tab-btn, #wtf-main-btns .main-dir');
     if (!tabButtons.length) return;
 
     tabButtons.forEach(function (el) {

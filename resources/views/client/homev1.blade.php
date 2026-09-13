@@ -4,56 +4,58 @@
     {{config('app.name')}} - {{getSetting('subtitle') ?: __('Online Gold & Jewelry Store')}}
 @endsection
 
+@section('use-legacy-header', true)
+
 @section('content')
 <div class="homepage-wrapper">
 
-    <!-- WTF Category Tabs (Top two buttons, unpinned / non-sticky) -->
+    <!-- Category Tabs Explorer Section -->
     @if(isset($mainCategories) && $mainCategories->isNotEmpty())
-        <div id="wtf-main-btns" class="wtf-tabs">
-            @foreach($mainCategories as $k => $mainCategory)
-                @php
-                    $tabName = explode(' ', $mainCategory->name)[0];
-                    $defaultBg = ($k == 0) ? '#caa867' : '#cccccc';
-                    $bgColor = $mainCategory->bg_color ?: $defaultBg;
-                    $textColor = $mainCategory->color ?: '#111111';
-                @endphp
-                <button type="button" 
-                        class="wtf-tab-btn @if($k == 0) active @endif" 
-                        style="background-color: {{$bgColor}}; color: {{$textColor}};"
-                        data-id="#wtf-{{$mainCategory->id}}">
-                    {{$tabName}}
-                </button>
-            @endforeach
-        </div>
-    @endif
-
-    <!-- WTFIndex (Category Grid: 4 columns x 3 rows with clean square thumbs & titles from /old) -->
-    @if(isset($mainCategories) && $mainCategories->isNotEmpty())
-        <section class="WTFIndex live-setting pt-3 pb-2" data-nav="#wtf-main-btns">
-            @foreach($mainCategories as $k => $mainCategory)
-                @php($words = explode(' ', $mainCategory->name))
-                @php($childCats = $mainCategory->relationLoaded('children') ? $mainCategory->children->where('hide', 0) : $mainCategory->children()->where('hide', 0)->get())
-                <div class="wtf-section container px-2 px-sm-3" id="wtf-{{$mainCategory->id}}" @if($k == 0) style="display: block" @else style="display: none" @endif>
-                    <div class="row g-2 g-sm-3" dir="rtl">
-                        @foreach($childCats as $childCategory)
-                            <div class="col-3 text-center mb-3">
-                                <a href="{{$childCategory->webUrl()}}" class="d-block text-decoration-none text-dark cat-item-link">
-                                    <div class="cat-img-box">
-                                        <img src="{{$childCategory->imgUrl()}}" 
-                                             onerror="this.onerror=null;this.src='{{$childCategory->imgOriginalUrl()}}';" 
-                                             alt="{{$childCategory->name}}" 
-                                             class="w-100 cat-thumb-img" 
-                                             loading="lazy">
-                                    </div>
-                                    <h5 class="cat-item-title">
-                                        {{implode(' ', array_diff(explode(' ', $childCategory->name), $words)) ?: $childCategory->name}}
-                                    </h5>
-                                </a>
-                            </div>
+        <section class="WTFIndex py-4">
+            <!-- Category Tabs Navigation Bar -->
+            <div class="wtf-tabs-container bg-white border-top border-bottom shadow-sm mb-4">
+                <div class="{{gfx()['container']}}">
+                    <div id="wtf-main-btns" class="wtf-main-btns py-3">
+                        @foreach($mainCategories as $k => $mainCategory)
+                            <button type="button" class="btn main-dir rounded-pill px-4 py-2 fw-bold fs-14 transition-all @if($k == 0) active @endif shadow-sm"
+                                    style="background: {{$mainCategory->bg_color ?: 'var(--xshop-primary)'}}; color: {{$mainCategory->color ?: '#ffffff'}};"
+                                    data-id="#wtf-{{$mainCategory->id}}">
+                                {{$mainCategory->name}}
+                            </button>
                         @endforeach
                     </div>
                 </div>
-            @endforeach
+            </div>
+
+            <!-- Category Panels -->
+            <div class="py-2">
+                @foreach($mainCategories as $k => $mainCategory)
+                    @php($words = explode(' ', $mainCategory->name))
+                    <div class="{{gfx()['container']}} wtf-section" id="wtf-{{$mainCategory->id}}" @if($k == 0) style="display: block" @endif>
+                        <div class="row g-3 g-md-4">
+                            @foreach($mainCategory->children as $childCategory)
+                                <div class="col-6 col-sm-4 col-md-3">
+                                    <a class="wtf-cat-card card border-0 shadow-sm rounded-4 overflow-hidden text-decoration-none h-100 transition-all d-block position-relative" href="{{$childCategory->webUrl()}}">
+                                        <div class="card-img-box position-relative bg-dark overflow-hidden">
+                                            <img src="{{$childCategory->imgUrl()}}" alt="{{$childCategory->name}}" class="w-100 h-100 object-fit-cover cat-img-hover opacity-85" loading="lazy">
+                                            <div class="card-overlay-vignette position-absolute inset-0"></div>
+                                            <div class="position-absolute bottom-0 start-0 end-0 p-3 text-center z-2">
+                                                <h5 class="cat-title fs-15 fw-bold text-white mb-1 text-shadow">
+                                                    {{implode(' ', array_diff(explode(' ', $childCategory->name), $words)) ?: $childCategory->name}}
+                                                </h5>
+                                                <span class="badge bg-white-20 text-white rounded-pill px-2.5 py-0.5 fs-12 border border-white-30 backdrop-blur d-inline-flex align-items-center gap-1">
+                                                    <span>{{__("View category")}}</span>
+                                                    <i class="ri-arrow-left-s-line"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endforeach
+            </div>
         </section>
     @endif
 

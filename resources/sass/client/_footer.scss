@@ -184,52 +184,62 @@
     }
 }
 
-// Mobile Bottom Category Bar
+// WTFFooter (Fixed Floating Bottom Bar matching /old)
 .WTFFooter {
     position: fixed;
-    bottom: 1rem;
-    right: 1.5rem;
-    left: 1.5rem;
-    border: 1px solid rgba(0, 0, 0, 0.08);
+    bottom: 1.25rem;
+    right: 1.25rem;
+    left: 1.25rem;
+    max-width: 480px;
+    margin-inline: auto;
+    border: 2px solid #b5b5b5;
     background: #ffffff;
     border-radius: 14px;
-    padding: 0.35rem 0.5rem;
+    padding: 0.45rem 0.6rem;
     display: flex;
     align-items: center;
     justify-content: space-evenly;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
-    z-index: 1030;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.1);
+    z-index: 1040;
 
     .wtfooter-btn {
         text-align: center;
         display: flex;
         flex-direction: column;
         align-items: center;
+        justify-content: center;
         text-decoration: none;
-        color: var(--xshop-text, #111111);
-        font-size: 11px;
+        color: #111111;
         position: relative;
-        min-width: 50px;
+        min-width: 55px;
 
-        img.cat-icon {
+        .cat-icon {
             max-height: 28px;
             width: auto;
-            margin-bottom: 2px;
+            max-width: 34px;
+            margin-bottom: 3px;
+            object-fit: contain;
+        }
+
+        .cat-name {
+            font-size: 11.5px;
+            font-weight: 500;
+            color: #111111;
+            white-space: nowrap;
         }
 
         #ballon {
             width: 32px;
             position: absolute;
             height: auto;
-            inset-inline-end: -6px;
+            inset-inline-end: 2px;
             top: -18px;
             pointer-events: none;
+            z-index: 2;
         }
     }
 }
 
-@media (max-width: 767.98px) {
-    body {
-        padding-bottom: 4.5rem;
-    }
+body {
+    padding-bottom: 5.5rem;
 }

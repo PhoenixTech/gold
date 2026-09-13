@@ -1,7 +1,11 @@
 @include('website.inc.website-head')
 
 @sectionMissing('hide-header')
-    @include('client.partials.header')
+    @if(View::hasSection('use-legacy-header'))
+        @include('client.partials.header')
+    @else
+        @include('client.partials.zar-menu')
+    @endif
 @endif
 
 <main>

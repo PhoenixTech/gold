@@ -111,19 +111,30 @@
 </footer>
 
 @php
-    $footerCats = function_exists('getCategoriesSet') ? getCategoriesSet('index_WTFFooter_categories') : collect();
+    $footerCats = $footerCategories ?? (function_exists('getCategoriesSet') ? getCategoriesSet('index_WTFFooter_categories') : collect());
+    if ($footerCats->isEmpty()) {
+        $footerCats = \App\Models\Category::where('hide', 0)
+            ->where(function ($q) {
+                $q->whereNull('parent_id')->orWhere('parent_id', 0);
+            })
+            ->orderBy('sort')
+            ->take(4)
+            ->get();
+    }
 @endphp
 @if($footerCats && $footerCats->isNotEmpty())
-    <nav class="WTFFooter fixed-bottom-categories d-md-none" aria-label="Mobile Category Navigation">
-        @foreach($footerCats as $k => $mainCategory)
-            <a class="wtfooter-btn" href="{{$mainCategory->webUrl()}}">
+    <nav class="WTFFooter fixed-bottom-categories" aria-label="Footer Categories">
+        @foreach($footerCats as $k => $footerCat)
+            <a class="wtfooter-btn" href="{{$footerCat->webUrl()}}">
                 @if($k == 3 && file_exists(public_path('assets/default/ballon.webp')))
-                    <img id="ballon" src="{{asset('assets/default/ballon.webp')}}" alt="" loading="lazy">
+                    <img id="ballon" src="{{asset('assets/default/ballon.webp')}}" alt="ballon" loading="lazy">
                 @endif
-                @if($mainCategory->svg)
-                    <img src="{{$mainCategory->svgUrl()}}" alt="{{$mainCategory->name}}" class="cat-icon">
+                @if($footerCat->id == 61)
+                    <img class="cat-icon" src="{{Storage::url('categories/1741370193-هدیه طلا.jpg')}}" alt="{{$footerCat->name}}">
+                @else
+                    <img class="cat-icon" src="{{$footerCat->svgUrl()}}" alt="{{$footerCat->name}}">
                 @endif
-                <span class="cat-name">{{$mainCategory->name}}</span>
+                <span class="cat-name">{{$footerCat->name}}</span>
             </a>
         @endforeach
     </nav>

@@ -83,10 +83,66 @@ class ClientController extends Controller
             ->take(4)
             ->get();
 
+        $footerCategories = getCategoriesSet('index_WTFFooter_categories');
+        if ($footerCategories->isEmpty()) {
+            $footerCategories = Category::where('hide', 0)
+                ->where(function ($q) {
+                    $q->whereNull('parent_id')->orWhere('parent_id', 0);
+                })
+                ->orderBy('sort')
+                ->take(4)
+                ->get();
+        }
+
+        $zarMenuItems = collect(getMenuBySettingItems('index_ZarMenu_menu'));
+        if ($zarMenuItems->isEmpty()) {
+            $menu = \App\Models\Menu::first();
+            $zarMenuItems = ($menu && $menu->items) ? collect($menu->items) : collect();
+        }
+
+        $goldPrice = getSetting('gold');
+
         $introText = getSetting('index_Natalia2Categories_text') ?: getSetting('about');
         $newsText = getSetting('index_NeginNews_text');
 
-        return view('client.home', compact('title', 'subtitle', 'mainCategories', 'latestProducts', 'latestPosts', 'introText', 'newsText'));
+        return view('client.home', compact('title', 'subtitle', 'mainCategories', 'footerCategories', 'zarMenuItems', 'goldPrice', 'latestProducts', 'latestPosts', 'introText', 'newsText'));
+    }
+
+    public function homeV1()
+    {
+        $title = config('app.name');
+        $subtitle = getSetting('subtitle');
+
+        $mainCategories = getCategoriesSet('index_WTFIndex_categories');
+        if ($mainCategories->isEmpty()) {
+            $mainCategories = Category::where('hide', 0)
+                ->where(function ($q) {
+                    $q->whereNull('parent_id')->orWhere('parent_id', 0);
+                })
+                ->orderBy('sort')
+                ->take(4)
+                ->with(['children' => function ($q) {
+                    $q->where('hide', 0)->orderBy('sort');
+                }])
+                ->get();
+        }
+
+        $latestProducts = Product::where('status', 1)
+            ->with(['category', 'availableQuantities', 'activeDiscounts', 'media'])
+            ->orderByDesc('id')
+            ->take(8)
+            ->get();
+
+        $latestPosts = Post::where('status', 1)
+            ->with('mainGroup')
+            ->orderByDesc('id')
+            ->take(4)
+            ->get();
+
+        $introText = getSetting('index_Natalia2Categories_text') ?: getSetting('about');
+        $newsText = getSetting('index_NeginNews_text');
+
+        return view('client.homev1', compact('title', 'subtitle', 'mainCategories', 'latestProducts', 'latestPosts', 'introText', 'newsText'));
     }
 
     public function oldHome()

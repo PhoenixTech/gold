@@ -377,6 +377,7 @@ Route::middleware([\App\Http\Middleware\VisitorCounter::class])
     ->name('client.')->group(function () {
         // index
         Route::get('/', [ClientController::class, 'welcome'])->name('welcome');
+        Route::get('/homev1', [ClientController::class, 'homeV1'])->name('homev1');
         Route::get('/old', [ClientController::class, 'oldHome'])->name('old');
         Route::get('/posts', [ClientController::class, 'posts'])->name('posts');
         Route::get('/post/{post}', [ClientController::class, 'post'])->name('post');
