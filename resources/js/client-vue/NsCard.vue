@@ -10,7 +10,7 @@
                 </ol>
             </div>
             <div class="quote-timer" :class="{ urgent: quoteRemaining <= 120 }">
-                <span>{{ t('quote-remaining', 'زمان باقی‌مانده') }}</span>
+                <span>{{ quoteRemaining <= 0 ? t('quote-expired', 'در حال بروزرسانی...') : t('quote-remaining', 'زمان باقی‌مانده') }}</span>
                 <em>{{ quoteCountdown }}</em>
             </div>
         </div>
@@ -289,11 +289,6 @@
             <aside class="checkout-aside">
                 <p class="aside-label">{{ t('payable', 'قابل پرداخت') }}</p>
                 <p class="aside-total">{{ priceing(displayTotal) }}</p>
-                <p class="aside-timer" :class="{ urgent: quoteRemaining <= 120 }">
-                    <i class="ri-time-line"></i>
-                    {{ t('quote-remaining', 'زمان باقی‌مانده') }}
-                    <b dir="ltr">{{ quoteCountdown }}</b>
-                </p>
                 <ul class="aside-lines">
                     <li><span>{{ t('products-total', 'جمع کالاها') }}</span><span>{{ priceing(productsTotalAfterDiscount) }}</span></li>
                     <li v-if="currentKey !== 'cart' && currentKey !== 'account'"><span>{{ t('transport', 'ارسال') }}</span><span>{{ priceing(transportPrice) }}</span></li>
@@ -368,6 +363,7 @@ export default {
         quoteMinutes: 30,
         nowTs: Math.floor(Date.now() / 1000),
         quoteTimer: null,
+        onVisibilityChange: null,
         copiedKey: null,
         copyTimer: null,
         offlinePaymentHours: 3,
@@ -426,18 +422,31 @@ export default {
     },
     mounted() {
         this.bootCartLines();
-        this.quoteTimer = setInterval(() => {
+        const checkExpiry = () => {
             this.nowTs = Math.floor(Date.now() / 1000);
             if (this.quoteExpiresAt > 0 && this.quoteRemaining <= 0) {
-                clearInterval(this.quoteTimer);
-                this.quoteTimer = null;
+                if (this.quoteTimer) {
+                    clearInterval(this.quoteTimer);
+                    this.quoteTimer = null;
+                }
                 window.location.reload();
             }
-        }, 1000);
+        };
+        checkExpiry();
+        this.quoteTimer = setInterval(checkExpiry, 1000);
+        this.onVisibilityChange = () => {
+            if (!document.hidden) {
+                checkExpiry();
+            }
+        };
+        document.addEventListener('visibilitychange', this.onVisibilityChange);
     },
     beforeUnmount() {
         if (this.quoteTimer) {
             clearInterval(this.quoteTimer);
+        }
+        if (this.onVisibilityChange) {
+            document.removeEventListener('visibilitychange', this.onVisibilityChange);
         }
         if (this.copyTimer) {
             clearTimeout(this.copyTimer);
@@ -466,6 +475,9 @@ export default {
             return Math.max(0, this.quoteExpiresAt - this.nowTs);
         },
         quoteCountdown() {
+            if (this.quoteRemaining <= 0) {
+                return '00:00';
+            }
             const seconds = this.quoteRemaining;
             const minutes = Math.floor(seconds / 60);
             const rest = seconds % 60;
@@ -557,7 +569,12 @@ export default {
             this.transports = Array.isArray(data.transports) ? data.transports : (data.transports?.data || []);
             this.customer = data.customer || {};
             this.translate = data.translate || {};
-            this.quoteExpiresAt = Number(data.quoteExpiresAt) || 0;
+            if (data.quoteRemaining !== undefined && data.quoteRemaining !== null) {
+                const rem = Number(data.quoteRemaining);
+                this.quoteExpiresAt = rem > 0 ? this.nowTs + rem : (this.nowTs - 1);
+            } else {
+                this.quoteExpiresAt = Number(data.quoteExpiresAt) || 0;
+            }
             this.quoteMinutes = Number(data.quoteMinutes) || 30;
             this.offlinePaymentHours = Number(data.offlinePaymentHours) || 3;
         },
@@ -1134,26 +1151,6 @@ export default {
     font-size: 1.55rem;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
-}
-
-.aside-timer {
-    display: flex;
-    align-items: center;
-    gap: .35rem;
-    margin: 0 0 1rem;
-    padding: .45rem .6rem;
-    border-radius: .6rem;
-    background: rgba(255,255,255,.1);
-    font-size: .82rem;
-}
-
-.aside-timer b {
-    margin-inline-start: auto;
-    font-variant-numeric: tabular-nums;
-}
-
-.aside-timer.urgent {
-    background: rgba(255, 237, 213, .2);
 }
 
 .aside-lines {

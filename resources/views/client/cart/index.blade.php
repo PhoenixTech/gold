@@ -14,7 +14,7 @@
     $cartData = getCartData();
     $cartQuote = app(\App\Services\CartQuoteService::class);
     $cartItems = cardItems();
-    $quote = $cartQuote->current();
+    $quote = $cartQuote->ensure();
     $nsCardPayload = [
         'items' => $cartItems,
         'qs' => $cartData['qs'],
@@ -37,6 +37,7 @@
         'bankSheba' => $bank['iban'],
         'bankAccountName' => $bank['account_holder_name'],
         'quoteExpiresAt' => $quote['expires_at'] ?? 0,
+        'quoteRemaining' => $quote['remaining_seconds'] ?? 0,
         'quoteMinutes' => $quote['ttl_minutes'] ?? $cartQuote->ttlMinutes(),
         'offlinePaymentHours' => \App\Models\Invoice::offlinePaymentHours(),
         'cardLink' => route('client.product-card-toggle', '').'/',

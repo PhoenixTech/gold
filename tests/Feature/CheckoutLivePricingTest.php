@@ -133,6 +133,36 @@ class CheckoutLivePricingTest extends TestCase
         $this->assertDatabaseCount('invoices', 0);
     }
 
+    public function test_cart_page_automatically_refreshes_quote_and_recalculates_price_when_quote_expires(): void
+    {
+        [$customer, $address, $transport, $product, $quantity] = $this->readyCheckout();
+        $this->bindCart($product, $quantity);
+
+        $oldQuote = app(CartQuoteService::class)->refresh();
+        $oldPrice = $oldQuote['prices'][app(CartQuoteService::class)->priceKey($product->id, $quantity->id)];
+
+        $this->travel(31)->minutes();
+        $this->updateGold('4000000');
+
+        $response = $this->actingAs($customer, 'customer')
+            ->withCookie('card', json_encode([$product->id]))
+            ->withCookie('q', json_encode([null]))
+            ->withSession([CartQuoteService::SESSION_KEY => $oldQuote])
+            ->get(route('client.card'));
+
+        $response->assertOk();
+
+        preg_match('/payload-b64="([^"]+)"/', $response->getContent(), $matches);
+        $payload = json_decode(base64_decode($matches[1]), true);
+
+        $this->assertGreaterThan(now()->timestamp, $payload['quoteExpiresAt']);
+        $this->assertSame(30 * 60, $payload['quoteExpiresAt'] - now()->timestamp);
+
+        $newExpectedPrice = app(ProductPriceCalculator::class)->priceForQuantity($product->fresh(), $quantity->fresh());
+        $this->assertNotSame($oldPrice, $newExpectedPrice);
+        $this->assertSame($newExpectedPrice, $payload['items'][0]['price']);
+    }
+
     /**
      * @return array{0: Customer, 1: Address, 2: Transport, 3: Product, 4: Quantity}
      */

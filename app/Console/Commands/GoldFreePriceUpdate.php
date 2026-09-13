@@ -87,7 +87,7 @@ class GoldFreePriceUpdate extends Command
         $client = new Client([
             'timeout' => 20,
             'headers' => ['User-Agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'],
-            'curl' => [CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4],
+            'force_ip_resolve' => 'v4',
         ]);
 
         foreach ($symbols as $key => $symbol) {
@@ -117,7 +117,7 @@ class GoldFreePriceUpdate extends Command
         try {
             $client = new Client([
                 'timeout' => 20,
-                'curl' => [CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4],
+                'force_ip_resolve' => 'v4',
             ]);
             $response = $client->get('https://Api.BrsApi.ir/Market/Gold_Currency.php', [
                 'query' => ['key' => config('services.brsapi.key')],
