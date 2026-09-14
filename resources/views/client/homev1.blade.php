@@ -59,8 +59,8 @@
         </section>
     @endif
 
-    <!-- Brand Story & Trust Badges Section -->
-    <section class="home-brand-intro py-4 py-md-5 reveal-on-scroll">
+    <!-- Trust Badges Section -->
+    <section class="home-brand-intro py-3 py-md-4 reveal-on-scroll">
         <div class="{{gfx()['container']}}">
             @include('client.partials.brand-intro')
         </div>
