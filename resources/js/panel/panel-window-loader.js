@@ -1,27 +1,17 @@
-let isWinLoaded = false;
-window.addEventListener('load',function () {
+export function initPanelPreloader() {
+    const preloader = document.querySelector('#panel-preloader');
+    if (!preloader) return;
 
-    if (!isWinLoaded){
-        forceLoad();
-        isWinLoaded = true;
-    }
-});
-
-
-setTimeout(function () {
-    if (!isWinLoaded){
-        forceLoad();
-        isWinLoaded = true;
-    }
-},5000);
-const forceLoad = function () {
-    try {
-        const  preloader = document.querySelector('#panel-preloader');
-        preloader.style.height = 0;
-        setTimeout( () => {
+    let isDismissed = false;
+    const dismissPreloader = () => {
+        if (isDismissed) return;
+        isDismissed = true;
+        preloader.style.height = '0';
+        setTimeout(() => {
             preloader.style.display = 'none';
-        },500);
-    } catch {
-    }
+        }, 500);
+    };
 
-};
+    window.addEventListener('load', dismissPreloader);
+    setTimeout(dismissPreloader, 5000);
+}

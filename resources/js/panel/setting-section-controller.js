@@ -1,59 +1,37 @@
-document.addEventListener('DOMContentLoaded', function () {
-    // Get all section group items
-    let sectionGroupItems = document.querySelectorAll('.section-group-item');
+export function initSettingSections() {
+    const container = document.querySelector('#setting-sections');
+    if (!container) return;
 
-    // Get all sections
-    let sections = document.querySelectorAll('#setting-sections section');
+    const sectionGroupItems = document.querySelectorAll('.section-group-item');
+    const sections = container.querySelectorAll('section');
+    if (sectionGroupItems.length === 0 || sections.length === 0) return;
 
     // Hide all sections initially
-    sections?.forEach(section => {
-        section.style.display = 'none';
-    });
+    sections.forEach((s) => { s.style.display = 'none'; });
 
-
-    // Show/hide sections on click
-    sectionGroupItems?.forEach(item => {
-        item.addEventListener('click', function (event) {
-            try {
-
-                event.preventDefault();
-                let targetId = this.getAttribute('href').slice(1);
-                sections.forEach(section => {
-                    if (section.id === targetId) {
-                        section.style.display = 'block';
-                    } else {
-                        section.style.display = 'none';
-                    }
-                });
-                sectionGroupItems.forEach(link => {
-                    link.classList.remove('active');
-                });
-                this.classList.add('active');
-
-            } catch (e) {
-                console.log(e.message);
-            }
-
+    function activateSection(targetId) {
+        sections.forEach((sec) => {
+            sec.style.display = sec.id === targetId ? 'block' : 'none';
         });
-    });
-
-    // Show section based on hash in URL
-    let hash = window.location.hash.slice(1);
-    if (hash) {
-        sections.forEach(section => {
-            if (section.id === hash) {
-                section.style.display = 'block';
-            } else {
-                section.style.display = 'none';
-            }
+        sectionGroupItems.forEach((link) => {
+            link.classList.toggle('active', link.getAttribute('href') === `#${targetId}`);
         });
     }
 
+    sectionGroupItems.forEach((item) => {
+        item.addEventListener('click', function (e) {
+            e.preventDefault();
+            const targetId = (this.getAttribute('href') || '').replace(/^#/, '');
+            activateSection(targetId);
+        });
+    });
 
-    try {
-        // Show the first section on page load
-        document.querySelector('.section-group-item').dispatchEvent(new Event('click'));
-    } catch (e) {
+    // Check URL hash or default to first section
+    const hash = window.location.hash.replace(/^#/, '');
+    if (hash && container.querySelector(`#${hash}`)) {
+        activateSection(hash);
+    } else if (sectionGroupItems[0]) {
+        const firstTargetId = (sectionGroupItems[0].getAttribute('href') || '').replace(/^#/, '');
+        activateSection(firstTargetId);
     }
-
-});
+}

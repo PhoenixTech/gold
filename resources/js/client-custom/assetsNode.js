@@ -1,6 +1,5 @@
 import { createApp } from 'vue';
 import bsToast, { ToastPlugin } from '../bs-toast.js';
-import store from "../client-vuex/client-store.js";
 
 const app = createApp({});
 const $toast = bsToast;
@@ -26,15 +25,11 @@ app.component('ns-card', NsCard);
 import RateInput from "../client-vue/RateInput.vue";
 app.component('rate-input', RateInput);
 
-
 import vdp from "../client-vue/vueDateTimePickerClient.vue";
 app.component('vue-datetime-picker-input', vdp);
 
-
 app.use(ToastPlugin);
-app.use(store);
 app.mount('#app');
 
 window.app = app;
 window.$toast = $toast;
-window.store = store;

@@ -1,5 +1,4 @@
-// Products Listing & Single Product JS
-import Lightbox from 'bs5-lightbox';
+// Products Listing & Single Product Controller
 import { tns } from "tiny-slider/src/tiny-slider";
 
 window.addEventListener('load', function () {
@@ -13,11 +12,10 @@ window.addEventListener('load', function () {
 
 document.addEventListener('DOMContentLoaded', function () {
     try {
-        for (const el of document.querySelectorAll('.light-box')) {
-            el.addEventListener('click', Lightbox.initialize);
-        }
+        const sliderContainer = document.querySelector('#aria-img-slider');
+        const relProductsContainer = document.querySelector('#rel-products');
 
-        if (document.querySelector('#aria-img-slider')) {
+        if (sliderContainer) {
             tns({
                 container: '#aria-img-slider',
                 items: 3,
@@ -30,9 +28,22 @@ document.addEventListener('DOMContentLoaded', function () {
                 slideBy: 1,
                 autoplayTimeout: 5000,
             });
+
+            sliderContainer.querySelectorAll('a')?.forEach(function (el) {
+                el.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const mainImgA = document.querySelector('#aria-main-img');
+                    const mainImg = document.querySelector('#aria-main-img img');
+                    const thumbImg = el.querySelector('img');
+                    if (mainImgA && mainImg && thumbImg) {
+                        mainImgA.setAttribute('href', el.getAttribute('href'));
+                        mainImg.setAttribute('src', thumbImg.getAttribute('src'));
+                    }
+                });
+            });
         }
 
-        if (document.querySelector('#rel-products')) {
+        if (relProductsContainer) {
             tns({
                 container: '#rel-products',
                 items: 3,
@@ -52,19 +63,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
         }
-
-        document.querySelectorAll('#aria-img-slider a')?.forEach(function (el) {
-            el.addEventListener('click', function (e) {
-                e.preventDefault();
-                const mainImgA = document.querySelector('#aria-main-img');
-                const mainImg = document.querySelector('#aria-main-img img');
-                const thumbImg = el.querySelector('img');
-                if (mainImgA && mainImg && thumbImg) {
-                    mainImgA.setAttribute('href', el.getAttribute('href'));
-                    mainImg.setAttribute('src', thumbImg.getAttribute('src'));
-                }
-            });
-        });
     } catch (e) {
         console.error(e);
     }

@@ -1,4 +1,3 @@
-import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
 import ContentSEOAnalyzer from './seo-analyzer.js';
 
@@ -30,12 +29,17 @@ const faTitles = {
     '.ql-clean': 'حذف فرمت (Clean)'
 };
 
-function initQuillEditors() {
+export async function initQuillEditors() {
     try {
+        const editors = document.querySelectorAll('.ckeditorx, .quill-editor');
+        if (editors.length === 0) return;
+
+        const { default: Quill } = await import('quill');
+
         let keywordInput = document.querySelector('#keyword');
         let dirx = document.querySelector('#panel-dir')?.value || 'rtl';
 
-        document.querySelectorAll('.ckeditorx, .quill-editor').forEach(function (el) {
+        editors.forEach(function (el) {
             if (el.dataset.quillInitialized === 'true') return;
             if (!el.parentNode) return;
 
@@ -185,5 +189,3 @@ function initQuillEditors() {
         console.error('Quill initialization error:', e);
     }
 }
-
-export { initQuillEditors };

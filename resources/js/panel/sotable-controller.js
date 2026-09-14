@@ -1,78 +1,61 @@
-import Sortable from "sortablejs";
-import axios from "axios";
-document.addEventListener('DOMContentLoaded', function() {
-    let sortableList = document.querySelector('#sort-control > .ol-sortable');
+import Sortable from 'sortablejs';
 
-    if (sortableList == null){
+export function initSortableController() {
+    const sortControl = document.querySelector('#sort-control');
+    if (!sortControl) return;
 
-        return;
-    }
-    let sortable = new Sortable(sortableList, {
-        group: 'nested',
-        animation: 150,
-        fallbackOnBody: true,
-        swapThreshold: 0.65,
-        onEnd: function (evt) {
-            serializeList();
-        }
-    });
+    const sortableRoot = sortControl.querySelector(':scope > .ol-sortable');
+    const sortDataInput = document.querySelector('#sort-data');
+    if (!sortableRoot || !sortDataInput) return;
 
-    // Initialize nested sortables
-    let nestedSortables = document.querySelectorAll('.ol-sortable');
-    for (let i = 0; i < nestedSortables.length; i++) {
-        new Sortable(nestedSortables[i], {
-            group: 'nested',
-            animation: 150,
-            fallbackOnBody: true,
-            swapThreshold: 0.65,
-            onEnd: function (evt) {
-                serializeList();
+    function serializeNode(ol, serialized, parentId = null) {
+        Array.from(ol.children).forEach((li) => {
+            const id = li.getAttribute('data-id');
+            const item = { id: id, children: [] };
+            if (parentId) item.parentId = parentId;
+            serialized.push(item);
+
+            const nestedOl = li.querySelector(':scope > ol');
+            if (nestedOl) {
+                serializeNode(nestedOl, serialized, id);
             }
         });
     }
 
     function serializeList() {
-        let serialized = [];
-        serializeNode(sortableList, serialized);
-        // console.log(JSON.stringify(serialized, null, 2));
-        document.querySelector('#sort-data').value = JSON.stringify(serialized);
+        const serialized = [];
+        serializeNode(sortableRoot, serialized);
+        sortDataInput.value = JSON.stringify(serialized);
     }
 
-    function serializeNode(ol, serialized, parentId = null) {
-        let children = ol.children;
-        for (let i = 0; i < children.length; i++) {
-            let li = children[i];
-            let id = li.getAttribute('data-id');
-            let item = { id: id, children: [] };
-            if (parentId) {
-                item.parentId = parentId;
-            }
-            serialized.push(item);
+    // Initialize all nested sortable lists exactly once
+    const allSortables = sortControl.querySelectorAll('.ol-sortable');
+    allSortables.forEach((el) => {
+        new Sortable(el, {
+            group: 'nested',
+            animation: 150,
+            fallbackOnBody: true,
+            swapThreshold: 0.65,
+            onEnd: () => serializeList(),
+        });
+    });
 
-            let nestedOl = li.querySelector(':scope > ol');
-            if (nestedOl) {
-                serializeNode(nestedOl, serialized, id);
-            }
-        }
-    }
-
-    // Initial serialization
     serializeList();
 
-    document.querySelector('#save-sort')?.addEventListener('click',async function () {
-        const url  = this.getAttribute('data-link');
-        const data = JSON.parse(document.querySelector('#sort-data').value);
+    document.querySelector('#save-sort')?.addEventListener('click', async function () {
+        const url = this.getAttribute('data-link');
+        if (!url || !sortDataInput.value) return;
+
         try {
-            let resp = await  axios.post(url,{items: data});
+            const data = JSON.parse(sortDataInput.value);
+            const resp = await axios.post(url, { items: data });
             if (resp.data.OK) {
-                $toast.info(resp.data.message);
-            }else{
-
-                $toast.error(resp.data.error);
+                window.$toast?.info(resp.data.message);
+            } else {
+                window.$toast?.error(resp.data.error || 'Failed to save');
             }
-        } catch(e) {
-            $toast.error(e.message);
+        } catch (err) {
+            window.$toast?.error(err.message || 'Error saving sort order');
         }
-
     });
-});
+}

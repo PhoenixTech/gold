@@ -1,173 +1,127 @@
-function clearSelection() {
-    if (window.getSelection) {
-        window.getSelection().removeAllRanges();
-    } else if (document.selection) {
-        document.selection.empty();
+// Delegated bulk actions and table checkbox controller
+
+function syncMainFormAction(form) {
+    const activeSelect = document.querySelector('[data-bulk-action]');
+    if (!activeSelect) return;
+
+    let hiddenInput = form.querySelector('input[name="action"]');
+    if (!hiddenInput) {
+        hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = 'action';
+        form.appendChild(hiddenInput);
     }
+    hiddenInput.value = activeSelect.value || '';
 }
 
+function updateBulkState(form) {
+    const checkedBoxes = form.querySelectorAll('.chkbox:checked');
+    const count = checkedBoxes.length;
+    const countEls = document.querySelectorAll('[data-bulk-count]');
+    const runBtns = document.querySelectorAll('[data-bulk-run]');
+    const activeSelect = document.querySelector('[data-bulk-action]');
+    const hasAction = Boolean(activeSelect && activeSelect.value !== '');
 
-function syncMainFormAction() {
-    let mainForm = document.querySelector('#main-form');
-    if (!mainForm) return;
-
-    let activeSelect = document.querySelector('[data-bulk-action]');
-    if (activeSelect) {
-        let hiddenInput = mainForm.querySelector('input[name="action"]');
-        if (!hiddenInput) {
-            hiddenInput = document.createElement('input');
-            hiddenInput.type = 'hidden';
-            hiddenInput.name = 'action';
-            mainForm.appendChild(hiddenInput);
-        }
-        hiddenInput.value = activeSelect.value || '';
-    }
-}
-
-function handleCheckChange() {
-    let table = document.querySelector('#main-form table');
-
-    if (table == null) {
-        return;
-    }
-
-    let count = table.querySelectorAll('.chkbox:checked').length;
-    let countEls = document.querySelectorAll('[data-bulk-count]');
-    let runBtns = document.querySelectorAll('[data-bulk-run]');
-    let activeSelect = document.querySelector('[data-bulk-action]');
-    let hasAction = activeSelect && activeSelect.value !== '';
-
-    countEls.forEach(function (countEl) {
+    countEls.forEach((countEl) => {
         if (count > 0) {
-            countEl.textContent = '(' + count + ')';
+            countEl.textContent = `(${count})`;
             countEl.classList.remove('d-none');
         } else {
             countEl.classList.add('d-none');
         }
     });
 
-    runBtns.forEach(function (runBtn) {
-        runBtn.disabled = (count === 0 || !hasAction);
+    runBtns.forEach((runBtn) => {
+        runBtn.disabled = count === 0 || !hasAction;
     });
 
-    syncMainFormAction();
+    syncMainFormAction(form);
 }
 
-function syncBulkActions() {
-    let selects = document.querySelectorAll('[data-bulk-action]');
-    selects.forEach(function (sel) {
-        sel.addEventListener('change', function () {
-            selects.forEach(function (other) {
-                if (other !== sel) {
-                    other.value = sel.value;
-                }
-            });
-            handleCheckChange();
-        });
-    });
+export function initBulkActions(formSelector = '#main-form') {
+    const form = document.querySelector(formSelector);
+    if (!form) return;
 
-    let mainForm = document.querySelector('#main-form');
-    if (mainForm) {
-        mainForm.addEventListener('submit', function () {
-            syncMainFormAction();
-        });
-    }
-}
-
-window.addEventListener('load', function () {
-    let chkall = document.querySelectorAll(".chkall");
-
-    if (chkall.length == 0) {
-        return false;
-    }
-    syncBulkActions();
-    let toggle = document.querySelector('#toggle-select');
-    if (toggle != null) {
-        toggle?.addEventListener('click', function () {
-            let checkboxes = document.querySelectorAll(".chkbox");
-            checkboxes.forEach(function (checkbox) {
-                if (!checkbox.checked) {
-                    checkbox.checked = true;
-                    checkbox.setAttribute("checked", "");
-                } else {
-                    checkbox.checked = false;
-                    checkbox.removeAttribute("checked");
-                }
-            });
-            handleCheckChange();
-
-        });
-    }
-// Attach an event listener for "change" and "click" events
-    chkall.forEach(function (chkall) {
-        chkall.addEventListener("change", handleCheckboxChange);
-        chkall.addEventListener("click", handleCheckboxChange);
-    });
-
-    function handleCheckboxChange() {
-        let isChecked = this.checked;
-        let table = this.closest("table");
-
-        if (isChecked) {
-            // Check all checkboxes in the table
-            let checkboxes = table.querySelectorAll(".chkbox");
-            checkboxes.forEach(function (checkbox) {
-                checkbox.checked = true;
-                checkbox.setAttribute("checked", "");
-            });
-        } else {
-            // Uncheck all checkboxes in the table
-            let checkboxes = table.querySelectorAll(".chkbox");
-            checkboxes.forEach(function (checkbox) {
-                checkbox.checked = false;
-                checkbox.removeAttribute("checked");
-            });
-        }
-        handleCheckChange();
-    }
-
-
-    // select with shift button
-    const chkboxes = document.querySelectorAll('.chkbox');
     let lastChecked = null;
 
-    chkboxes.forEach(chkbox => {
-        chkbox.addEventListener('click', handleCheckboxClick);
-        let label = chkbox.parentNode ? chkbox.parentNode.querySelector('label') : null;
-        if (label) {
-            label.addEventListener('click', handleCheckboxClick);
-        }
-        chkbox.addEventListener('change', handleCheckChange);
-    });
+    // Single delegated change listener for select-all and item check
+    form.addEventListener('change', (e) => {
+        const target = e.target;
 
-    function handleCheckboxClick(e) {
-        clearSelection();
-
-        let self = this;
-        if (e.target.tagName === 'LABEL') {
-            self = e.target.parentNode.querySelector('input');
-        }
-        if (!lastChecked) {
-            lastChecked = self;
+        // Select All switch
+        if (target.matches('.chkall')) {
+            const table = target.closest('table') || form;
+            const checkboxes = table.querySelectorAll('.chkbox');
+            checkboxes.forEach((cb) => {
+                cb.checked = target.checked;
+            });
+            updateBulkState(form);
             return;
         }
 
-        if (e.shiftKey) {
-            const start = Array.from(chkboxes).indexOf(self);
-            const end = Array.from(chkboxes).indexOf(lastChecked);
-            const range = Array.from(chkboxes).slice(Math.min(start, end) + 1, Math.max(start, end));
+        // Single checkbox item changed
+        if (target.matches('.chkbox')) {
+            // Keep master switch in sync if all/none checked
+            const table = target.closest('table') || form;
+            const chkall = table.querySelector('.chkall');
+            if (chkall) {
+                const allBoxes = table.querySelectorAll('.chkbox');
+                const checkedBoxes = table.querySelectorAll('.chkbox:checked');
+                chkall.checked = allBoxes.length > 0 && allBoxes.length === checkedBoxes.length;
+            }
+            updateBulkState(form);
+        }
+    });
 
-            range.forEach(chkbox => {
-                chkbox.checked = lastChecked.checked;
-            });
+    // Single delegated click listener for Shift+Click range selection
+    form.addEventListener('click', (e) => {
+        const cb = e.target.closest('.chkbox');
+        if (!cb) return;
 
+        if (e.shiftKey && lastChecked && lastChecked !== cb) {
+            const allBoxes = Array.from(form.querySelectorAll('.chkbox'));
+            const start = allBoxes.indexOf(cb);
+            const end = allBoxes.indexOf(lastChecked);
+
+            if (start !== -1 && end !== -1) {
+                const [min, max] = start < end ? [start, end] : [end, start];
+                for (let i = min; i <= max; i++) {
+                    allBoxes[i].checked = lastChecked.checked;
+                }
+            }
         }
 
-        handleCheckChange();
-        lastChecked = self;
+        lastChecked = cb;
+        updateBulkState(form);
+    });
 
+    // Invert selection button support
+    const toggleBtn = document.querySelector('#toggle-select');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            const checkboxes = form.querySelectorAll('.chkbox');
+            checkboxes.forEach((cb) => {
+                cb.checked = !cb.checked;
+            });
+            updateBulkState(form);
+        });
     }
 
-    handleCheckChange();
-});
+    // Synchronize bulk action dropdowns
+    const selects = document.querySelectorAll('[data-bulk-action]');
+    selects.forEach((sel) => {
+        sel.addEventListener('change', () => {
+            selects.forEach((other) => {
+                if (other !== sel) other.value = sel.value;
+            });
+            updateBulkState(form);
+        });
+    });
 
+    form.addEventListener('submit', () => {
+        syncMainFormAction(form);
+    });
+
+    // Initial state calculation
+    updateBulkState(form);
+}

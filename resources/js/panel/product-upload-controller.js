@@ -1,105 +1,82 @@
-var isW8 = false;
-let uploadFormData = [];
-let xTimer;
-window.noSubmit = false;
+// Scoped product form submission & media upload controller
 
-function previewImage(input, i) {
-    try {
-        const oFReader = new FileReader();
-        oFReader.readAsDataURL(input);
-        oFReader.onload = function (oFREvent) {
-            const img = oFREvent.target.result;
-            const uploadingImages = document.querySelector('#uploading-images');
-            const newDiv = document.createElement('div');
-            newDiv.dataset.id = i;
-            newDiv.className = 'col-xl-3 col-md-4 col-sm-6 mb-3 image-index';
-            newDiv.innerHTML = `
-        <div class="card h-100 shadow-sm border rounded-3 overflow-hidden position-relative product-media-card">
-            <span class="badge bg-success position-absolute top-0 start-0 m-2 shadow-sm" style="z-index: 2;">
-                <i class="ri-add-line me-1"></i>New
-            </span>
-            <button type="button" class="btn btn-danger upload-remove-image position-absolute top-0 end-0 m-2 shadow-sm rounded-circle d-flex align-items-center justify-content-center p-0" style="width: 30px; height: 30px; z-index: 2;" title="Remove">
-                <i class="ri-delete-bin-line fs-14"></i>
-            </button>
-            <div class="ratio ratio-1x1 bg-light">
-                <div class="img-preview w-100 h-100" style="background-image: url('${img}'); background-size: cover; background-position: center;"></div>
-            </div>
-            <div class="card-footer bg-white border-top py-2 px-2.5 text-center">
-                <small class="text-muted fs-11">${input.name ? (input.name.length > 20 ? input.name.substring(0, 18) + '...' : input.name) : ''}</small>
-            </div>
-        </div>
-      `;
-            uploadingImages.appendChild(newDiv);
-        };
-
-        if (xTimer !== undefined) {
-            clearTimeout(xTimer);
-        }
-
-        xTimer = setTimeout(() => {
-            document.querySelectorAll('.img-preview').forEach(el => {
-                el.style.height = `${el.offsetWidth}px`;
-            });
-            window.dispatchEvent(new Event('resize'));
-        }, 300);
-    } catch (e) {
-        console.error('Error in previewImage:', e);
-    }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
+export function initProductUpload() {
+    const productForm = document.querySelector('.product-form');
     const uploadingImages = document.querySelector('#uploading-images');
     const uploadDragDrop = document.querySelector('#upload-drag-drop');
     const uploadImageSelect = document.querySelector('#upload-image-select');
     const indexImage = document.querySelector('#index-image');
 
-    document.querySelector('.product-form')?.addEventListener('submit', function(e) {
+    if (!productForm && !uploadingImages && !uploadDragDrop) return;
 
-        e.preventDefault();
-        if (isW8 || window.noSubmit) {
-            return false;
+    let isSubmitting = false;
+    const uploadFiles = [];
+
+    function previewImage(file, index) {
+        try {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function (e) {
+                if (!uploadingImages) return;
+                const imgUrl = e.target.result;
+                const newDiv = document.createElement('div');
+                newDiv.dataset.id = index;
+                newDiv.className = 'col-xl-3 col-md-4 col-sm-6 mb-3 image-index';
+                newDiv.innerHTML = `
+                    <div class="card h-100 shadow-sm border rounded-3 overflow-hidden position-relative product-media-card">
+                        <span class="badge bg-success position-absolute top-0 start-0 m-2 shadow-sm" style="z-index: 2;">
+                            <i class="ri-add-line me-1"></i>New
+                        </span>
+                        <button type="button" class="btn btn-danger upload-remove-image position-absolute top-0 end-0 m-2 shadow-sm rounded-circle d-flex align-items-center justify-content-center p-0" style="width: 30px; height: 30px; z-index: 2;" title="Remove">
+                            <i class="ri-delete-bin-line fs-14"></i>
+                        </button>
+                        <div class="ratio ratio-1x1 bg-light">
+                            <div class="img-preview w-100 h-100" style="background-image: url('${imgUrl}'); background-size: cover; background-position: center;"></div>
+                        </div>
+                        <div class="card-footer bg-white border-top py-2 px-2.5 text-center">
+                            <small class="text-muted fs-11">${file.name ? (file.name.length > 20 ? file.name.substring(0, 18) + '...' : file.name) : ''}</small>
+                        </div>
+                    </div>
+                `;
+                uploadingImages.appendChild(newDiv);
+            };
+        } catch (err) {
+            console.error('Error previewing product image:', err);
         }
+    }
+
+    // Form submit handler
+    productForm?.addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (isSubmitting || window.noSubmit) return false;
 
         const formData = new FormData(this);
-        let j = 0;
-        for (const f of uploadFormData) {
-            if (uploadFormData.length == j) {
-                break;
+        uploadFiles.forEach((file) => {
+            if (file && file.size !== undefined) {
+                formData.append('image[]', file);
             }
-            j++;
-            try {
-                if (f.size === undefined) {
-                    continue;
-                }
-            } catch (e) {
-                console.log(e.message);
-                continue;
-            }
-            console.log('x',f);
-            formData.append('image[]', f);
-        }
-
-        const submitButtons = document.querySelectorAll("[type='submit']");
-        submitButtons.forEach(button => {
-            button.disabled = true;
-            button.classList.add('w8');
         });
 
-        isW8 = true;
-        const url = this.getAttribute('action');
+        const submitButtons = document.querySelectorAll("[type='submit']");
+        submitButtons.forEach((btn) => {
+            btn.disabled = true;
+            btn.classList.add('w8');
+        });
 
+        isSubmitting = true;
+        const url = this.getAttribute('action');
 
         axios({
             method: 'post',
             url: url,
             data: formData,
-            headers: {'Content-Type': 'multipart/form-data'}
-        }).then(res => {
-            submitButtons.forEach(button => {
-                button.disabled = false;
-                button.classList.remove('w8');
+            headers: { 'Content-Type': 'multipart/form-data' }
+        }).then((res) => {
+            submitButtons.forEach((btn) => {
+                btn.disabled = false;
+                btn.classList.remove('w8');
             });
-            isW8 = false;
+            isSubmitting = false;
 
             if (res.data.OK) {
                 if (res.data.url !== undefined) {
@@ -108,99 +85,102 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (res.data.link !== undefined) {
                         this.setAttribute('action', res.data.link);
                     }
-                    window.redirect = currentEditLink + res.data.data.slug;
-                    this.setAttribute('action', currentUpdateLink + res.data.data.slug)
-                    $toast.info(res.data.message);
-                    window.store.dispatch('updateQuantities',res.data.data.qidz);
+                    const editBase = window.currentEditLink || '';
+                    const updateBase = window.currentUpdateLink || '';
+                    if (res.data.data?.slug) {
+                        window.redirect = editBase + res.data.data.slug;
+                        this.setAttribute('action', updateBase + res.data.data.slug);
+                    }
+                    window.$toast?.info(res.data.message);
+                    window.store?.dispatch('updateQuantities', res.data.data?.qidz);
                 }
             }
-        }).catch(error => {
-            document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-            submitButtons.forEach(button => {
-                button.disabled = false;
-                button.classList.remove('w8');
+        }).catch((error) => {
+            document.querySelectorAll('.is-invalid').forEach((el) => el.classList.remove('is-invalid'));
+            submitButtons.forEach((btn) => {
+                btn.disabled = false;
+                btn.classList.remove('w8');
             });
-            isW8 = false;
+            isSubmitting = false;
 
-            for (let i in error.response.data.errors) {
-                document.getElementById(i)?.classList.add('is-invalid');
-                for (const err of error.response.data.errors[i]) {
-                    $toast.error(err);
-                    // console.log(err);
+            if (error.response?.data?.errors) {
+                for (const field in error.response.data.errors) {
+                    document.getElementById(field)?.classList.add('is-invalid');
+                    for (const err of error.response.data.errors[field]) {
+                        window.$toast?.error(err);
+                    }
                 }
             }
-            $toast.error('Error:' +error.response.status);
+            window.$toast?.error('Error: ' + (error.response?.status || 'network error'));
         });
     });
+
+    // Image double-click index selection
     uploadingImages?.addEventListener('dblclick', (e) => {
         const imageIndex = e.target.closest('.image-index');
-        if (imageIndex) {
-            document.querySelectorAll('.indexed').forEach(el => el.classList.remove('indexed'));
+        if (imageIndex && indexImage) {
+            document.querySelectorAll('.indexed').forEach((el) => el.classList.remove('indexed'));
             imageIndex.classList.add('indexed');
-            indexImage.value = imageIndex.dataset.key;
+            indexImage.value = imageIndex.dataset.key || '';
         }
     });
 
-    document.querySelectorAll('.img-preview').forEach(el => {
-        el.style.height = `${el.offsetWidth}px`;
-    });
-
+    // Drag-and-drop & file picker triggers
     uploadDragDrop?.addEventListener('click', () => {
-        uploadImageSelect.click();
+        uploadImageSelect?.click();
     });
 
     uploadImageSelect?.addEventListener('change', () => {
+        if (!uploadImageSelect.files) return;
         for (const file of uploadImageSelect.files) {
-            console.log(file);
-            uploadFormData.push(file);
-            previewImage(file, uploadFormData.length);
+            uploadFiles.push(file);
+            previewImage(file, uploadFiles.length);
         }
     });
 
+    // Remove staged image
     document.addEventListener('click', (e) => {
-        if (e.target.closest('.upload-remove-image')) {
-            const parentCol = e.target.closest('.col-md-4, .image-index');
-            if (!parentCol) return;
-            const dataId = parentCol.dataset.id;
-            delete uploadFormData[dataId - 1];
-            parentCol.style.transition = 'opacity 400ms';
-            parentCol.style.opacity = '0';
-            setTimeout(() => parentCol.remove(), 400);
+        const removeBtn = e.target.closest('.upload-remove-image');
+        if (!removeBtn) return;
+        const parentCol = removeBtn.closest('.image-index');
+        if (!parentCol) return;
+        const dataId = parseInt(parentCol.dataset.id, 10);
+        if (!isNaN(dataId) && uploadFiles[dataId - 1]) {
+            delete uploadFiles[dataId - 1];
         }
+        parentCol.style.transition = 'opacity 300ms';
+        parentCol.style.opacity = '0';
+        setTimeout(() => parentCol.remove(), 300);
     });
 
-    uploadDragDrop?.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        uploadDragDrop.classList.add('active');
-    });
-
-    ['dragenter', 'dragstart'].forEach(eventName => {
-        uploadDragDrop?.addEventListener(eventName, (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            uploadDragDrop.classList.add('active');
+    // Drag events
+    if (uploadDragDrop) {
+        ['dragenter', 'dragover'].forEach((ev) => {
+            uploadDragDrop.addEventListener(ev, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                uploadDragDrop.classList.add('active');
+            });
         });
-    });
 
-    ['dragleave', 'dragend'].forEach(eventName => {
-        uploadDragDrop?.addEventListener(eventName, (e) => {
-            e.preventDefault();
-            e.stopPropagation();
+        ['dragleave', 'dragend'].forEach((ev) => {
+            uploadDragDrop.addEventListener(ev, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                uploadDragDrop.classList.remove('active');
+            });
+        });
+
+        uploadDragDrop.addEventListener('drop', (e) => {
             uploadDragDrop.classList.remove('active');
-        });
-    });
-
-    uploadDragDrop?.addEventListener('drop', (e) => {
-        uploadDragDrop.classList.remove('active');
-        if (e.dataTransfer && e.dataTransfer.files.length) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            for (const f of e.dataTransfer.files) {
-                previewImage(f, uploadFormData.length);
-                uploadFormData.push(f);
+            if (e.dataTransfer?.files?.length) {
+                e.preventDefault();
+                e.stopPropagation();
+                for (const file of e.dataTransfer.files) {
+                    uploadFiles.push(file);
+                    previewImage(file, uploadFiles.length);
+                }
             }
-        }
-    });
-});
+        });
+    }
+}

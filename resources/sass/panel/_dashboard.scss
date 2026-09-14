@@ -5,6 +5,249 @@
     --dash-gold-soft: #f0d48a;
     --dash-silver: #c5c8ce;
     --dash-dollar: #8fbf8a;
+    --xshop-primary: #db9a00;
+    --xshop-background: #ffffff;
+    --xshop-text: #212529;
+    --xshop-border-soft: rgba(0, 0, 0, 0.08);
+    --xshop-shadow-sm: 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+    --xshop-lift: -3px;
+
+    /* --- Avisa Dashboard Hero Card --- */
+    .avisa-hero-card {
+        background: linear-gradient(135deg, color-mix(in srgb, var(--xshop-primary) 10%, #fff), color-mix(in srgb, var(--xshop-primary) 3%, #fff));
+        border: 1px solid color-mix(in srgb, var(--xshop-primary) 20%, transparent);
+        border-radius: 1.25rem;
+        padding: 1.5rem;
+        box-shadow: 0 10px 30px -15px color-mix(in srgb, var(--xshop-primary) 25%, transparent);
+        position: relative;
+        overflow: hidden;
+
+        &::before {
+            content: '';
+            position: absolute;
+            top: -40%;
+            left: -10%;
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle, color-mix(in srgb, var(--xshop-primary) 18%, transparent) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .avisa-hero-body {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1.25rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .avisa-hero-user {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+
+            .avisa-hero-avatar {
+                width: 64px;
+                height: 64px;
+                min-width: 64px;
+                border-radius: 50%;
+                object-fit: cover;
+                border: 3px solid var(--xshop-primary);
+                box-shadow: 0 4px 14px color-mix(in srgb, var(--xshop-primary) 30%, transparent);
+                cursor: pointer;
+                transition: transform .3s ease;
+
+                &:hover {
+                    transform: scale(1.06);
+                }
+            }
+
+            .avisa-hero-title {
+                font-size: 1.35rem;
+                font-weight: 800;
+                margin-bottom: .25rem;
+                color: var(--xshop-text);
+            }
+
+            .avisa-hero-sub {
+                font-size: .88rem;
+            }
+        }
+
+        .avisa-hero-actions {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            flex-wrap: wrap;
+        }
+    }
+
+    /* --- Avisa Summary Stat Cards Base --- */
+    .avisa-summary-stat-card {
+        background: var(--xshop-background);
+        border: 1px solid var(--xshop-border-soft);
+        border-radius: 1.15rem;
+        padding: 1.35rem 1.4rem;
+        display: flex;
+        align-items: center;
+        gap: 1.15rem;
+        cursor: pointer;
+        transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: var(--xshop-shadow-sm);
+        position: relative;
+        overflow: hidden;
+
+        &:hover {
+            transform: translateY(var(--xshop-lift));
+            box-shadow: 0 12px 25px -8px color-mix(in srgb, var(--xshop-primary) 30%, transparent);
+            border-color: var(--xshop-primary);
+
+            .stat-icon-wrapper {
+                transform: scale(1.08) rotate(3deg);
+            }
+        }
+
+        .stat-icon-wrapper {
+            width: 56px;
+            height: 56px;
+            min-width: 56px;
+            border-radius: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            transition: transform .3s ease;
+        }
+
+        &.card-invoice .stat-icon-wrapper {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: #fff;
+            box-shadow: 0 6px 15px -4px rgba(37, 99, 235, 0.5);
+        }
+
+        &.card-credit .stat-icon-wrapper {
+            background: linear-gradient(135deg, #059669, #047857);
+            color: #fff;
+            box-shadow: 0 6px 15px -4px rgba(5, 150, 105, 0.5);
+        }
+
+        &.card-ticket .stat-icon-wrapper {
+            background: linear-gradient(135deg, #7c3aed, #5b21b6);
+            color: #fff;
+            box-shadow: 0 6px 15px -4px rgba(124, 58, 237, 0.5);
+        }
+
+        &.card-address .stat-icon-wrapper {
+            background: linear-gradient(135deg, #db9a00, #b57d00);
+            color: #fff;
+            box-shadow: 0 6px 15px -4px rgba(219, 154, 0, 0.5);
+        }
+
+        .stat-details {
+            flex: 1;
+
+            .stat-label {
+                display: block;
+                font-size: .88rem;
+                font-weight: 600;
+                color: var(--xshop-text);
+                opacity: .75;
+                margin-bottom: .25rem;
+            }
+
+            .stat-value {
+                font-size: 1.55rem;
+                font-weight: 800;
+                margin: 0;
+                color: var(--xshop-text);
+
+                small {
+                    font-size: .88rem;
+                    font-weight: 600;
+                    opacity: .8;
+                }
+            }
+        }
+    }
+
+    /* --- Avisa Summary Widget & Table --- */
+    .avisa-summary-widget {
+        background: var(--xshop-background);
+        border: 1px solid var(--xshop-border-soft);
+        border-radius: 1.1rem;
+        box-shadow: var(--xshop-shadow-sm);
+        overflow: hidden;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+
+        .widget-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.1rem 1.25rem;
+            border-bottom: 1px solid color-mix(in srgb, var(--xshop-primary) 10%, transparent);
+            background: color-mix(in srgb, var(--xshop-primary) 3%, var(--xshop-background));
+
+            h4 {
+                font-size: 1.05rem;
+                font-weight: 700;
+                margin: 0;
+                color: var(--xshop-text);
+                display: flex;
+                align-items: center;
+
+                i {
+                    color: var(--xshop-primary);
+                }
+            }
+
+            .widget-link {
+                font-size: .82rem;
+                font-weight: 700;
+                color: var(--xshop-primary);
+                text-decoration: none;
+                display: flex;
+                align-items: center;
+                gap: .2rem;
+                transition: gap .2s ease;
+
+                &:hover {
+                    gap: .4rem;
+                }
+            }
+        }
+
+        .widget-body {
+            padding: 1.1rem 1.25rem;
+            flex: 1;
+        }
+    }
+
+    .avisa-summary-table {
+        th {
+            font-size: .8rem;
+            font-weight: 700;
+            color: var(--xshop-text);
+            opacity: .7;
+            background: color-mix(in srgb, var(--xshop-primary) 3%, var(--xshop-background));
+            border-bottom: 1px solid color-mix(in srgb, var(--xshop-primary) 10%, transparent);
+            padding: .75rem 1rem;
+        }
+
+        td {
+            padding: .85rem 1rem;
+            border-bottom: 1px solid color-mix(in srgb, var(--xshop-primary) 8%, transparent);
+            font-size: .88rem;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+    }
 
     a.avisa-summary-stat-card {
         color: inherit;

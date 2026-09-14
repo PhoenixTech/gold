@@ -1,11 +1,12 @@
-document.addEventListener('DOMContentLoaded', function () {
+export function initFastAttachment() {
+    const attachForm = document.querySelector('#attaching-form');
+    if (!attachForm) return;
 
-    let attachFrom = document.querySelector('#attaching-form');
     document.querySelector('#attach-down')?.addEventListener('click', function () {
-        attachFrom.style.bottom = (window.innerHeight * -.5+'px');
+        attachForm.style.bottom = `${window.innerHeight * -0.5}px`;
     });
     document.querySelector('#show-attach-form')?.addEventListener('click', function (e) {
         e.preventDefault();
-        attachFrom.style.bottom = ('0px');
+        attachForm.style.bottom = '0px';
     });
-});
+}

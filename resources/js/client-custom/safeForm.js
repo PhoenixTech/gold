@@ -1,11 +1,26 @@
-window.addEventListener('load',function () {
+// Instant action resolution for safe forms with anti-bot protection
 
-  setTimeout(()=>{
-      document.querySelectorAll('.safe-form')?.forEach(function (el) {
+function applySafeUrls() {
+    document.querySelectorAll('.safe-form').forEach((form) => {
+        const safeUrlEl = form.querySelector('.safe-url');
+        const url = safeUrlEl?.getAttribute('data-url');
+        if (url) {
+            form.setAttribute('action', url);
+        }
+    });
+}
 
-          const  url = el.querySelector('.safe-url').getAttribute('data-url');
-          el.setAttribute('action',url);
-      })
-  },1220);
+// Apply immediately on DOMContentLoaded
+document.addEventListener('DOMContentLoaded', applySafeUrls);
 
-})
+// Fallback on form submit delegation
+document.addEventListener('submit', (e) => {
+    const form = e.target.closest('.safe-form');
+    if (form) {
+        const safeUrlEl = form.querySelector('.safe-url');
+        const url = safeUrlEl?.getAttribute('data-url');
+        if (url) {
+            form.setAttribute('action', url);
+        }
+    }
+});

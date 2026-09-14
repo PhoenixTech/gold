@@ -64,7 +64,6 @@ main {
 
 
 @import "panel/common";
-@import "panel/raw";
 @import "panel/fix";
 @import "panel/navbar";
 @import "panel/breadcrumbs";
@@ -74,7 +73,6 @@ main {
 @import "panel/help";
 @import "panel/steps";
 @import "panel/shop-visit";
-@import "client/customer";
 
 .ql-editor {
     min-height: 200px;

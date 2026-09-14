@@ -29,12 +29,6 @@ a.action-btn, a.circle-btn, button.action-btn, button.circle-btn {
     --bs-tooltip-color: var(--bs-white);
 }
 
-.grid-equal {
-    display: grid;
-    grid-auto-columns: minmax(0, 1fr);
-    grid-auto-flow: column;
-}
-
 
 
 .group-control {
@@ -71,27 +65,6 @@ a.action-btn, a.circle-btn, button.action-btn, button.circle-btn {
     position: relative;
     z-index: 1;
     margin-bottom: -75px;
-}
-
-.section-group {
-
-    .section-group-item {
-        display: block;
-        padding: .5rem;
-        background: rgba($secondary-color-panel, .05);
-        border-bottom: 1px solid rgba($secondary-color-panel, .15);
-        color: #212529;
-
-        &.active {
-            background: $secondary-color-panel;
-            color: white;
-        }
-
-        &:hover {
-            background: rgba($primary-color-panel, .4);
-            color: black;
-        }
-    }
 }
 
 .setting-tabs {
@@ -144,108 +117,8 @@ a.action-btn, a.circle-btn, button.action-btn, button.circle-btn {
 }
 
 
-.area-list-item {
-    background: #00000022;
-    height: 125px;
-    text-align: center;
-    display: block;
-    color: $text-muted;
-
-    &:hover {
-        color: lighten($primary-color-panel, 10);
-    }
-
-    i {
-        font-size: 45px;
-        display: block;
-        margin: 1rem auto;
-    }
-}
-
 [data-open-file] {
     cursor: pointer;
-}
-
-.avatar-x64 {
-    background: $body-bg;
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px rgba($primary-color-panel, 127) solid;
-}
-
-.skewed-container {
-    overflow: hidden;
-    position: relative;
-    min-height: 128px;
-}
-
-.skewed-icon {
-    font-size: 128px;
-    opacity: .3;
-    position: absolute;
-    transform: rotateZ(27deg);
-    inset-inline-end: 1%;
-    top: -30px;
-}
-
-
-.order-card {
-    background: rgba(255, 196, 0, 0.8) !important;
-
-    .card-header {
-        background: #ffffff22 !important;
-        color: $secondary-color-panel;
-    }
-
-    .card-body {
-        background: #00000011;
-        text-align: center;
-    }
-
-    i {
-        font-size: 100px;
-    }
-
-    a, a:visited {
-        color: black;
-    }
-}
-
-.ticket-card {
-    background: rgba(0, 255, 166, 0.8) !important;
-
-    .card-header {
-        background: #ffffff22 !important;
-        color: $secondary-color-panel;
-    }
-
-    .card-body {
-        background: #00000011;
-        text-align: center;
-    }
-
-    i {
-        font-size: 100px;
-    }
-
-    a, a:visited {
-        color: black;
-    }
-}
-
-.equal-height {
-    display: flex;
-    display: -webkit-flex;
-    flex-wrap: wrap;
-}
-
-@media (min-width: 768px) {
-    .row.equal {
-        display: flex;
-        flex-wrap: wrap;
-    }
 }
 
 
