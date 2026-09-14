@@ -60,7 +60,13 @@
                     @endif
                     @if(auth()->user()->hasAnyAccess('invoice'))
                         <li>
-                            <a href="{{ route('admin.invoice.index') }}">
+                            <a href="{{ route('admin.order-board.index') }}" class="{{ request()->routeIs('admin.order-board.*') ? 'active' : '' }}">
+                                <i class="ri-dashboard-2-line"></i>
+                                {{__('Order board')}}
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('admin.invoice.index') }}" class="{{ request()->routeIs('admin.invoice.*') ? 'active' : '' }}">
                                 <i class="ri-file-list-3-fill"></i>
                                 {{__('Invoices')}}
                             </a>

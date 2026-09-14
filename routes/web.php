@@ -161,6 +161,7 @@ Route::prefix(config('app.panel.prefix'))->name('admin.')->group(
                         Route::post('sort/save', [\App\Http\Controllers\Admin\GroupController::class, 'sortSave'])->name('sort-save');
                         Route::get('sort', [\App\Http\Controllers\Admin\GroupController::class, 'sort'])->name('sort');
                     });
+                Route::get('order-board', [\App\Http\Controllers\Admin\OrderBoardController::class, 'index'])->name('order-board.index');
                 Route::prefix('invoices')->name('invoice.')->group(
                     function () {
                         Route::get('', [\App\Http\Controllers\Admin\InvoiceController::class, 'index'])->name('index');
