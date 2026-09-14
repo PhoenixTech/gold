@@ -1412,6 +1412,27 @@ textarea.full {
     .assay-ticket {
         flex-direction: column;
         gap: 0;
+        margin-bottom: .85rem;
+        border-radius: .5rem;
+        background: linear-gradient(180deg, var(--xshop-gold-100), var(--ck-paper));
+        box-shadow: 0 1px 4px rgba(61, 46, 20, 0.08);
+        overflow: hidden;
+    }
+    .assay-copy {
+        padding: .6rem .75rem .5rem;
+    }
+    .assay-kicker {
+        font-size: .68rem;
+        margin-bottom: .2rem;
+    }
+    .assay-copy p {
+        font-size: .76rem;
+        line-height: 1.45;
+    }
+    .assay-path {
+        margin-top: .35rem;
+        gap: .25rem .6rem;
+        font-size: .7rem;
     }
     .quote-timer {
         border-inline-start: 0;
@@ -1420,6 +1441,13 @@ textarea.full {
         flex-direction: row;
         justify-content: space-between;
         align-items: center;
+        padding: .4rem .75rem;
+    }
+    .quote-timer span {
+        font-size: .68rem;
+    }
+    .quote-timer em {
+        font-size: 1.15rem;
     }
     .checkout-layout {
         grid-template-columns: 1fr;
