@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Category;
+use App\Models\Customer;
 use App\Models\Group;
 use App\Models\Post;
 use App\Models\Product;
@@ -114,4 +115,39 @@ class ClientWebPagesTest extends TestCase
         $response = $this->get(route('client.sign-up'));
         $response->assertStatus(200);
     }
+
+    public function test_wtf_footer_hidden_on_card_profile_sign_in_and_login(): void
+    {
+        if (Category::count() == 0) {
+            Category::factory(2)->create();
+        }
+
+        // Welcome page should see WTFFooter
+        $this->get(route('client.welcome'))
+            ->assertStatus(200)
+            ->assertSee('WTFFooter');
+
+        // /card page should not see WTFFooter
+        $this->get(route('client.card'))
+            ->assertStatus(200)
+            ->assertDontSee('WTFFooter');
+
+        // /customer/sign-in page should not see WTFFooter
+        $this->get(route('client.sign-in'))
+            ->assertStatus(200)
+            ->assertDontSee('WTFFooter');
+
+        // /login page should not see WTFFooter
+        $this->get(route('login'))
+            ->assertStatus(200)
+            ->assertDontSee('WTFFooter');
+
+        // /profile page should not see WTFFooter (as authenticated customer)
+        $customer = Customer::factory()->create();
+        $this->actingAs($customer, 'customer')
+            ->get(route('client.profile'))
+            ->assertStatus(200)
+            ->assertDontSee('WTFFooter');
+    }
 }
+

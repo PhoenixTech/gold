@@ -111,31 +111,40 @@
 </footer>
 
 @php
-    $footerCats = $footerCategories ?? (function_exists('getCategoriesSet') ? getCategoriesSet('index_WTFFooter_categories') : collect());
-    if ($footerCats->isEmpty()) {
-        $footerCats = \App\Models\Category::where('hide', 0)
-            ->where(function ($q) {
-                $q->whereNull('parent_id')->orWhere('parent_id', 0);
-            })
-            ->orderBy('sort')
-            ->take(4)
-            ->get();
-    }
+    $hideWtfFooter = View::hasSection('hide-wtf-footer')
+        || request()->is('card', 'card/*', 'profile', 'profile/*', 'customer/profile', 'customer/profile/*', 'customer/sign-in', 'customer/sign-in/*', 'login', 'login/*')
+        || request()->routeIs('client.card*', 'client.profile*', 'client.customer.profile*', 'client.sign-in*', 'login*');
 @endphp
-@if($footerCats && $footerCats->isNotEmpty())
-    <nav class="WTFFooter fixed-bottom-categories" aria-label="Footer Categories">
-        @foreach($footerCats as $k => $footerCat)
-            <a class="wtfooter-btn" href="{{$footerCat->webUrl()}}">
-                @if($k == 3 && file_exists(public_path('assets/default/ballon.webp')))
-                    <img id="ballon" src="{{asset('assets/default/ballon.webp')}}" alt="ballon" loading="lazy">
-                @endif
-                @if($footerCat->id == 61)
-                    <img class="cat-icon" src="{{Storage::url('categories/1741370193-هدیه طلا.jpg')}}" alt="{{$footerCat->name}}">
-                @else
-                    <img class="cat-icon" src="{{$footerCat->svgUrl()}}" alt="{{$footerCat->name}}">
-                @endif
-                <span class="cat-name">{{$footerCat->name}}</span>
-            </a>
-        @endforeach
-    </nav>
+
+@if(!$hideWtfFooter)
+    @php
+        $footerCats = $footerCategories ?? (function_exists('getCategoriesSet') ? getCategoriesSet('index_WTFFooter_categories') : collect());
+        if ($footerCats->isEmpty()) {
+            $footerCats = \App\Models\Category::where('hide', 0)
+                ->where(function ($q) {
+                    $q->whereNull('parent_id')->orWhere('parent_id', 0);
+                })
+                ->orderBy('sort')
+                ->take(4)
+                ->get();
+        }
+    @endphp
+    @if($footerCats && $footerCats->isNotEmpty())
+        <nav class="WTFFooter fixed-bottom-categories" aria-label="Footer Categories">
+            @foreach($footerCats as $k => $footerCat)
+                <a class="wtfooter-btn" href="{{$footerCat->webUrl()}}">
+                    @if($k == 3 && file_exists(public_path('assets/default/ballon.webp')))
+                        <img id="ballon" src="{{asset('assets/default/ballon.webp')}}" alt="ballon" loading="lazy">
+                    @endif
+                    @if($footerCat->id == 61)
+                        <img class="cat-icon" src="{{Storage::url('categories/1741370193-هدیه طلا.jpg')}}" alt="{{$footerCat->name}}">
+                    @else
+                        <img class="cat-icon" src="{{$footerCat->svgUrl()}}" alt="{{$footerCat->name}}">
+                    @endif
+                    <span class="cat-name">{{$footerCat->name}}</span>
+                </a>
+            @endforeach
+        </nav>
+    @endif
 @endif
+

@@ -240,6 +240,7 @@
     }
 }
 
-body {
+body:has(.WTFFooter) {
     padding-bottom: 5.5rem;
 }
+

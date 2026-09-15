@@ -144,11 +144,12 @@ class Customer extends Authenticatable
 
     public function avatar()
     {
-        if ($this->avatar == null || trim($this->avatar) == '') {
+        $avatar = $this->attributes['avatar'] ?? null;
+        if (empty($avatar) || trim((string) $avatar) == '') {
             return asset('assets/default/unknown.svg');
         }
 
-        return \Storage::url('customers/'.$this->avatar);
+        return \Storage::url('customers/'.$avatar);
     }
 
     public function hasRole()
