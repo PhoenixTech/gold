@@ -24,9 +24,10 @@ class ProductSkuTest extends TestCase
 
     public function test_generates_correct_sku_format_for_female_gold_fourth_product(): void
     {
-        $catId = 1;
+        $category = Category::factory()->create(['code' => 'A', 'name' => 'انگشتر']);
+        $catId = $category->id;
 
-        // Simulate 3 existing products in category 1
+        // Simulate 3 existing products in category
         for ($i = 1; $i <= 3; $i++) {
             Product::factory()->create([
                 'user_id' => $this->user->id,
@@ -36,38 +37,40 @@ class ProductSkuTest extends TestCase
 
         $sku = Product::generateSku('women', 'gold', $catId);
 
-        $this->assertSame('FG010004', $sku);
+        $this->assertSame('F1A0004', $sku);
     }
 
     public function test_generates_correct_sku_for_men_silver(): void
     {
-        $catId = 5;
+        $category = Category::factory()->create(['code' => 'L', 'name' => 'النگو']);
 
-        $sku = Product::generateSku('men', 'silver', $catId);
+        $sku = Product::generateSku('men', 'silver', $category->id);
 
-        $this->assertSame('MS050001', $sku);
+        $this->assertSame('M2L0001', $sku);
     }
 
     public function test_generates_correct_sku_for_children_gold(): void
     {
-        $catId = 12;
+        $category = Category::factory()->create(['code' => 'Gr', 'name' => 'گردنبند و آویز']);
 
-        $sku = Product::generateSku('children', 'gold', $catId);
+        $sku = Product::generateSku('children', 'gold', $category->id);
 
-        $this->assertSame('CG120001', $sku);
+        $this->assertSame('C1Gr0001', $sku);
     }
 
     public function test_generates_correct_sku_for_unisex_fallback(): void
     {
-        $catId = 3;
+        $category = Category::factory()->create(['code' => 'D', 'name' => 'دستبند']);
 
-        $sku = Product::generateSku('unisex', 'gold', $catId);
+        $sku = Product::generateSku('unisex', 'gold', $category->id);
 
-        $this->assertSame('UG030001', $sku);
+        $this->assertSame('U1D0001', $sku);
     }
 
     public function test_auto_sets_sku_on_model_create_and_update(): void
     {
+        $this->category->update(['code' => 'A']);
+
         $product = Product::factory()->create([
             'user_id' => $this->user->id,
             'category_id' => $this->category->id,
@@ -76,14 +79,13 @@ class ProductSkuTest extends TestCase
             'sku' => null,
         ]);
 
-        $catPad = sprintf('%02d', $this->category->id);
-        $this->assertStringStartsWith("FG{$catPad}", $product->sku);
+        $this->assertStringStartsWith('F1A', $product->sku);
 
         // Update product to men + silver
         $product->target_group = 'men';
         $product->metal_type = 'silver';
         $product->save();
 
-        $this->assertStringStartsWith("MS{$catPad}", $product->fresh()->sku);
+        $this->assertStringStartsWith('M2A', $product->fresh()->sku);
     }
 }

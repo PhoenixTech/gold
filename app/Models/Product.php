@@ -46,10 +46,18 @@ class Product extends Model implements HasMedia
 
     public static function generateSku(?string $targetGroup, ?string $metalType, ?int $categoryId, ?int $productId = null): string
     {
-        $targets = ['women' => 'F', 'female' => 'F', 'f' => 'F', 'men' => 'M', 'male' => 'M', 'm' => 'M', 'children' => 'C', 'child' => 'C', 'c' => 'C'];
+        $targets = [
+            'women' => 'F', 'female' => 'F', 'f' => 'F',
+            'men' => 'M', 'male' => 'M', 'm' => 'M',
+            'children' => 'C', 'child' => 'C', 'c' => 'C',
+        ];
         $t = $targets[strtolower((string) $targetGroup)] ?? 'U';
-        $m = strtolower((string) $metalType) === 'silver' ? 'S' : 'G';
-        $c = sprintf('%02d', (int) $categoryId);
+
+        // Metal: 1 = gold, 2 = silver per sku-2.md
+        $metalNorm = strtolower((string) $metalType);
+        $m = ($metalNorm === 'silver' || $metalNorm === '2' || $metalNorm === 's') ? '2' : '1';
+
+        $c = Category::resolveSkuCode($categoryId);
 
         if ($productId) {
             $count = self::where('category_id', $categoryId)

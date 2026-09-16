@@ -671,18 +671,25 @@ export default {
         parsePieceNumber(code) {
             const sku = this.currentProductSku;
             const value = String(code || '').trim();
-            if (!sku || !value.startsWith(`${sku}-`)) {
+            if (!sku) {
                 return 0;
             }
-            const n = parseInt(value.slice(sku.length + 1), 10);
-            return Number.isFinite(n) ? n : 0;
+            if (value.startsWith(`${sku}-`)) {
+                const n = parseInt(value.slice(sku.length + 1), 10);
+                return Number.isFinite(n) ? n : 0;
+            }
+            if (value.startsWith(sku) && value.length === sku.length + 5) {
+                const n = parseInt(value.slice(sku.length), 10);
+                return Number.isFinite(n) ? n : 0;
+            }
+            return 0;
         },
         pieceSku(number) {
             const sku = this.currentProductSku;
             if (!sku) {
                 return '';
             }
-            return `${sku}-${String(number).padStart(4, '0')}`;
+            return `${sku}-${String(number).padStart(5, '0')}`;
         },
         nextPieceNumber() {
             let max = 0;

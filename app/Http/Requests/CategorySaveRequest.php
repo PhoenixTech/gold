@@ -23,6 +23,7 @@ class CategorySaveRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'min:2', 'max:128'],
+            'code' => ['nullable', 'string', 'max:10'],
             'subtitle' => ['nullable', 'string',],
             'image' => ['nullable', 'file', 'mimes:jpg,svg,png'],
             'bg' => ['nullable', 'file', 'mimes:jpg,svg,png'],

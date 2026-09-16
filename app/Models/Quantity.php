@@ -31,7 +31,7 @@ class Quantity extends Model
 
     public static function pieceSku(string $productSku, int $number): string
     {
-        return trim($productSku).'-'.sprintf('%04d', $number);
+        return trim($productSku).'-'.sprintf('%05d', $number);
     }
 
     public static function pieceNumberFromCode(?string $code, string $productSku): ?int
@@ -42,11 +42,15 @@ class Quantity extends Model
             return null;
         }
 
-        if (! preg_match('/^'.preg_quote($productSku, '/').'-(\d+)$/', $code, $matches)) {
-            return null;
+        if (preg_match('/^'.preg_quote($productSku, '/').'-(\d+)$/', $code, $matches)) {
+            return (int) $matches[1];
         }
 
-        return (int) $matches[1];
+        if (preg_match('/^'.preg_quote($productSku, '/').'(\d{5})$/', $code, $matches)) {
+            return (int) $matches[1];
+        }
+
+        return null;
     }
 
     /**

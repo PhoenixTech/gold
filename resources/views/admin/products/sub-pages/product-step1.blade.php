@@ -114,7 +114,8 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const targetMap = { 'women': 'F', 'men': 'M', 'children': 'C', 'unisex': 'U' };
-    const metalMap = { 'silver': 'S', 'gold': 'G' };
+    const metalMap = { 'gold': '1', 'silver': '2', '1': '1', '2': '2' };
+    const catCodeMap = @json(\App\Models\Category::all()->mapWithKeys(fn($cat) => [$cat->id => $cat->sku_code]));
     const skuInput = document.getElementById('sku');
     const targetSelect = document.getElementById('target_group');
     const metalSelect = document.getElementById('metal_type');
@@ -138,12 +139,12 @@ document.addEventListener('DOMContentLoaded', function () {
         const catVal = parseInt((catHidden && catHidden.value) || (catSelect && catSelect.value) || '0', 10);
 
         const t = targetMap[targetVal] || 'U';
-        const m = metalMap[metalVal] || 'G';
-        const c = String(catVal).padStart(2, '0');
+        const m = metalMap[metalVal] || '1';
+        const c = catCodeMap[catVal] || (catVal ? String(catVal).padStart(2, '0') : '00');
 
         let seq = '0001';
         const curr = (skuInput.value || '').trim();
-        if (curr.length >= 8 && /^\d{4}$/.test(curr.slice(-4))) {
+        if (/^\d{4}$/.test(curr.slice(-4))) {
             seq = curr.slice(-4);
         }
 

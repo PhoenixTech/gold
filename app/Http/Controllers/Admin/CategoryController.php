@@ -24,7 +24,7 @@ class CategoryController extends XController
     // protected  $_MODEL_ = Category::class;
     // protected  $SAVE_REQUEST = CategorySaveRequest::class;
 
-    protected $cols = ['name', 'subtitle', 'parent_id'];
+    protected $cols = ['name', 'code', 'subtitle', 'parent_id'];
     protected $extra_cols = ['id', 'slug', 'image'];
 
     protected $searchable = ['name', 'subtitle', 'description'];
@@ -58,6 +58,7 @@ class CategoryController extends XController
     {
 
         $category->name = $request->input('name');
+        $category->code = $request->input('code') ?: null;
         $category->subtitle = $request->input('subtitle');
         $category->color = $request->input('color');
         $category->bg_color = $request->input('bg_color');

@@ -14,6 +14,7 @@ class Category extends Model
 
     protected $guarded = [];
     public $translatable = ['name', 'subtitle', 'description'];
+    protected $appends = ['sku_code'];
 
     public function imgUrl()
     {
@@ -136,5 +137,58 @@ class Category extends Model
 
     public function parallelCategories($limit = 10){
         return Category::where('parent_id' , $this->parent_id)->where('id','<>',$this->id)->limit($limit)->get();
+    }
+
+    public static function standardSkuCodes(): array
+    {
+        return [
+            'Gr' => ['گردنبند', 'آویز', 'necklace', 'pendant'],
+            'E' => ['گوشواره', 'earring'],
+            'A' => ['انگشتر', 'حلقه', 'ring'],
+            'L' => ['النگو', 'bangle'],
+            'D' => ['دستبند', 'bracelet'],
+            'P' => ['پابند', 'خلخال', 'anklet'],
+            'Z' => ['زنجیر', 'chain'],
+            'Ac' => ['اکسسوری', 'accessory'],
+            'Pr' => ['پیرسینگ', 'piercing'],
+            'Set' => ['نیم ست', 'نیم‌ست', 'ست', 'set'],
+            'Sh' => ['شمش', 'ingot', 'bar'],
+        ];
+    }
+
+    public function getSkuCodeAttribute(): string
+    {
+        if (! empty($this->code)) {
+            return trim($this->code);
+        }
+
+        $rawName = (string) $this->getRawOriginal('name');
+        $decoded = json_decode($rawName, true);
+        $searchable = is_array($decoded) ? implode(' ', $decoded) : (string) $this->name;
+        $searchable .= ' ' . ($this->slug ?? '');
+
+        foreach (static::standardSkuCodes() as $code => $keywords) {
+            foreach ($keywords as $keyword) {
+                if (mb_stripos($searchable, $keyword) !== false) {
+                    return $code;
+                }
+            }
+        }
+
+        return sprintf('%02d', (int) $this->id);
+    }
+
+    public static function resolveSkuCode(?int $categoryId): string
+    {
+        if (! $categoryId) {
+            return '00';
+        }
+
+        $category = static::find($categoryId);
+        if (! $category) {
+            return sprintf('%02d', $categoryId);
+        }
+
+        return $category->sku_code;
     }
 }

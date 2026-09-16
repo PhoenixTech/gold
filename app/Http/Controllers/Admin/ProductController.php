@@ -201,7 +201,7 @@ class ProductController extends XController
     public function create()
     {
         //
-        $cats = Category::all(['id', 'name', 'parent_id']);
+        $cats = Category::all(['id', 'name', 'parent_id', 'code']);
 
         return view($this->formView, compact('cats'));
     }
@@ -213,7 +213,7 @@ class ProductController extends XController
     {
         //
 
-        $cats = Category::all(['id', 'name', 'parent_id']);
+        $cats = Category::all(['id', 'name', 'parent_id', 'code']);
 
         return view($this->formView, compact('item', 'cats'));
     }
@@ -279,7 +279,7 @@ class ProductController extends XController
     {
 
         $product = Product::find($id);
-        $cats = Category::all(['id', 'name', 'parent_id']);
+        $cats = Category::all(['id', 'name', 'parent_id', 'code']);
 
         return view('admin.products.category-edit', compact('product', 'cats'));
     }

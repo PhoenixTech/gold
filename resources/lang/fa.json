@@ -1853,5 +1853,21 @@
     "Net sellable stock:": "خالص موجودی قابل فروش:",
     "Scrapped or sold pieces are automatically excluded from net stock.": "قطعات منهدم‌شده یا فروخته‌شده به‌صورت خودکار از خالص موجودی کسر می‌شوند.",
     "Scrap action instantly updates net inventory.": "عملیات انهدام بلافاصله خالص موجودی را به‌روزرسانی می‌کند.",
-    "Failed to load piece details.": "خطا در بارگذاری جزئیات قطعات."
+    "Failed to load piece details.": "خطا در بارگذاری جزئیات قطعات.",
+    "Category code": "کد دسته‌بندی (SKU)",
+    "e.g. A, Gr, E": "مانند A, Gr, E",
+    "How product and piece SKU codes work": "شناسه کالا (SKU) و کد قطعات چطور کار می‌کنند؟",
+    "Product and piece codes follow a 5-part structure combining gender, metal, category, sequence number, and delivered piece counter.": "کد هر محصول از ۵ بخش شامل جنسیت، نوع فلز، دسته اصلی، شماره ترتیبی محصول و شمارنده ۵ رقمی قطعه تشکیل می‌شود.",
+    "Step 1: Gender (Letter)": "بخش ۱: جنسیت (حرف)",
+    "Choose :women for Women, :men for Men, or :children for Children. This forms the first letter of the SKU.": "انتخاب :women برای زنانه، :men برای مردانه یا :children برای بچگانه، حرف اول شناسه کالا را تشکیل می‌دهد.",
+    "Step 2: Metal (Digit)": "بخش ۲: جنس فلز (عدد)",
+    ":gold uses digit :one, and :silver uses digit :two.": ":gold با عدد :one و :silver با عدد :two در شناسه درج می‌شود.",
+    "Step 3: Main Category (Code)": "بخش ۳: دسته‌بندی اصلی (کد)",
+    "Each of the 11 main categories has an official code letter: Ring (A), Necklace (Gr), Earring (E), Bracelet (D), Bangle (L), Anklet (P), Chain (Z), Accessory (Ac), Piercing (Pr), Set (Set), Ingot (Sh).": "هر یک از ۱۱ دسته اصلی دارای یک کد مشخص است: انگشتر (A)، گردنبند و آویز (Gr)، گوشواره (E)، دستبند (D)، النگو (L)، پابند (P)، زنجیر (Z)، اکسسوری (Ac)، پیرسینگ (Pr)، ست (Set)، شمش (Sh).",
+    "Step 4: Product Sequence (4 Digits)": "بخش ۴: شماره محصول در دسته (۴ رقم)",
+    "A 4-digit sequential counter of products within that category (e.g. 0001, 0002).": "یک شمارنده ۴ رقمی ترتیبی برای محصولات همان دسته (مانند 0001، 0002).",
+    "Step 5: Stock Piece Counter (5 Digits)": "بخش ۵: شمارنده قطعات انبار (۵ رقم)",
+    "Each inventory piece receives a 5-digit number separated by a hyphen, counting pieces delivered to customers (e.g. -00001 to -99999).": "هر قطعه در انبار یک شمارنده ۵ رقمی متصل با خط تیره دریافت می‌کند که قطعات تحویلی را می‌شمارد (مانند -00001 تا -99999).",
+    "Example SKU:": "نمونه شناسه کالا:",
+    "For a woman’s gold ring product #1, piece #5: Product SKU is :prod and Piece SKU is :piece.": "برای انگشتر طلا زنانه محصول شماره ۱، قطعه شماره ۵: شناسه محصول :prod و شناسه قطعه :piece خواهد بود."
 }

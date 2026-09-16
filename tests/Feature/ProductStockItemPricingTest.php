@@ -166,10 +166,10 @@ class ProductStockItemPricingTest extends TestCase
         $codes = $product->fresh()->quantities()->orderBy('id')->pluck('code')->all();
 
         $this->assertSame([
-            $sku.'-0001',
-            $sku.'-0002',
-            $sku.'-0003',
-            $sku.'-0004',
+            $sku.'-00001',
+            $sku.'-00002',
+            $sku.'-00003',
+            $sku.'-00004',
         ], $codes);
     }
 

@@ -34,6 +34,12 @@ class AdminHelpCatalog
                 'icon' => 'ri-settings-4-line',
                 'view' => 'admin.help.topics.shop-settings',
             ],
+            [
+                'slug' => 'sku-generation',
+                'title' => __('How product and piece SKU codes work'),
+                'icon' => 'ri-barcode-line',
+                'view' => 'admin.help.topics.sku-generation',
+            ],
         ];
     }
 

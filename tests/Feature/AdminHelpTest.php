@@ -94,9 +94,11 @@ class AdminHelpTest extends TestCase
             ->assertSee(route('admin.help', ['topic' => 'gold-price']), false)
             ->assertSee(route('admin.help', ['topic' => 'checkout']), false)
             ->assertSee(route('admin.help', ['topic' => 'shop-settings']), false)
+            ->assertSee(route('admin.help', ['topic' => 'sku-generation']), false)
             ->assertSee(__('How gold price is calculated'), false)
             ->assertSee(__('How customer checkout works'), false)
-            ->assertSee(__('Gold, checkout, and bank card options'), false);
+            ->assertSee(__('Gold, checkout, and bank card options'), false)
+            ->assertSee(__('How product and piece SKU codes work'), false);
     }
 
     public function test_clicking_the_delivery_topic_opens_the_guide(): void
@@ -155,6 +157,23 @@ class AdminHelpTest extends TestCase
             ->assertSee('نرخ بازار خودش به‌روز می‌شود', false)
             ->assertSee('یک کارت بانکی فعال', false)
             ->assertSee('حساب‌های بانکی', false);
+    }
+
+    public function test_sku_generation_topic_explains_the_structure(): void
+    {
+        $this->seed(GfxSeeder::class);
+        $this->actingAsAdmin();
+        App::setLocale('fa');
+
+        $this->get(route('admin.help', ['topic' => 'sku-generation']))
+            ->assertOk()
+            ->assertSee('شناسه کالا (SKU) و کد قطعات چطور کار می‌کنند؟', false)
+            ->assertSee('بخش ۱: جنسیت (حرف)', false)
+            ->assertSee('بخش ۲: جنس فلز (عدد)', false)
+            ->assertSee('بخش ۳: دسته‌بندی اصلی (کد)', false)
+            ->assertSee('بخش ۴: شماره محصول در دسته (۴ رقم)', false)
+            ->assertSee('بخش ۵: شمارنده قطعات انبار (۵ رقم)', false)
+            ->assertSee('F1A0001-00005', false);
     }
 
     public function test_unknown_help_topic_returns_not_found(): void

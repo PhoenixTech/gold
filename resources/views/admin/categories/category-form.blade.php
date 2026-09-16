@@ -117,7 +117,7 @@
                             <input name="slug" type="text" class="form-control @error('slug') is-invalid @enderror"
                                    placeholder="{{__('Category slug')}}" value="{{old('slug',$item->slug??null)}}"/>
                         </div>
-                        <div class="col-md-9 mt-3">
+                        <div class="col-md-6 mt-3">
                             <div class="form-group">
                                 <label for="subtitle">
                                     {{__('Subtitle')}}
@@ -126,6 +126,17 @@
                                        class="form-control @error('subtitle') is-invalid @enderror" id="subtitle"
                                        placeholder="{{__('Subtitle')}}"
                                        value="{{old('subtitle',$item->subtitle??null)}}"/>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mt-3">
+                            <div class="form-group">
+                                <label for="code">
+                                    {{__('Category code')}}
+                                </label>
+                                <input name="code" type="text"
+                                       class="form-control font-monospace @error('code') is-invalid @enderror" id="code"
+                                       placeholder="{{__('e.g. A, Gr, E')}}"
+                                       value="{{old('code',$item->code??null)}}"/>
                             </div>
                         </div>
                         <div class="col-md-3 mt-4">
