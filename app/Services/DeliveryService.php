@@ -59,6 +59,12 @@ class DeliveryService
 
         $invoice->status = $newStatus;
         $invoice->save();
+
+        if (in_array($newStatus, Invoice::successfulStatuses(), true)) {
+            $invoice->markOrderedPiecesAsSold();
+        } elseif ($newStatus === Invoice::CANCELED) {
+            $invoice->releaseReservedStock();
+        }
     }
 
     public function dispatch(Invoice $invoice, User $courier): Delivery

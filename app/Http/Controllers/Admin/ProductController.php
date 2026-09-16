@@ -331,14 +331,25 @@ class ProductController extends XController
                 $quantity->count = 1;
             }
 
-            $isSold = array_key_exists('count', $item) && (int) $item['count'] <= 0;
+            $rawStatus = isset($item['status']) ? (string) $item['status'] : null;
+            if ($rawStatus === \App\Enums\QuantityPieceStatus::Scrapped->value) {
+                $quantity->status = \App\Enums\QuantityPieceStatus::Scrapped;
+                $quantity->count = 0;
+            } elseif ($rawStatus === \App\Enums\QuantityPieceStatus::Sold->value || (array_key_exists('count', $item) && (int) $item['count'] <= 0)) {
+                $quantity->status = \App\Enums\QuantityPieceStatus::Sold;
+                $quantity->count = 0;
+            } else {
+                $quantity->status = \App\Enums\QuantityPieceStatus::Available;
+                $quantity->count = 1;
+            }
+
             $quantity->weight = $weight;
             $quantity->code = isset($item['code']) && $item['code'] !== '' ? (string) $item['code'] : null;
-            $quantity->count = $isSold ? 0 : 1;
             $quantity->image = $item['image'] ?? $quantity->image;
             $quantity->data = json_encode(array_filter([
                 'weight' => $weight,
                 'code' => $quantity->code,
+                'status' => $quantity->status->value,
             ], fn ($value) => $value !== null && $value !== ''));
             $quantity->price = $calculator->calculate($product, $weight);
             $quantity->save();

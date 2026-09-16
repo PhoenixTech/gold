@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\QuantityPieceStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,6 +20,7 @@ class Quantity extends Model
             'weight' => 'float',
             'count' => 'integer',
             'price' => 'integer',
+            'status' => QuantityPieceStatus::class,
         ];
     }
 
@@ -97,13 +99,61 @@ class Quantity extends Model
 
     public function isAvailable(): bool
     {
-        return $this->count > 0;
+        return ($this->status === QuantityPieceStatus::Available || $this->status === null) && (int) $this->count > 0;
+    }
+
+    public function isScrapped(): bool
+    {
+        return $this->status === QuantityPieceStatus::Scrapped;
+    }
+
+    public function isSold(): bool
+    {
+        return $this->status === QuantityPieceStatus::Sold || ($this->status !== QuantityPieceStatus::Scrapped && (int) $this->count <= 0);
+    }
+
+    public function markAvailable(): void
+    {
+        $this->status = QuantityPieceStatus::Available;
+        $this->count = 1;
+        $this->save();
+    }
+
+    public function markScrapped(): void
+    {
+        $this->status = QuantityPieceStatus::Scrapped;
+        $this->count = 0;
+        $this->save();
     }
 
     public function markSold(): void
     {
+        $this->status = QuantityPieceStatus::Sold;
         $this->count = 0;
         $this->save();
+    }
+
+    public function scopeAvailable($query)
+    {
+        return $query->where(function ($q) {
+            $q->where('status', QuantityPieceStatus::Available->value)
+                ->orWhereNull('status');
+        })->where('count', '>', 0);
+    }
+
+    public function scopeScrapped($query)
+    {
+        return $query->where('status', QuantityPieceStatus::Scrapped->value);
+    }
+
+    public function scopeSold($query)
+    {
+        return $query->where(function ($q) {
+            $q->where('status', QuantityPieceStatus::Sold->value)
+                ->orWhere(function ($sq) {
+                    $sq->whereNull('status')->where('count', '<=', 0);
+                });
+        });
     }
 
     public function getMetaAttribute()

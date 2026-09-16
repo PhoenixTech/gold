@@ -210,7 +210,11 @@
                             @foreach($cols as $col)
                                 <th>
                                     <a href="?sort={{$col}}{{sortSuffix($col)}}&{{queryBuilder('sort')}}">
-                                        {{__($col)}}
+                                        @if(request()->routeIs('admin.stock.*') && $col === 'stock_quantity')
+                                            {{__("Net stock")}}
+                                        @else
+                                            {{__($col)}}
+                                        @endif
                                     </a>
                                 </th>
                             @endforeach
@@ -386,9 +390,48 @@
                                                           <span class="fw-bold text-dark">{{ number_format($item->total_price ?? ($item->price ?? 0)) }}</span>
                                                           <small class="text-muted fs-12">{{ __('Toman') }}</small>
                                                           @break
-                                                       @case('sku')
-                                                           <code class="fw-bold text-primary">{{ $item->sku ?: '-' }}</code>
-                                                           @break
+                                                        @case('sku')
+                                                            <code class="fw-bold text-primary font-monospace">{{ $item->sku ?: '-' }}</code>
+                                                            @break
+                                                        @case('total_ordered')
+                                                            @php
+                                                                $totalOrd = method_exists($item, 'totalOrderedCount') ? $item->totalOrderedCount() : ($item->total_ordered_count ?? 0);
+                                                            @endphp
+                                                            <div class="d-inline-flex align-items-center gap-1">
+                                                                <span class="badge bg-light text-dark border border-secondary-subtle fs-12 fw-semibold">
+                                                                    {{ number_format($totalOrd) }} {{ __('pieces') }}
+                                                                </span>
+                                                                @if(request()->routeIs('admin.stock.*') && $totalOrd > 0)
+                                                                    <button type="button" class="btn btn-sm btn-outline-primary py-0 px-1 fs-11 view-pieces-btn" data-product-id="{{ $item->id }}" data-product-name="{{ $item->name }}" title="{{ __('View piece codes') }}">
+                                                                        <i class="ri-eye-line"></i>
+                                                                    </button>
+                                                                @endif
+                                                            </div>
+                                                            @break
+                                                        @case('scrapped_pieces')
+                                                            @php
+                                                                $scrappedCnt = method_exists($item, 'scrappedPiecesCount') ? $item->scrappedPiecesCount() : ($item->scrapped_pieces_count ?? 0);
+                                                            @endphp
+                                                            @if($scrappedCnt > 0)
+                                                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle fs-12 fw-bold" title="{{ __('Defective or scrapped pieces') }}">
+                                                                    <i class="ri-fire-line me-0.5"></i>{{ number_format($scrappedCnt) }} {{ __('pieces') }}
+                                                                </span>
+                                                            @else
+                                                                <span class="text-muted fs-12">—</span>
+                                                            @endif
+                                                            @break
+                                                        @case('sold_pieces')
+                                                            @php
+                                                                $soldCnt = method_exists($item, 'soldPiecesCount') ? $item->soldPiecesCount() : ($item->sold_pieces_count ?? 0);
+                                                            @endphp
+                                                            @if($soldCnt > 0)
+                                                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle fs-12 fw-semibold">
+                                                                    <i class="ri-shopping-bag-3-line me-0.5"></i>{{ number_format($soldCnt) }} {{ __('pieces') }}
+                                                                </span>
+                                                            @else
+                                                                <span class="text-muted fs-12">—</span>
+                                                            @endif
+                                                            @break
                                                        @case('stock_quantity')
                                                            @php
                                                                $isLowStock = method_exists($item, 'isLowStock')
@@ -470,16 +513,6 @@
                                                             </a>
                                                         </li>
                                                     @endforeach
-                                                    @if(config('app.xlang.active') && isset($item->translatable))
-                                                        <li>
-                                                            <a class="dropdown-item"
-                                                               href="{{route('admin.lang.model',[$item->id, get_class($item)])}}">
-                                                                <i class="ri-translate"></i>
-                                                                &nbsp;
-                                                                {{__("Translate")}}
-                                                            </a>
-                                                        </li>
-                                                    @endif
                                                 </ul>
                                             </div>
                                         @endif
@@ -530,12 +563,6 @@
                                                     @endif
                                                 @endif
                                             @endforeach
-                                            @if(config('app.xlang.active') && isset($item->translatable))
-                                                <a href="{{route('admin.lang.model',[$item->id, get_class($item)])}}"
-                                                   class="btn btn-outline-secondary translat-btn btn-sm mx-1">
-                                                    <i class="ri-translate"></i>
-                                                </a>
-                                            @endif
                                         </div>
                                     </td>
                                 </tr>

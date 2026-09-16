@@ -251,7 +251,8 @@ Route::prefix(config('app.panel.prefix'))->name('admin.')->group(
                     function () {
                         Route::get('', [\App\Http\Controllers\Admin\StockController::class, 'index'])->name('index');
                         Route::get('edit/{item}', fn ($item) => redirect()->route('admin.product.edit', $item))->name('edit');
-                        Route::get('show/{item}', fn ($item) => redirect()->route('admin.product.show', $item))->name('show');
+                        Route::get('product/{product}/pieces', [\App\Http\Controllers\Admin\StockController::class, 'pieces'])->name('pieces');
+                        Route::post('piece/{quantity}/toggle-scrap', [\App\Http\Controllers\Admin\StockController::class, 'togglePieceScrap'])->name('piece.toggle-scrap');
                     });
                 Route::prefix('props')->name('prop.')->group(
                     function () {

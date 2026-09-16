@@ -4,7 +4,17 @@
     $stockItems = old('stock_items');
     if ($stockItems === null) {
         $stockItems = isset($item)
-            ? $item->quantities()->get(['id', 'weight', 'code', 'count', 'price', 'image'])->toArray()
+            ? $item->quantities()->get(['id', 'weight', 'code', 'status', 'count', 'price', 'image'])->map(function ($q) {
+                return [
+                    'id' => $q->id,
+                    'weight' => $q->weight,
+                    'code' => $q->code,
+                    'status' => $q->status?->value ?? ($q->count > 0 ? 'available' : 'sold'),
+                    'count' => $q->count,
+                    'price' => $q->price,
+                    'image' => $q->image,
+                ];
+            })->toArray()
             : [];
     } elseif (is_string($stockItems)) {
         $stockItems = json_decode($stockItems, true) ?: [];
@@ -90,8 +100,15 @@
             price-label="{{__('Price')}}"
             status-label="{{__('Status')}}"
             available-label="{{__('Available')}}"
+            scrapped-label="{{__('Scrapped')}}"
             sold-label="{{__('Sold')}}"
             remove-label="{{__('Remove')}}"
+            scrap-label="{{__('Scrap product')}}"
+            restore-label="{{__('Restore piece')}}"
+            scrap-selected-label="{{__('Scrap selected')}}"
+            restore-selected-label="{{__('Restore selected')}}"
+            select-all-label="{{__('Select all')}}"
+            total-ordered-label="{{__('Total ordered')}}"
             live-hint="{{__('Calculated from current weight and pricing settings.')}}"
             breakdown-title="{{__('Price calculation breakdown')}}"
             final-label="{{__('Final price')}}"

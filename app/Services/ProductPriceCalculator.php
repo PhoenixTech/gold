@@ -120,7 +120,7 @@ class ProductPriceCalculator
         $product->loadMissing('quantities');
 
         /** @var Collection<int, Quantity> $available */
-        $available = $product->quantities->where('count', '>', 0);
+        $available = $product->quantities->filter(fn (Quantity $q) => $q->isAvailable());
 
         foreach ($product->quantities as $quantity) {
             if ((float) ($quantity->weight ?? 0) <= 0 && empty($quantity->data)) {
@@ -150,7 +150,7 @@ class ProductPriceCalculator
 
     public function syncProductAggregates(Product $product): Product
     {
-        $available = $product->quantities()->where('count', '>', 0)->orderBy('id');
+        $available = $product->availableQuantities();
 
         $product->stock_quantity = (int) $available->sum('count');
         $product->price = (int) ($available->clone()->value('price') ?? 0);

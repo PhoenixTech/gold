@@ -295,9 +295,20 @@ class Invoice extends Model
             return;
         }
 
-        $quantity->count = 1;
-        $quantity->save();
+        $quantity->markAvailable();
         app(\App\Services\ProductPriceCalculator::class)->syncProductAggregates($quantity->product);
+    }
+
+    public function markOrderedPiecesAsSold(): void
+    {
+        foreach ($this->orders as $order) {
+            if ($order->quantity_id) {
+                $quantity = \App\Models\Quantity::query()->find($order->quantity_id);
+                if ($quantity !== null) {
+                    $quantity->markSold();
+                }
+            }
+        }
     }
 
     /**
@@ -484,6 +495,7 @@ class Invoice extends Model
         /** @var \App\Models\Invoice $this */
         $this->status = self::PAID;
         $this->save();
+        $this->markOrderedPiecesAsSold();
         if (config('app.sms.driver') == 'Kavenegar') {
             $args = [
                 'receptor' => $this->customer->mobile,

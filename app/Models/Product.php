@@ -106,8 +106,8 @@ class Product extends Model implements HasMedia
     public function totalStockWeight(): float
     {
         $available = $this->relationLoaded('quantities')
-            ? $this->quantities->where('count', '>', 0)
-            : $this->quantities()->where('count', '>', 0)->get();
+            ? $this->quantities->filter->isAvailable()
+            : $this->availableQuantities()->get();
 
         if ($available->isNotEmpty()) {
             return round((float) $available->sum(fn ($q) => (float) ($q->weight ?? 0) * (int) ($q->count ?? 1)), 3);
@@ -119,8 +119,8 @@ class Product extends Model implements HasMedia
     public function totalStockPrice(): int
     {
         $available = $this->relationLoaded('quantities')
-            ? $this->quantities->where('count', '>', 0)
-            : $this->quantities()->where('count', '>', 0)->get();
+            ? $this->quantities->filter->isAvailable()
+            : $this->availableQuantities()->get();
 
         if ($available->isNotEmpty()) {
             return (int) $available->sum(fn ($q) => (int) ($q->price ?? 0) * (int) ($q->count ?? 1));
@@ -256,6 +256,13 @@ class Product extends Model implements HasMedia
         return 'slug';
     }
 
+    public function resolveRouteBinding($value, $field = null)
+    {
+        return $this->where($field ?? $this->getRouteKeyName(), $value)->first()
+            ?? (is_numeric($value) ? $this->where('id', $value)->first() : null)
+            ?? abort(404);
+    }
+
     public function quantities()
     {
         if ($this->stock_status == 'OUT_STOCK') {
@@ -267,7 +274,35 @@ class Product extends Model implements HasMedia
 
     public function availableQuantities()
     {
-        return $this->hasMany(Quantity::class)->where('count', '>', 0)->orderBy('id');
+        return $this->hasMany(Quantity::class)->available()->orderBy('id');
+    }
+
+    public function scrappedQuantities()
+    {
+        return $this->hasMany(Quantity::class)->scrapped()->orderBy('id');
+    }
+
+    public function soldQuantities()
+    {
+        return $this->hasMany(Quantity::class)->sold()->orderBy('id');
+    }
+
+    public function totalOrderedCount(): int
+    {
+        return (int) ($this->attributes['total_ordered_count']
+            ?? ($this->relationLoaded('quantities') ? $this->quantities->count() : $this->quantities()->count()));
+    }
+
+    public function scrappedPiecesCount(): int
+    {
+        return (int) ($this->attributes['scrapped_pieces_count']
+            ?? ($this->relationLoaded('quantities') ? $this->quantities->filter->isScrapped()->count() : $this->scrappedQuantities()->count()));
+    }
+
+    public function soldPiecesCount(): int
+    {
+        return (int) ($this->attributes['sold_pieces_count']
+            ?? ($this->relationLoaded('quantities') ? $this->quantities->filter->isSold()->count() : $this->soldQuantities()->count()));
     }
 
     public function firstAvailableQuantity(): ?Quantity

@@ -5,8 +5,9 @@
                 <h5 class="mb-1">{{ title }}</h5>
                 <p class="text-muted small mb-0">{{ subtitle }}</p>
                 <div class="stock-counts">
-                    <span class="badge text-bg-light border">{{ items.length.toLocaleString('fa-IR') }}</span>
+                    <span class="badge text-bg-light border" :title="totalOrderedLabel">{{ items.length.toLocaleString('fa-IR') }} {{ totalOrderedLabel }}</span>
                     <span class="badge text-bg-success">{{ availableCount.toLocaleString('fa-IR') }} {{ availableLabel }}</span>
+                    <span v-if="scrappedCount > 0" class="badge text-bg-danger">{{ scrappedCount.toLocaleString('fa-IR') }} {{ scrappedLabel }}</span>
                     <span v-if="soldCount > 0" class="badge text-bg-secondary">{{ soldCount.toLocaleString('fa-IR') }} {{ soldLabel }}</span>
                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle" :title="wageTooltip">
                         <i class="ri-percent-line me-1"></i>{{ totalWageLabel }}: {{ formatPercent(formula.feePercent) }}
@@ -17,6 +18,16 @@
                 </div>
             </div>
             <div class="stock-toolbar-actions">
+                <div v-if="selectedCount > 0" class="d-flex align-items-center gap-1">
+                    <button type="button" class="btn btn-outline-danger btn-sm" @click="scrapSelected">
+                        <i class="ri-fire-line me-1"></i>
+                        {{ scrapSelectedLabel }} ({{ selectedCount.toLocaleString('fa-IR') }})
+                    </button>
+                    <button v-if="selectedHasScrapped" type="button" class="btn btn-outline-success btn-sm" @click="restoreSelected">
+                        <i class="ri-restart-line me-1"></i>
+                        {{ restoreSelectedLabel }}
+                    </button>
+                </div>
                 <div v-if="items.length > 4" class="stock-search">
                     <i class="ri-search-line"></i>
                     <input
@@ -39,10 +50,20 @@
 
         <div v-else class="stock-list" ref="list">
             <div class="stock-table-head">
+                <span>
+                    <input
+                        type="checkbox"
+                        class="form-check-input"
+                        :checked="allSelected"
+                        @change="toggleSelectAll"
+                        :title="selectAllLabel"
+                    >
+                </span>
                 <span>{{ skuLabel }}</span>
                 <span>{{ weightLabel }}</span>
                 <span>{{ priceLabel }}</span>
                 <span>{{ statusLabel }}</span>
+                <span></span>
                 <span></span>
                 <span></span>
             </div>
@@ -55,9 +76,14 @@
                 v-for="item in filteredItems"
                 :key="item._key"
                 class="stock-row"
-                :class="{ 'is-sold': item.count <= 0, 'is-new': item.isNew }"
+                :class="{ 'is-sold': isSold(item), 'is-scrapped': isScrapped(item), 'is-new': item.isNew }"
             >
                 <div class="stock-row-main">
+                    <input
+                        type="checkbox"
+                        class="form-check-input"
+                        v-model="item.selected"
+                    >
                     <input
                         type="text"
                         class="form-control form-control-sm bg-light font-monospace"
@@ -71,7 +97,7 @@
                         min="0.001"
                         class="form-control form-control-sm"
                         v-model.number="item.weight"
-                        :disabled="item.count <= 0"
+                        :disabled="!isAvailable(item)"
                         @input="recalculateItem(item)"
                     >
                     <input
@@ -82,8 +108,9 @@
                         disabled
                     >
                     <div>
-                        <span v-if="item.count > 0" class="badge text-bg-success">{{ availableLabel }}</span>
-                        <span v-else class="badge text-bg-secondary">{{ soldLabel }}</span>
+                        <span v-if="isScrapped(item)" class="badge text-bg-danger">{{ scrappedLabel }}</span>
+                        <span v-else-if="isSold(item)" class="badge text-bg-secondary">{{ soldLabel }}</span>
+                        <span v-else class="badge text-bg-success">{{ availableLabel }}</span>
                     </div>
                     <button
                         type="button"
@@ -95,9 +122,20 @@
                         <i class="ri-calculator-line"></i>
                     </button>
                     <button
-                        v-if="item.count > 0"
+                        v-if="!isSold(item)"
                         type="button"
-                        class="btn btn-outline-danger btn-sm"
+                        class="btn btn-sm"
+                        :class="isScrapped(item) ? 'btn-danger' : 'btn-outline-danger'"
+                        @click="toggleScrap(item)"
+                        :title="isScrapped(item) ? restoreLabel : scrapLabel"
+                    >
+                        <i :class="isScrapped(item) ? 'ri-fire-fill' : 'ri-fire-line'"></i>
+                    </button>
+                    <span v-else></span>
+                    <button
+                        v-if="!isSold(item)"
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm"
                         @click="removeItem(item)"
                         :title="removeLabel"
                     >
@@ -215,6 +253,34 @@ export default {
             type: String,
             default: 'موجود',
         },
+        scrappedLabel: {
+            type: String,
+            default: 'منهدم‌شده',
+        },
+        scrapLabel: {
+            type: String,
+            default: 'انهدام محصول',
+        },
+        restoreLabel: {
+            type: String,
+            default: 'لغو انهدام',
+        },
+        scrapSelectedLabel: {
+            type: String,
+            default: 'انهدام موارد انتخابی',
+        },
+        restoreSelectedLabel: {
+            type: String,
+            default: 'لغو انهدام موارد انتخابی',
+        },
+        selectAllLabel: {
+            type: String,
+            default: 'انتخاب همه',
+        },
+        totalOrderedLabel: {
+            type: String,
+            default: 'کل قطعات',
+        },
         soldLabel: {
             type: String,
             default: 'فروخته‌شده',
@@ -289,11 +355,13 @@ export default {
         payload() {
             return JSON.stringify(this.items.map((item) => {
                 const price = this.livePrice(item);
+                const status = item.status || (this.isSold(item) ? 'sold' : 'available');
                 return {
                     id: item.id,
                     weight: item.weight,
                     code: item.code,
-                    count: item.count,
+                    status,
+                    count: status === 'available' ? 1 : 0,
                     price,
                     image: item.image,
                 };
@@ -328,10 +396,25 @@ export default {
             return fromForm || String(this.productSku || '').trim();
         },
         availableCount() {
-            return this.items.filter((item) => item.count > 0).length;
+            return this.items.filter((item) => this.isAvailable(item)).length;
+        },
+        scrappedCount() {
+            return this.items.filter((item) => this.isScrapped(item)).length;
         },
         soldCount() {
-            return this.items.length - this.availableCount;
+            return this.items.filter((item) => this.isSold(item)).length;
+        },
+        selectedCount() {
+            return this.items.filter((item) => item.selected).length;
+        },
+        selectedHasScrapped() {
+            return this.items.some((item) => item.selected && this.isScrapped(item));
+        },
+        allSelected() {
+            if (this.filteredItems.length === 0) {
+                return false;
+            }
+            return this.filteredItems.every((item) => item.selected);
         },
         filteredItems() {
             const q = String(this.query || '').trim().toLowerCase();
@@ -515,6 +598,46 @@ export default {
         recalculateAll() {
             this.items.forEach((item) => this.recalculateItem(item));
         },
+        isScrapped(item) {
+            return item.status === 'scrapped';
+        },
+        isSold(item) {
+            return item.status === 'sold' || (!this.isScrapped(item) && Number(item.count) <= 0);
+        },
+        isAvailable(item) {
+            return !this.isScrapped(item) && !this.isSold(item);
+        },
+        toggleScrap(item) {
+            if (this.isScrapped(item)) {
+                item.status = 'available';
+                item.count = 1;
+            } else {
+                item.status = 'scrapped';
+                item.count = 0;
+            }
+        },
+        toggleSelectAll() {
+            const willSelect = !this.allSelected;
+            this.filteredItems.forEach((item) => {
+                item.selected = willSelect;
+            });
+        },
+        scrapSelected() {
+            this.items.forEach((item) => {
+                if (item.selected && !this.isSold(item)) {
+                    item.status = 'scrapped';
+                    item.count = 0;
+                }
+            });
+        },
+        restoreSelected() {
+            this.items.forEach((item) => {
+                if (item.selected && this.isScrapped(item)) {
+                    item.status = 'available';
+                    item.count = 1;
+                }
+            });
+        },
         normalize(value) {
             let rows = value;
             if (typeof value === 'string') {
@@ -528,17 +651,22 @@ export default {
                 rows = [];
             }
 
-            return rows.map((row) => ({
-                _key: ++keySeed,
-                id: row.id ?? null,
-                weight: row.weight != null ? Number(row.weight) : null,
-                code: row.code ?? '',
-                count: row.count == null ? 1 : Number(row.count),
-                price: row.price ?? 0,
-                image: row.image ?? null,
-                breakdownOpen: false,
-                isNew: false,
-            })).reverse();
+            return rows.map((row) => {
+                const rawStatus = row.status ?? (row.count != null && Number(row.count) <= 0 ? 'sold' : 'available');
+                return {
+                    _key: ++keySeed,
+                    id: row.id ?? null,
+                    weight: row.weight != null ? Number(row.weight) : null,
+                    code: row.code ?? '',
+                    status: rawStatus,
+                    count: rawStatus === 'available' ? 1 : 0,
+                    price: row.price ?? 0,
+                    image: row.image ?? null,
+                    selected: false,
+                    breakdownOpen: false,
+                    isNew: false,
+                };
+            }).reverse();
         },
         parsePieceNumber(code) {
             const sku = this.currentProductSku;
@@ -590,9 +718,11 @@ export default {
                 id: null,
                 weight: null,
                 code: this.pieceSku(this.nextPieceNumber()),
+                status: 'available',
                 count: 1,
                 price: 0,
                 image: null,
+                selected: false,
                 breakdownOpen: false,
                 isNew: true,
             };
@@ -690,7 +820,7 @@ export default {
 .stock-table-head,
 .stock-row-main {
     display: grid;
-    grid-template-columns: minmax(140px, 1.15fr) 118px minmax(120px, 1fr) 88px 40px 40px;
+    grid-template-columns: 28px minmax(130px, 1.15fr) 110px minmax(110px, 1fr) 95px 36px 36px 36px;
     gap: .5rem;
     align-items: center;
 }
@@ -719,6 +849,11 @@ export default {
 .stock-row.is-sold {
     opacity: .72;
     background: #f8fafc;
+}
+
+.stock-row.is-scrapped {
+    background: #fff5f5;
+    opacity: .9;
 }
 
 .stock-row.is-new {
