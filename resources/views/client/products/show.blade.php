@@ -316,7 +316,17 @@
                     </div>
                 @endif
 
-                @if($product->fullMeta())
+                @php
+                    $platingLabels = $product->getPlatingColorLabels();
+                    $stoneLabels = $product->getStoneLabels();
+                    $accessoryLabels = $product->getAccessoryLabels();
+                    $occasionLabels = $product->getOccasionLabels();
+                    $hasAttributes = !empty($platingLabels) || !empty($stoneLabels) || !empty($accessoryLabels) || !empty($occasionLabels);
+                    $fullMetaItems = $product->fullMeta();
+                    $hasMeta = !empty($fullMetaItems) && count($fullMetaItems) > 0;
+                @endphp
+
+                @if($hasAttributes || $hasMeta)
                     <div class="accordion-item border-0 mb-3 rounded-3 overflow-hidden border">
                         <h2 class="accordion-header">
                             <button class="accordion-button collapsed fw-bold fs-15 bg-light-subtle text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#info" aria-expanded="false" aria-controls="info">
@@ -333,17 +343,63 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach($product->fullMeta() as $meta)
+                                        @if(!empty($platingLabels))
                                             <tr>
                                                 <td class="ps-3 fw-medium text-dark">
-                                                    <i class="{{$meta['data']->icon}} text-warning me-1.5"></i>
-                                                    {{$meta['data']->label}}
+                                                    <i class="ri-paint-brush-line text-warning me-1.5"></i>
+                                                    {{__("Plating Color")}}
                                                 </td>
                                                 <td class="text-center pe-3 text-body">
-                                                    {!! $meta['human_value'] !!}
+                                                    {{ implode('، ', $platingLabels) }}
                                                 </td>
                                             </tr>
-                                        @endforeach
+                                        @endif
+                                        @if(!empty($stoneLabels))
+                                            <tr>
+                                                <td class="ps-3 fw-medium text-dark">
+                                                    <i class="ri-vip-diamond-line text-primary me-1.5"></i>
+                                                    {{__("Stone")}}
+                                                </td>
+                                                <td class="text-center pe-3 text-body">
+                                                    {{ implode('، ', $stoneLabels) }}
+                                                </td>
+                                            </tr>
+                                        @endif
+                                        @if(!empty($accessoryLabels))
+                                            <tr>
+                                                <td class="ps-3 fw-medium text-dark">
+                                                    <i class="ri-handbag-line text-success me-1.5"></i>
+                                                    {{__("Accessory")}}
+                                                </td>
+                                                <td class="text-center pe-3 text-body">
+                                                    {{ implode('، ', $accessoryLabels) }}
+                                                </td>
+                                            </tr>
+                                        @endif
+                                        @if(!empty($occasionLabels))
+                                            <tr>
+                                                <td class="ps-3 fw-medium text-dark">
+                                                    <i class="ri-gift-line text-danger me-1.5"></i>
+                                                    {{__("Occasions")}}
+                                                </td>
+                                                <td class="text-center pe-3 text-body">
+                                                    {{ implode('، ', $occasionLabels) }}
+                                                </td>
+                                            </tr>
+                                        @endif
+                                        @if($hasMeta)
+                                            @foreach($fullMetaItems as $meta)
+                                                <tr>
+                                                    <td class="ps-3 fw-medium text-dark">
+                                                        <i class="{{$meta['data']->icon}} text-warning me-1.5"></i>
+                                                        {{$meta['data']->label}}
+                                                    </td>
+                                                    <td class="text-center pe-3 text-body">
+                                                        {!! $meta['human_value'] !!}
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        @endif
                                     </tbody>
                                 </table>
                             </div>

@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Product;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ProductSaveRequest extends FormRequest
@@ -17,7 +19,7 @@ class ProductSaveRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -42,6 +44,14 @@ class ProductSaveRequest extends FormRequest
             'stock_items' => ['nullable', 'string'],
             'image.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'canonical' => ['nullable', 'url', 'min:5', 'max:128'],
+            'plating_colors' => ['nullable', 'array'],
+            'plating_colors.*' => ['string', 'in:'.implode(',', array_keys(Product::platingColorOptions()))],
+            'stones' => ['nullable', 'array'],
+            'stones.*' => ['string', 'in:'.implode(',', array_keys(Product::stoneOptions()))],
+            'accessories' => ['nullable', 'array'],
+            'accessories.*' => ['string'],
+            'occasions' => ['nullable', 'array'],
+            'occasions.*' => ['string', 'in:'.implode(',', array_keys(Product::occasionOptions()))],
         ];
     }
 }

@@ -83,6 +83,117 @@
     </div>
 
     <div class="col-12">
+        <div class="card border border-light-subtle rounded-3 bg-light-subtle p-3 mb-2">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 pb-2 border-bottom">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="ri-sparkling-2-fill text-warning fs-4"></i>
+                    <div>
+                        <h6 class="fw-bold mb-0 text-dark">{{__('Product attributes')}}</h6>
+                        <span class="text-muted fs-12">{{__('Without impact on final price')}}</span>
+                    </div>
+                </div>
+                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle fs-11">
+                    <i class="ri-information-line me-1"></i>{{__('Group A')}}
+                </span>
+            </div>
+
+            <div class="row g-3">
+                {{-- Plating Color --}}
+                <div class="col-md-6">
+                    <div class="p-3 bg-white rounded-3 border border-light-subtle h-100 shadow-xs">
+                        <label class="fw-semibold text-dark d-flex align-items-center gap-1.5 mb-2.5">
+                            <i class="ri-paint-brush-line text-warning"></i>
+                            <span>{{__('Plating Color')}}</span>
+                        </label>
+                        @php $selectedPlatings = old('plating_colors', $item->plating_colors ?? []); @endphp
+                        <div class="d-flex flex-column gap-2">
+                            @foreach(\App\Models\Product::platingColorOptions() as $key => $label)
+                                <div class="form-check m-0">
+                                    <input class="form-check-input" type="checkbox" name="plating_colors[]" id="plating_{{$key}}" value="{{$key}}"
+                                           @if(in_array($key, $selectedPlatings)) checked @endif>
+                                    <label class="form-check-label fs-13 text-dark cursor-pointer" for="plating_{{$key}}">
+                                        {{$label}}
+                                    </label>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Stone --}}
+                <div class="col-md-6">
+                    <div class="p-3 bg-white rounded-3 border border-light-subtle h-100 shadow-xs">
+                        <label class="fw-semibold text-dark d-flex align-items-center gap-1.5 mb-2.5">
+                            <i class="ri-vip-diamond-line text-primary"></i>
+                            <span>{{__('Stone')}}</span>
+                        </label>
+                        @php $selectedStones = old('stones', $item->stones ?? []); @endphp
+                        <div class="row g-2">
+                            @foreach(\App\Models\Product::stoneOptions() as $key => $label)
+                                <div class="col-6 col-sm-4">
+                                    <div class="form-check m-0">
+                                        <input class="form-check-input stone-checkbox" type="checkbox" name="stones[]" id="stone_{{$key}}" value="{{$key}}"
+                                               @if(in_array($key, $selectedStones)) checked @endif>
+                                        <label class="form-check-label fs-13 text-dark cursor-pointer" for="stone_{{$key}}">
+                                            {{$label}}
+                                        </label>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Accessory --}}
+                <div class="col-md-6">
+                    <div class="p-3 bg-white rounded-3 border border-light-subtle h-100 shadow-xs">
+                        <label class="fw-semibold text-dark d-flex align-items-center gap-1.5 mb-2.5">
+                            <i class="ri-handbag-line text-success"></i>
+                            <span>{{__('Accessory')}}</span>
+                        </label>
+                        @php $selectedAccessories = old('accessories', $item->accessories ?? []); @endphp
+                        <div class="d-flex flex-column gap-2">
+                            @foreach(\App\Models\Product::accessoryOptions() as $key => $label)
+                                <div class="form-check m-0">
+                                    <input class="form-check-input accessory-checkbox" type="checkbox" name="accessories[]" id="accessory_{{$key}}" value="{{$key}}"
+                                           @if(in_array($key, $selectedAccessories)) checked @endif>
+                                    <label class="form-check-label fs-13 text-dark cursor-pointer" for="accessory_{{$key}}">
+                                        {{$label}}
+                                    </label>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Occasions --}}
+                <div class="col-md-6">
+                    <div class="p-3 bg-white rounded-3 border border-light-subtle h-100 shadow-xs">
+                        <label class="fw-semibold text-dark d-flex align-items-center gap-1.5 mb-2.5">
+                            <i class="ri-gift-line text-danger"></i>
+                            <span>{{__('Occasions')}}</span>
+                        </label>
+                        @php $selectedOccasions = old('occasions', $item->occasions ?? []); @endphp
+                        <div class="row g-2">
+                            @foreach(\App\Models\Product::occasionOptions() as $key => $label)
+                                <div class="col-6 col-sm-4">
+                                    <div class="form-check m-0">
+                                        <input class="form-check-input" type="checkbox" name="occasions[]" id="occasion_{{$key}}" value="{{$key}}"
+                                               @if(in_array($key, $selectedOccasions)) checked @endif>
+                                        <label class="form-check-label fs-13 text-dark cursor-pointer" for="occasion_{{$key}}">
+                                            {{$label}}
+                                        </label>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
         <div class="form-group">
             <label for="excerpt" class="fw-semibold">{{__('Excerpt')}}</label>
             <textarea name="excerpt"
@@ -173,5 +284,41 @@ document.addEventListener('DOMContentLoaded', function () {
     skuInput.addEventListener('input', function () {
         syncSkuToBreadcrumb(skuInput.value);
     });
+
+    // Stone "None" mutual exclusion
+    const stoneNone = document.getElementById('stone_none');
+    const stoneCheckboxes = document.querySelectorAll('.stone-checkbox:not(#stone_none)');
+    if (stoneNone) {
+        stoneNone.addEventListener('change', function () {
+            if (this.checked) {
+                stoneCheckboxes.forEach(cb => cb.checked = false);
+            }
+        });
+        stoneCheckboxes.forEach(cb => {
+            cb.addEventListener('change', function () {
+                if (this.checked && stoneNone) {
+                    stoneNone.checked = false;
+                }
+            });
+        });
+    }
+
+    // Accessory "None" mutual exclusion
+    const accessoryNone = document.getElementById('accessory_none');
+    const accessoryCheckboxes = document.querySelectorAll('.accessory-checkbox:not(#accessory_none)');
+    if (accessoryNone) {
+        accessoryNone.addEventListener('change', function () {
+            if (this.checked) {
+                accessoryCheckboxes.forEach(cb => cb.checked = false);
+            }
+        });
+        accessoryCheckboxes.forEach(cb => {
+            cb.addEventListener('change', function () {
+                if (this.checked && accessoryNone) {
+                    accessoryNone.checked = false;
+                }
+            });
+        });
+    }
 });
 </script>

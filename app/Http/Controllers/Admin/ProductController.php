@@ -2,13 +2,18 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\QuantityPieceStatus;
 use App\Http\Controllers\XController;
 use App\Http\Requests\ProductSaveRequest;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Quantity;
 use App\Services\ProductPriceCalculator;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Foundation\Application;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class ProductController extends XController
 {
@@ -17,7 +22,7 @@ class ProductController extends XController
 
     protected $cols = ['name', 'sku', 'metal_type', 'target_group', 'weight', 'category_id', 'stock_quantity', 'status'];
 
-    protected $extra_cols = ['id', 'slug', 'image_index', 'min_stock_level', 'price', 'buy_price'];
+    protected $extra_cols = ['id', 'slug', 'image_index', 'min_stock_level', 'price', 'buy_price', 'plating_colors', 'stones', 'accessories', 'occasions'];
 
     protected $searchable = ['name', 'slug', 'description', 'excerpt', 'sku', 'table'];
 
@@ -102,7 +107,7 @@ class ProductController extends XController
         $product->table = $request->input('table');
         $product->description = $request->input('desc');
         $product->excerpt = $request->input('excerpt');
-        $product->addon = $request->input('addon');
+        $product->addon = $request->input('addon', $product->addon ?? 0);
         $product->wage = $request->input('labor_charge_1', $request->input('wage', 0));
         $product->weight = $request->input('weight', 0);
         $product->labor_charge_1 = $request->input('labor_charge_1', $request->input('wage', 0));
@@ -113,8 +118,12 @@ class ProductController extends XController
         $product->min_stock_level = $request->input('min_stock_level', 0);
         $product->target_group = $request->input('target_group', 'unisex');
         $product->metal_type = $request->input('metal_type', 'gold');
+        $product->plating_colors = array_values(array_filter((array) $request->input('plating_colors', [])));
+        $product->stones = array_values(array_filter((array) $request->input('stones', [])));
+        $product->accessories = array_values(array_filter((array) $request->input('accessories', [])));
+        $product->occasions = array_values(array_filter((array) $request->input('occasions', [])));
         $product->keyword = $request->input('keyword');
-        $product->stock_status = $request->input('stock_status');
+        $product->stock_status = $request->input('stock_status', $product->stock_status ?? 'IN_STOCK');
         $product->price = $request->input('price', $product->price ?? 0);
         $product->buy_price = $request->input('buy_price', 0);
 
@@ -131,7 +140,7 @@ class ProductController extends XController
         $product->downloadable = $request->input('downloadable', false);
         $product->image_index = $request->input('index_image', 0);
         $product->user_id = auth()->id();
-        $product->status = $request->input('status');
+        $product->status = (int) $request->input('status', $product->status ?? 0);
         $tags = array_filter(explode(',,', $request->input('tags')));
         if ($request->has('canonical') && trim($request->input('canonical')) != '') {
             $product->canonical = $request->input('canonical');
@@ -273,7 +282,7 @@ class ProductController extends XController
 
     /**
      * @param  $id  Product's id
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|\Illuminate\Foundation\Application|\Illuminate\View\View
+     * @return Factory|\Illuminate\Contracts\View\View|Application|View
      */
     public function categoryEdit($id)
     {
@@ -285,7 +294,7 @@ class ProductController extends XController
     }
 
     /**
-     * @return array|\Illuminate\Http\RedirectResponse
+     * @return array|RedirectResponse
      */
     public function categorySave(Product $item, Request $request)
     {
@@ -332,14 +341,14 @@ class ProductController extends XController
             }
 
             $rawStatus = isset($item['status']) ? (string) $item['status'] : null;
-            if ($rawStatus === \App\Enums\QuantityPieceStatus::Scrapped->value) {
-                $quantity->status = \App\Enums\QuantityPieceStatus::Scrapped;
+            if ($rawStatus === QuantityPieceStatus::Scrapped->value) {
+                $quantity->status = QuantityPieceStatus::Scrapped;
                 $quantity->count = 0;
-            } elseif ($rawStatus === \App\Enums\QuantityPieceStatus::Sold->value || (array_key_exists('count', $item) && (int) $item['count'] <= 0)) {
-                $quantity->status = \App\Enums\QuantityPieceStatus::Sold;
+            } elseif ($rawStatus === QuantityPieceStatus::Sold->value || (array_key_exists('count', $item) && (int) $item['count'] <= 0)) {
+                $quantity->status = QuantityPieceStatus::Sold;
                 $quantity->count = 0;
             } else {
-                $quantity->status = \App\Enums\QuantityPieceStatus::Available;
+                $quantity->status = QuantityPieceStatus::Available;
                 $quantity->count = 1;
             }
 

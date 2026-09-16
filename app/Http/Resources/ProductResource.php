@@ -18,10 +18,11 @@ class ProductResource extends JsonResource
         /**
          * @var $this Product
          */
-        if (!$request['loadProduct'])
+        if (! $request['loadProduct']) {
             $request->merge([
-                'loadProduct' => false
+                'loadProduct' => false,
             ]);
+        }
 
         return [
             'id' => $this->id,
@@ -36,6 +37,16 @@ class ProductResource extends JsonResource
             'buy_price' => $this->buy_price,
             'average_rating' => floatval($this->average_rating),
             'view' => $this->view,
+            'metal_type' => $this->metal_type,
+            'target_group' => $this->target_group,
+            'plating_colors' => $this->plating_colors ?? [],
+            'plating_color_labels' => $this->getPlatingColorLabels(),
+            'stones' => $this->stones ?? [],
+            'stone_labels' => $this->getStoneLabels(),
+            'accessories' => $this->accessories ?? [],
+            'accessory_labels' => $this->getAccessoryLabels(),
+            'occasions' => $this->occasions ?? [],
+            'occasion_labels' => $this->getOccasionLabels(),
             'category' => $this->when($request->input('loadCategory', true), new CategoryResource($this->category)),
             'categories' => CategoriesCollection::collection($this->categories),
             'image' => $this->imgUrl(),

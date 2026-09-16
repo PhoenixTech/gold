@@ -28,6 +28,10 @@ class Product extends Model implements HasMedia
     protected $casts = [
         'qz' => 'array',
         'qidz' => 'array',
+        'plating_colors' => 'array',
+        'stones' => 'array',
+        'accessories' => 'array',
+        'occasions' => 'array',
     ];
 
     protected static function booted()
@@ -662,5 +666,111 @@ RESULT;
             $query->where('evaluationable_type', Category::class)
                 ->where('evaluationable_id', $this->category_id);
         })->get();
+    }
+
+    public static function platingColorOptions(): array
+    {
+        return [
+            'yellow_gold' => __('Yellow Gold'),
+            'rose_gold' => __('Rose Gold'),
+            'silver_yellow_gold_plated' => __('Silver Yellow Gold Plated'),
+            'silver_rose_gold_plated' => __('Silver Rose Gold Plated'),
+            'silver_white_gold_plated' => __('Silver White Gold Plated'),
+        ];
+    }
+
+    public static function stoneOptions(): array
+    {
+        return [
+            'none' => __('None'),
+            'diamond' => __('Diamond'),
+            'pearl' => __('Pearl'),
+            'crystal' => __('Crystal'),
+            'agate' => __('Agate'),
+            'turquoise' => __('Turquoise'),
+            'zirconium' => __('Zirconium'),
+            'amethyst' => __('Amethyst'),
+            'onyx' => __('Onyx'),
+            'opal' => __('Opal'),
+            'jade' => __('Jade'),
+            'lapis_lazuli' => __('Lapis Lazuli'),
+            'quartz' => __('Quartz'),
+            'coral' => __('Coral'),
+            'shell' => __('Shell'),
+        ];
+    }
+
+    public static function accessoryOptions(): array
+    {
+        return [
+            'none' => __('None'),
+            'leather_bracelet' => __('Leather Bracelet'),
+        ];
+    }
+
+    public static function occasionOptions(): array
+    {
+        return [
+            'valentine' => __('Valentine'),
+            'mothers_day' => __("Mother's Day"),
+            'girls_day' => __("Girl's Day"),
+            'womens_day' => __("Women's Day"),
+            'birthday' => __('Birthday'),
+            'anniversary' => __('Anniversary'),
+            'yalda' => __('Yalda'),
+            'wedding' => __('Wedding'),
+        ];
+    }
+
+    public function getPlatingColorLabels(): array
+    {
+        $options = static::platingColorOptions();
+        $selected = is_array($this->plating_colors) ? $this->plating_colors : [];
+
+        return array_values(array_filter(array_map(fn ($key) => $options[$key] ?? null, $selected)));
+    }
+
+    public function getStoneLabels(): array
+    {
+        $options = static::stoneOptions();
+        $selected = is_array($this->stones) ? $this->stones : [];
+
+        return array_values(array_filter(array_map(fn ($key) => $options[$key] ?? null, $selected)));
+    }
+
+    public function getAccessoryLabels(): array
+    {
+        $options = static::accessoryOptions();
+        $selected = is_array($this->accessories) ? $this->accessories : [];
+
+        return array_values(array_filter(array_map(fn ($key) => $options[$key] ?? null, $selected)));
+    }
+
+    public function getOccasionLabels(): array
+    {
+        $options = static::occasionOptions();
+        $selected = is_array($this->occasions) ? $this->occasions : [];
+
+        return array_values(array_filter(array_map(fn ($key) => $options[$key] ?? null, $selected)));
+    }
+
+    public function scopeWithPlatingColor($query, string $color)
+    {
+        return $query->whereJsonContains('plating_colors', $color);
+    }
+
+    public function scopeWithStone($query, string $stone)
+    {
+        return $query->whereJsonContains('stones', $stone);
+    }
+
+    public function scopeWithAccessory($query, string $accessory)
+    {
+        return $query->whereJsonContains('accessories', $accessory);
+    }
+
+    public function scopeWithOccasion($query, string $occasion)
+    {
+        return $query->whereJsonContains('occasions', $occasion);
     }
 }

@@ -21,3 +21,4 @@ yarn-error.log
 /.cursor
 skills-lock.json
 package-lock.json
+.DS_Store
