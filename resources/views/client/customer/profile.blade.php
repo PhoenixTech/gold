@@ -291,7 +291,7 @@
                 <div class="tab" id="profile">
                     {{-- Sub-header with back arrow pointing right in RTL (wish-profile.png) --}}
                     <div class="avisa-subnav-head mb-3">
-                        <a href="#summary" class="avisa-subnav-back avisa-tab-trigger" aria-label="Back">
+                        <a href="#summary" class="avisa-subnav-back avisa-tab-trigger" aria-label="{{ __('Back') }}">
                             <i class="ri-arrow-right-line"></i>
                         </a>
                         <h4 class="fw-bold mb-0 text-dark">{{ __('Account details') }}</h4>
@@ -418,7 +418,7 @@
                 <div class="tab" id="profile-edit">
                     {{-- Sub-header with back arrow to #profile (wish-profile-edit.png) --}}
                     <div class="avisa-subnav-head mb-3">
-                        <a href="#profile" class="avisa-subnav-back avisa-tab-trigger" aria-label="Back">
+                        <a href="#profile" class="avisa-subnav-back avisa-tab-trigger" aria-label="{{ __('Back') }}">
                             <i class="ri-arrow-right-line"></i>
                         </a>
                         <h4 class="fw-bold mb-0 text-dark">{{ __('Personal Information') }}</h4>
@@ -514,7 +514,7 @@
                 {{-- ============================================================ --}}
                 <div class="tab" id="likes">
                     <div class="avisa-subnav-head mb-3">
-                        <a href="#summary" class="avisa-subnav-back avisa-tab-trigger" aria-label="Back">
+                        <a href="#summary" class="avisa-subnav-back avisa-tab-trigger" aria-label="{{ __('Back') }}">
                             <i class="ri-arrow-right-line"></i>
                         </a>
                         <h4 class="fw-bold mb-0 text-dark">{{ __('Favorites') }}</h4>
@@ -559,7 +559,7 @@
                 {{-- ============================================================ --}}
                 <div class="tab" id="active-orders">
                     <div class="avisa-subnav-head mb-3">
-                        <a href="#summary" class="avisa-subnav-back avisa-tab-trigger" aria-label="Back">
+                        <a href="#summary" class="avisa-subnav-back avisa-tab-trigger" aria-label="{{ __('Back') }}">
                             <i class="ri-arrow-right-line"></i>
                         </a>
                         <h4 class="fw-bold mb-0 text-dark">{{ __('Active orders') }}</h4>
@@ -616,7 +616,7 @@
                 {{-- ============================================================ --}}
                 <div class="tab" id="invoices">
                     <div class="avisa-subnav-head mb-3">
-                        <a href="#summary" class="avisa-subnav-back avisa-tab-trigger" aria-label="Back">
+                        <a href="#summary" class="avisa-subnav-back avisa-tab-trigger" aria-label="{{ __('Back') }}">
                             <i class="ri-arrow-right-line"></i>
                         </a>
                         <h4 class="fw-bold mb-0 text-dark">{{ __('Previous orders & invoices') }}</h4>
@@ -673,7 +673,7 @@
                 {{-- ============================================================ --}}
                 <div class="tab" id="addresses">
                     <div class="avisa-subnav-head mb-3">
-                        <a href="#summary" class="avisa-subnav-back avisa-tab-trigger" aria-label="Back">
+                        <a href="#summary" class="avisa-subnav-back avisa-tab-trigger" aria-label="{{ __('Back') }}">
                             <i class="ri-arrow-right-line"></i>
                         </a>
                         <h4 class="fw-bold mb-0 text-dark">{{ __('Addresses') }}</h4>
@@ -706,7 +706,7 @@
                 {{-- ============================================================ --}}
                 <div class="tab" id="support">
                     <div class="avisa-subnav-head mb-3">
-                        <a href="#summary" class="avisa-subnav-back avisa-tab-trigger" aria-label="Back">
+                        <a href="#summary" class="avisa-subnav-back avisa-tab-trigger" aria-label="{{ __('Back') }}">
                             <i class="ri-arrow-right-line"></i>
                         </a>
                         <h4 class="fw-bold mb-0 text-dark">{{ __('Support') }}</h4>
@@ -840,7 +840,7 @@
                 {{-- ============================================================ --}}
                 <div class="tab" id="credit">
                     <div class="avisa-subnav-head mb-3">
-                        <a href="#summary" class="avisa-subnav-back avisa-tab-trigger" aria-label="Back">
+                        <a href="#summary" class="avisa-subnav-back avisa-tab-trigger" aria-label="{{ __('Back') }}">
                             <i class="ri-arrow-right-line"></i>
                         </a>
                         <h4 class="fw-bold mb-0 text-dark">{{ __('My balance and credit') }}</h4>
@@ -920,7 +920,7 @@
     </div>
 
     {{-- Bottom Navigation Bar (Matching wish1.png) --}}
-    <nav class="avisa-bottom-navbar" id="avisa-bottom-navbar" aria-label="Bottom Navigation">
+    <nav class="avisa-bottom-navbar" id="avisa-bottom-navbar" aria-label="{{ __('Bottom Navigation') }}">
         <div class="avisa-bottom-nav-inner">
             <a href="{{ route('client.welcome') }}" class="avisa-bottom-nav-item">
                 <i class="ri-home-line"></i>

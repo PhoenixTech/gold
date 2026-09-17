@@ -141,4 +141,22 @@ class CustomerProfileRedesignTest extends TestCase
         $response->assertDontSee(__('Your favorites list is empty'));
         $response->assertSee($product->name);
     }
+
+    public function test_all_translation_keys_in_profile_view_exist_in_fa_json(): void
+    {
+        $blade = file_get_contents(resource_path('views/client/customer/profile.blade.php'));
+        $fa = json_decode(file_get_contents(resource_path('lang/fa.json')), true);
+
+        preg_match_all("/__\(\s*[\x27\x22](.*?)[\x27\x22]\s*[\),]/", $blade, $matches);
+        $keys = array_unique($matches[1]);
+
+        $missing = [];
+        foreach ($keys as $key) {
+            if (!array_key_exists($key, $fa) || trim((string)$fa[$key]) === '') {
+                $missing[] = $key;
+            }
+        }
+
+        $this->assertEmpty($missing, 'The following translation keys in customer profile are missing or empty in resources/lang/fa.json: ' . implode(', ', $missing));
+    }
 }
