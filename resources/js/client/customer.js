@@ -1,68 +1,83 @@
-// Customer Dashboard JS (element-guarded without premature exit)
+// Customer Dashboard JS
 
 document.addEventListener('DOMContentLoaded', function () {
     const customerRoot = document.getElementById('AvisaCustomer');
     if (!customerRoot) return;
 
-    const btn = document.getElementById('avisa-menu-btn');
-    const closeBtn = document.getElementById('avisa-close-btn');
-    const sidebar = document.getElementById('avisa-sidebar');
-    const backdrop = document.getElementById('avisa-backdrop');
     const profileAlert = document.getElementById('avisa-alert-profile');
     const receiptAlerts = document.querySelectorAll('.avisa-receipt-alert');
-
-    const closeSidebar = function () {
-        sidebar?.classList.remove('open');
-        backdrop?.classList.remove('open');
-    };
-
-    // Mobile sidebar toggle (guarded independently)
-    if (btn && sidebar) {
-        btn.addEventListener('click', function () {
-            sidebar.classList.toggle('open');
-            backdrop?.classList.toggle('open');
-        });
-    }
-    backdrop?.addEventListener('click', closeSidebar);
-    closeBtn?.addEventListener('click', closeSidebar);
 
     function updateAlertVisibility(targetHash) {
         const hash = targetHash || window.location.hash || '#summary';
         if (profileAlert) {
-            profileAlert.style.setProperty('display', (hash === '#profile' || hash === '#addresses') ? 'none' : 'flex', 'important');
+            const isEditing = (hash === '#profile' || hash === '#profile-edit' || hash === '#addresses');
+            profileAlert.style.setProperty('display', isEditing ? 'none' : 'flex', 'important');
         }
         receiptAlerts.forEach(function (alert) {
             alert.style.setProperty('display', hash === '#card-payment' ? 'none' : 'flex', 'important');
         });
     }
 
-    // Dashboard tabs & alert action links
-    const tabLinks = document.querySelectorAll('.tab-control a, .avisa-alert-action');
-    tabLinks.forEach(function (a) {
-        a.addEventListener('click', function () {
-            closeSidebar();
+    function updateBottomNav(targetHash) {
+        const hash = targetHash || window.location.hash || '#summary';
+        const target = (hash === '#invoices' || hash === '#active-orders') ? '#invoices' : (hash === '#likes' ? '#likes' : '#summary');
+        document.querySelectorAll('.avisa-bottom-nav-item[data-tab-target]').forEach(function (el) {
+            el.classList.toggle('active', el.getAttribute('data-tab-target') === target);
+        });
+    }
+
+    function switchTab(targetHash, pushHistory = true) {
+        const hash = targetHash || '#summary';
+        if (!hash.startsWith('#') || hash.length < 2) return;
+
+        const targetPane = document.querySelector(hash);
+        if (!targetPane || !targetPane.classList.contains('tab')) return;
+
+        document.querySelectorAll('#AvisaCustomer .tab').forEach(function (pane) {
+            pane.classList.remove('active');
+        });
+
+        targetPane.classList.add('active');
+        updateAlertVisibility(hash);
+        updateBottomNav(hash);
+
+        if (pushHistory) {
+            if (window.history && window.history.pushState) {
+                window.history.pushState(null, null, hash);
+            } else {
+                window.location.hash = hash;
+            }
+        }
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Attach click handlers to all in-page tab triggers
+    const tabTriggers = document.querySelectorAll('#AvisaCustomer a[href^="#"]');
+    tabTriggers.forEach(function (trigger) {
+        trigger.addEventListener('click', function (e) {
             const href = this.getAttribute('href');
-            if (href && href.startsWith('#')) {
-                updateAlertVisibility(href);
-                if (!this.closest('.tab-control')) {
-                    const targetTab = document.querySelector(`.tab-control a[href="${href}"]`);
-                    targetTab?.click();
+            if (href && href.startsWith('#') && href.length > 1) {
+                const target = document.querySelector(href);
+                if (target && target.classList.contains('tab')) {
+                    e.preventDefault();
+                    switchTab(href, true);
                 }
             }
         });
     });
 
-    // Incomplete profile auto-switch to #profile
-    if (customerRoot.getAttribute('data-profile-incomplete') === 'true') {
-        if (!window.location.hash) {
-            const profileTab = document.querySelector('#avisa-tabs a[href="#profile"]');
-            profileTab?.click();
-        }
-    }
-
-    updateAlertVisibility(window.location.hash);
-
+    // Handle hash change from browser forward/backward buttons
     window.addEventListener('hashchange', function () {
-        updateAlertVisibility(window.location.hash);
+        const hash = window.location.hash;
+        if (hash) {
+            switchTab(hash, false);
+        } else {
+            switchTab('#summary', false);
+        }
     });
+
+    // Initial load from URL hash
+    const initialHash = window.location.hash || '#summary';
+    switchTab(initialHash, false);
 });

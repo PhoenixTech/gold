@@ -68,21 +68,42 @@ class CustomerController extends Controller
     public function save(Request $request)
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255'],
-            'mobile' => ['required', 'string', 'max:255'],
+            'name' => ['nullable', 'string', 'max:255'],
+            'first_name' => ['nullable', 'string', 'max:120'],
+            'last_name' => ['nullable', 'string', 'max:120'],
+            'email' => ['nullable', 'string', 'email', 'max:255'],
+            'mobile' => ['nullable', 'string', 'max:255'],
             'height' => ['nullable', 'numeric'],
             'weight' => ['nullable', 'numeric'],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
             'sex' => ['nullable', 'in:MALE,FEMALE'],
-            'dob' => ['nullable', 'date'],
-            'avatar' => ['nullable', 'image', 'mimes:jpeg', 'max:2048'],
+            'dob' => ['nullable'],
+            'dob_day' => ['nullable', 'integer', 'between:1,31'],
+            'dob_month' => ['nullable', 'integer', 'between:1,12'],
+            'dob_year' => ['nullable', 'integer', 'between:1300,1430'],
+            'national_code' => ['nullable', 'string', 'max:20'],
+            'emergency_phone' => ['nullable', 'string', 'max:20'],
+            'bank_card' => ['nullable', 'string', 'max:30'],
+            'bank_sheba' => ['nullable', 'string', 'max:40'],
+            'avatar' => ['nullable', 'image', 'mimes:jpeg,png,webp,jpg', 'max:2048'],
         ]);
 
         $customer = auth('customer')->user();
-        $customer->name = $request->input('name');
-        $customer->email = $request->input('email');
-        $customer->description = $request->input('description');
+
+        $fullName = trim($request->input('first_name').' '.$request->input('last_name'));
+        $customer->name = $fullName !== '' ? $fullName : ($request->input('name') ?: $customer->name);
+
+        if ($request->filled('email')) {
+            $customer->email = $request->input('email');
+        }
+
+        if ($request->filled('mobile') && ! config('app.sms.sign')) {
+            $customer->mobile = $request->input('mobile');
+        }
+
+        if ($request->filled('description')) {
+            $customer->description = $request->input('description');
+        }
 
         if ($request->filled('sex')) {
             $customer->sex = $request->input('sex');
@@ -97,10 +118,25 @@ class CustomerController extends Controller
             $customer->password = bcrypt($request->input('password'));
         }
 
-        if ($request->filled('dob')) {
-            $customer->dob = date('Y-m-d', floor((float) $request->dob));
-        } else {
-            $customer->dob = null;
+        if ($request->filled('dob_year') && $request->filled('dob_month') && $request->filled('dob_day')) {
+            $jy = (int) $request->input('dob_year');
+            $jm = (int) $request->input('dob_month');
+            $jd = (int) $request->input('dob_day');
+            $geDate = \App\Helpers\TDate::GetInstance()->Parsi2Ge($jy, $jm, $jd);
+            $customer->dob = sprintf('%04d-%02d-%02d', $geDate[0], $geDate[1], $geDate[2]);
+        } elseif ($request->filled('dob')) {
+            $dobVal = $request->input('dob');
+            if (is_numeric($dobVal)) {
+                $customer->dob = date('Y-m-d', (int) $dobVal);
+            } elseif (strtotime($dobVal)) {
+                $customer->dob = date('Y-m-d', strtotime($dobVal));
+            }
+        }
+
+        foreach (['national_code', 'emergency_phone', 'bank_card', 'bank_sheba'] as $field) {
+            if ($request->has($field)) {
+                $customer->{$field} = $request->input($field) ?: null;
+            }
         }
 
         if ($request->hasFile('avatar')) {
@@ -119,7 +155,9 @@ class CustomerController extends Controller
 
         $customer->save();
 
-        return redirect()->route('client.profile')->with('message', __('Profile updated successfully'));
+        $targetTab = $request->input('_tab_redirect', '#profile');
+
+        return redirect()->to(route('client.profile').$targetTab)->with('message', __('Profile updated successfully'));
     }
 
     public function invoice(Invoice $invoice)
