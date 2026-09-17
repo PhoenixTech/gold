@@ -5,9 +5,12 @@ namespace App\Models;
 use App\Enums\DeliveryStatus;
 use App\Events\InvoiceFailed;
 use App\Events\InvoiceSucceed;
+use App\Services\ProductPriceCalculator;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -193,14 +196,14 @@ class Invoice extends Model
         return $hours > 0 ? $hours : 3;
     }
 
-    public function offlinePaymentDeadline(): ?\Carbon\Carbon
+    public function offlinePaymentDeadline(): ?Carbon
     {
         $meta = $this->meta ?? [];
         $override = $meta['offline_deadline_at'] ?? null;
 
         if (is_string($override) && trim($override) !== '') {
             try {
-                return \Carbon\Carbon::parse($override);
+                return Carbon::parse($override);
             } catch (\Throwable $exception) {
                 // Fall back to the calculated deadline below.
             }
@@ -290,20 +293,20 @@ class Invoice extends Model
             return;
         }
 
-        $quantity = \App\Models\Quantity::query()->find($order->quantity_id);
+        $quantity = Quantity::query()->find($order->quantity_id);
         if ($quantity === null) {
             return;
         }
 
         $quantity->markAvailable();
-        app(\App\Services\ProductPriceCalculator::class)->syncProductAggregates($quantity->product);
+        app(ProductPriceCalculator::class)->syncProductAggregates($quantity->product);
     }
 
     public function markOrderedPiecesAsSold(): void
     {
         foreach ($this->orders as $order) {
             if ($order->quantity_id) {
-                $quantity = \App\Models\Quantity::query()->find($order->quantity_id);
+                $quantity = Quantity::query()->find($order->quantity_id);
                 if ($quantity !== null) {
                     $quantity->markSold();
                 }
@@ -401,7 +404,7 @@ class Invoice extends Model
         };
     }
 
-    public static function formatPersianDateTime(?\Carbon\Carbon $date): ?string
+    public static function formatPersianDateTime(?Carbon $date): ?string
     {
         if ($date === null || $date->timestamp === 0) {
             return null;
@@ -426,7 +429,7 @@ class Invoice extends Model
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     * @return BelongsToMany
      */
     public function products()
     {
@@ -458,7 +461,7 @@ class Invoice extends Model
         });
     }
 
-    public function storePaymentRequest($orderId, $amount, $token = null, $type = 'ONLINE', $bank = null): \App\Models\Payment
+    public function storePaymentRequest($orderId, $amount, $token = null, $type = 'ONLINE', $bank = null): Payment
     {
         $payment = new Payment;
         $payment->order_id = $orderId;
@@ -472,7 +475,7 @@ class Invoice extends Model
             'auth_user' => \Auth::id(),
             'user_agent' => \Request::userAgent(),
         ];
-        /** @var \App\Models\Invoice $this */
+        /** @var Invoice $this */
         $this->payments()->save($payment);
 
         //        $payment->save();
@@ -480,7 +483,7 @@ class Invoice extends Model
         return $payment;
     }
 
-    public function storeSuccessPayment($paymentId, $referenceId, $cardNumber = null): \App\Models\Payment
+    public function storeSuccessPayment($paymentId, $referenceId, $cardNumber = null, $confirmedBy = null): Payment
     {
         /** @var Payment $payment */
         $payment = Payment::findOrFail($paymentId);
@@ -489,10 +492,16 @@ class Invoice extends Model
         if ($cardNumber !== null) {
             $meta['card_number'] = $cardNumber;
         }
+        $confirmedBy = $confirmedBy ?? \Auth::user();
+        if ($confirmedBy instanceof User) {
+            $meta['confirmed_by'] = $confirmedBy->id;
+            $meta['confirmed_by_name'] = $confirmedBy->name ?? $confirmedBy->email;
+            $meta['confirmed_at'] = now()->toDateTimeString();
+        }
         $payment->meta = $meta;
         $payment->status = 'SUCCESS';
         $payment->save();
-        /** @var \App\Models\Invoice $this */
+        /** @var Invoice $this */
         $this->status = self::PAID;
         $this->save();
         $this->markOrderedPiecesAsSold();
@@ -520,7 +529,7 @@ class Invoice extends Model
         return $payment;
     }
 
-    public function storeFailPayment($paymentId, $message = null): \App\Models\Payment
+    public function storeFailPayment($paymentId, $message = null): Payment
     {
         try {
             /** @var Payment $payment */
@@ -535,7 +544,7 @@ class Invoice extends Model
             $payment = new Payment;
         }
         $this->status = 'FAILED';
-        /** @var \App\Models\Invoice $this */
+        /** @var Invoice $this */
         $this->save();
         event(new InvoiceFailed($this, $payment));
 

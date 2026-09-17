@@ -1,195 +1,91 @@
 <div align="center">
-    <img width="250" src="resources/images/xshop-logo.svg" alt="xShop logo">
+    <img width="250" src="resources/images/xshop-logo.svg" alt="Zhonella logo">
 </div>
 
-# xShop/v2
+# Zhonella
 
 > [!NOTE]
-> xShop is an open source shop developed in laravel, very customizable!
+> Zhonella is a private, Persian-first e-commerce platform for gold shops, built on Laravel 13, Bootstrap 5, and Vue 3.
 
-## New Features:
+## Features
 
-- Dashboard panel changes
-- Integration of Vue.js and laravel
-- Advanced charts
-- Better customizable with AI & languages
-- Fixed Technical issues
-- Project size compression
-- UI/UX is more specific
-- Developer Friendlier
+- **Gold shop focused**: products with karat/proportion-aware pricing via `ProductPriceCalculator`
+- **Full storefront**: home, category/product listing, product detail, cart, and checkout flow
+- **Admin panel**: products, categories, props, quantities/stock, discounts, invoices, orders with an order board
+- **Payments**: Zibal gateway integration (`app/Payment/Zibal.php`) plus payment receipts and customer credit
+- **Customers & addresses**: customer accounts, addresses, states/cities, delivery management
+- **Content**: posts, groups, menus, galleries, clips, comments, questions, rates, tickets
+- **Multi-language ready**: `XLang` model with translatable models (Spatie packages)
+- **Media & tags**: Spatie Media Library, Tags, and Translatable integration
+- **API**: REST API for products, categories, posts, tags, states, and visitors
+- **Admin tooling**: admin logs, shop visit tracking, dashboard stats, help catalog
 
+## Stack
 
-## Documentation
+- PHP 8.3+ / Laravel 13
+- Bootstrap 5 (native, RTL-aware) + RemixIcon
+- Vue 3 + Vuex + Vite
+- MySQL / MariaDB / SQLite
+- Spatie: Media Library, Permission, Tags, Translatable
+- laravel-mpdf (PDF invoices), php-qrcode, Zibal payment gateway
 
-- [ 📄 **Full document** 📄 ](https://4xmen.github.io/xshop/#/)
-- [🇮🇷 Persian read me](README-fa.md)
+## Installation (development)
 
-
-## Installation [ Development mode ]
-
-> [!IMPORTANT]  
-> Create new database and rename `.env.example` to `.env` then update you `.env` configs so run this commands:
+> [!IMPORTANT]
+> Create a new database, copy `.env.example` to `.env`, and update your DB/app settings, then run:
 
 ```bash
-git clone https://github.com/4xmen/xshop.git
-cd xshop
-cp .env.example .env
 composer install
+php artisan key:generate
 php artisan migrate:fresh --seed
 php artisan storage:link
-php artisan key:generate
-php artisan serv
 
-# to develop front-end
-npm i
-php artisan client
-npm install @rollup/rollup-win32-x64-msvc # just for windows if the below line dose not work
+npm install
 npm run dev
 
-# or with yarn
-
-yarn install
-php artisan client
-yarn add @rollup/rollup-win32-x64-msvc # just for windows if the below line dose not work
-yarn dev
-
+php artisan serv
 ```
 
 > [!TIP]
-> Default admin email is : `developer@example.com` (developer) or `admin@example.com` (admin) and default password is: `password`
+> Default seeded logins: `developer@example.com` / `admin@example.com`, password: `password`
 
-
-## image seeding 
-
-- Download & prepare images 
-```bash
-php artisan seeding:prepare
- ```
-- nor copy your image folder to `database/seeders/images/` 
-- then: Seeding image for models: [Group, Category, Post, Product, Slider] 
+## Production build
 
 ```bash
-php artisan seeding:image Product digital
-```
-
-Or to seed all models:
-
-```bash
-php artisan seeding:all digital
-```
-
-> First parameter is Model, Second is image seeder directory available [bag, clothe, digital, sport, posts, makeup]
-> You can create your directory and put your image into new directory then use image seeder
-
-## Requirement
-
-- php 8.2.x or above [ `php-gd`, `sqlite3`, `php-soap`]
-- mysql or mariadb or sqlite
-- composer
-- recommends install imagemagick on server to more image performance
-
-## Deploy guide
-
-We recommend deploy xShop on VPS, so create database and run this commands:
-
-```bash
-cd /home/[yourUsername]/[pathOfYourWebsitePublicHTML]
-git clone  https://github.com/4xmen/xshop.git . # if this command not work make empty this folder
-cp .env.example .env
-nano .env # edit your config db, url, etc.
-composer install
-php artisan migrate:fresh --seed
-php artisan storage:link
-php key:generate
-npm install 
-php artisan client
 npm run build
-```
-
-## Make your site optimize & production mode
-
-
-```bash
-nano .env # make APP_DEBUG false, APP_ENV production
 php artisan optimize
 composer install --optimize-autoloader --no-dev
 ```
 
-## Add cron job
-
-You must add crontab for your project:
+## Cron
 
 ```bash
-crontab -e
+* * * * * cd /path/to/project && php artisan schedule:run >> /dev/null 2>&1
 ```
 
-Add this line:
-```bash
-* * * * * cd /home/[yourusername]/[your-public-html-project-root] && php artisan schedule:run >> /dev/null 2>&1
-```
-
-
-## make xController
-
-Controller with log and semi-automatic CURD with logs  
-User [`model`]
+## Custom artisan commands
 
 ```bash
-php artisan make:xcontroller User
+php artisan make:xcontroller Model   # semi-automatic CRUD controller with logging
+php artisan make:part PartName segmentName   # storefront theme part (blade/scss/js)
+php artisan client   # compile client assets (scss/js/css)
 ```
 
-## make theme part
+## Structure
 
-Theme part usable in area
+```
+app/
+├── Http/Controllers/Admin   # admin panel controllers
+├── Http/Controllers/Api     # REST API
+├── Models/                  # Eloquent models (Product, Invoice, Customer, ...)
+├── Payment/                 # payment gateways (Zibal)
+└── Services/                # pricing, cart quote, delivery, dashboard stats
 
-PartName [`theme aprt name`]
-
-segmentName [`group`, `category`, `preloader`, ...],
-
-```bash
-php artisan  make:part PartName segmentName
+resources/views/
+├── admin/                   # admin panel (Bootstrap 5)
+└── client/ website/         # storefront theme
 ```
 
-## client optimize
-
-Optimize client assets, `scss`,`js`,`css`
-
-```bash
-php artisan client
-php artisan build
-```
-
-### theme parts file
-
-- PartName.php: `onCreate`, `onRemove`, `onMount` actions of theme part
-- PartName.blade.php: your theme part blade code
-- PartName.scss: your theme part scss
-- PartName.js: your theme part javascript
-- screenshot.png: screenshot preview of theme part
-
-## Demo
-
-> Online demo available here: <a href="https://xshop.xstack.ir/login">https://xshop.xstack.ir/</a>
-
-### Screenshots
-
-![1](https://raw.githubusercontent.com/A1Gard/xshop-installer-assets/master/screenshots/xshop-screenshot1.png)
-
-![2](https://raw.githubusercontent.com/A1Gard/xshop-installer-assets/master/screenshots/xshop-screenshot2.png)
-
-![3](https://raw.githubusercontent.com/A1Gard/xshop-installer-assets/master/screenshots/xshop-screenshot3.jpg)
-
-![4](https://raw.githubusercontent.com/A1Gard/xshop-installer-assets/master/screenshots/xshop-screenshot4.png)
-
-![5](https://raw.githubusercontent.com/A1Gard/xshop-installer-assets/master/screenshots/xshop-screenshot5.jpg)
-
-
-
-## Access to xShop/v1
-> [!WARNING]  
-> xShop/v1 available here: <a href="https://github.com/4xmen/xshop.v1">https://github.com/4xmen/xshop.v1</a>
-
-
-<p align="center"> 
+<p align="center">
     Developed With Love ! ❤️
 </p>

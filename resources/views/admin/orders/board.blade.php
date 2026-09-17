@@ -138,7 +138,7 @@
                             {{-- 3. Phone Toggle Button --}}
                             <td>
                                 <button type="button" class="btn btn-sm btn-light border border-secondary-subtle text-primary p-1 rounded phone-toggle-btn"
-                                        data-target="#subrow-{{ $order['id'] }}" title="{{ __('View phone and address') }}">
+                                        data-target="#subrow-{{ $order['id'] }}" data-stage="contact" title="{{ __('View phone and address') }}">
                                     <i class="ri-phone-line fs-14"></i>
                                 </button>
                             </td>
@@ -159,60 +159,259 @@
                                 </div>
                             </td>
 
-                            {{-- 6-10. Workflow Stages Loop --}}
+                            {{-- 6-10. Workflow Stages Loop (click to expand stage details) --}}
                             @foreach(['payment', 'confirm', 'settle', 'courier', 'delivery'] as $key)
                                 @php $stage = $order['stages'][$key]; @endphp
                                 <td>
-                                    <span class="badge {{ $stage['done'] ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-warning-subtle text-warning-emphasis border border-warning-subtle' }} p-2 fs-12 w-100 d-inline-flex align-items-center justify-content-center gap-1" title="{{ $stage['title'] }}">
-                                        <i class="{{ $stage['done'] ? ($key === 'delivery' ? 'ri-check-double-fill' : ($key === 'courier' ? 'ri-truck-fill' : 'ri-checkbox-circle-fill')) : 'ri-time-fill' }}"></i>
-                                        <span>{{ $stage['text'] }}</span>
-                                    </span>
+                                    <button type="button"
+                                            class="stage-toggle-btn w-100 border-0 p-0 bg-transparent"
+                                            data-target="#subrow-{{ $order['id'] }}"
+                                            data-stage="{{ $key }}"
+                                            title="{{ $stage['title'] }}">
+                                        <span class="badge {{ $stage['done'] ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-warning-subtle text-warning-emphasis border border-warning-subtle' }} p-2 fs-12 w-100 d-inline-flex align-items-center justify-content-center gap-1">
+                                            <i class="{{ $stage['done'] ? ($key === 'delivery' ? 'ri-check-double-fill' : ($key === 'courier' ? 'ri-truck-fill' : 'ri-checkbox-circle-fill')) : 'ri-time-fill' }}"></i>
+                                            <span>{{ $stage['text'] }}</span>
+                                        </span>
+                                    </button>
                                 </td>
                             @endforeach
                         </tr>
 
-                        {{-- Sub-row: Phone, Address & Contact Details --}}
+                        {{-- Sub-row: expandable detail cards (contact / payment / confirm / settle / courier / delivery) --}}
                         <tr class="order-subrow d-none bg-white border-top border-bottom" id="subrow-{{ $order['id'] }}">
                             <td colspan="10" class="p-3 text-start bg-light bg-opacity-50">
-                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 bg-white p-3 rounded-3 border border-secondary-subtle shadow-sm">
-                                    <div class="d-flex align-items-center gap-4 flex-wrap">
-                                        <div>
-                                            <span class="text-muted fs-12 d-block">{{ __('Customer name') }}</span>
-                                            <strong class="text-dark fs-14">{{ $order['customer_name'] }}</strong>
+
+                                {{-- Contact card (phone icon) --}}
+                                <div class="subcard d-none" data-subcard="contact">
+                                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 bg-white p-3 rounded-3 border border-secondary-subtle shadow-sm">
+                                        <div class="d-flex align-items-center gap-4 flex-wrap">
+                                            <div>
+                                                <span class="text-muted fs-12 d-block">{{ __('Customer name') }}</span>
+                                                <strong class="text-dark fs-14">{{ $order['customer_name'] }}</strong>
+                                            </div>
+                                            <div>
+                                                <span class="text-muted fs-12 d-block">{{ __('Phone number') }}</span>
+                                                <a href="tel:{{ $order['customer_mobile'] }}" class="fw-bold font-monospace text-primary text-decoration-none fs-14 d-inline-flex align-items-center gap-1">
+                                                    <i class="ri-phone-fill"></i>{{ $order['customer_mobile'] }}
+                                                </a>
+                                            </div>
+                                            <div>
+                                                <span class="text-muted fs-12 d-block">{{ __('City / Province') }}</span>
+                                                <span class="text-dark fs-13 fw-semibold">{{ $order['province'] }} @if($order['city']) - {{ $order['city'] }} @endif</span>
+                                            </div>
+                                            <div style="max-width: 420px;">
+                                                <span class="text-muted fs-12 d-block">{{ __('Shipping address') }}</span>
+                                                <span class="text-dark fs-13">{{ $order['address'] }} @if($order['postal_code'])<small class="text-muted font-monospace ms-1">({{ __('Postal code') }}: {{ $order['postal_code'] }})</small>@endif</span>
+                                            </div>
+                                            <div>
+                                                <span class="text-muted fs-12 d-block">{{ __('Total price') }}</span>
+                                                <strong class="text-dark font-monospace fs-14">{{ number_format($order['total_price']) }} <small class="text-muted">{{ config('app.currency.symbol') }}</small></strong>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <span class="text-muted fs-12 d-block">{{ __('Phone number') }}</span>
-                                            <a href="tel:{{ $order['customer_mobile'] }}" class="fw-bold font-monospace text-primary text-decoration-none fs-14 d-inline-flex align-items-center gap-1">
-                                                <i class="ri-phone-fill"></i>{{ $order['customer_mobile'] }}
+                                        <div class="d-flex align-items-center gap-1">
+                                            <a href="{{ route('admin.invoice.show', $order['hash']) }}" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
+                                                <i class="ri-eye-line"></i>{{ __('View invoice') }}
                                             </a>
-                                        </div>
-                                        <div>
-                                            <span class="text-muted fs-12 d-block">{{ __('City / Province') }}</span>
-                                            <span class="text-dark fs-13 fw-semibold">{{ $order['province'] }} @if($order['city']) - {{ $order['city'] }} @endif</span>
-                                        </div>
-                                        <div style="max-width: 420px;">
-                                            <span class="text-muted fs-12 d-block">{{ __('Shipping address') }}</span>
-                                            <span class="text-dark fs-13">{{ $order['address'] }} @if($order['postal_code'])<small class="text-muted font-monospace ms-1">({{ __('Postal code') }}: {{ $order['postal_code'] }})</small>@endif</span>
-                                        </div>
-                                        <div>
-                                            <span class="text-muted fs-12 d-block">{{ __('Total price') }}</span>
-                                            <strong class="text-dark font-monospace fs-14">{{ number_format($order['total_price']) }} <small class="text-muted">{{ config('app.currency.symbol') }}</small></strong>
+                                            <a href="{{ route('admin.invoice.edit', $order['hash']) }}" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
+                                                <i class="ri-edit-2-line"></i>{{ __('Edit') }}
+                                            </a>
+                                            @if($order['invoice']->canPrint())
+                                                <a href="{{ route('admin.invoice.print', $order['hash']) }}" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" target="_blank">
+                                                    <i class="ri-printer-line"></i>{{ __('Print') }}
+                                                </a>
+                                            @endif
                                         </div>
                                     </div>
-                                    <div class="d-flex align-items-center gap-1">
-                                        <a href="{{ route('admin.invoice.show', $order['hash']) }}" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
-                                            <i class="ri-eye-line"></i>{{ __('View invoice') }}
-                                        </a>
-                                        <a href="{{ route('admin.invoice.edit', $order['hash']) }}" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
-                                            <i class="ri-edit-2-line"></i>{{ __('Edit') }}
-                                        </a>
-                                        @if($order['invoice']->canPrint())
-                                            <a href="{{ route('admin.invoice.print', $order['hash']) }}" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" target="_blank">
-                                                <i class="ri-printer-line"></i>{{ __('Print') }}
-                                            </a>
+                                </div>
+
+                                {{-- Payment card: customer receipts --}}
+                                @php $d = $order['details']['payment']; @endphp
+                                <div class="subcard d-none" data-subcard="payment">
+                                    <div class="bg-white p-3 rounded-3 border border-secondary-subtle shadow-sm">
+                                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 pb-2 border-bottom">
+                                            <strong class="text-dark fs-14 d-inline-flex align-items-center gap-2">
+                                                <i class="ri-receipt-line text-primary fs-5"></i>{{ __('Customer receipts') }}
+                                            </strong>
+                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle fs-12 px-2 py-1">
+                                                {{ $d['receipts']->count() }} {{ __('receipt(s)') }}
+                                            </span>
+                                        </div>
+                                        @if($d['receipts']->isNotEmpty())
+                                            <div class="d-flex flex-wrap gap-3">
+                                                @foreach($d['receipts'] as $r)
+                                                    <a href="{{ $r['url'] }}" target="_blank" class="d-flex align-items-center gap-2 text-decoration-none p-2 rounded-3 border border-secondary-subtle bg-light" title="{{ __('Open receipt') }}">
+                                                        @if($r['is_image'])
+                                                            <img src="{{ $r['url'] }}" alt="{{ $r['name'] }}" class="rounded border bg-white" style="width: 56px; height: 56px; object-fit: cover;">
+                                                        @else
+                                                            <span class="d-flex align-items-center justify-content-center bg-white border rounded" style="width: 56px; height: 56px;">
+                                                                <i class="ri-file-3-line fs-4 text-secondary"></i>
+                                                            </span>
+                                                        @endif
+                                                        <span class="d-flex flex-column">
+                                                            <span class="fw-semibold text-dark fs-13 text-truncate" style="max-width: 180px;">{{ $r['name'] }}</span>
+                                                            <span class="text-muted fs-11">{{ $r['size'] }}</span>
+                                                            <span class="text-muted fs-11 d-inline-flex align-items-center gap-1"><i class="ri-calendar-line"></i>{{ $r['date'] }}</span>
+                                                            <span class="text-muted fs-11 d-inline-flex align-items-center gap-1"><i class="ri-user-line"></i>{{ $r['uploader'] }}</span>
+                                                        </span>
+                                                    </a>
+                                                @endforeach
+                                            </div>
+                                        @else
+                                            <div class="text-muted fs-13 d-flex align-items-center gap-2">
+                                                <i class="ri-inbox-line"></i>{{ __('No receipt uploaded yet.') }}
+                                            </div>
+                                        @endif
+                                        @if($d['declined_at'])
+                                            <div class="alert alert-warning border border-warning-subtle shadow-sm d-flex align-items-center gap-2 p-2 mt-3 mb-0 rounded-3 fs-13">
+                                                <i class="ri-error-warning-fill text-warning fs-4"></i>
+                                                <span>
+                                                    <strong class="text-dark">{{ __('Receipt declined') }}</strong>
+                                                    <span class="text-muted"> — {{ __('Declined at') }}: <span class="font-monospace">{{ $d['declined_at'] }}</span></span>
+                                                    @if($d['decline_reason'])
+                                                        <span class="d-block text-muted">{{ __('Decline reason') }}: {{ $d['decline_reason'] }}</span>
+                                                    @endif
+                                                </span>
+                                            </div>
                                         @endif
                                     </div>
                                 </div>
+
+                                {{-- Confirm card --}}
+                                @php $d = $order['details']['confirm']; @endphp
+                                <div class="subcard d-none" data-subcard="confirm">
+                                    <div class="bg-white p-3 rounded-3 border border-secondary-subtle shadow-sm">
+                                        <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+                                            <i class="ri-shield-check-line text-primary fs-5"></i>
+                                            <strong class="text-dark fs-14">{{ __('Payment confirmation') }}</strong>
+                                        </div>
+                                        <div class="d-flex align-items-start gap-4 flex-wrap">
+                                            <div>
+                                                <span class="text-muted fs-12 d-block">{{ __('Confirmed at') }}</span>
+                                                <strong class="text-dark fs-13 font-monospace">{{ $d['confirmed_at'] ?? '—' }}</strong>
+                                            </div>
+                                            <div>
+                                                <span class="text-muted fs-12 d-block">{{ __('Confirmed by') }}</span>
+                                                <strong class="text-dark fs-13">{{ $d['confirmed_by'] ?? '—' }}</strong>
+                                            </div>
+                                            @if($d['reference'])
+                                                <div>
+                                                    <span class="text-muted fs-12 d-block">{{ __('Payment reference') }}</span>
+                                                    <span class="text-dark fs-13 font-monospace">{{ $d['reference'] }}</span>
+                                                </div>
+                                            @endif
+                                            @if($d['receipt'])
+                                                <a href="{{ $d['receipt']['url'] }}" target="_blank" class="d-flex align-items-center gap-2 text-decoration-none p-2 rounded-3 border border-secondary-subtle bg-light" title="{{ __('Open receipt') }}">
+                                                    @if($d['receipt']['is_image'])
+                                                        <img src="{{ $d['receipt']['url'] }}" alt="{{ $d['receipt']['name'] }}" class="rounded border bg-white" style="width: 48px; height: 48px; object-fit: cover;">
+                                                    @else
+                                                        <span class="d-flex align-items-center justify-content-center bg-white border rounded" style="width: 48px; height: 48px;">
+                                                            <i class="ri-file-3-line fs-4 text-secondary"></i>
+                                                        </span>
+                                                    @endif
+                                                    <span class="d-flex flex-column">
+                                                        <span class="text-muted fs-12">{{ __('Accepted receipt') }}</span>
+                                                        <span class="fw-semibold text-dark fs-13 text-truncate" style="max-width: 180px;">{{ $d['receipt']['name'] }}</span>
+                                                    </span>
+                                                </a>
+                                            @endif
+                                            @if(!$d['done'])
+                                                <div class="text-muted fs-13 d-flex align-items-center gap-2">
+                                                    <i class="ri-time-line"></i>{{ __('Awaiting admin verification') }}
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Settle card --}}
+                                @php $d = $order['details']['settle']; @endphp
+                                <div class="subcard d-none" data-subcard="settle">
+                                    <div class="bg-white p-3 rounded-3 border border-secondary-subtle shadow-sm">
+                                        <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+                                            <i class="ri-scales-3-line text-primary fs-5"></i>
+                                            <strong class="text-dark fs-14">{{ __('Settlement') }}</strong>
+                                        </div>
+                                        <div class="d-flex align-items-start gap-4 flex-wrap">
+                                            <div>
+                                                <span class="text-muted fs-12 d-block">{{ __('Settled at') }}</span>
+                                                <strong class="text-dark fs-13 font-monospace">{{ $d['settled_at'] ?? '—' }}</strong>
+                                            </div>
+                                            <div>
+                                                <span class="text-muted fs-12 d-block">{{ __('Confirmed by') }}</span>
+                                                <strong class="text-dark fs-13">{{ $d['confirmed_by'] ?? '—' }}</strong>
+                                            </div>
+                                            @if(!$d['done'])
+                                                <div class="text-muted fs-13 d-flex align-items-center gap-2">
+                                                    <i class="ri-time-line"></i>{{ __('Unsettled balance') }}
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Courier card --}}
+                                @php $d = $order['details']['courier']; @endphp
+                                <div class="subcard d-none" data-subcard="courier">
+                                    <div class="bg-white p-3 rounded-3 border border-secondary-subtle shadow-sm">
+                                        <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+                                            <i class="ri-truck-line text-primary fs-5"></i>
+                                            <strong class="text-dark fs-14">{{ __('Courier') }}</strong>
+                                        </div>
+                                        @if($d)
+                                            <div class="d-flex align-items-start gap-4 flex-wrap">
+                                                <div>
+                                                    <span class="text-muted fs-12 d-block">{{ __('Courier name') }}</span>
+                                                    <strong class="text-dark fs-13">{{ $d['name'] }}</strong>
+                                                </div>
+                                                @if($d['email'])
+                                                    <div>
+                                                        <span class="text-muted fs-12 d-block">{{ __('Email') }}</span>
+                                                        <span class="text-dark fs-13 font-monospace">{{ $d['email'] }}</span>
+                                                    </div>
+                                                @endif
+                                                <div>
+                                                    <span class="text-muted fs-12 d-block">{{ __('Courier status') }}</span>
+                                                    <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle fs-12 px-2 py-1">{{ __(ucfirst($d['status'])) }}</span>
+                                                </div>
+                                                <div>
+                                                    <span class="text-muted fs-12 d-block">{{ __('Accepted at') }}</span>
+                                                    <strong class="text-dark fs-13 font-monospace">{{ $d['accepted_at'] ?? '—' }}</strong>
+                                                </div>
+                                                <div>
+                                                    <span class="text-muted fs-12 d-block">{{ __('Failed attempts') }}</span>
+                                                    <strong class="text-dark fs-13 font-monospace">{{ $d['failed_attempts'] }}</strong>
+                                                </div>
+                                            </div>
+                                        @else
+                                            <div class="text-muted fs-13 d-flex align-items-center gap-2">
+                                                <i class="ri-time-line"></i>{{ __('No courier assigned yet.') }}
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                {{-- Delivery card --}}
+                                @php $d = $order['details']['delivery']; @endphp
+                                <div class="subcard d-none" data-subcard="delivery">
+                                    <div class="bg-white p-3 rounded-3 border border-secondary-subtle shadow-sm">
+                                        <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+                                            <i class="ri-home-smile-line text-primary fs-5"></i>
+                                            <strong class="text-dark fs-14">{{ __('Delivered to customer') }}</strong>
+                                        </div>
+                                        <div class="d-flex align-items-start gap-4 flex-wrap">
+                                            <div>
+                                                <span class="text-muted fs-12 d-block">{{ __('Delivered at') }}</span>
+                                                <strong class="text-dark fs-13 font-monospace">{{ $d['delivered_at'] ?? '—' }}</strong>
+                                            </div>
+                                            @if(!$d['done'])
+                                                <div class="text-muted fs-13 d-flex align-items-center gap-2">
+                                                    <i class="ri-time-line"></i>{{ __('Not delivered yet.') }}
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+
                             </td>
                         </tr>
                     @empty
@@ -229,19 +428,51 @@
     </div>
 </div>
 
+<style>
+    .stage-toggle-btn { cursor: pointer; }
+    .stage-toggle-btn .badge { transition: box-shadow .15s ease; }
+    .stage-toggle-btn.stage-active .badge { box-shadow: 0 0 0 2px var(--bs-primary-bg-subtle); }
+    .phone-toggle-btn { cursor: pointer; }
+</style>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // 1. Phone subrow toggle
-    document.querySelectorAll('.phone-toggle-btn').forEach(function (btn) {
+    // 1. Subrow toggle (phone button shows contact card, stage badges show stage detail cards)
+    document.querySelectorAll('.phone-toggle-btn, .stage-toggle-btn').forEach(function (btn) {
         btn.addEventListener('click', function (e) {
             e.preventDefault();
             const subrow = document.querySelector(this.getAttribute('data-target'));
             if (!subrow) return;
-            const isHidden = subrow.classList.toggle('d-none');
-            this.classList.toggle('btn-primary', !isHidden);
-            this.classList.toggle('text-white', !isHidden);
-            this.classList.toggle('btn-light', isHidden);
-            this.classList.toggle('text-primary', isHidden);
+            const stage = this.getAttribute('data-stage') || 'contact';
+            const activeCard = subrow.querySelector('.subcard[data-subcard="' + stage + '"]');
+            const activeIsVisible = activeCard && !activeCard.classList.contains('d-none') && !subrow.classList.contains('d-none');
+
+            // hide row + all cards first
+            subrow.classList.add('d-none');
+            subrow.querySelectorAll('.subcard').forEach(function (card) {
+                card.classList.add('d-none');
+            });
+
+            // reset active styling on all triggers of this row
+            document.querySelectorAll('[data-target="#' + subrow.id + '"]').forEach(function (b) {
+                b.classList.remove('stage-active');
+                if (b.classList.contains('phone-toggle-btn')) {
+                    b.classList.add('btn-light', 'text-primary');
+                    b.classList.remove('btn-primary', 'text-white');
+                }
+            });
+
+            if (activeIsVisible) return; // second click on same trigger collapses
+
+            // show requested card
+            subrow.classList.remove('d-none');
+            if (activeCard) activeCard.classList.remove('d-none');
+
+            // highlight active trigger
+            this.classList.add('stage-active');
+            if (this.classList.contains('phone-toggle-btn')) {
+                this.classList.remove('btn-light', 'text-primary');
+                this.classList.add('btn-primary', 'text-white');
+            }
         });
     });
 

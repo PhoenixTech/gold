@@ -8,11 +8,13 @@ use App\Models\Customer;
 use App\Models\Delivery;
 use App\Models\Invoice;
 use App\Models\Payment;
+use App\Models\PaymentReceipt;
 use App\Models\State;
 use App\Models\User;
 use Database\Seeders\GfxSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -84,14 +86,14 @@ class AdminOrderBoardTest extends TestCase
         // Default view: active orders only
         $response = $this->get(route('admin.order-board.index'));
         $response->assertOk();
-        $response->assertSee('#' . $activeOrder->hash);
-        $response->assertDontSee('#' . $completedOrder->hash);
+        $response->assertSee('#'.$activeOrder->hash);
+        $response->assertDontSee('#'.$completedOrder->hash);
 
         // Completed scope: completed orders
         $completedResponse = $this->get(route('admin.order-board.index', ['scope' => 'completed']));
         $completedResponse->assertOk();
-        $completedResponse->assertSee('#' . $completedOrder->hash);
-        $completedResponse->assertDontSee('#' . $activeOrder->hash);
+        $completedResponse->assertSee('#'.$completedOrder->hash);
+        $completedResponse->assertDontSee('#'.$activeOrder->hash);
     }
 
     public function test_order_board_displays_customer_code_province_and_expandable_address(): void
@@ -181,5 +183,92 @@ class AdminOrderBoardTest extends TestCase
         $response->assertOk();
         $response->assertSee('ZK-111');
         $response->assertDontSee('ZK-222');
+    }
+
+    public function test_order_board_records_confirmation_meta_and_renders_stage_detail_cards(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        App::setLocale('fa');
+        $admin = $this->actingAsAdmin();
+
+        $customer = Customer::factory()->create();
+        $order = $this->createOrder($customer, Invoice::AWAITING_PAYMENT);
+
+        $payment = new Payment;
+        $payment->invoice_id = $order->id;
+        $payment->amount = 1000000;
+        $payment->type = 'CARD';
+        $payment->status = Payment::PENDING;
+        $payment->order_id = 'ORD-'.$order->id;
+        $payment->save();
+
+        $order->storeSuccessPayment($payment->id, 'REF-TEST-1', null, $admin);
+
+        $payment->refresh();
+        $this->assertEquals($admin->id, $payment->meta['confirmed_by']);
+        $this->assertEquals($admin->name, $payment->meta['confirmed_by_name']);
+        $this->assertNotEmpty($payment->meta['confirmed_at']);
+
+        // A receipt uploaded by the customer
+        Storage::fake('public');
+        Storage::disk('public')->put('receipts/test.png', 'fake-image');
+        $receipt = new PaymentReceipt;
+        $receipt->payment_id = $payment->id;
+        $receipt->invoice_id = $order->id;
+        $receipt->path = 'receipts/test.png';
+        $receipt->original_name = 'bank-receipt.png';
+        $receipt->mime = 'image/png';
+        $receipt->size = 2048;
+        $receipt->uploaded_by_customer_id = $customer->id;
+        $receipt->save();
+
+        // A delivered shipment
+        $courier = User::factory()->create(['role' => 'COURIER']);
+        Role::findOrCreate('courier', 'web');
+        $courier->assignRole('courier');
+
+        Delivery::create([
+            'invoice_id' => $order->id,
+            'courier_id' => $courier->id,
+            'code_hash' => 'dummy',
+            'status' => DeliveryStatus::Delivered->value,
+            'accepted_at' => now(),
+            'delivered_at' => now(),
+        ]);
+
+        $response = $this->get(route('admin.order-board.index', ['scope' => 'all']));
+        $response->assertOk();
+
+        // Stage toggle buttons with data-stage attributes
+        $response->assertSee('data-stage="payment"', false);
+        $response->assertSee('data-stage="confirm"', false);
+        $response->assertSee('data-stage="settle"', false);
+        $response->assertSee('data-stage="courier"', false);
+        $response->assertSee('data-stage="delivery"', false);
+
+        // Sub-row detail cards
+        $response->assertSee('data-subcard="payment"', false);
+        $response->assertSee('data-subcard="confirm"', false);
+        $response->assertSee('data-subcard="settle"', false);
+        $response->assertSee('data-subcard="courier"', false);
+        $response->assertSee('data-subcard="delivery"', false);
+
+        // Payment details: uploaded receipt
+        $response->assertSee('bank-receipt.png');
+        $response->assertSee(__('Customer receipts'));
+        $response->assertSee($receipt->url());
+
+        // Confirm details: who and when
+        $response->assertSee(__('Confirmed by'));
+        $response->assertSee($admin->name);
+        $response->assertSee(__('Confirmed at'));
+
+        // Courier details: which courier
+        $response->assertSee(__('Courier name'));
+        $response->assertSee($courier->name);
+
+        // Delivery details: when delivered
+        $response->assertSee(__('Delivered at'));
     }
 }
