@@ -38,10 +38,16 @@
                 <div class="item-list mb-3">
                     <h5 class="p-3">
                         <i class="ri-image-2-line"></i>
-                        {{__('Feature image')}}
+                        {{__('Feature image')}} ({{__('Gold')}})
                     </h5>
                     <img src="{{$item->imgUrl()}}" alt="{{$item->name}}" data-open-file="#image" class="img-fluid mb-4">
-
+                </div>
+                <div class="item-list mb-3">
+                    <h5 class="p-3">
+                        <i class="ri-image-2-line"></i>
+                        {{__('Silver feature image')}}
+                    </h5>
+                    <img src="{{$item->silverImgUrl()}}" alt="{{$item->name}}" data-open-file="#silver_image" class="img-fluid mb-4">
                 </div>
                 <div class="item-list mb-3">
                     <h5 class="p-3">
@@ -169,11 +175,21 @@
                         <div class="col-md-3 mt-3">
                             <div class="form-group">
                                 <label for="image">
-                                    {{__('Feature image')}}
+                                    {{__('Feature image')}} ({{__('Gold')}})
                                 </label>
-                                <input accept=".jpg,.png,.svg" name="image" type="file"
+                                <input accept=".jpg,.jpeg,.png,.svg,.webp" name="image" type="file"
                                        class="form-control @error('image') is-invalid @enderror" id="image"
                                        placeholder="{{__('Feature image')}}"/>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mt-3">
+                            <div class="form-group">
+                                <label for="silver_image">
+                                    {{__('Silver feature image')}}
+                                </label>
+                                <input accept=".jpg,.jpeg,.png,.svg,.webp" name="silver_image" type="file"
+                                       class="form-control @error('silver_image') is-invalid @enderror" id="silver_image"
+                                       placeholder="{{__('Silver feature image')}}"/>
                             </div>
                         </div>
                         <div class="col-md-3 mt-3">

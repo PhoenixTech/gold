@@ -26,6 +26,15 @@ class Category extends Model
         return \Storage::url('categories/optimized-'.$this->image);
     }
 
+    public function silverImgUrl()
+    {
+        if ($this->silver_image == null) {
+            return $this->imgUrl();
+        }
+
+        return \Storage::url('categories/optimized-'.$this->silver_image);
+    }
+
     public function svgUrl()
     {
         if ($this->svg == null) {
@@ -42,6 +51,33 @@ class Category extends Model
         }
 
         return \Storage::url('categories/'.$this->image);
+    }
+
+    public function silverImgOriginalUrl()
+    {
+        if ($this->silver_image == null) {
+            return $this->imgOriginalUrl();
+        }
+
+        return \Storage::url('categories/'.$this->silver_image);
+    }
+
+    public function imgForMetal($metal = 'gold')
+    {
+        if ($metal === 'silver') {
+            return $this->silverImgUrl();
+        }
+
+        return $this->imgUrl();
+    }
+
+    public function imgOriginalForMetal($metal = 'gold')
+    {
+        if ($metal === 'silver') {
+            return $this->silverImgOriginalUrl();
+        }
+
+        return $this->imgOriginalUrl();
     }
 
     public function bgUrl()

@@ -87,6 +87,26 @@ class CategoryController extends XController
             $i->save(storage_path().'/app/public/categories/optimized-'.$category->$key);
 
         }
+        if ($request->has('silver_image')) {
+            $category->silver_image = $this->storeFile('silver_image', $category, 'categories');
+            $key = 'silver_image';
+            $format = $request->file($key)->guessExtension();
+            if (strtolower($format) == 'png') {
+                $format = 'webp';
+            }
+            $i = Image::load($request->file($key)->getPathname())
+                ->optimize()
+                ->format($format);
+            if (getSetting('watermark2')) {
+                $i->watermark(public_path('upload/images/logo.png'),
+                    AlignPosition::BottomLeft, 5, 5, Unit::Percent,
+                    config('app.media.watermark_size'), Unit::Percent,
+                    config('app.media.watermark_size'), Unit::Percent, Fit::Contain,
+                    config('app.media.watermark_opacity'));
+            }
+            $i->save(storage_path().'/app/public/categories/optimized-'.$category->$key);
+
+        }
         if ($request->has('bg')) {
             $category->bg = $this->storeFile('bg', $category, 'categories');
             $key = 'bg';

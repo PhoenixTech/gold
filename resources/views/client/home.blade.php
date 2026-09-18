@@ -32,18 +32,38 @@
         <section class="WTFIndex live-setting pt-3 pb-2" data-nav="#wtf-main-btns">
             @foreach($mainCategories as $k => $mainCategory)
                 @php($words = explode(' ', $mainCategory->name))
-                @php($childCats = $mainCategory->relationLoaded('children') ? $mainCategory->children->where('hide', 0) : $mainCategory->children()->where('hide', 0)->get())
+                @php($metalParam = $mainCategory->metal ?? ($k == 1 ? 'silver' : 'gold'))
+                @php($childCats = is_iterable($mainCategory->children) ? $mainCategory->children : ($mainCategory->relationLoaded('children') ? $mainCategory->children->where('hide', 0) : $mainCategory->children()->where('hide', 0)->get()))
                 <div class="wtf-section container px-2 px-sm-3" id="wtf-{{$mainCategory->id}}" @if($k == 0) style="display: block" @else style="display: none" @endif>
                     <div class="row g-2 g-sm-3" dir="rtl">
                         @foreach($childCats as $childCategory)
                             <div class="col-3 text-center mb-3">
-                                <a href="{{$childCategory->webUrl()}}" class="d-block text-decoration-none text-dark cat-item-link">
-                                    <div class="cat-img-box">
-                                        <img src="{{$childCategory->imgUrl()}}" 
-                                             onerror="this.onerror=null;this.src='{{$childCategory->imgOriginalUrl()}}';" 
-                                             alt="{{$childCategory->name}}" 
-                                             class="w-100 cat-thumb-img" 
-                                             loading="lazy">
+                                <a href="{{ route('client.category', ['category' => $childCategory->slug, 'metal' => $metalParam]) }}" class="d-block text-decoration-none text-dark cat-item-link">
+                                    <div class="cat-img-box d-flex align-items-center justify-content-center">
+                                        @php($hasMetalImg = ($metalParam === 'silver' ? !empty($childCategory->silver_image) : !empty($childCategory->image)))
+                                        @if($hasMetalImg)
+                                            <img src="{{$childCategory->imgForMetal($metalParam)}}" 
+                                                 onerror="this.onerror=null;this.src='{{$childCategory->imgOriginalForMetal($metalParam)}}';" 
+                                                 alt="{{$childCategory->name}}" 
+                                                 class="w-100 cat-thumb-img" 
+                                                 loading="lazy">
+                                        @elseif(!empty($childCategory->image))
+                                            <img src="{{$childCategory->imgUrl()}}" 
+                                                 onerror="this.onerror=null;this.src='{{$childCategory->imgOriginalUrl()}}';" 
+                                                 alt="{{$childCategory->name}}" 
+                                                 class="w-100 cat-thumb-img" 
+                                                 loading="lazy">
+                                        @elseif(!empty($childCategory->icon))
+                                            <div class="d-flex flex-column align-items-center justify-content-center w-100 h-100 p-2 text-center" style="background: linear-gradient(135deg, #fafafa 0%, #f1f3f5 100%);">
+                                                <i class="{{$childCategory->icon}} fs-1 {{ $metalParam === 'silver' ? 'text-secondary' : 'text-warning' }} opacity-85"></i>
+                                            </div>
+                                        @else
+                                            <img src="{{$childCategory->imgUrl()}}" 
+                                                 onerror="this.onerror=null;this.src='{{$childCategory->imgOriginalUrl()}}';" 
+                                                 alt="{{$childCategory->name}}" 
+                                                 class="w-100 cat-thumb-img" 
+                                                 loading="lazy">
+                                        @endif
                                     </div>
                                     <h5 class="cat-item-title">
                                         {{implode(' ', array_diff(explode(' ', $childCategory->name), $words)) ?: $childCategory->name}}

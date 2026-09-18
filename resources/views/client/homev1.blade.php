@@ -31,13 +31,26 @@
             <div class="py-2">
                 @foreach($mainCategories as $k => $mainCategory)
                     @php($words = explode(' ', $mainCategory->name))
+                    @php($metalParam = $mainCategory->metal ?? ($k == 1 ? 'silver' : 'gold'))
+                    @php($childCats = is_iterable($mainCategory->children) ? $mainCategory->children : ($mainCategory->relationLoaded('children') ? $mainCategory->children->where('hide', 0) : $mainCategory->children()->where('hide', 0)->get()))
                     <div class="{{gfx()['container']}} wtf-section" id="wtf-{{$mainCategory->id}}" @if($k == 0) style="display: block" @endif>
                         <div class="row g-3 g-md-4">
-                            @foreach($mainCategory->children as $childCategory)
+                            @foreach($childCats as $childCategory)
                                 <div class="col-6 col-sm-4 col-md-3">
-                                    <a class="wtf-cat-card card border-0 shadow-sm rounded-4 overflow-hidden text-decoration-none h-100 transition-all d-block position-relative" href="{{$childCategory->webUrl()}}">
-                                        <div class="card-img-box position-relative bg-dark overflow-hidden">
-                                            <img src="{{$childCategory->imgUrl()}}" alt="{{$childCategory->name}}" class="w-100 h-100 object-fit-cover cat-img-hover opacity-85" loading="lazy">
+                                    <a class="wtf-cat-card card border-0 shadow-sm rounded-4 overflow-hidden text-decoration-none h-100 transition-all d-block position-relative" href="{{ route('client.category', ['category' => $childCategory->slug, 'metal' => $metalParam]) }}">
+                                        <div class="card-img-box position-relative bg-dark overflow-hidden d-flex align-items-center justify-content-center" style="min-height: 180px;">
+                                            @php($hasMetalImg = ($metalParam === 'silver' ? !empty($childCategory->silver_image) : !empty($childCategory->image)))
+                                            @if($hasMetalImg)
+                                                <img src="{{$childCategory->imgForMetal($metalParam)}}" alt="{{$childCategory->name}}" class="w-100 h-100 object-fit-cover cat-img-hover opacity-85" loading="lazy">
+                                            @elseif(!empty($childCategory->image))
+                                                <img src="{{$childCategory->imgUrl()}}" alt="{{$childCategory->name}}" class="w-100 h-100 object-fit-cover cat-img-hover opacity-85" loading="lazy">
+                                            @elseif(!empty($childCategory->icon))
+                                                <div class="d-flex flex-column align-items-center justify-content-center w-100 h-100 p-4 text-center">
+                                                    <i class="{{$childCategory->icon}} fs-1 text-white opacity-85 mb-2"></i>
+                                                </div>
+                                            @else
+                                                <img src="{{$childCategory->imgUrl()}}" alt="{{$childCategory->name}}" class="w-100 h-100 object-fit-cover cat-img-hover opacity-85" loading="lazy">
+                                            @endif
                                             <div class="card-overlay-vignette position-absolute inset-0"></div>
                                             <div class="position-absolute bottom-0 start-0 end-0 p-3 text-center z-2">
                                                 <h5 class="cat-title fs-15 fw-bold text-white mb-1 text-shadow">

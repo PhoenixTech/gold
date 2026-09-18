@@ -52,6 +52,34 @@ class ClientController extends Controller
 
     public $paginate = 12;
 
+    /**
+     * Build the Gold and Silver category tabs for homepage.
+     */
+    protected function getHomeCategoryTabs()
+    {
+        $allCategories = Category::where('hide', 0)->orderBy('sort')->get();
+
+        $goldTab = (object) [
+            'id' => 'gold',
+            'name' => __('Gold'),
+            'metal' => 'gold',
+            'bg_color' => '#caa867',
+            'color' => '#111111',
+            'children' => $allCategories,
+        ];
+
+        $silverTab = (object) [
+            'id' => 'silver',
+            'name' => __('Silver'),
+            'metal' => 'silver',
+            'bg_color' => '#cccccc',
+            'color' => '#111111',
+            'children' => $allCategories,
+        ];
+
+        return collect([$goldTab, $silverTab]);
+    }
+
     //
     public function welcome()
     {
@@ -59,17 +87,8 @@ class ClientController extends Controller
         $subtitle = getSetting('subtitle');
 
         $mainCategories = getCategoriesSet('index_WTFIndex_categories');
-        if ($mainCategories->isEmpty()) {
-            $mainCategories = Category::where('hide', 0)
-                ->where(function ($q) {
-                    $q->whereNull('parent_id')->orWhere('parent_id', 0);
-                })
-                ->orderBy('sort')
-                ->take(4)
-                ->with(['children' => function ($q) {
-                    $q->where('hide', 0)->orderBy('sort');
-                }])
-                ->get();
+        if ($mainCategories->isEmpty() || $mainCategories->every(fn ($c) => $c->children->isEmpty())) {
+            $mainCategories = $this->getHomeCategoryTabs();
         }
 
         $latestProducts = Product::where('status', 1)
@@ -87,9 +106,6 @@ class ClientController extends Controller
         $footerCategories = getCategoriesSet('index_WTFFooter_categories');
         if ($footerCategories->isEmpty()) {
             $footerCategories = Category::where('hide', 0)
-                ->where(function ($q) {
-                    $q->whereNull('parent_id')->orWhere('parent_id', 0);
-                })
                 ->orderBy('sort')
                 ->take(4)
                 ->get();
@@ -115,17 +131,8 @@ class ClientController extends Controller
         $subtitle = getSetting('subtitle');
 
         $mainCategories = getCategoriesSet('index_WTFIndex_categories');
-        if ($mainCategories->isEmpty()) {
-            $mainCategories = Category::where('hide', 0)
-                ->where(function ($q) {
-                    $q->whereNull('parent_id')->orWhere('parent_id', 0);
-                })
-                ->orderBy('sort')
-                ->take(4)
-                ->with(['children' => function ($q) {
-                    $q->where('hide', 0)->orderBy('sort');
-                }])
-                ->get();
+        if ($mainCategories->isEmpty() || $mainCategories->every(fn ($c) => $c->children->isEmpty())) {
+            $mainCategories = $this->getHomeCategoryTabs();
         }
 
         $latestProducts = Product::where('status', 1)
@@ -152,25 +159,13 @@ class ClientController extends Controller
         $subtitle = getSetting('subtitle');
 
         $mainCategories = getCategoriesSet('index_WTFIndex_categories');
-        if ($mainCategories->isEmpty()) {
-            $mainCategories = Category::where('hide', 0)
-                ->where(function ($q) {
-                    $q->whereNull('parent_id')->orWhere('parent_id', 0);
-                })
-                ->orderBy('sort')
-                ->take(4)
-                ->with(['children' => function ($q) {
-                    $q->where('hide', 0)->orderBy('sort');
-                }])
-                ->get();
+        if ($mainCategories->isEmpty() || $mainCategories->every(fn ($c) => $c->children->isEmpty())) {
+            $mainCategories = $this->getHomeCategoryTabs();
         }
 
         $footerCategories = getCategoriesSet('index_WTFFooter_categories');
         if ($footerCategories->isEmpty()) {
             $footerCategories = Category::where('hide', 0)
-                ->where(function ($q) {
-                    $q->whereNull('parent_id')->orWhere('parent_id', 0);
-                })
                 ->orderBy('sort')
                 ->take(4)
                 ->get();
@@ -304,6 +299,14 @@ class ClientController extends Controller
                             $catQ->whereIn('categories.id', $catIds);
                         });
                 });
+            }
+        }
+
+        // Metal Type Filter (gold / silver)
+        if ($request->filled('metal')) {
+            $metal = strtolower($request->input('metal'));
+            if (in_array($metal, ['gold', 'silver'])) {
+                $query->where('metal_type', $metal);
             }
         }
 
@@ -579,6 +582,14 @@ class ClientController extends Controller
                     ->orWhere('description->'.config('app.locale'), 'like', "%{$keyword}%")
                     ->orWhere('description', 'like', "%{$keyword}%");
             });
+        }
+
+        // Metal Type Filter (gold / silver)
+        if ($request->filled('metal')) {
+            $metal = strtolower($request->input('metal'));
+            if (in_array($metal, ['gold', 'silver'])) {
+                $query->where('metal_type', $metal);
+            }
         }
 
         // In-stock Only Filter

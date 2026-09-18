@@ -3,6 +3,7 @@
 use App\Models\Product;
 use App\Models\Quantity;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -14,6 +15,21 @@ return new class extends Migration
     public function up(): void
     {
         Schema::disableForeignKeyConstraints();
+
+        if (! Schema::hasColumn('categories', 'code')) {
+            Schema::table('categories', function (Blueprint $table) {
+                $table->string('code', 10)->nullable()->after('slug')->index();
+            });
+        }
+
+        if (! Schema::hasColumn('categories', 'silver_image')) {
+            Schema::table('categories', function (Blueprint $table) {
+                $table->string('silver_image', 2048)->nullable()->after('image');
+            });
+        }
+
+        // 0. Clear all product SKUs to prevent unique constraint violations during reassignment
+        DB::table('products')->update(['sku' => null]);
 
         // 1. Define the 11 official main categories according to sku-2.md
         $mainCategoriesData = [
@@ -85,115 +101,155 @@ return new class extends Migration
             ],
         ];
 
-        // 2. Insert the 11 main categories
+        // 2. Upsert the 11 main categories (update if slug exists, insert otherwise)
         $mainCategoryMap = [];
         $now = now();
         $sort = 1;
         foreach ($mainCategoriesData as $code => $data) {
-            $id = DB::table('categories')->insertGetId([
-                'name' => $data['name'],
-                'slug' => $data['slug'],
-                'code' => $data['code'],
-                'icon' => $data['icon'],
-                'bg_color' => '#ffffff',
-                'color' => '#000000',
-                'sort' => $sort++,
-                'hide' => 0,
-                'parent_id' => null,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ]);
+            $existing = DB::table('categories')->where('slug', $data['slug'])->first();
+
+            if ($existing) {
+                DB::table('categories')->where('id', $existing->id)->update([
+                    'name' => $data['name'],
+                    'code' => $data['code'],
+                    'icon' => $data['icon'],
+                    'bg_color' => '#ffffff',
+                    'color' => '#000000',
+                    'sort' => $sort++,
+                    'hide' => 0,
+                    'parent_id' => null,
+                    'updated_at' => $now,
+                ]);
+                $id = $existing->id;
+            } else {
+                $id = DB::table('categories')->insertGetId([
+                    'name' => $data['name'],
+                    'slug' => $data['slug'],
+                    'code' => $data['code'],
+                    'icon' => $data['icon'],
+                    'bg_color' => '#ffffff',
+                    'color' => '#000000',
+                    'sort' => $sort++,
+                    'hide' => 0,
+                    'parent_id' => null,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+            }
+
             $mainCategoryMap[$code] = $id;
         }
 
-        // 3. Keyword rules to identify the nearest main category for each product
+        // 3. Keyword rules to identify category, metal, and gender
         $categoryKeywords = [
-            'Gr' => ['گردنبند', 'آویز', 'necklace', 'pendant'],
+            'Gr' => ['گردنبند', 'آویز', 'پلاک', 'مدال', 'necklace', 'pendant'],
             'E' => ['گوشواره', 'earring'],
             'A' => ['انگشتر', 'حلقه', 'ring'],
-            'L' => ['النگو', 'bangle'],
+            'L' => ['النگو', 'تک پوش', 'تکپوش', 'bangle'],
             'D' => ['دستبند', 'bracelet'],
             'P' => ['پابند', 'خلخال', 'anklet'],
             'Z' => ['زنجیر', 'chain'],
             'Pr' => ['پیرسینگ', 'piercing'],
-            'Set' => ['نیم ست', 'نیم‌ست', 'سرویس', 'ست', 'set'],
+            'Set' => ['نیم ست', 'نیم‌ست', 'سرویس', 'ست', 'set', 'service'],
             'Sh' => ['شمش', 'ingot', 'bar'],
-            'Ac' => ['اکسسوری', 'accessory', 'سنجاق', 'تاج', 'چشم نظر', 'دکمه سردست'],
+            'Ac' => ['اکسسوری', 'accessory', 'تاج', 'crown', 'سنجاق', 'چشم نظر', 'دکمه سردست', 'گیره'],
         ];
 
         $targetKeywords = [
-            'women' => ['زنانه'],
-            'men' => ['مردانه'],
-            'children' => ['بچه‌گانه', 'بچه گانه', 'نوزاد', 'کودک'],
+            'women' => ['زنانه', 'بانوان', 'دخترانه', 'دختر', 'women', 'woman', 'female', 'lady'],
+            'men' => ['مردانه', 'آقایان', 'پسرانه', 'پسر', 'men', 'man', 'male'],
+            'children' => ['بچه‌گانه', 'بچه گانه', 'نوزاد', 'کودک', 'children', 'child', 'kid', 'baby'],
         ];
+
         $targetLetters = [
             'women' => 'F',
             'men' => 'M',
             'children' => 'C',
         ];
 
-        // 4. Update products to the nearest main category and regenerate SKU
+        // 4. Update products: detect metal_type, gender, main category and regenerate SKU
         $products = DB::table('products')->orderBy('id')->get();
         $sequencePerCategory = [];
 
         foreach ($products as $p) {
-            $matchedCode = null;
-            $pText = $p->name.' '.($p->slug ?? '');
+            // Gather all available textual context from product & old categories
+            $relatedCatIds = DB::table('category_product')->where('product_id', $p->id)->pluck('category_id')->toArray();
+            if ($p->category_id) {
+                $relatedCatIds[] = $p->category_id;
+            }
+            $relatedCatIds = array_unique(array_filter($relatedCatIds));
 
-            // First, try matching keywords directly from the product title / slug
-            foreach ($categoryKeywords as $code => $keywords) {
-                foreach ($keywords as $kw) {
-                    if (mb_stripos($pText, $kw) !== false) {
-                        $matchedCode = $code;
-                        break 2;
-                    }
+            $oldCats = DB::table('categories')->whereIn('id', $relatedCatIds)->get();
+            $parentCatIds = $oldCats->pluck('parent_id')->filter()->toArray();
+            $parentCats = !empty($parentCatIds) ? DB::table('categories')->whereIn('id', $parentCatIds)->get() : collect();
+
+            $allText = $p->name . ' ' . ($p->slug ?? '') . ' ' . ($p->description ?? '') . ' ' . ($p->excerpt ?? '') . ' ';
+            foreach ($oldCats->merge($parentCats) as $cat) {
+                $allText .= $cat->name . ' ' . ($cat->slug ?? '') . ' ' . ($cat->code ?? '') . ' ';
+            }
+
+            // A. Detect Metal Type (Silver vs Gold)
+            $isSilver = (
+                strtolower((string) $p->metal_type) === 'silver'
+                || mb_stripos($allText, 'نقره') !== false
+                || mb_stripos($allText, 'silver') !== false
+            );
+            $metalType = $isSilver ? 'silver' : 'gold';
+
+            // B. Detect Main Category Code
+            $matchedCode = null;
+            // Check direct category code match first
+            foreach ($oldCats as $cat) {
+                if (!empty($cat->code) && isset($mainCategoryMap[$cat->code])) {
+                    $matchedCode = $cat->code;
+                    break;
                 }
             }
 
-            // If not matched, try matching the product's old category name or code
-            if (! $matchedCode && $p->category_id) {
-                $oldCat = DB::table('categories')->where('id', $p->category_id)->first();
-                if ($oldCat) {
-                    if (! empty($oldCat->code) && isset($mainCategoryMap[$oldCat->code])) {
-                        $matchedCode = $oldCat->code;
-                    } else {
-                        $catText = (string) $oldCat->name.' '.(string) ($oldCat->slug ?? '');
-                        foreach ($categoryKeywords as $code => $keywords) {
-                            foreach ($keywords as $kw) {
-                                if (mb_stripos($catText, $kw) !== false) {
-                                    $matchedCode = $code;
-                                    break 2;
-                                }
-                            }
+            if (!$matchedCode) {
+                foreach ($categoryKeywords as $code => $keywords) {
+                    foreach ($keywords as $kw) {
+                        if (mb_stripos($allText, $kw) !== false) {
+                            $matchedCode = $code;
+                            break 2;
                         }
                     }
                 }
             }
-
             $matchedCode = $matchedCode ?? 'Ac';
             $newCatId = $mainCategoryMap[$matchedCode];
 
-            // Infer target group (gender) if unisex or missing
-            $targetGroup = $p->target_group ?? 'women';
-            foreach ($targetKeywords as $tg => $kws) {
-                foreach ($kws as $kw) {
-                    if (mb_stripos($pText, $kw) !== false) {
-                        $targetGroup = $tg;
-                        break 2;
+            // C. Detect Target Group (Gender)
+            $targetGroup = $p->target_group;
+            if (!in_array($targetGroup, ['women', 'men', 'children'])) {
+                $targetGroup = null;
+            }
+            if (!$targetGroup) {
+                foreach ($targetKeywords as $tg => $kws) {
+                    foreach ($kws as $kw) {
+                        if (mb_stripos($allText, $kw) !== false) {
+                            $targetGroup = $tg;
+                            break 2;
+                        }
                     }
                 }
             }
+            $targetGroup = $targetGroup ?? 'women';
+
+            // D. Generate SKU (1 for gold, 2 for silver)
             $t = $targetLetters[$targetGroup] ?? 'F';
-            $m = ($p->metal_type === 'silver') ? '2' : '1';
+            $m = ($metalType === 'silver') ? '2' : '1';
 
-            $sequencePerCategory[$newCatId] = ($sequencePerCategory[$newCatId] ?? 0) + 1;
-            $n = sprintf('%04d', $sequencePerCategory[$newCatId]);
+            $skuPrefix = "{$t}{$m}{$matchedCode}";
+            $sequencePerCategory[$skuPrefix] = ($sequencePerCategory[$skuPrefix] ?? 0) + 1;
+            $n = sprintf('%04d', $sequencePerCategory[$skuPrefix]);
 
-            $newSku = "{$t}{$m}{$matchedCode}{$n}";
+            $newSku = "{$skuPrefix}{$n}";
 
             DB::table('products')->where('id', $p->id)->update([
                 'category_id' => $newCatId,
                 'target_group' => $targetGroup,
+                'metal_type' => $metalType,
                 'sku' => $newSku,
             ]);
 
@@ -212,8 +268,85 @@ return new class extends Migration
             }
         }
 
-        // 5. Delete all old categories and clean references
+        // 5. Transfer images (both Gold and Silver), svgs, bgs, and descriptions from old categories to matching new categories
         $keptIds = array_values($mainCategoryMap);
+
+        foreach ($mainCategoryMap as $code => $newId) {
+            $keywords = $categoryKeywords[$code] ?? [];
+            $allOldCategories = DB::table('categories')->whereNotIn('id', $keptIds)->get();
+
+            $updateData = [];
+            $newCat = DB::table('categories')->where('id', $newId)->first();
+            $matchedOldIds = [];
+
+            foreach ($allOldCategories as $oldCat) {
+                $catText = (string) $oldCat->name . ' ' . (string) ($oldCat->slug ?? '') . ' ' . (string) ($oldCat->code ?? '');
+                $matched = (!empty($oldCat->code) && $oldCat->code === $code);
+
+                if (!$matched) {
+                    foreach ($keywords as $kw) {
+                        if (mb_stripos($catText, $kw) !== false) {
+                            $matched = true;
+                            break;
+                        }
+                    }
+                }
+
+                if ($matched) {
+                    $matchedOldIds[] = $oldCat->id;
+
+                    $isOldCatSilver = (
+                        mb_stripos($catText, 'نقره') !== false
+                        || mb_stripos($catText, 'silver') !== false
+                    );
+
+                    if ($isOldCatSilver) {
+                        // Silver category image -> silver_image
+                        if (empty($newCat->silver_image) && empty($updateData['silver_image']) && !empty($oldCat->image)) {
+                            $updateData['silver_image'] = $oldCat->image;
+                        }
+                    } else {
+                        // Gold category image -> image
+                        if (empty($newCat->image) && empty($updateData['image']) && !empty($oldCat->image)) {
+                            $updateData['image'] = $oldCat->image;
+                        }
+                    }
+
+                    if (empty($newCat->svg) && empty($updateData['svg']) && !empty($oldCat->svg)) {
+                        $updateData['svg'] = $oldCat->svg;
+                    }
+                    if (empty($newCat->bg) && empty($updateData['bg']) && !empty($oldCat->bg)) {
+                        $updateData['bg'] = $oldCat->bg;
+                    }
+                    if (empty($newCat->description) && empty($updateData['description']) && !empty($oldCat->description)) {
+                        $updateData['description'] = $oldCat->description;
+                    }
+                }
+            }
+
+            // Fallback: if silver_image is empty, use image; if image is empty, use silver_image
+            if (empty($newCat->image) && empty($updateData['image']) && !empty($updateData['silver_image'])) {
+                $updateData['image'] = $updateData['silver_image'];
+            }
+
+            if (!empty($updateData)) {
+                DB::table('categories')->where('id', $newId)->update($updateData);
+            }
+
+            if (!empty($matchedOldIds)) {
+                DB::table('attachments')
+                    ->where('attachable_type', 'App\Models\Category')
+                    ->whereIn('attachable_id', $matchedOldIds)
+                    ->update(['attachable_id' => $newId]);
+
+                DB::table('evaluations')
+                    ->where('evaluationable_type', 'App\Models\Category')
+                    ->whereIn('evaluationable_id', $matchedOldIds)
+                    ->update(['evaluationable_id' => $newId]);
+            }
+        }
+
+        // 6. Delete all old categories and clean references
         DB::table('category_prop')->whereNotIn('category_id', $keptIds)->delete();
         DB::table('category_product')->whereNotIn('category_id', $keptIds)->delete();
         DB::table('evaluations')

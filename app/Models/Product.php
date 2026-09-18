@@ -55,7 +55,7 @@ class Product extends Model implements HasMedia
             'men' => 'M', 'male' => 'M', 'm' => 'M',
             'children' => 'C', 'child' => 'C', 'c' => 'C',
         ];
-        $t = $targets[strtolower((string) $targetGroup)] ?? 'U';
+        $t = $targets[strtolower((string) $targetGroup)] ?? 'F';
 
         // Metal: 1 = gold, 2 = silver per sku-2.md
         $metalNorm = strtolower((string) $metalType);
@@ -63,13 +63,19 @@ class Product extends Model implements HasMedia
 
         $c = Category::resolveSkuCode($categoryId);
 
+        $query = self::where('category_id', $categoryId);
+        if ($targetGroup) {
+            $query->where('target_group', $targetGroup);
+        }
+        if ($metalType) {
+            $query->where('metal_type', $metalType);
+        }
+
         if ($productId) {
-            $count = self::where('category_id', $categoryId)
-                ->where('id', '<=', $productId)
-                ->count();
+            $count = $query->where('id', '<=', $productId)->count();
             $count = max(1, $count);
         } else {
-            $count = self::where('category_id', $categoryId)->count() + 1;
+            $count = $query->count() + 1;
         }
 
         $n = sprintf('%04d', $count);
