@@ -1,7 +1,7 @@
 @extends('admin.templates.panel-list-template')
 
 @section('list-title')
-    <i class="ri-user-3-line"></i>
+    <i class="ri-gallery-line"></i>
     {{__("Galleries list")}}
 @endsection
 @section('title')

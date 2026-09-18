@@ -1,7 +1,7 @@
 @extends('admin.templates.panel-list-template')
 
 @section('list-title')
-    <i class="ri-user-3-line"></i>
+    <i class="ri-video-line"></i>
     {{__("Clips list")}}
 @endsection
 @section('title')

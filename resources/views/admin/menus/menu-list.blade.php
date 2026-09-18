@@ -1,7 +1,7 @@
 @extends('admin.templates.panel-list-template')
 
 @section('list-title')
-    <i class="ri-user-3-line"></i>
+    <i class="ri-menu-2-line"></i>
     {{__("Menus list")}}
 @endsection
 @section('title')

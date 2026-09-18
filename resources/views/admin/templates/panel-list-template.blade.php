@@ -7,6 +7,24 @@
             @yield('top-content')
         @endif
 
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+            <div class="d-flex align-items-center flex-wrap gap-2">
+                @hasSection('list-title')
+                    <h4 class="mb-0 fw-bold d-flex align-items-center gap-2 text-dark fs-18">
+                        @yield('list-title')
+                    </h4>
+                @endif
+                @if(hasRoute('create'))
+                    <a href="{{getRoute('create')}}" class="btn btn-sm btn-primary text-white d-inline-flex align-items-center gap-1 shadow-sm">
+                        <i class="ri-add-line"></i>
+                        <span>{{__("Add new")}}</span>
+                    </a>
+                @endif
+                @yield('list-actions')
+            </div>
+            @yield('list-header-right')
+        </div>
+
         {{-- WordPress Style Quick Filters Links Bar (All (10) | Mine (5) | Published (7) | Draft (2) | Trashed (1)) --}}
         @if(isset($quickCounts) && count($quickCounts) > 0)
             <div class="wp-quick-filters mb-2 px-1 fs-13">
@@ -606,17 +624,6 @@
     </div>
 
     @yield('list-foot')
-    @if(hasRoute('create'))
-        <a class="action-btn circle-btn"
-           data-bs-toggle="tooltip"
-           data-bs-placement="top"
-           data-bs-custom-class="custom-tooltip"
-           data-bs-title="{{__("Add another one")}}"
-           href="{{getRoute('create')}}"
-        >
-            <i class="ri-add-line"></i>
-        </a>
-    @endif
 
     <script>
     document.addEventListener('DOMContentLoaded', function () {

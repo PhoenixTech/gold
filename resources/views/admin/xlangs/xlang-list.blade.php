@@ -1,7 +1,7 @@
 @extends('admin.templates.panel-list-template')
 
 @section('list-title')
-    <i class="ri-user-3-line"></i>
+    <i class="ri-global-line"></i>
     {{__("Languages list")}}
 @endsection
 @section('title')
@@ -13,16 +13,9 @@
 @section('bulk')
     {{--    <option value="-"> - </option> --}}
 @endsection
-@section('list-foot')
-    <a
-        href="{{getRoute('translate')}}"
-        class="action-btn circle-btn"
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip"
-        data-bs-title="{{__("Sort")}}"
-        style="inset-inline-end: 1.2rem;inset-inline-start: auto;"
-    >
+@section('list-actions')
+    <a href="{{getRoute('translate')}}" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 shadow-sm">
         <i class="ri-translate-2"></i>
+        <span>{{__("Translate")}}</span>
     </a>
 @endsection

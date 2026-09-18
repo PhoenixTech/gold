@@ -4,6 +4,24 @@
     <div class="mb-5 pb-5">
         @include('components.err')
 
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+            <div class="d-flex align-items-center flex-wrap gap-2">
+                @hasSection('list-title')
+                    <h4 class="mb-0 fw-bold d-flex align-items-center gap-2 text-dark fs-18">
+                        @yield('list-title')
+                    </h4>
+                @endif
+                @if(hasRoute('create'))
+                    <a href="{{getRoute('create')}}" class="btn btn-sm btn-primary text-white d-inline-flex align-items-center gap-1 shadow-sm">
+                        <i class="ri-add-line"></i>
+                        <span>{{__("Add new")}}</span>
+                    </a>
+                @endif
+                @yield('list-actions')
+            </div>
+            @yield('list-header-right')
+        </div>
+
         {{-- Minimal Horizontal Filter Bar --}}
         <div class="item-list overflow-visible mb-3 p-2 p-md-3">
             <form action="" method="GET" class="d-flex flex-wrap align-items-center justify-content-between gap-2">
@@ -67,16 +85,4 @@
             </form>
         </div>
     </div>
-
-    @if(hasRoute('create'))
-        <a class="action-btn circle-btn"
-           data-bs-toggle="tooltip"
-           data-bs-placement="top"
-           data-bs-custom-class="custom-tooltip"
-           data-bs-title="{{__("Add another one")}}"
-           href="{{getRoute('create')}}"
-        >
-            <i class="ri-add-line"></i>
-        </a>
-    @endif
 @endsection

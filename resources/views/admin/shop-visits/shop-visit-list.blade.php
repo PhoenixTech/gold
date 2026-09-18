@@ -12,9 +12,9 @@
 @section('bulk')
     <option value="export">{{ __('Export CSV') }}</option>
 @endsection
-@section('list-foot')
-    <a href="{{ route('admin.shop-visit.export') }}" class="btn btn-outline-primary mt-3">
+@section('list-actions')
+    <a href="{{ route('admin.shop-visit.export') }}" class="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-1 shadow-sm">
         <i class="ri-file-excel-2-line"></i>
-        {{ __('Download Excel') }}
+        <span>{{ __('Download Excel') }}</span>
     </a>
 @endsection

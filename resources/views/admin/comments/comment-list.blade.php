@@ -1,4 +1,8 @@
 @extends('admin.templates.panel-list-template-raw')
+@section('list-title')
+    <i class="ri-chat-1-line"></i>
+    {{__("Comments")}}
+@endsection
 @section('title')
     {{__("Comments")}} -
 @endsection

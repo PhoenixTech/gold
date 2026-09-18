@@ -1,7 +1,7 @@
 @extends('admin.templates.panel-list-template')
 
 @section('list-title')
-    <i class="ri-user-3-line"></i>
+    <i class="ri-equalizer-line"></i>
     {{__("Props list")}}
 @endsection
 @section('title')
@@ -13,16 +13,9 @@
 @section('bulk')
     {{--    <option value="-"> - </option> --}}
 @endsection
-@section('list-foot')
-    <a
-        href="{{getRoute('sort')}}"
-        class="action-btn circle-btn"
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip"
-        data-bs-title="{{__("Sort")}}"
-        style="inset-inline-end: 1.2rem;inset-inline-start: auto;"
-    >
+@section('list-actions')
+    <a href="{{getRoute('sort')}}" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 shadow-sm">
         <i class="ri-sort-asc"></i>
+        <span>{{__("Sort")}}</span>
     </a>
 @endsection

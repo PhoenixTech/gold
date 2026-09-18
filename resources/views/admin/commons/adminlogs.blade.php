@@ -1,4 +1,11 @@
 @extends('admin.templates.panel-list-template-raw')
+@section('list-title')
+    <i class="ri-history-line"></i>
+    {{__("Admin logs")}}
+@endsection
+@section('title')
+    {{__("Admin logs")}} -
+@endsection
 
 @section('side-raw')
     <form method="POST" action="{{ route('admin.adminlog.cleanup') }}" class="d-inline" onsubmit="return confirm('{{ __('Are you sure you want to delete logs older than 1 month?') }}');">
