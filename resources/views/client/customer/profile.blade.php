@@ -28,7 +28,7 @@
     $addressesCount = $customer->addresses()->count();
     $ticketsCount = $customer->tickets()->count();
 
-    $allInvoices = $customer->invoices()->with(['payments', 'paymentReceipts'])->orderByDesc('id')->get();
+    $allInvoices = $customer->invoices()->with(['payments', 'paymentReceipts', 'orders.product', 'orders.quantity'])->orderByDesc('id')->get();
     $activeInvoices = $allInvoices->filter(function ($inv) {
         return in_array($inv->status, [
             \App\Models\Invoice::PENDING,
@@ -568,31 +568,7 @@
                     @if($activeInvoices->count() > 0)
                         <div class="d-flex flex-column gap-3 mb-4">
                             @foreach($activeInvoices as $inv)
-                                <div class="card avisa-card-ref p-3">
-                                    <div class="d-flex align-items-center justify-content-between mb-2">
-                                        <span class="fw-bold text-dark fs-14">#{{ $inv->id }}</span>
-                                        <span class="inv-badge inv-{{ $inv->displayStatusKey() }}">{{ $inv->statusLabel() }}</span>
-                                    </div>
-                                    <div class="d-flex align-items-center justify-content-between text-muted fs-13 mb-3">
-                                        <span>{{ $inv->created_at->jdate('Y/m/d H:i') }}</span>
-                                        <b class="text-dark fs-14 font-fanum">{{ number_format($inv->total_price) }} {{ config('app.currency.symbol') }}</b>
-                                    </div>
-                                    <div class="d-flex align-items-center justify-content-end gap-2 border-top pt-2">
-                                        @if($inv->needsReceiptUpload())
-                                            <button type="button"
-                                                    class="btn btn-sm btn-warning text-dark fw-bold rounded-pill px-3"
-                                                    data-receipt-modal-open
-                                                    data-upload-url="{{ route('client.invoice.receipts.store', $inv) }}"
-                                                    data-invoice-label="#{{ $inv->id }} — {{ number_format($inv->total_price) }} {{ config('app.currency.symbol') }}">
-                                                <i class="ri-upload-2-line me-1"></i>
-                                                {{ __('Upload receipt') }}
-                                            </button>
-                                        @endif
-                                        <a href="{{ route('client.invoice', $inv->hash) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                                            {{ __('View') }}
-                                        </a>
-                                    </div>
-                                </div>
+                                @include('client.customer.partials.invoice-card', ['inv' => $inv, 'isActiveOrder' => true])
                             @endforeach
                         </div>
                     @else
@@ -625,36 +601,7 @@
                     @if($allInvoices->count() > 0)
                         <div class="d-flex flex-column gap-3 mb-4">
                             @foreach($allInvoices as $inv)
-                                <div class="card avisa-card-ref p-3">
-                                    <div class="d-flex align-items-center justify-content-between mb-2">
-                                        <span class="fw-bold text-dark fs-14">#{{ $inv->id }}</span>
-                                        <span class="inv-badge inv-{{ $inv->displayStatusKey() }}">{{ $inv->statusLabel() }}</span>
-                                    </div>
-                                    <div class="d-flex align-items-center justify-content-between text-muted fs-13 mb-3">
-                                        <span>{{ $inv->created_at->jdate('Y/m/d') }}</span>
-                                        <b class="text-dark fs-14">{{ number_format($inv->total_price) }} {{ config('app.currency.symbol') }}</b>
-                                    </div>
-                                    <div class="d-flex align-items-center justify-content-end gap-2 border-top pt-2">
-                                        @if($inv->needsReceiptUpload())
-                                            <button type="button"
-                                                    class="btn btn-sm btn-warning text-dark fw-bold rounded-pill px-3"
-                                                    data-receipt-modal-open
-                                                    data-upload-url="{{ route('client.invoice.receipts.store', $inv) }}"
-                                                    data-invoice-label="#{{ $inv->id }} — {{ number_format($inv->total_price) }} {{ config('app.currency.symbol') }}">
-                                                <i class="ri-upload-2-line me-1"></i>
-                                                {{ __('Upload receipt') }}
-                                            </button>
-                                        @elseif(in_array($inv->status, ['PENDING', 'CANCELED', 'FAILED']) && $inv->created_at->timestamp > (time() - 3600))
-                                            <a href="{{ route('client.pay', $inv->hash) }}" class="btn btn-sm btn-primary rounded-pill px-3">
-                                                <i class="ri-secure-payment-line me-1"></i>
-                                                {{ __('Pay now') }}
-                                            </a>
-                                        @endif
-                                        <a href="{{ route('client.invoice', $inv->hash) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                                            {{ __('View') }}
-                                        </a>
-                                    </div>
-                                </div>
+                                @include('client.customer.partials.invoice-card', ['inv' => $inv, 'isActiveOrder' => false])
                             @endforeach
                         </div>
                     @else
@@ -919,41 +866,8 @@
         </div>
     </div>
 
-    {{-- Bottom Navigation Bar (Matching wish1.png) --}}
-    <nav class="avisa-bottom-navbar" id="avisa-bottom-navbar" aria-label="{{ __('Bottom Navigation') }}">
-        <div class="avisa-bottom-nav-inner">
-            <a href="{{ route('client.welcome') }}" class="avisa-bottom-nav-item">
-                <i class="ri-home-line"></i>
-                <span>{{ __('Home') }}</span>
-            </a>
-            <a href="{{ route('client.products') }}" class="avisa-bottom-nav-item">
-                <i class="ri-grid-line"></i>
-                <span>{{ __('Products') }}</span>
-            </a>
-            <a href="#invoices" class="avisa-bottom-nav-item avisa-tab-trigger" data-tab-target="#invoices">
-                <div class="position-relative">
-                    <i class="ri-file-list-line"></i>
-                    @if($activeOrdersCount > 0)
-                        <span class="avisa-nav-badge">{{ $activeOrdersCount }}</span>
-                    @endif
-                </div>
-                <span>{{ __('Orders') }}</span>
-            </a>
-            <a href="#likes" class="avisa-bottom-nav-item avisa-tab-trigger" data-tab-target="#likes">
-                <div class="position-relative">
-                    <i class="ri-heart-line"></i>
-                    @if($favoritesCount > 0)
-                        <span class="avisa-nav-badge">{{ $favoritesCount }}</span>
-                    @endif
-                </div>
-                <span>{{ __('Favorites') }}</span>
-            </a>
-            <a href="#summary" class="avisa-bottom-nav-item avisa-tab-trigger active" data-tab-target="#summary">
-                <i class="ri-user-line"></i>
-                <span>{{ __('Account') }}</span>
-            </a>
-        </div>
-    </nav>
+    {{-- Bottom Navigation Bar --}}
+    @include('client.customer.partials.bottom-nav')
 </section>
 
 @endsection

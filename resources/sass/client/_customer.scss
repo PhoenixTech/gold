@@ -2937,3 +2937,24 @@
         }
     }
 }
+
+/* Customer Order Card Enhancements */
+#AvisaCustomer {
+    .avisa-order-card {
+        transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+
+        &:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+    }
+
+    .avisa-order-thumb {
+        flex-shrink: 0;
+        transition: transform 0.15s ease;
+
+        &:hover {
+            transform: scale(1.05);
+        }
+    }
+}
