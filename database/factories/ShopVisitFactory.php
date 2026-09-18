@@ -3,11 +3,12 @@
 namespace Database\Factories;
 
 use App\Enums\ShopVisitStatus;
+use App\Models\ShopVisit;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\ShopVisit>
+ * @extends Factory<ShopVisit>
  */
 class ShopVisitFactory extends Factory
 {

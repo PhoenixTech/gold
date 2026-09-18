@@ -13,6 +13,7 @@ use App\Models\Quantity;
 use App\Models\Setting;
 use App\Models\Ticket;
 use App\Models\User;
+use App\Services\AdminDashboardStats;
 use Database\Seeders\GfxSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\App;
@@ -117,7 +118,7 @@ class AdminDashboardTest extends TestCase
         $response->assertSee(number_format(7_000_000), false);
         $response->assertSee(number_format(3), false);
         $response->assertSee(number_format(2), false);
-        $response->assertSee(\App\Services\AdminDashboardStats::formatWeight(3.0), false);
+        $response->assertSee(AdminDashboardStats::formatWeight(3.0), false);
         $response->assertSee(number_format(9_200_000), false);
         $response->assertSee(number_format(105), false);
         $response->assertDontSee(number_format(8_111_111), false);

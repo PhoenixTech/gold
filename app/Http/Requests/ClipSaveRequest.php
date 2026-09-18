@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ClipSaveRequest extends FormRequest
@@ -17,13 +18,13 @@ class ClipSaveRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
-            'title' => ['required', 'string', 'max:255','min:5'],
-            'body' => ['nullable', 'string',],
+            'title' => ['required', 'string', 'max:255', 'min:5'],
+            'body' => ['nullable', 'string'],
             'active' => ['nullable', 'boolean'],
             'clip' => ['nullable', 'mimes:mp4', 'max:'.getMaxUploadSize()],
             'cover' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],

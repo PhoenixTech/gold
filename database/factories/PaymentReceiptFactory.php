@@ -9,7 +9,7 @@ use App\Models\PaymentReceipt;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\PaymentReceipt>
+ * @extends Factory<PaymentReceipt>
  */
 class PaymentReceiptFactory extends Factory
 {

@@ -13,7 +13,8 @@ class State extends Model
 
     public $translatable = ['name', 'country'];
 
-    public function cities(){
+    public function cities()
+    {
         return $this->hasMany(City::class);
     }
 }

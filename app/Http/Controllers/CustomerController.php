@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\TDate;
 use App\Models\Address;
 use App\Models\Customer;
 use App\Models\Invoice;
@@ -122,7 +123,7 @@ class CustomerController extends Controller
             $jy = (int) $request->input('dob_year');
             $jm = (int) $request->input('dob_month');
             $jd = (int) $request->input('dob_day');
-            $geDate = \App\Helpers\TDate::GetInstance()->Parsi2Ge($jy, $jm, $jd);
+            $geDate = TDate::GetInstance()->Parsi2Ge($jy, $jm, $jd);
             $customer->dob = sprintf('%04d-%02d-%02d', $geDate[0], $geDate[1], $geDate[2]);
         } elseif ($request->filled('dob')) {
             $dobVal = $request->input('dob');

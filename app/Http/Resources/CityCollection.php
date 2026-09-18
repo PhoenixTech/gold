@@ -2,10 +2,10 @@
 
 namespace App\Http\Resources;
 
+use App\Models\City;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Http\Resources\Json\ResourceCollection;
-use App\Models\City;
+
 class CityCollection extends JsonResource
 {
     /**

@@ -33,15 +33,15 @@ class ImageController extends Controller
     {
 
         $request->validate([
-            'image' => ['required']
+            'image' => ['required'],
         ]);
 
         foreach ($request->file('image') as $k => $item) {
 
-            DB::transaction(function () use ($gallery, $item, $request): void {
+            DB::transaction(function () use ($gallery, $item): void {
 
                 $newimage = $gallery->images()->create([
-                    'title' => $gallery->title . '-' . ($gallery->images()->count() + 1),
+                    'title' => $gallery->title.'-'.($gallery->images()->count() + 1),
                     'user_id' => auth()->id(),
                 ]);
                 $newimage->addMedia($item)
@@ -50,7 +50,7 @@ class ImageController extends Controller
         }
         logAdmin(__METHOD__, Gallery::class, $gallery->id);
 
-        return redirect()->back()->with(['message' => __(':COUNT Images uploaded successfully', ['COUNT' => count($request->file('image'))] )]);
+        return redirect()->back()->with(['message' => __(':COUNT Images uploaded successfully', ['COUNT' => count($request->file('image'))])]);
     }
 
     /**
@@ -85,6 +85,7 @@ class ImageController extends Controller
         //
         logAdmin(__METHOD__, Image::class, $image->id);
         $image->delete();
+
         return redirect()->back()->with(['message' => __('Image deleted successfully')]);
     }
 }

@@ -2,47 +2,38 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
 use App\Http\Controllers\XController;
 use App\Http\Requests\CategorySaveRequest;
-use App\Models\Access;
 use App\Models\Category;
 use App\Models\Item;
 use App\Models\Setting;
 use Illuminate\Http\Request;
-use App\Helper;
 use Illuminate\Support\Facades\DB;
 use Spatie\Image\Enums\AlignPosition;
 use Spatie\Image\Enums\Fit;
 use Spatie\Image\Enums\Unit;
 use Spatie\Image\Image;
-use function App\Helpers\hasCreateRoute;
 
 class CategoryController extends XController
 {
-
     // protected  $_MODEL_ = Category::class;
     // protected  $SAVE_REQUEST = CategorySaveRequest::class;
 
     protected $cols = ['name', 'code', 'subtitle', 'parent_id'];
+
     protected $extra_cols = ['id', 'slug', 'image'];
 
     protected $searchable = ['name', 'subtitle', 'description'];
 
-
     protected $listView = 'admin.categories.category-list';
+
     protected $formView = 'admin.categories.category-form';
 
-
     protected $buttons = [
-        'edit' =>
-            ['title' => "Edit", 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
-        'show' =>
-            ['title' => "Detail", 'class' => 'btn-outline-secondary', 'icon' => 'ri-eye-line'],
-        'destroy' =>
-            ['title' => "Remove", 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-delete-bin-line'],
+        'edit' => ['title' => 'Edit', 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
+        'show' => ['title' => 'Detail', 'class' => 'btn-outline-secondary', 'icon' => 'ri-eye-line'],
+        'destroy' => ['title' => 'Remove', 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-delete-bin-line'],
     ];
-
 
     public function __construct()
     {
@@ -50,8 +41,8 @@ class CategoryController extends XController
     }
 
     /**
-     * @param $category Category
-     * @param $request  CategorySaveRequest
+     * @param  $category  Category
+     * @param  $request  CategorySaveRequest
      * @return Category
      */
     public function save($category, $request)
@@ -93,7 +84,7 @@ class CategoryController extends XController
                     config('app.media.watermark_size'), Unit::Percent, Fit::Contain,
                     config('app.media.watermark_opacity'));
             }
-            $i->save(storage_path() . '/app/public/categories/optimized-' . $category->$key);
+            $i->save(storage_path().'/app/public/categories/optimized-'.$category->$key);
 
         }
         if ($request->has('bg')) {
@@ -114,17 +105,17 @@ class CategoryController extends XController
                     config('app.media.watermark_size'), Unit::Percent, Fit::Contain,
                     config('app.media.watermark_opacity'));
             }
-            $i->save(storage_path() . '/app/public/categories/optimized-' . $category->$key);
+            $i->save(storage_path().'/app/public/categories/optimized-'.$category->$key);
         }
 
         if ($request->has('svg')) {
             $category->svg = $this->storeFile('svg', $category, 'categories');
         }
         $category->save();
+
         return $category;
 
     }
-
 
     /**
      * Show the form for creating a new resource.
@@ -133,6 +124,7 @@ class CategoryController extends XController
     {
         //
         $cats = Category::all();
+
         return view($this->formView, compact('cats'));
     }
 
@@ -143,13 +135,14 @@ class CategoryController extends XController
     {
         //
         $cats = Category::all();
+
         return view($this->formView, compact('item', 'cats'));
     }
 
     public function bulk(Request $request)
     {
 
-//        dd($request->all());
+        //        dd($request->all());
         $data = explode('.', $request->input('action'));
         $action = $data[0];
         $ids = $request->input('id');
@@ -164,9 +157,9 @@ class CategoryController extends XController
                     $this->_MODEL_::withTrashed()->find($id)->restore();
                 }
                 break;
-            /*restore**/
+                /* restore* */
             default:
-                $msg = __('Unknown bulk action : :ACTION', ["ACTION" => $action]);
+                $msg = __('Unknown bulk action : :ACTION', ['ACTION' => $action]);
         }
 
         return $this->do_bulk($msg, $action, $ids);
@@ -176,41 +169,42 @@ class CategoryController extends XController
     {
         if (Setting::where('type', 'CATEGORY')->where('raw', $item->id)->count() > 0) {
             $msg = __("You can't delete this item while using it in setting.");
+
             return redirect()->back()->withErrors($msg);
         }
         if (Item::where('menuable_type', Category::class)->where('menuable_type', $item->id)->count() > 0) {
             $msg = __("You can't delete this item while using it in menu.");
+
             return redirect()->back()->withErrors($msg);
         }
+
         return parent::delete($item);
     }
-
 
     public function update(Request $request, Category $item)
     {
         return $this->bringUp($request, $item);
     }
 
-
     /**restore*/
     public function restore($item)
     {
         return parent::restoreing(Category::withTrashed()->where('id', $item)->first());
     }
-    /*restore**/
-
+    /* restore* */
 
     /**sort*/
     public function sort()
     {
         $items = Category::orderBy('sort')
             ->get(['id', 'name', 'parent_id']);
+
         return view('admin.commons.sort', compact('items'));
     }
 
     public function sortSave(Request $request)
     {
-//        return $request->items;
+        //        return $request->items;
         foreach ($request->items as $key => $item) {
             $i = Category::whereId($item['id'])->first();
             $i->sort = $key;
@@ -218,13 +212,14 @@ class CategoryController extends XController
             $i->save();
         }
         logAdmin(__METHOD__, __CLASS__, null);
-        return ['OK' => true, 'message' => __("As you wished sort saved")];
+
+        return ['OK' => true, 'message' => __('As you wished sort saved')];
     }
 
-    /*sort**/
+    /* sort* */
 
-
-    public function omg(){
+    public function omg()
+    {
         return view('admin.categories.omg');
     }
 
@@ -248,7 +243,7 @@ class CategoryController extends XController
         // Enable foreign key checks
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
-        return __("It saved, now just God can help you :)");
+        return __('It saved, now just God can help you :)');
     }
 
     private function parseTableData($tableData)
@@ -256,7 +251,7 @@ class CategoryController extends XController
         $list = [];
 
         // Parse the HTML table data
-        $doc = new \DOMDocument();
+        $doc = new \DOMDocument;
         @$doc->loadHTML($tableData); // Suppress warnings with @
 
         // Find the top-level ul element
@@ -287,7 +282,7 @@ class CategoryController extends XController
             }
 
             // Only add the category if it is not already in the list
-            if (!empty($categoryName)) {
+            if (! empty($categoryName)) {
                 $categories[] = [
                     'name' => $categoryName,
                     'subcategories' => $subcategories,

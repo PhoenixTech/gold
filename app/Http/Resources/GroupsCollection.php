@@ -5,7 +5,6 @@ namespace App\Http\Resources;
 use App\Models\Group;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Http\Resources\Json\ResourceCollection;
 
 class GroupsCollection extends JsonResource
 {
@@ -19,7 +18,7 @@ class GroupsCollection extends JsonResource
         /**
          * @var $this Group
          */
-        return[
+        return [
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\DeliveryStatus;
+use Database\Factories\DeliveryFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Delivery extends Model
 {
-    /** @use HasFactory<\Database\Factories\DeliveryFactory> */
+    /** @use HasFactory<DeliveryFactory> */
     use HasFactory;
 
     public const MAX_PIN_ATTEMPTS = 5;

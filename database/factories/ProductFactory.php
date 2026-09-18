@@ -2,10 +2,13 @@
 
 namespace Database\Factories;
 
+use App\Models\Category;
+use App\Models\Product;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Product>
+ * @extends Factory<Product>
  */
 class ProductFactory extends Factory
 {
@@ -22,8 +25,8 @@ class ProductFactory extends Factory
             'name' => $title,
             'slug' => sluger($title),
             'excerpt' => $this->faker->realText(150),
-            'user_id' => \App\Models\User::factory(),
-            'category_id' => \App\Models\Category::factory(),
+            'user_id' => User::factory(),
+            'category_id' => Category::factory(),
             'description' => $this->faker->realText(600),
             'stock_quantity' => 0,
             'stock_status' => 'IN_STOCK',

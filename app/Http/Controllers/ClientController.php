@@ -15,6 +15,7 @@ use App\Models\Customer;
 use App\Models\Gallery;
 use App\Models\Group;
 use App\Models\Invoice;
+use App\Models\Menu;
 use App\Models\Post;
 use App\Models\Product;
 use App\Models\Quantity;
@@ -96,7 +97,7 @@ class ClientController extends Controller
 
         $zarMenuItems = collect(getMenuBySettingItems('index_ZarMenu_menu'));
         if ($zarMenuItems->isEmpty()) {
-            $menu = \App\Models\Menu::first();
+            $menu = Menu::first();
             $zarMenuItems = ($menu && $menu->items) ? collect($menu->items) : collect();
         }
 
@@ -177,7 +178,7 @@ class ClientController extends Controller
 
         $zarMenuItems = collect(getMenuBySettingItems('index_ZarMenu_menu'));
         if ($zarMenuItems->isEmpty()) {
-            $menu = \App\Models\Menu::first();
+            $menu = Menu::first();
             $zarMenuItems = ($menu && $menu->items) ? collect($menu->items) : collect();
         }
 
@@ -281,12 +282,12 @@ class ClientController extends Controller
         if ($request->filled('q')) {
             $keyword = trim($request->input('q'));
             $query->where(function ($q) use ($keyword) {
-                $q->where('name->' . config('app.locale'), 'like', "%{$keyword}%")
-                  ->orWhere('name', 'like', "%{$keyword}%")
-                  ->orWhere('excerpt->' . config('app.locale'), 'like', "%{$keyword}%")
-                  ->orWhere('excerpt', 'like', "%{$keyword}%")
-                  ->orWhere('description->' . config('app.locale'), 'like', "%{$keyword}%")
-                  ->orWhere('description', 'like', "%{$keyword}%");
+                $q->where('name->'.config('app.locale'), 'like', "%{$keyword}%")
+                    ->orWhere('name', 'like', "%{$keyword}%")
+                    ->orWhere('excerpt->'.config('app.locale'), 'like', "%{$keyword}%")
+                    ->orWhere('excerpt', 'like', "%{$keyword}%")
+                    ->orWhere('description->'.config('app.locale'), 'like', "%{$keyword}%")
+                    ->orWhere('description', 'like', "%{$keyword}%");
             });
         }
 
@@ -299,9 +300,9 @@ class ClientController extends Controller
                 $catIds = array_merge([$activeCategory->id], $activeCategory->children()->pluck('id')->toArray());
                 $query->where(function ($q) use ($catIds) {
                     $q->whereIn('category_id', $catIds)
-                      ->orWhereHas('categories', function ($catQ) use ($catIds) {
-                          $catQ->whereIn('categories.id', $catIds);
-                      });
+                        ->orWhereHas('categories', function ($catQ) use ($catIds) {
+                            $catQ->whereIn('categories.id', $catIds);
+                        });
                 });
             }
         }
@@ -310,10 +311,10 @@ class ClientController extends Controller
         if ($request->boolean('in_stock') || $request->input('only') === 'stock') {
             $query->where(function ($q) {
                 $q->where('stock_status', 'IN_STOCK')
-                  ->orWhere('stock_quantity', '>', 0)
-                  ->orWhereHas('quantities', function ($qPiece) {
-                      $qPiece->where('count', '>', 0);
-                  });
+                    ->orWhere('stock_quantity', '>', 0)
+                    ->orWhereHas('quantities', function ($qPiece) {
+                        $qPiece->where('count', '>', 0);
+                    });
             });
         }
 
@@ -571,12 +572,12 @@ class ClientController extends Controller
         if ($request->filled('q')) {
             $keyword = trim($request->input('q'));
             $query->where(function ($q) use ($keyword) {
-                $q->where('name->' . config('app.locale'), 'like', "%{$keyword}%")
-                  ->orWhere('name', 'like', "%{$keyword}%")
-                  ->orWhere('excerpt->' . config('app.locale'), 'like', "%{$keyword}%")
-                  ->orWhere('excerpt', 'like', "%{$keyword}%")
-                  ->orWhere('description->' . config('app.locale'), 'like', "%{$keyword}%")
-                  ->orWhere('description', 'like', "%{$keyword}%");
+                $q->where('name->'.config('app.locale'), 'like', "%{$keyword}%")
+                    ->orWhere('name', 'like', "%{$keyword}%")
+                    ->orWhere('excerpt->'.config('app.locale'), 'like', "%{$keyword}%")
+                    ->orWhere('excerpt', 'like', "%{$keyword}%")
+                    ->orWhere('description->'.config('app.locale'), 'like', "%{$keyword}%")
+                    ->orWhere('description', 'like', "%{$keyword}%");
             });
         }
 
@@ -584,10 +585,10 @@ class ClientController extends Controller
         if ($request->boolean('in_stock') || $request->input('only') === 'stock' || $request->input('only') == '1') {
             $query->where(function ($q) {
                 $q->where('stock_status', 'IN_STOCK')
-                  ->orWhere('stock_quantity', '>', 0)
-                  ->orWhereHas('quantities', function ($qPiece) {
-                      $qPiece->where('count', '>', 0);
-                  });
+                    ->orWhere('stock_quantity', '>', 0)
+                    ->orWhereHas('quantities', function ($qPiece) {
+                        $qPiece->where('count', '>', 0);
+                    });
             });
         }
 
@@ -712,13 +713,14 @@ class ClientController extends Controller
     public function attachDl($slug)
     {
         $attachment = Attachment::where('slug', $slug)->orWhere('id', $slug)->firstOrFail();
-        if (!$attachment->file) {
+        if (! $attachment->file) {
             abort(404);
         }
 
-        $file = storage_path('app/public/attachments/' . $attachment->file);
+        $file = storage_path('app/public/attachments/'.$attachment->file);
         if (file_exists($file)) {
             $attachment->increment('downloads');
+
             return response()->download($file);
         }
 
@@ -975,9 +977,9 @@ class ClientController extends Controller
     public function sitemap()
     {
 
-        $latestGroup = \App\Models\Group::orderByDesc('updated_at')->first();
+        $latestGroup = Group::orderByDesc('updated_at')->first();
         // Get the most recent Category
-        $latestCategory = \App\Models\Category::orderByDesc('updated_at')->first();
+        $latestCategory = Category::orderByDesc('updated_at')->first();
 
         // Initialize a variable to hold the latest update time
         $latestUpdate = null;

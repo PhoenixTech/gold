@@ -14,7 +14,8 @@ use Spatie\Translatable\HasTranslations;
 
 class Image extends Model implements HasMedia
 {
-    use HasFactory,InteractsWithMedia, HasTranslations;
+    use HasFactory,HasTranslations, InteractsWithMedia;
+
     public $translatable = ['title'];
 
     protected $guarded = [''];
@@ -24,7 +25,7 @@ class Image extends Model implements HasMedia
         return $this->belongsTo(Gallery::class, 'gallery_id');
     }
 
-    public function registerMediaConversions(Media $media = null): void
+    public function registerMediaConversions(?Media $media = null): void
     {
 
         $t = imageSizeConvertValidate('gallery_thumb');
@@ -35,19 +36,19 @@ class Image extends Model implements HasMedia
             ->width($t[0])
             ->height($t[1])
             ->nonQueued()
-            ->crop( $t[0], $t[1])
+            ->crop($t[0], $t[1])
             ->optimize()
             ->format(getSetting('optimize'));
 
-        if (getSetting('watermark')){
+        if (getSetting('watermark')) {
             $mc->watermark(public_path('upload/images/logo.png'),
-                    AlignPosition::BottomLeft, 5, 5, Unit::Percent,
-                    config('app.media.watermark_size'), Unit::Percent,
-                    config('app.media.watermark_size'), Unit::Percent, Fit::Contain,
-                    config('app.media.watermark_opacity'));
+                AlignPosition::BottomLeft, 5, 5, Unit::Percent,
+                config('app.media.watermark_size'), Unit::Percent,
+                config('app.media.watermark_size'), Unit::Percent, Fit::Contain,
+                config('app.media.watermark_opacity'));
         }
-//                    ->watermark(public_path('images/logo.png'))->watermarkOpacity(50);
-//                    ->withResponsiveImages();
+        //                    ->watermark(public_path('images/logo.png'))->watermarkOpacity(50);
+        //                    ->withResponsiveImages();
     }
 
     public function imgurl()
@@ -58,6 +59,7 @@ class Image extends Model implements HasMedia
             return asset('assets/upload/logo.svg');
         }
     }
+
     public function imgOriginalUrl()
     {
         if ($this->getMedia()->count() > 0) {

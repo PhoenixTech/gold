@@ -2,39 +2,32 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
 use App\Http\Controllers\XController;
 use App\Http\Requests\QuestionSaveRequest;
-use App\Models\Access;
 use App\Models\Question;
 use Illuminate\Http\Request;
-use App\Helper;
-use function App\Helpers\hasCreateRoute;
 
 class QuestionController extends XController
 {
-
     // protected  $_MODEL_ = Question::class;
     // protected  $SAVE_REQUEST = QuestionSaveRequest::class;
 
-    protected $cols = ['body','product_id','status'];
+    protected $cols = ['body', 'product_id', 'status'];
+
     protected $extra_cols = ['id'];
 
-    protected $searchable = ['body','answer'];
+    protected $searchable = ['body', 'answer'];
 
     protected $listView = 'admin.questions.question-list';
+
     protected $formView = 'admin.questions.question-form';
 
-
     protected $buttons = [
-        'edit' =>
-            ['title' => "Edit", 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
-//        'show' =>
-//            ['title' => "Detail", 'class' => 'btn-outline-light', 'icon' => 'ri-eye-line'],
-        'destroy' =>
-            ['title' => "Remove", 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-close-line'],
+        'edit' => ['title' => 'Edit', 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
+        //        'show' =>
+        //            ['title' => "Detail", 'class' => 'btn-outline-light', 'icon' => 'ri-eye-line'],
+        'destroy' => ['title' => 'Remove', 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-close-line'],
     ];
-
 
     public function __construct()
     {
@@ -42,8 +35,8 @@ class QuestionController extends XController
     }
 
     /**
-     * @param $question Question
-     * @param $request  QuestionSaveRequest
+     * @param  $question  Question
+     * @param  $request  QuestionSaveRequest
      * @return Question
      */
     public function save($question, $request)
@@ -53,10 +46,10 @@ class QuestionController extends XController
         $question->answer = $request->input('answer');
         $question->status = $request->input('status');
         $question->save();
+
         return $question;
 
     }
-
 
     /**
      * Show the form for creating a new resource.
@@ -79,7 +72,7 @@ class QuestionController extends XController
     public function bulk(Request $request)
     {
 
-//        dd($request->all());
+        //        dd($request->all());
         $data = explode('.', $request->input('action'));
         $action = $data[0];
         $ids = $request->input('id');
@@ -97,7 +90,7 @@ class QuestionController extends XController
                 $msg = __(':COUNT items drafted successfully', ['COUNT' => count($ids)]);
                 break;
             default:
-                $msg = __('Unknown bulk action : :ACTION', ["ACTION" => $action]);
+                $msg = __('Unknown bulk action : :ACTION', ['ACTION' => $action]);
         }
 
         return $this->do_bulk($msg, $action, $ids);
@@ -108,11 +101,8 @@ class QuestionController extends XController
         return parent::delete($item);
     }
 
-
     public function update(Request $request, Question $item)
     {
         return $this->bringUp($request, $item);
     }
-
-
 }

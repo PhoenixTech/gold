@@ -8,7 +8,6 @@ use App\Models\Group;
 use App\Models\Post;
 use App\Models\Product;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
 class ClientWebPagesTest extends TestCase
@@ -94,6 +93,7 @@ class ClientWebPagesTest extends TestCase
         $response = $this->get(Group::first()->webUrl());
         $response->assertStatus(200);
     }
+
     public function test_web_client_category(): void
     {
 
@@ -150,4 +150,3 @@ class ClientWebPagesTest extends TestCase
             ->assertDontSee('WTFFooter');
     }
 }
-

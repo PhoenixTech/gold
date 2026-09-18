@@ -5,7 +5,6 @@ namespace App\Http\Resources;
 use App\Models\Transport;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Http\Resources\Json\ResourceCollection;
 
 class TransportCollection extends JsonResource
 {

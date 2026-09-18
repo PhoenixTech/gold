@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('xlangs', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('tag',7)->unique();
+            $table->string('tag', 7)->unique();
             $table->boolean('rtl')->default(false);
             $table->boolean('is_default')->default(false);
             $table->string('img')->nullable()->default(null);

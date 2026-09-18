@@ -2,10 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Models\Clip;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Clip>
+ * @extends Factory<Clip>
  */
 class ClipFactory extends Factory
 {

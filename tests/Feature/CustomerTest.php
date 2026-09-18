@@ -3,8 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\Customer;
+use Database\Seeders\GfxSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
 class CustomerTest extends TestCase
@@ -13,11 +13,12 @@ class CustomerTest extends TestCase
 
     public function check()
     {
-        $this->seed(\Database\Seeders\GfxSeeder::class);
+        $this->seed(GfxSeeder::class);
         if (Customer::count() === 0) {
             Customer::factory(1)->create();
         }
     }
+
     /**
      * A basic feature test example.
      */
@@ -25,7 +26,7 @@ class CustomerTest extends TestCase
     {
 
         $this->check();
-        $response = $this->actingAs(Customer::inRandomOrder()->first(),'customer')->get(route('client.profile'));
+        $response = $this->actingAs(Customer::inRandomOrder()->first(), 'customer')->get(route('client.profile'));
 
         $response->assertStatus(200);
     }
@@ -65,4 +66,3 @@ class CustomerTest extends TestCase
         $this->assertEquals('IR1200000000000000000000', $customer->bank_sheba);
     }
 }
-

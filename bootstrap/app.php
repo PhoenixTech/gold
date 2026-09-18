@@ -1,5 +1,10 @@
 <?php
 
+use App\Http\Middleware\EnsureCourier;
+use App\Http\Middleware\EnsureVisitor;
+use App\Http\Middleware\IgnoreFirstPage;
+use App\Http\Middleware\RestrictCourierToPanel;
+use App\Http\Middleware\RestrictVisitorToPanel;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -14,7 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         //
         $middleware->use([
-            \App\Http\Middleware\IgnoreFirstPage::class,
+            IgnoreFirstPage::class,
         ]);
 
         $middleware->redirectGuestsTo(function ($request) {
@@ -26,13 +31,13 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $middleware->alias([
-            'visitor' => \App\Http\Middleware\EnsureVisitor::class,
-            'courier' => \App\Http\Middleware\EnsureCourier::class,
+            'visitor' => EnsureVisitor::class,
+            'courier' => EnsureCourier::class,
         ]);
 
         $middleware->web(append: [
-            \App\Http\Middleware\RestrictVisitorToPanel::class,
-            \App\Http\Middleware\RestrictCourierToPanel::class,
+            RestrictVisitorToPanel::class,
+            RestrictCourierToPanel::class,
             // MinifyHtml removed: was encoding Persian/Arabic digits to HTML entities and breaking inline JS regexes
         ]);
 

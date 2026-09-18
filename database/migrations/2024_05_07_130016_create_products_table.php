@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Product;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -27,10 +28,10 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id');
             $table->boolean('on_sale')->nullable()->default(true)->index();
             $table->unsignedBigInteger('stock_quantity')->nullable()->default(0);
-            $table->enum('stock_status',\App\Models\Product::$stock_status)->nullable()->default(\App\Models\Product::$stock_status[0])->index();
+            $table->enum('stock_status', Product::$stock_status)->nullable()->default(Product::$stock_status[0])->index();
             $table->unsignedBigInteger('rating_count')->nullable()->default(0);
-            $table->decimal('average_rating',3,2)->unsigned()->nullable()->default(0.00);
-//            $table->unsignedBigInteger('total_sales')->nullable()->default(0);
+            $table->decimal('average_rating', 3, 2)->unsigned()->nullable()->default(0.00);
+            //            $table->unsignedBigInteger('total_sales')->nullable()->default(0);
             $table->unsignedTinyInteger('status')->default(0);
             $table->unsignedBigInteger('view')->default(0);
             $table->unsignedBigInteger('sell')->default(0);

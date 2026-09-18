@@ -2,10 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Models\Prop;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Prop>
+ * @extends Factory<Prop>
  */
 class PropFactory extends Factory
 {

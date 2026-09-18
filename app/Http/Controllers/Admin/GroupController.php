@@ -2,45 +2,37 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
 use App\Http\Controllers\XController;
 use App\Http\Requests\GroupSaveRequest;
-use App\Models\Access;
 use App\Models\Group;
 use App\Models\Item;
 use App\Models\Setting;
 use Illuminate\Http\Request;
-use App\Helper;
 use Spatie\Image\Enums\AlignPosition;
 use Spatie\Image\Enums\Fit;
 use Spatie\Image\Enums\Unit;
 use Spatie\Image\Image;
-use function App\Helpers\hasCreateRoute;
 
 class GroupController extends XController
 {
-
     // protected  $_MODEL_ = Group::class;
     // protected  $SAVE_REQUEST = GroupSaveRequest::class;
 
-    protected $cols = ['name','subtitle','parent_id'];
-    protected $extra_cols = ['id','slug','image'];
+    protected $cols = ['name', 'subtitle', 'parent_id'];
 
-    protected $searchable = ['name','subtitle','description'];
+    protected $extra_cols = ['id', 'slug', 'image'];
+
+    protected $searchable = ['name', 'subtitle', 'description'];
 
     protected $listView = 'admin.groups.group-list';
+
     protected $formView = 'admin.groups.group-form';
 
-
     protected $buttons = [
-        'edit' =>
-            ['title' => "Edit", 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
-        'show' =>
-            ['title' => "Detail", 'class' => 'btn-outline-secondary', 'icon' => 'ri-eye-line'],
-        'destroy' =>
-            ['title' => "Remove", 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-delete-bin-line'],
+        'edit' => ['title' => 'Edit', 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
+        'show' => ['title' => 'Detail', 'class' => 'btn-outline-secondary', 'icon' => 'ri-eye-line'],
+        'destroy' => ['title' => 'Remove', 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-delete-bin-line'],
     ];
-
 
     public function __construct()
     {
@@ -48,8 +40,8 @@ class GroupController extends XController
     }
 
     /**
-     * @param $group Group
-     * @param $request  GroupSaveRequest
+     * @param  $group  Group
+     * @param  $request  GroupSaveRequest
      * @return Group
      */
     public function save($group, $request)
@@ -60,21 +52,21 @@ class GroupController extends XController
         $group->description = $request->input('description');
         $group->hide = $request->has('hide');
 
-        if ($request->input('parent_id') == ''){
+        if ($request->input('parent_id') == '') {
             $group->parent_id = null;
-        }else{
-            $group->parent_id = $request->input('parent_id',null);
+        } else {
+            $group->parent_id = $request->input('parent_id', null);
         }
 
-        if ($request->has('canonical') && trim($request->input('canonical')) != ''){
+        if ($request->has('canonical') && trim($request->input('canonical')) != '') {
             $group->canonical = $request->input('canonical');
         }
         $group->slug = $this->getSlug($group);
-        if ($request->has('image')){
-            $group->image = $this->storeFile('image',$group, 'groups');
+        if ($request->has('image')) {
+            $group->image = $this->storeFile('image', $group, 'groups');
             $key = 'image';
             $format = $request->file($key)->guessExtension();
-            if (strtolower($format) == 'png'){
+            if (strtolower($format) == 'png') {
                 $format = 'webp';
             }
             $i = Image::load($request->file($key)->getPathname())
@@ -88,13 +80,13 @@ class GroupController extends XController
                     config('app.media.watermark_size'), Unit::Percent, Fit::Contain,
                     config('app.media.watermark_opacity'));
             }
-            $i->save(storage_path() . '/app/public/groups/optimized-'. $group->$key);
+            $i->save(storage_path().'/app/public/groups/optimized-'.$group->$key);
         }
-        if ($request->has('bg')){
-            $group->bg = $this->storeFile('bg',$group, 'groups');
+        if ($request->has('bg')) {
+            $group->bg = $this->storeFile('bg', $group, 'groups');
             $key = 'bg';
             $format = $request->file($key)->guessExtension();
-            if (strtolower($format) == 'png'){
+            if (strtolower($format) == 'png') {
                 $format = 'webp';
             }
             $i = Image::load($request->file($key)->getPathname())
@@ -108,13 +100,13 @@ class GroupController extends XController
                     config('app.media.watermark_size'), Unit::Percent, Fit::Contain,
                     config('app.media.watermark_opacity'));
             }
-            $i->save(storage_path() . '/app/public/groups/optimized-'. $group->$key);
+            $i->save(storage_path().'/app/public/groups/optimized-'.$group->$key);
         }
         $group->save();
+
         return $group;
 
     }
-
 
     /**
      * Show the form for creating a new resource.
@@ -123,7 +115,8 @@ class GroupController extends XController
     {
         //
         $cats = Group::all();
-        return view($this->formView,compact('cats'));
+
+        return view($this->formView, compact('cats'));
     }
 
     /**
@@ -133,13 +126,14 @@ class GroupController extends XController
     {
         //
         $cats = Group::all();
-        return view($this->formView, compact('item','cats'));
+
+        return view($this->formView, compact('item', 'cats'));
     }
 
     public function bulk(Request $request)
     {
 
-//        dd($request->all());
+        //        dd($request->all());
         $data = explode('.', $request->input('action'));
         $action = $data[0];
         $ids = $request->input('id');
@@ -148,16 +142,16 @@ class GroupController extends XController
                 $msg = __(':COUNT items deleted successfully', ['COUNT' => count($ids)]);
                 $this->_MODEL_::destroy($ids);
                 break;
-            /**restore*/
+                /**restore*/
             case 'restore':
                 $msg = __(':COUNT items restored successfully', ['COUNT' => count($ids)]);
                 foreach ($ids as $id) {
                     $this->_MODEL_::withTrashed()->find($id)->restore();
                 }
                 break;
-            /*restore**/
+                /* restore* */
             default:
-                $msg = __('Unknown bulk action : :ACTION', ["ACTION" => $action]);
+                $msg = __('Unknown bulk action : :ACTION', ['ACTION' => $action]);
         }
 
         return $this->do_bulk($msg, $action, $ids);
@@ -165,17 +159,19 @@ class GroupController extends XController
 
     public function destroy(Group $item)
     {
-        if (Setting::where('type','GROUP')->where('raw',$item->id)->count() > 0){
+        if (Setting::where('type', 'GROUP')->where('raw', $item->id)->count() > 0) {
             $msg = __("You can't delete this item while using it in setting.");
+
             return redirect()->back()->withErrors($msg);
         }
-        if (Item::where('menuable_type',Group::class)->where('menuable_type',$item->id)->count() > 0){
+        if (Item::where('menuable_type', Group::class)->where('menuable_type', $item->id)->count() > 0) {
             $msg = __("You can't delete this item while using it in menu.");
+
             return redirect()->back()->withErrors($msg);
         }
+
         return parent::delete($item);
     }
-
 
     public function update(Request $request, Group $item)
     {
@@ -187,25 +183,29 @@ class GroupController extends XController
     {
         return parent::restoreing(Group::withTrashed()->where('id', $item)->first());
     }
-    /*restore**/
+    /* restore* */
 
     /**sort*/
-    public function sort(){
+    public function sort()
+    {
         $items = Group::orderBy('sort')
-            ->get(['id','name','parent_id']);
-        return view('admin.commons.sort',compact('items'));
+            ->get(['id', 'name', 'parent_id']);
+
+        return view('admin.commons.sort', compact('items'));
     }
 
-    public function sortSave(Request $request){
-//        return $request->items;
-        foreach ($request->items as $key => $item){
+    public function sortSave(Request $request)
+    {
+        //        return $request->items;
+        foreach ($request->items as $key => $item) {
             $i = Group::whereId($item['id'])->first();
             $i->sort = $key;
-            $i->parent_id = $item['parentId']??null;
+            $i->parent_id = $item['parentId'] ?? null;
             $i->save();
         }
-        logAdmin(__METHOD__,__CLASS__,null);
-        return ['OK' => true,'message' => __("As you wished sort saved")];
+        logAdmin(__METHOD__, __CLASS__, null);
+
+        return ['OK' => true, 'message' => __('As you wished sort saved')];
     }
-    /*sort**/
+    /* sort* */
 }

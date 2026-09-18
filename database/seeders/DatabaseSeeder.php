@@ -18,29 +18,29 @@ class DatabaseSeeder extends Seeder
 
         Storage::deleteDirectory('public');
         Storage::makeDirectory('public');
-        file_put_contents(storage_path('app/public/.gitignore'),'*
+        file_put_contents(storage_path('app/public/.gitignore'), '*
 !.gitignore
 ');
 
         $this->call([
-                XLangSeeder::class,
-                UserSeeder::class,
-                GroupSeeder::class,
-                PostSeeder::class,
-                StateSeeder::class,
-//                CustomerSeeder::class,
-                CategorySeeder::class,
-                PropSeeder::class,
-                ProductSeeder::class,
-//                CommentSeeder::class,
-                SettingSeeder::class,
-                GfxSeeder::class,
-//                InvoiceSeeder::class,
-                VisitorSeeder::class,
-                TransportSeeder::class,
-                MenuSeeder::class,
-                EvaluationSeeder::class,
-            ]
+            XLangSeeder::class,
+            UserSeeder::class,
+            GroupSeeder::class,
+            PostSeeder::class,
+            StateSeeder::class,
+            //                CustomerSeeder::class,
+            CategorySeeder::class,
+            PropSeeder::class,
+            ProductSeeder::class,
+            //                CommentSeeder::class,
+            SettingSeeder::class,
+            GfxSeeder::class,
+            //                InvoiceSeeder::class,
+            VisitorSeeder::class,
+            TransportSeeder::class,
+            MenuSeeder::class,
+            EvaluationSeeder::class,
+        ]
         );
     }
 }

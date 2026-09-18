@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CitySaveRequest extends FormRequest
@@ -17,16 +18,16 @@ class CitySaveRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
             //
-            'name' => ['required','string','min:2']  ,
-            'state_id' => ['required','exists:states,id'] ,
-            'lat' => ['required','numeric','between:-90,90'],
-            'lng' => ['required','numeric','between:-180,180'],
+            'name' => ['required', 'string', 'min:2'],
+            'state_id' => ['required', 'exists:states,id'],
+            'lat' => ['required', 'numeric', 'between:-90,90'],
+            'lng' => ['required', 'numeric', 'between:-180,180'],
         ];
     }
 }

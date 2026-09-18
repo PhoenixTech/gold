@@ -10,10 +10,10 @@ class Attachment extends Model
 {
     use HasFactory,HasTranslations;
 
-    public static $mrohps = [Product::class,Post::class,Group::class,
-        Category::class,Clip::class,Gallery::class];
+    public static $mrohps = [Product::class, Post::class, Group::class,
+        Category::class, Clip::class, Gallery::class];
 
-    public $translatable = ['title','subtitle','body'];
+    public $translatable = ['title', 'subtitle', 'body'];
 
     public function getRouteKeyName()
     {
@@ -26,7 +26,7 @@ class Attachment extends Model
             return asset('/assets/upload/logo.svg');
         }
 
-        return \Storage::url('attachments/' . $this->file);
+        return \Storage::url('attachments/'.$this->file);
     }
 
     public function tempUrl() // WIP
@@ -39,12 +39,13 @@ class Attachment extends Model
         return \URL::temporarySignedRoute(
             'client.attach-dl', now()->addMinutes(60), [$this->slug]
         );
-        return \Storage::url('attachments/' . $this->file);
+
+        return \Storage::url('attachments/'.$this->file);
     }
 
-
-    public function ownerModel(){
-        switch ($this->attachable_type){
+    public function ownerModel()
+    {
+        switch ($this->attachable_type) {
             case Product::class:
                 return Product::whereId($this->attachable_id)->first();
             case Post::class:
@@ -61,7 +62,6 @@ class Attachment extends Model
                 return null;
         }
     }
-
 
     public function webUrl()
     {

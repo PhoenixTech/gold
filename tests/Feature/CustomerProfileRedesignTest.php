@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Customer;
 use App\Models\Product;
+use Database\Seeders\GfxSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -14,7 +15,7 @@ class CustomerProfileRedesignTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\GfxSeeder::class);
+        $this->seed(GfxSeeder::class);
     }
 
     public function test_customer_account_page_contains_all_reference_sections(): void
@@ -112,9 +113,9 @@ class CustomerProfileRedesignTest extends TestCase
         $response->assertOk();
         $response->assertSee(__('Frequently Asked Questions'));
         $response->assertSee(__("Order hasn't arrived yet, what should I do?"));
-        $response->assertSee(__("Courier arrived, what should I do?"));
-        $response->assertSee(__("Who do I contact for order follow-up or changes?"));
-        $response->assertSee(__("How do I pay offline and upload a receipt?"));
+        $response->assertSee(__('Courier arrived, what should I do?'));
+        $response->assertSee(__('Who do I contact for order follow-up or changes?'));
+        $response->assertSee(__('How do I pay offline and upload a receipt?'));
         $response->assertSee(__('Need more help?'));
         $response->assertSee(__('Submit new ticket'));
     }
@@ -152,11 +153,11 @@ class CustomerProfileRedesignTest extends TestCase
 
         $missing = [];
         foreach ($keys as $key) {
-            if (!array_key_exists($key, $fa) || trim((string)$fa[$key]) === '') {
+            if (! array_key_exists($key, $fa) || trim((string) $fa[$key]) === '') {
                 $missing[] = $key;
             }
         }
 
-        $this->assertEmpty($missing, 'The following translation keys in customer profile are missing or empty in resources/lang/fa.json: ' . implode(', ', $missing));
+        $this->assertEmpty($missing, 'The following translation keys in customer profile are missing or empty in resources/lang/fa.json: '.implode(', ', $missing));
     }
 }

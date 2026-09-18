@@ -3,7 +3,9 @@
 namespace Tests\Feature;
 
 use App\Models\Category;
+use App\Models\Customer;
 use App\Models\Invoice;
+use App\Models\Menu;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\AdminDashboardStats;
@@ -51,7 +53,7 @@ class NPlusOneOptimizationTest extends TestCase
         $response->assertOk();
 
         $queryCount = count(DB::getQueryLog());
-        $queries = array_map(fn($q) => $q['query'], DB::getQueryLog());
+        $queries = array_map(fn ($q) => $q['query'], DB::getQueryLog());
         DB::disableQueryLog();
 
         $this->assertLessThan(25, $queryCount, "Product list executed {$queryCount} queries");
@@ -59,7 +61,7 @@ class NPlusOneOptimizationTest extends TestCase
 
     public function test_admin_dashboard_recent_invoices_does_not_fire_receipt_queries(): void
     {
-        $customer = \App\Models\Customer::forceCreate([
+        $customer = Customer::forceCreate([
             'name' => 'John Doe',
             'mobile' => '09123456789',
         ]);
@@ -94,7 +96,7 @@ class NPlusOneOptimizationTest extends TestCase
     {
         $admin = $this->actingAsAdmin();
         $category = Category::create(['name' => 'Jewelry', 'slug' => 'jewelry']);
-        $menu = \App\Models\Menu::forceCreate(['name' => 'Main Menu', 'user_id' => $admin->id]);
+        $menu = Menu::forceCreate(['name' => 'Main Menu', 'user_id' => $admin->id]);
         $menu->items()->create([
             'user_id' => $admin->id,
             'title' => 'Jewelry Menu',

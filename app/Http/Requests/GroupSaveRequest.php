@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class GroupSaveRequest extends FormRequest
@@ -17,16 +18,16 @@ class GroupSaveRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
             'name' => ['required', 'string', 'min:2', 'max:128'],
-            'subtitle' => ['nullable', 'string',],
+            'subtitle' => ['nullable', 'string'],
             'image' => ['nullable', 'file', 'mimes:jpg,svg,png'],
             'bg' => ['nullable', 'file', 'mimes:jpg,svg,png'],
-            'description' => ['nullable', 'string',],
+            'description' => ['nullable', 'string'],
             'parent_id' => ['nullable', 'exists:groups,id'],
             'canonical' => ['nullable', 'url', 'min:5', 'max:128'],
         ];

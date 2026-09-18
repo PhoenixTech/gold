@@ -2,41 +2,34 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
 use App\Http\Controllers\XController;
 use App\Http\Requests\PropSaveRequest;
-use App\Models\Access;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Prop;
 use Illuminate\Http\Request;
-use App\Helper;
-use function App\Helpers\hasCreateRoute;
 
 class PropController extends XController
 {
-
     // protected  $_MODEL_ = Prop::class;
     // protected  $SAVE_REQUEST = PropSaveRequest::class;
 
-    protected $cols = ['name','label','icon'];
+    protected $cols = ['name', 'label', 'icon'];
+
     protected $extra_cols = ['id'];
 
-    protected $searchable = ['name','label'];
+    protected $searchable = ['name', 'label'];
 
     protected $listView = 'admin.props.prop-list';
+
     protected $formView = 'admin.props.prop-form';
 
-
     protected $buttons = [
-        'edit' =>
-            ['title' => "Edit", 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
-//        'show' =>
-//            ['title' => "Detail", 'class' => 'btn-outline-light', 'icon' => 'ri-eye-line'],
-        'destroy' =>
-            ['title' => "Remove", 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-close-line'],
+        'edit' => ['title' => 'Edit', 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
+        //        'show' =>
+        //            ['title' => "Detail", 'class' => 'btn-outline-light', 'icon' => 'ri-eye-line'],
+        'destroy' => ['title' => 'Remove', 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-close-line'],
     ];
-
 
     public function __construct()
     {
@@ -44,14 +37,14 @@ class PropController extends XController
     }
 
     /**
-     * @param $prop Prop
-     * @param $request  PropSaveRequest
+     * @param  $prop  Prop
+     * @param  $request  PropSaveRequest
      * @return Prop
      */
     public function save($prop, $request)
     {
 
-//        dd($request->all());
+        //        dd($request->all());
         $prop->name = $request->input('name');
         $prop->type = $request->input('type');
         $prop->required = $request->input('required');
@@ -62,18 +55,17 @@ class PropController extends XController
         $prop->priceable = $request->has('priceable');
         $prop->icon = $request->input('icon');
 
-
         $data = [];
-        if (($request->has('options')) && $request->input('options') != null && $request->input('options') != ''){
+        if (($request->has('options')) && $request->input('options') != null && $request->input('options') != '') {
             $data = $request->input('options');
         }
         $prop->options = $data;
         $prop->save();
         $prop->categories()->sync($request->input('cat'));
+
         return $prop;
 
     }
-
 
     /**
      * Show the form for creating a new resource.
@@ -81,8 +73,9 @@ class PropController extends XController
     public function create()
     {
         //
-        $cats = Category::all(['id','name','parent_id']);
-        return view($this->formView,compact('cats'));
+        $cats = Category::all(['id', 'name', 'parent_id']);
+
+        return view($this->formView, compact('cats'));
     }
 
     /**
@@ -91,14 +84,15 @@ class PropController extends XController
     public function edit(Prop $item)
     {
         //
-        $cats = Category::all(['id','name','parent_id']);
-        return view($this->formView, compact('item','cats'));
+        $cats = Category::all(['id', 'name', 'parent_id']);
+
+        return view($this->formView, compact('item', 'cats'));
     }
 
     public function bulk(Request $request)
     {
 
-//        dd($request->all());
+        //        dd($request->all());
         $data = explode('.', $request->input('action'));
         $action = $data[0];
         $ids = $request->input('id');
@@ -107,16 +101,16 @@ class PropController extends XController
                 $msg = __(':COUNT items deleted successfully', ['COUNT' => count($ids)]);
                 $this->_MODEL_::destroy($ids);
                 break;
-            /**restore*/
+                /**restore*/
             case 'restore':
                 $msg = __(':COUNT items restored successfully', ['COUNT' => count($ids)]);
                 foreach ($ids as $id) {
                     $this->_MODEL_::withTrashed()->find($id)->restore();
                 }
                 break;
-            /*restore**/
+                /* restore* */
             default:
-                $msg = __('Unknown bulk action : :ACTION', ["ACTION" => $action]);
+                $msg = __('Unknown bulk action : :ACTION', ['ACTION' => $action]);
         }
 
         return $this->do_bulk($msg, $action, $ids);
@@ -124,18 +118,18 @@ class PropController extends XController
 
     public function destroy(Prop $item)
     {
-        foreach (Product::whereHasMeta($item->name)->get() as $product){
+        foreach (Product::whereHasMeta($item->name)->get() as $product) {
             $product->removeMeta($item->name);
         }
+
         return parent::delete($item);
     }
 
-
     private function updateName($item, $request)
     {
-        if ($item->name != $request->input('name') && $request->input('name') != ''){
-            foreach (Product::whereHasMeta($item->name)->get() as $product){
-                $product->setMeta($request->input('name'),$product->getMeta($item->name));
+        if ($item->name != $request->input('name') && $request->input('name') != '') {
+            foreach (Product::whereHasMeta($item->name)->get() as $product) {
+                $product->setMeta($request->input('name'), $product->getMeta($item->name));
                 $product->removeMeta($item->name);
             }
         }
@@ -144,6 +138,7 @@ class PropController extends XController
     public function update(Request $request, Prop $item)
     {
         $this->updateName($item, $request);
+
         return $this->bringUp($request, $item);
     }
 
@@ -152,21 +147,23 @@ class PropController extends XController
     {
         return parent::restoreing(Prop::withTrashed()->where('id', $item)->first());
     }
-    /*restore**/
+    /* restore* */
 
-
-    public function sort(){
+    public function sort()
+    {
         return view('admin.props.prop-sort');
     }
 
-    public function sortSave(Request $request){
-        foreach ($request->input('items') as $key => $v){
+    public function sortSave(Request $request)
+    {
+        foreach ($request->input('items') as $key => $v) {
 
             $p = Prop::whereId($v['id'])->first();
             $p->sort = $key;
             $p->save();
         }
-        logAdmin(__METHOD__,__CLASS__,null);
-        return ['OK' => true,'message' => __("As you wished sort saved")];
+        logAdmin(__METHOD__, __CLASS__, null);
+
+        return ['OK' => true, 'message' => __('As you wished sort saved')];
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Invoice;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -15,13 +16,13 @@ return new class extends Migration
         Schema::create('invoices', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('customer_id');
-            $table->enum("status",\App\Models\Invoice::$invoiceStatus)->nullable()->default("PENDING");
+            $table->enum('status', Invoice::$invoiceStatus)->nullable()->default('PENDING');
             $table->unsignedBigInteger('total_price')->nullable()->default(0);
             $table->integer('count')->nullable()->default(0);
             $table->json('meta')->nullable();
             $table->unsignedBigInteger('discount_id')->nullable()->default(null);
             $table->text('desc')->nullable()->default(null);
-            $table->string('hash',32)->nullable()->default(null)->unique();
+            $table->string('hash', 32)->nullable()->default(null)->unique();
 
             $table->unsignedBigInteger('transport_id')->nullable()->default(null);
             $table->unsignedBigInteger('transport_price')->default(0);

@@ -11,16 +11,18 @@ class IgnoreFirstPage
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
 
-        if ($request->has('page') && $request->get('page') == '1'){
+        if ($request->has('page') && $request->get('page') == '1') {
             $q = $request->all();
             unset($q['page']);
+
             return redirect($request->url().'?'.http_build_query($q));
         }
+
         return $next($request);
     }
 }

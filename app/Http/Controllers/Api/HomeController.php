@@ -19,6 +19,7 @@ class HomeController extends Controller
         }])->first(['id', 'name']);
         $data['categories'] = CategoryResource::collection(Category::with('products')->whereNull('parent_id')->orderBy('sort')->take(8)->get());
         $data['post'] = PostResource::collection(Post::orderByDesc('created_at')->take(8)->get());
+
         return success($data);
     }
 }

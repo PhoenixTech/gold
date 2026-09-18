@@ -4,9 +4,8 @@ namespace Database\Seeders;
 
 use App\Models\Customer;
 use App\Models\State;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
 use Faker\Factory as Faker;
+use Illuminate\Database\Seeder;
 
 class CustomerSeeder extends Seeder
 {
@@ -28,7 +27,7 @@ class CustomerSeeder extends Seeder
                 'zip' => rand(12345, 54321),
                 'lat' => $c->lat,
                 'lng' => $c->lng,
-                'address' =>$faker->address,
+                'address' => $faker->address,
             ]);
         }
     }

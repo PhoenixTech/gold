@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ShopVisitStatus;
+use Database\Factories\ShopVisitFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ShopVisit extends Model
 {
-    /** @use HasFactory<\Database\Factories\ShopVisitFactory> */
+    /** @use HasFactory<ShopVisitFactory> */
     use HasFactory;
 
     /**

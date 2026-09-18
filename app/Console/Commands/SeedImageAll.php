@@ -6,9 +6,8 @@ use Illuminate\Console\Command;
 
 class SeedImageAll extends Command
 {
-
-
     public $models = ['Category', 'Group', 'Post', 'Product'];
+
     /**
      * The name and signature of the console command.
      *
@@ -38,11 +37,11 @@ class SeedImageAll extends Command
 
             // Handle the exit code and output as needed
             if ($exitCode === 0) {
-                $this->info( "Seeding was successful: [$model] \n");
+                $this->info("Seeding was successful: [$model] \n");
             } else {
                 $this->error("Seeding failed with exit code {$exitCode}:\n");
             }
-            $this->info( $output);
+            $this->info($output);
         }
     }
 }

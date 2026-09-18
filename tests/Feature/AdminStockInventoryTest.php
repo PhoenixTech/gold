@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Quantity;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Role;
@@ -170,14 +171,14 @@ class AdminStockInventoryTest extends TestCase
             'metal_type' => 'gold',
         ]);
 
-        \App\Models\Quantity::factory()->create([
+        Quantity::factory()->create([
             'product_id' => $product->id,
             'count' => 1,
             'weight' => 4.250,
             'price' => 12000000,
         ]);
 
-        \App\Models\Quantity::factory()->create([
+        Quantity::factory()->create([
             'product_id' => $product->id,
             'count' => 2,
             'weight' => 5.000,
@@ -220,4 +221,3 @@ class AdminStockInventoryTest extends TestCase
         $priceSortDesc->assertOk();
     }
 }
-

@@ -256,21 +256,21 @@ class ProductLowStockTest extends TestCase
         $quickFiltersHtml = $containerMatch[1];
 
         // Ensure Low stock link does NOT contain metal_type
-        preg_match('/<a[^>]+href="([^"]+)"[^>]*>\s*' . preg_quote(__('Low stock'), '/') . '/u', $quickFiltersHtml, $lowStockMatch);
+        preg_match('/<a[^>]+href="([^"]+)"[^>]*>\s*'.preg_quote(__('Low stock'), '/').'/u', $quickFiltersHtml, $lowStockMatch);
         $this->assertNotEmpty($lowStockMatch, 'Low stock link should be rendered in wp-quick-filters');
         $lowStockHref = urldecode($lowStockMatch[1]);
         $this->assertStringContainsString('filter[low_stock]=1', $lowStockHref);
         $this->assertStringNotContainsString('metal_type', $lowStockHref);
 
         // Ensure Published link does NOT contain metal_type
-        preg_match('/<a[^>]+href="([^"]+)"[^>]*>\s*' . preg_quote(__('Published'), '/') . '/u', $quickFiltersHtml, $pubMatch);
+        preg_match('/<a[^>]+href="([^"]+)"[^>]*>\s*'.preg_quote(__('Published'), '/').'/u', $quickFiltersHtml, $pubMatch);
         $this->assertNotEmpty($pubMatch, 'Published link should be rendered in wp-quick-filters');
         $pubHref = urldecode($pubMatch[1]);
         $this->assertStringContainsString('filter[status]=1', $pubHref);
         $this->assertStringNotContainsString('metal_type', $pubHref);
 
         // Ensure All link does NOT contain filter parameters
-        preg_match('/<a[^>]+href="([^"]+)"[^>]*>\s*' . preg_quote(__('All'), '/') . '/u', $quickFiltersHtml, $allMatch);
+        preg_match('/<a[^>]+href="([^"]+)"[^>]*>\s*'.preg_quote(__('All'), '/').'/u', $quickFiltersHtml, $allMatch);
         $this->assertNotEmpty($allMatch, 'All link should be rendered in wp-quick-filters');
         $allHref = urldecode($allMatch[1]);
         $this->assertStringNotContainsString('filter', $allHref);

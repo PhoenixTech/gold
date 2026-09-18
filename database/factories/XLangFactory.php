@@ -2,10 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Models\XLang;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\XLang>
+ * @extends Factory<XLang>
  */
 class XLangFactory extends Factory
 {

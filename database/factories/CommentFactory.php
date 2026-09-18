@@ -13,7 +13,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Comment>
+ * @extends Factory<Comment>
  */
 class CommentFactory extends Factory
 {
@@ -35,29 +35,29 @@ class CommentFactory extends Factory
                 $c = Product::class;
                 $m = $c::inRandomOrder()->first()->id;
                 break;
-//            case 4:
-//                $c = Gallery::class;
-//                $m = $c::inRandomOrder()->first()->id;
-//                break;
-//            case 5:
-//                $c = Clip::class;
-//                $m = $c::inRandomOrder()->first()->id;
-//                break;
-//            case 6:
-//                $c = Attachment::class;
-//                $m = $c::inRandomOrder()->first()->id;
-//                break;
+                //            case 4:
+                //                $c = Gallery::class;
+                //                $m = $c::inRandomOrder()->first()->id;
+                //                break;
+                //            case 5:
+                //                $c = Clip::class;
+                //                $m = $c::inRandomOrder()->first()->id;
+                //                break;
+                //            case 6:
+                //                $c = Attachment::class;
+                //                $m = $c::inRandomOrder()->first()->id;
+                //                break;
         }
-        $comment  = [
+        $comment = [
             //
             'body' => $this->faker->realText(),
             'commentable_id' => $m,
             'commentable_type' => $c,
-            'ip'=> $this->faker->ipv4(),
-            'status' => rand(-1,1)
+            'ip' => $this->faker->ipv4(),
+            'status' => rand(-1, 1),
 
         ];
-        switch (rand(0,2)){
+        switch (rand(0, 2)) {
             case 0:
                 $comment['email'] = $this->faker->email;
                 $comment['name'] = $this->faker->name;
@@ -71,9 +71,10 @@ class CommentFactory extends Factory
                 $comment['commentator_id'] = User::inRandomOrder()->first()->id;
                 break;
         }
-        if (rand(0,3) == 1 && Comment::count() > 0){
+        if (rand(0, 3) == 1 && Comment::count() > 0) {
             $comment['parent_id'] = Comment::inRandomOrder()->first()->id;
         }
+
         return $comment;
     }
 }

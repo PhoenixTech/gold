@@ -9,16 +9,16 @@ use Illuminate\Http\Request;
 
 class AddressController extends Controller
 {
-
     public function save(Address $address, Request $request)
     {
         $address->address = $request->input('address');
         $address->lat = $request->input('lat');
         $address->lng = $request->input('lng');
-        $address->state_id = $request->input('state_id')??null;
-        $address->city_id = $request->input('city_id')??null;
+        $address->state_id = $request->input('state_id') ?? null;
+        $address->city_id = $request->input('city_id') ?? null;
         $address->zip = $request->input('zip');
         $address->save();
+
         return $address;
     }
 
@@ -54,11 +54,12 @@ class AddressController extends Controller
             'lng' => ['nullable'],
         ]);
 
-        $address = new Address();
+        $address = new Address;
         $address->customer_id = $item->id;
         $address = $this->save($address, $request);
-        logAdmin(__METHOD__,Address::class,$address->id);
-        return ['OK' => true,'message' => __("Address added to :CUSTOMER",['CUSTOMER'=>$item->name]), 'list'=> $item->addresses];
+        logAdmin(__METHOD__, Address::class, $address->id);
+
+        return ['OK' => true, 'message' => __('Address added to :CUSTOMER', ['CUSTOMER' => $item->name]), 'list' => $item->addresses];
 
     }
 
@@ -93,8 +94,9 @@ class AddressController extends Controller
             'lng' => ['nullable'],
         ]);
         $this->save($item, $request);
-        logAdmin(__METHOD__,Address::class,$item->id);
-        return ['OK' => true, "message" => __("address updated")];
+        logAdmin(__METHOD__, Address::class, $item->id);
+
+        return ['OK' => true, 'message' => __('address updated')];
     }
 
     /**
@@ -103,13 +105,13 @@ class AddressController extends Controller
     public function destroy(Address $item)
     {
         //
-        $add = $item->address ;
+        $add = $item->address;
 
-        logAdmin(__METHOD__,Address::class,$item->id);
+        logAdmin(__METHOD__, Address::class, $item->id);
         $item->delete();
-        return ['OK' => true, "message" => __(":ADDRESS removed",['ADDRESS' => $add])];
-    }
 
+        return ['OK' => true, 'message' => __(':ADDRESS removed', ['ADDRESS' => $add])];
+    }
 
     public function customer(Customer $item)
     {

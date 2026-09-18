@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\DB;
 use Spatie\Translatable\HasTranslations;
 
 class Category extends Model
@@ -13,7 +12,9 @@ class Category extends Model
     use HasFactory, HasTranslations, SoftDeletes;
 
     protected $guarded = [];
+
     public $translatable = ['name', 'subtitle', 'description'];
+
     protected $appends = ['sku_code'];
 
     public function imgUrl()
@@ -22,15 +23,16 @@ class Category extends Model
             return asset('/assets/upload/logo.svg');
         }
 
-        return \Storage::url('categories/optimized-' . $this->image);
+        return \Storage::url('categories/optimized-'.$this->image);
     }
+
     public function svgUrl()
     {
         if ($this->svg == null) {
             return asset('/assets/upload/logo.svg');
         }
 
-        return \Storage::url('categories/' . $this->svg);
+        return \Storage::url('categories/'.$this->svg);
     }
 
     public function imgOriginalUrl()
@@ -39,7 +41,7 @@ class Category extends Model
             return asset('/assets/upload/logo.svg');
         }
 
-        return \Storage::url('categories/' . $this->image);
+        return \Storage::url('categories/'.$this->image);
     }
 
     public function bgUrl()
@@ -48,7 +50,7 @@ class Category extends Model
             return asset('/assets/upload/logo.svg');
         }
 
-        return \Storage::url('categories/optimized-' . $this->bg);
+        return \Storage::url('categories/optimized-'.$this->bg);
     }
 
     public function bgOriginalUrl()
@@ -57,7 +59,7 @@ class Category extends Model
             return asset('/assets/upload/logo.svg');
         }
 
-        return \Storage::url('categories/' . $this->bg);
+        return \Storage::url('categories/'.$this->bg);
     }
 
     public function parent()
@@ -87,14 +89,13 @@ class Category extends Model
 
     public function webUrl()
     {
-        return fixUrlLang(route('client.category',$this->slug));
+        return fixUrlLang(route('client.category', $this->slug));
     }
 
     public function products()
     {
         return $this->belongsToMany(Product::class);
     }
-
 
     public function published($limit = 10, $order = 'id', $dir = 'DESC')
     {
@@ -117,11 +118,13 @@ class Category extends Model
         return $products->map(function ($item) {
             // Change 'name' to 'title'
             $item->title = $item->name; // Add title property
+
             return $item; // Return the modified item
         });
     }
 
-    public function evaluations(){
+    public function evaluations()
+    {
 
         return Evaluation::where(function ($query) {
             $query->whereNull('evaluationable_type')
@@ -129,14 +132,15 @@ class Category extends Model
         })->orWhere(function ($query) {
             $query->where('evaluationable_type', Category::class)
                 ->whereNull('evaluationable_id');
-        })->orWhere(function ($query ) {
+        })->orWhere(function ($query) {
             $query->where('evaluationable_type', Category::class)
-                ->where('evaluationable_id',$this->id);
+                ->where('evaluationable_id', $this->id);
         })->get();
     }
 
-    public function parallelCategories($limit = 10){
-        return Category::where('parent_id' , $this->parent_id)->where('id','<>',$this->id)->limit($limit)->get();
+    public function parallelCategories($limit = 10)
+    {
+        return Category::where('parent_id', $this->parent_id)->where('id', '<>', $this->id)->limit($limit)->get();
     }
 
     public static function standardSkuCodes(): array
@@ -165,7 +169,7 @@ class Category extends Model
         $rawName = (string) $this->getRawOriginal('name');
         $decoded = json_decode($rawName, true);
         $searchable = is_array($decoded) ? implode(' ', $decoded) : (string) $this->name;
-        $searchable .= ' ' . ($this->slug ?? '');
+        $searchable .= ' '.($this->slug ?? '');
 
         foreach (static::standardSkuCodes() as $code => $keywords) {
             foreach ($keywords as $keyword) {

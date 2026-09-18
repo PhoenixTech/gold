@@ -13,6 +13,8 @@ use App\Models\Product;
 use App\Models\Quantity;
 use App\Models\Transport;
 use App\Models\User;
+use App\Services\ProductPriceCalculator;
+use Database\Seeders\GfxSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
@@ -205,12 +207,12 @@ class CheckoutFlowTest extends TestCase
         $this->assertNotNull($lines[0]['q']);
         $this->assertSame($quantity->id, $lines[0]['q']['id']);
         $this->assertSame(
-            app(\App\Services\ProductPriceCalculator::class)->priceForQuantity($product, $quantity),
+            app(ProductPriceCalculator::class)->priceForQuantity($product, $quantity),
             $lines[0]['price']
         );
         $this->assertSame($quantity->id, $lines[0]['selected_quantity_id']);
 
-        $this->seed(\Database\Seeders\GfxSeeder::class);
+        $this->seed(GfxSeeder::class);
 
         $response = $this->withCookie('card', json_encode([$product->id]))
             ->withCookie('q', json_encode([$quantity->id]))
@@ -366,7 +368,7 @@ class CheckoutFlowTest extends TestCase
         ]);
 
         $response->assertRedirect();
-        $invoice = \App\Models\Invoice::query()->where('customer_id', $customer->id)->latest('id')->first();
+        $invoice = Invoice::query()->where('customer_id', $customer->id)->latest('id')->first();
         $this->assertNotNull($invoice);
         $invoice->load(['customer', 'address.state', 'address.city', 'orders.product', 'orders.quantity', 'payments']);
 

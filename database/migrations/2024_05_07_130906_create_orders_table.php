@@ -18,12 +18,12 @@ return new class extends Migration
             $table->unsignedBigInteger('quantity_id')->nullable();
             $table->integer('count')->nullable()->default(1);
             $table->unsignedInteger('price_total');
-            $table->json('data')->nullable()->default(null);;
+            $table->json('data')->nullable()->default(null);
             $table->timestamps();
 
             $table->foreign('invoice_id')->references('id')
                 ->on('invoices')->onDelete('cascade');
-//            $table->foreign('quantity_id')->references('id')->on('quantities')->onDelete('cascade');
+            //            $table->foreign('quantity_id')->references('id')->on('quantities')->onDelete('cascade');
             $table->foreign('product_id')->references('id')
                 ->on('products')->onDelete('cascade');
         });

@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Payment;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -15,8 +16,8 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('invoice_id');
             $table->unsignedBigInteger('amount')->nullable();
-            $table->enum("type", \App\Models\Payment::$types)->nullable()->default(\App\Models\Payment::$types[0]);
-            $table->enum("status", \App\Models\Payment::$status)->nullable()->default(\App\Models\Payment::$status[0]);
+            $table->enum('type', Payment::$types)->nullable()->default(Payment::$types[0]);
+            $table->enum('status', Payment::$status)->nullable()->default(Payment::$status[0]);
             $table->string('order_id')->unique();
             $table->string('reference_id')->nullable();
             $table->text('comment')->nullable();

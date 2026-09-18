@@ -17,19 +17,21 @@ class XLang extends Model
         if ($this->img == null || $this->img == '') {
             return asset('/assets/upload/logo.svg');
         } else {
-            return \Storage::url('langz/optimized-' . $this->img);
+            return \Storage::url('langz/optimized-'.$this->img);
         }
     }
+
     public function imgOriginalUrl()
     {
         if ($this->img == null || $this->img == '') {
             return asset('/assets/upload/logo.svg');
         } else {
-            return \Storage::url('langz/' . $this->img);
+            return \Storage::url('langz/'.$this->img);
         }
     }
 
-    public function getRouteKeyName(){
+    public function getRouteKeyName()
+    {
         return 'tag';
     }
 }

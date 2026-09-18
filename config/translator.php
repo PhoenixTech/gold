@@ -1,10 +1,12 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 use Translator\Framework\LaravelConfigLoader;
 use Translator\Infra\LaravelJsonTranslationRepository;
 
 return [
-    'languages' => ["fa"],
+    'languages' => ['fa'],
     'directories' => [
         app_path(),
         resource_path('views'),

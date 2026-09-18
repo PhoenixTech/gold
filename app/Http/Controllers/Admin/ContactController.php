@@ -2,40 +2,33 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
 use App\Http\Controllers\XController;
 use App\Http\Requests\ContactSaveRequest;
-use App\Models\Access;
 use App\Models\Contact;
 use Illuminate\Http\Request;
-use App\Helper;
 use Illuminate\Support\Facades\Mail;
-use function App\Helpers\hasCreateRoute;
 
 class ContactController extends XController
 {
-
     // protected  $_MODEL_ = Contact::class;
     // protected  $SAVE_REQUEST = ContactSaveRequest::class;
 
-    protected $cols = ['name','subject','mobile','email',"created_at",'is_answered'];
-    protected $extra_cols = ['id','hash'];
+    protected $cols = ['name', 'subject', 'mobile', 'email', 'created_at', 'is_answered'];
 
-    protected $searchable = ['name','subject','mobile','email','body'];
+    protected $extra_cols = ['id', 'hash'];
+
+    protected $searchable = ['name', 'subject', 'mobile', 'email', 'body'];
 
     protected $listView = 'admin.contacts.contact-list';
+
     protected $formView = 'admin.contacts.contact-form';
 
-
     protected $buttons = [
-//        'edit' =>
-//            ['title' => "Edit", 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
-        'show' =>
-            ['title' => "Detail", 'class' => 'btn-outline-secondary', 'icon' => 'ri-eye-line'],
-        'destroy' =>
-            ['title' => "Remove", 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-delete-bin-line'],
+        //        'edit' =>
+        //            ['title' => "Edit", 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
+        'show' => ['title' => 'Detail', 'class' => 'btn-outline-secondary', 'icon' => 'ri-eye-line'],
+        'destroy' => ['title' => 'Remove', 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-delete-bin-line'],
     ];
-
 
     public function __construct()
     {
@@ -43,22 +36,24 @@ class ContactController extends XController
     }
 
     /**
-     * @param $contact Contact
-     * @param $request  ContactSaveRequest
+     * @param  $contact  Contact
+     * @param  $request  ContactSaveRequest
      * @return Contact
      */
     public function save($contact, $request)
     {
 
         $contact->save();
+
         return $contact;
 
     }
 
-
-    public function show( $hash){
+    public function show($hash)
+    {
         $item = Contact::whereHash($hash)->firstOrFail();
-        return view('admin.contacts.contact-show',compact('item'));
+
+        return view('admin.contacts.contact-show', compact('item'));
     }
 
     /**
@@ -82,7 +77,7 @@ class ContactController extends XController
     public function bulk(Request $request)
     {
 
-//        dd($request->all());
+        //        dd($request->all());
         $data = explode('.', $request->input('action'));
         $action = $data[0];
         $ids = $request->input('id');
@@ -93,7 +88,7 @@ class ContactController extends XController
                 break;
 
             default:
-                $msg = __('Unknown bulk action : :ACTION', ["ACTION" => $action]);
+                $msg = __('Unknown bulk action : :ACTION', ['ACTION' => $action]);
         }
 
         return $this->do_bulk($msg, $action, $ids);
@@ -104,7 +99,6 @@ class ContactController extends XController
         return parent::delete($item);
     }
 
-
     public function update(Request $request, Contact $item)
     {
         return $this->bringUp($request, $item);
@@ -114,19 +108,17 @@ class ContactController extends XController
     {
         $body = $request->bodya;
         $item->is_answered = true;
-        $item->body .= '<hr>'. __("Answer: <br>").$body;
+        $item->body .= '<hr>'.__('Answer: <br>').$body;
         $item->save();
 
-        Mail::raw($body, function ($message)  use ($item){
+        Mail::raw($body, function ($message) use ($item) {
 
-            $message->from(getSetting('email'),config('app.name'));
+            $message->from(getSetting('email'), config('app.name'));
             $message->to($item->email);
-            $message->subject('reply:',config('app.name', 'xshop') .' پاسخ تماس با ');
+            $message->subject('reply:', config('app.name', 'xshop').' پاسخ تماس با ');
         });
-        logAdmin(__METHOD__,Contact::class,$item->id);
+        logAdmin(__METHOD__, Contact::class, $item->id);
 
-        return  redirect()->back()->with(['message' => __('Your Email sent')]);
+        return redirect()->back()->with(['message' => __('Your Email sent')]);
     }
-
-
 }

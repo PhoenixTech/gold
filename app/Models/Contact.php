@@ -18,7 +18,7 @@ class Contact extends Model
     {
         parent::boot();
 
-        static::creating(function($model) {
+        static::creating(function ($model) {
             $model->hash = generateUniqueID((strlen(Contact::count()) + 2));
         });
     }

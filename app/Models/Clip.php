@@ -10,7 +10,7 @@ use Spatie\Translatable\HasTranslations;
 
 class Clip extends Model
 {
-    use HasFactory, SoftDeletes, HasTranslations, HasTags;
+    use HasFactory, HasTags, HasTranslations, SoftDeletes;
 
     public $translatable = ['title', 'body'];
 
@@ -25,16 +25,16 @@ class Clip extends Model
             return asset('assets/upload/logo.svg');
         }
 
-        return \Storage::url('cover/optimized-' . $this->cover);
+        return \Storage::url('cover/optimized-'.$this->cover);
     }
 
     public function imgOriginalUrl()
     {
         if ($this->cover == null) {
-            return asset('assets/upload/logo.svg');;
+            return asset('assets/upload/logo.svg');
         }
 
-        return \Storage::url('clips/' . $this->cover);
+        return \Storage::url('clips/'.$this->cover);
     }
 
     public function fileUrl()
@@ -47,32 +47,32 @@ class Clip extends Model
             return $this->file;
         }
 
-        return \Storage::url('clips/' . $this->file);
+        return \Storage::url('clips/'.$this->file);
     }
 
     public function player()
     {
         if (empty($this->file)) {
-            return '<div class="text-center py-5 text-white-50"><i class="ri-video-line fs-1 d-block mb-2"></i>' . __('Video not available') . '</div>';
+            return '<div class="text-center py-5 text-white-50"><i class="ri-video-line fs-1 d-block mb-2"></i>'.__('Video not available').'</div>';
         }
 
         if (str_starts_with(trim($this->file), '<iframe')) {
-            return '<div class="ratio ratio-16x9">' . $this->file . '</div>';
+            return '<div class="ratio ratio-16x9">'.$this->file.'</div>';
         }
 
         $fileUrl = $this->fileUrl();
         $coverUrl = $this->cover ? $this->imgUrl() : null;
-        $posterAttr = $coverUrl ? ' poster="' . e($coverUrl) . '"' : '';
+        $posterAttr = $coverUrl ? ' poster="'.e($coverUrl).'"' : '';
 
-        return '<div id="video-preview-botz">' .
-            '<video controls playsinline class="w-100 d-block" style="max-height: 540px; background: #000;"' . $posterAttr . ' src="' . e($fileUrl) . '"></video>' .
-            '</div>' .
-            '<mp4player asset="' . e($fileUrl) . '"' . ($coverUrl ? ' cover="' . e($coverUrl) . '"' : '') . '></mp4player>';
+        return '<div id="video-preview-botz">'.
+            '<video controls playsinline class="w-100 d-block" style="max-height: 540px; background: #000;"'.$posterAttr.' src="'.e($fileUrl).'"></video>'.
+            '</div>'.
+            '<mp4player asset="'.e($fileUrl).'"'.($coverUrl ? ' cover="'.e($coverUrl).'"' : '').'></mp4player>';
     }
 
     public function author()
     {
-        return $this->belongsTo(\App\Models\User::class);
+        return $this->belongsTo(User::class);
     }
 
     public function attachs()
@@ -84,7 +84,6 @@ class Clip extends Model
     {
         return fixUrlLang(route('client.clip', $this->slug));
     }
-
 
     public function comments()
     {
@@ -103,6 +102,7 @@ class Clip extends Model
         $logo = asset('upload/images/logo.png');
         $desc = str_replace('"', '', strip_tags($this->body));
         $count = $this->comments()->count();
+
         return <<<RESULT
 
 <script type="application/ld+json">
@@ -142,5 +142,4 @@ RESULT;
             return implode(',', $this->tags()->pluck('name')->toArray());
         }
     }
-
 }

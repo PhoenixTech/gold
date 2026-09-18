@@ -9,16 +9,18 @@ use Spatie\Translatable\HasTranslations;
 
 class Discount extends Model
 {
-    use HasFactory,SoftDeletes,HasTranslations;
+    use HasFactory,HasTranslations,SoftDeletes;
 
     public $translatable = ['title', 'body'];
 
-    public static $doscount_type =['PRICE','PERCENT'];
-    protected $casts  = [
-        'expire' => 'datetime'
+    public static $doscount_type = ['PRICE', 'PERCENT'];
+
+    protected $casts = [
+        'expire' => 'datetime',
     ];
 
-    public function product(){
+    public function product()
+    {
         return $this->belongsTo(Product::class);
     }
 }

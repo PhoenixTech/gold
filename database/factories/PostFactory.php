@@ -3,15 +3,15 @@
 namespace Database\Factories;
 
 use App\Models\Group;
+use App\Models\Post;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Post>
+ * @extends Factory<Post>
  */
 class PostFactory extends Factory
 {
-
     public $icons = [
         'ri-home-4-line',
         'ri-building-line',
@@ -46,6 +46,7 @@ class PostFactory extends Factory
         'ri-mic-2-line',
         'ri-speed-up-line',
     ];
+
     /**
      * Define the model's default state.
      *
@@ -54,6 +55,7 @@ class PostFactory extends Factory
     public function definition(): array
     {
         $title = $this->faker->unique()->realText(75);
+
         return [
             //
             'title' => $title,
@@ -63,9 +65,9 @@ class PostFactory extends Factory
             'group_id' => Group::inRandomOrder()->first()?->id ?? Group::factory(),
             'hash' => str_pad(dechex(crc32($title)), 8, '0', STR_PAD_LEFT),
             'status' => 1,
-            'view' => rand(0,999),
+            'view' => rand(0, 999),
             'user_id' => User::inRandomOrder()->first()?->id ?? User::factory(),
-            'icon' => $this->icons[rand(0,count($this->icons)-1)],
+            'icon' => $this->icons[rand(0, count($this->icons) - 1)],
         ];
     }
 }

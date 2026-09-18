@@ -13,18 +13,18 @@ use Illuminate\Http\Request;
 
 class MorphController extends Controller
 {
+    public $limit = 5;
 
-    public  $limit = 5;
     //
     public function search(Request $request)
     {
 
-        if (auth()->check() ){
+        if (auth()->check()) {
             return abort(403);
         }
         $morph = $request->input('morph', Product::class);
 
-        $q = '%' . $request->input('q') . '%';
+        $q = '%'.$request->input('q').'%';
         switch ($morph) {
             case Product::class:
                 $q = Product::where('name', 'LIKE', $q)
@@ -54,7 +54,7 @@ class MorphController extends Controller
                     ->orWhere('description', 'LIKE', $q);
                 break;
             default:
-                return ['OK' => false, 'error' => __("Invalid morph")];
+                return ['OK' => false, 'error' => __('Invalid morph')];
         }
 
         return ['OK' => true, 'data' => $q->orderByDesc('updated_at')->limit($this->limit)->get()];

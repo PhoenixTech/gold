@@ -13,10 +13,15 @@ use Tests\TestCase;
 class TestDummyController extends XController
 {
     protected $_MODEL_ = Category::class;
+
     protected $cols = ['name'];
+
     protected $extra_cols = ['id', 'slug'];
+
     protected $searchable = ['name'];
+
     protected $listView = 'admin.categories.category-list';
+
     protected $formView = 'admin.categories.category-form';
 
     public function save($item, $request)
@@ -24,6 +29,7 @@ class TestDummyController extends XController
         $item->name = $request->input('name', 'Test Dummy');
         $item->slug = $this->getSlug($item, 'slug', 'name');
         $item->save();
+
         return $item;
     }
 }
@@ -44,7 +50,7 @@ class XControllerTest extends TestCase
 
     public function test_slug_generator_creates_unique_slugs(): void
     {
-        $controller = new TestDummyController();
+        $controller = new TestDummyController;
 
         Category::create([
             'name' => 'Gold Coin',
@@ -72,7 +78,7 @@ class XControllerTest extends TestCase
             'slug' => 'rings',
         ]);
 
-        $controller = new TestDummyController();
+        $controller = new TestDummyController;
 
         // Test destroy via fallback
         $response = $controller->destroy($cat->id);
@@ -92,7 +98,7 @@ class XControllerTest extends TestCase
         $cat1 = Category::create(['name' => 'Cat 1', 'slug' => 'cat-1']);
         $cat2 = Category::create(['name' => 'Cat 2', 'slug' => 'cat-2']);
 
-        $controller = new TestDummyController();
+        $controller = new TestDummyController;
 
         // Bulk delete
         $request = Request::create('/admin/categories/bulk', 'POST', [

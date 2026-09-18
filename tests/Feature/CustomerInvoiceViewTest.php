@@ -94,7 +94,7 @@ class CustomerInvoiceViewTest extends TestCase
         $response->assertSee('class="avisa-bottom-navbar', false);
 
         // 3. Back to orders navigation and header
-        $response->assertSee(route('client.profile') . '#invoices');
+        $response->assertSee(route('client.profile').'#invoices');
         $response->assertSee(__('Back to orders'));
         $response->assertSee(__('Order details'));
 
@@ -116,7 +116,7 @@ class CustomerInvoiceViewTest extends TestCase
 
         // Check for natural customer order card components
         $response->assertSee('class="card avisa-card-ref avisa-order-card', false);
-        $response->assertSee(__('Order') . ' <span class="font-fanum">#' . $invoice->id . '</span>', false);
+        $response->assertSee(__('Order').' <span class="font-fanum">#'.$invoice->id.'</span>', false);
         $response->assertSee('دستبند طلای ۱۸ عیار زنانه لوتوس');
         $response->assertSee('7,550,000');
         $response->assertSee(route('client.invoice', $invoice->hash));
@@ -154,19 +154,19 @@ class CustomerInvoiceViewTest extends TestCase
 
         $missing = [];
         foreach ($keys as $key) {
-            if (!array_key_exists($key, $fa) || trim((string)$fa[$key]) === '') {
+            if (! array_key_exists($key, $fa) || trim((string) $fa[$key]) === '') {
                 $missing[] = $key;
             }
         }
 
-        $this->assertEmpty($missing, 'The following translation keys are missing or empty in resources/lang/fa.json: ' . implode(', ', $missing));
+        $this->assertEmpty($missing, 'The following translation keys are missing or empty in resources/lang/fa.json: '.implode(', ', $missing));
     }
 
     public function test_offline_invoice_shows_positive_remaining_seconds_in_countdown(): void
     {
         [$customer, $invoice] = $this->createCustomerWithInvoice();
 
-        $payment = new Payment();
+        $payment = new Payment;
         $payment->invoice_id = $invoice->id;
         $payment->type = 'CARD';
         $payment->status = Payment::PENDING;
@@ -190,7 +190,7 @@ class CustomerInvoiceViewTest extends TestCase
         Storage::fake('public');
         [$customer, $invoice] = $this->createCustomerWithInvoice();
 
-        $payment = new Payment();
+        $payment = new Payment;
         $payment->invoice_id = $invoice->id;
         $payment->type = 'CARD';
         $payment->status = Payment::PENDING;

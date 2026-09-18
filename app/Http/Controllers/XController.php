@@ -17,11 +17,17 @@ abstract class XController extends Controller
     use HandlesAdminUploads;
 
     protected $_MODEL_ = User::class;
+
     protected $SAVE_REQUEST = UserSaveRequest::class;
+
     protected $cols = [];
+
     protected $extra_cols = ['id'];
+
     protected $listView = 'admin.users.user-list';
+
     protected $formView = 'admin.users.user-form';
+
     protected $searchable = [];
 
     protected $buttons = [
@@ -54,6 +60,7 @@ abstract class XController extends Controller
     public function index()
     {
         $query = $this->makeSortAndFilter();
+
         return $this->showList($query);
     }
 
@@ -78,6 +85,7 @@ abstract class XController extends Controller
     public function trashed()
     {
         $query = $this->makeSortAndFilter()->onlyTrashed();
+
         return $this->showList($query);
     }
 
@@ -164,6 +172,7 @@ abstract class XController extends Controller
 
             case 'edit':
                 $item = $this->resolveItem($parameters[0] ?? null);
+
                 return view($this->formView, compact('item'));
 
             case 'update':
@@ -185,7 +194,8 @@ abstract class XController extends Controller
 
     protected function do_bulk($msg, $action, $ids)
     {
-        logAdminBatch(__METHOD__ . '.' . $action, $this->_MODEL_, $ids);
+        logAdminBatch(__METHOD__.'.'.$action, $this->_MODEL_, $ids);
+
         return redirect()->back()->with(['message' => $msg]);
     }
 

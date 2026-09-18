@@ -19,7 +19,6 @@ class Item extends Model
         return $this->belongsTo(Menu::class, 'menu_id', 'id');
     }
 
-
     public function parent()
     {
         return $this->belongsTo(Item::class, 'parent');
@@ -46,15 +45,17 @@ class Item extends Model
             return $this->dest->webUrl();
         }
 
-        if (!empty($this->meta)) {
+        if (! empty($this->meta)) {
             if (config('app.xlang.active') && app()->getLocale() != config('app.xlang.main')) {
                 if ($this->meta[0] != '/') {
                     $welcome = \route('client.welcome');
-                    return str_replace($welcome, $welcome . '/' . app()->getLocale(), $this->meta);
+
+                    return str_replace($welcome, $welcome.'/'.app()->getLocale(), $this->meta);
                 } else {
-                    return '/' . app()->getLocale() . $this->meta;
+                    return '/'.app()->getLocale().$this->meta;
                 }
             }
+
             return $this->meta;
         }
 

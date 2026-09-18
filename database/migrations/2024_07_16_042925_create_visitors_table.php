@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Visitor;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -15,9 +16,9 @@ return new class extends Migration
             $table->id();
             $table->ipAddress('ip');
             $table->unsignedInteger('visit')->default(1);
-            $table->enum('browser',array_keys(\App\Models\Visitor::$browserList))->nullable();
-            $table->enum('os',array_keys(\App\Models\Visitor::$osList))->nullable();
-            $table->enum('engine',array_keys(\App\Models\Visitor::$engines))->nullable();
+            $table->enum('browser', array_keys(Visitor::$browserList))->nullable();
+            $table->enum('os', array_keys(Visitor::$osList))->nullable();
+            $table->enum('engine', array_keys(Visitor::$engines))->nullable();
             $table->string('version')->nullable();
             $table->string('display')->nullable();
             $table->string('keywords')->nullable();

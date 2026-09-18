@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 use Spatie\Image\Enums\AlignPosition;
 use Spatie\Image\Enums\Fit;
 use Spatie\Image\Enums\Unit;
-use Spatie\MediaLibrary\Conversions\Manipulations;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -15,16 +14,16 @@ use Spatie\Translatable\HasTranslations;
 
 class Gallery extends Model implements HasMedia
 {
-    use HasFactory,InteractsWithMedia,HasTranslations;
+    use HasFactory,HasTranslations,InteractsWithMedia;
 
+    public $translatable = ['title', 'description'];
 
-    public $translatable = ['title','description'];
     public function images()
     {
         return $this->hasMany(Image::class, 'gallery_id', 'id')->orderBy('sort')->orderByDesc('id');
     }
 
-    public function registerMediaConversions(Media $media = null): void
+    public function registerMediaConversions(?Media $media = null): void
     {
         $this->addMediaConversion('gallery-image')->optimize();
 
@@ -33,18 +32,18 @@ class Gallery extends Model implements HasMedia
         $mc = $this->addMediaConversion('gthumb')->width($t[0])
             ->height($t[1])
             ->nonQueued()
-            ->crop( $t[0], $t[1])
+            ->crop($t[0], $t[1])
             ->optimize()
             ->format(getSetting('optimize'));
-        if (getSetting('watermark')){
+        if (getSetting('watermark')) {
             $mc->watermark(public_path('upload/images/logo.png'),
-                    AlignPosition::BottomLeft, 5, 5, Unit::Percent,
-                    config('app.media.watermark_size'), Unit::Percent,
-                    config('app.media.watermark_size'), Unit::Percent, Fit::Contain,
-                    config('app.media.watermark_opacity'));
+                AlignPosition::BottomLeft, 5, 5, Unit::Percent,
+                config('app.media.watermark_size'), Unit::Percent,
+                config('app.media.watermark_size'), Unit::Percent, Fit::Contain,
+                config('app.media.watermark_opacity'));
         }
 
-//            ->withResponsiveImages();
+        //            ->withResponsiveImages();
     }
 
     public function getRouteKeyName()
@@ -63,17 +62,18 @@ class Gallery extends Model implements HasMedia
 
     public function author()
     {
-        return $this->belongsTo(\App\Models\User::class);
+        return $this->belongsTo(User::class);
     }
 
-    public function attachs(){
-        return $this->morphMany(Attachment::class,'attachable');
+    public function attachs()
+    {
+        return $this->morphMany(Attachment::class, 'attachable');
     }
 
-    public function webUrl(){
-        return fixUrlLang(route('client.gallery',$this->slug));
+    public function webUrl()
+    {
+        return fixUrlLang(route('client.gallery', $this->slug));
     }
-
 
     public function comments()
     {

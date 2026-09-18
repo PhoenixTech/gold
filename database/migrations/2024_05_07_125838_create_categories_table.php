@@ -14,20 +14,20 @@ return new class extends Migration
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
             $table->text('name');
-            $table->string('slug',128)->unique();
+            $table->string('slug', 128)->unique();
             $table->text('subtitle')->nullable();
             $table->string('icon')->nullable();
             $table->text('description')->nullable();
             $table->integer('sort')->default(0);
-            $table->string('image',2048)->nullable()->default(null);
-            $table->string('svg',2048)->nullable()->default(null);
-            $table->string('bg',2048)->nullable()->default(null);
+            $table->string('image', 2048)->nullable()->default(null);
+            $table->string('svg', 2048)->nullable()->default(null);
+            $table->string('bg', 2048)->nullable()->default(null);
             $table->unsignedInteger('parent_id')->nullable()->default(null)->index();
             $table->json('theme')->nullable();
             $table->text('canonical')->nullable();
             $table->boolean('hide')->default(false)->comment('hide in menu as sub category');
-            $table->string('bg_color')->default("#ffffff");
-            $table->string('color')->default("#000000");
+            $table->string('bg_color')->default('#ffffff');
+            $table->string('color')->default('#000000');
             $table->softDeletes();
             $table->timestamps();
         });

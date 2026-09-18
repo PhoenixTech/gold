@@ -12,7 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasColumn('categories', 'code')) {
+        if (! Schema::hasColumn('categories', 'code')) {
             Schema::table('categories', function (Blueprint $table) {
                 $table->string('code', 10)->nullable()->after('slug')->index();
             });
@@ -39,7 +39,7 @@ return new class extends Migration
             // Decode spatie translatable json if applicable
             $decoded = json_decode($rawName, true);
             $searchableText = is_array($decoded) ? implode(' ', $decoded) : $rawName;
-            $searchableText .= ' ' . ($category->slug ?? '');
+            $searchableText .= ' '.($category->slug ?? '');
 
             foreach ($mappings as $code => $keywords) {
                 foreach ($keywords as $keyword) {

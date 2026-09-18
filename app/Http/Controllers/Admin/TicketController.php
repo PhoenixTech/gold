@@ -2,39 +2,32 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
 use App\Http\Controllers\XController;
 use App\Http\Requests\TicketSaveRequest;
-use App\Models\Access;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
-use App\Helper;
-use function App\Helpers\hasCreateRoute;
 
 class TicketController extends XController
 {
-
     // protected  $_MODEL_ = Ticket::class;
     // protected  $SAVE_REQUEST = TicketSaveRequest::class;
 
-    protected $cols = ['title','status','customer_id'];
+    protected $cols = ['title', 'status', 'customer_id'];
+
     protected $extra_cols = ['id'];
 
     protected $searchable = [];
 
     protected $listView = 'admin.tickets.ticket-list';
+
     protected $formView = 'admin.tickets.ticket-form';
 
-
     protected $buttons = [
-        'edit' =>
-            ['title' => "Edit", 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
-//        'show' =>
-//            ['title' => "Detail", 'class' => 'btn-outline-light', 'icon' => 'ri-eye-line'],
-        'destroy' =>
-            ['title' => "Remove", 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-close-line'],
+        'edit' => ['title' => 'Edit', 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
+        //        'show' =>
+        //            ['title' => "Detail", 'class' => 'btn-outline-light', 'icon' => 'ri-eye-line'],
+        'destroy' => ['title' => 'Remove', 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-close-line'],
     ];
-
 
     public function __construct()
     {
@@ -42,14 +35,15 @@ class TicketController extends XController
     }
 
     /**
-     * @param $ticket Ticket
-     * @param $request  TicketSaveRequest
+     * @param  $ticket  Ticket
+     * @param  $request  TicketSaveRequest
      * @return Ticket
      */
     public function save($ticket, $request)
     {
 
         $ticket->save();
+
         return $ticket;
 
     }
@@ -58,9 +52,9 @@ class TicketController extends XController
     {
         $query = $this->makeSortAndFilter();
         $query = $query->whereNull('parent_id');
+
         return $this->showList($query);
     }
-
 
     /**
      * Show the form for creating a new resource.
@@ -83,7 +77,7 @@ class TicketController extends XController
     public function bulk(Request $request)
     {
 
-//        dd($request->all());
+        //        dd($request->all());
         $data = explode('.', $request->input('action'));
         $action = $data[0];
         $ids = $request->input('id');
@@ -105,7 +99,7 @@ class TicketController extends XController
                 $msg = __(':COUNT items answered successfully', ['COUNT' => count($ids)]);
                 break;
             default:
-                $msg = __('Unknown bulk action : :ACTION', ["ACTION" => $action]);
+                $msg = __('Unknown bulk action : :ACTION', ['ACTION' => $action]);
         }
 
         return $this->do_bulk($msg, $action, $ids);
@@ -116,28 +110,25 @@ class TicketController extends XController
         return parent::delete($item);
     }
 
-
     public function update(Request $request, Ticket $item)
     {
         $item->answer = $request->answer;
         $item->status = $request->status;
         $item->user_id = auth()->id();
         $item->save();
-        if ($request->has('answers')){
+        if ($request->has('answers')) {
             foreach ($request->answers as $id => $answer) {
                 Ticket::whereId($id)->update(['answer' => $answer]);
             }
         }
-        logAdmin(__METHOD__,Ticket::class,$item->id);
+        logAdmin(__METHOD__, Ticket::class, $item->id);
         if ($request->ajax()) {
             return ['OK' => true,
-                "data" => modelWithCustomAttrs($item) ,
-                "message" => __('As you wished updated successfully'), "id" => $item->id];
+                'data' => modelWithCustomAttrs($item),
+                'message' => __('As you wished updated successfully'), 'id' => $item->id];
         } else {
             return redirect(getRoute('edit', $item->{$item->getRouteKeyName()}))
                 ->with(['message' => __('As you wished updated successfully')]);
         }
     }
-
-
 }

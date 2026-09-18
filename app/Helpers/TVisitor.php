@@ -5,27 +5,30 @@ namespace App\Helpers;
 use App\Models\Visitor;
 
 /**
- * @package Helpers
  * @author A1Gard <a1gard@4xmen.ir>
+ *
  * @date : 3-April-2013 (14-1-1392)
+ *
  * @time : 20:32
- * @subpackage   TVisitor
+ *
  * @version 1.0
+ *
  * @todo : TVisitor class for get visitor info
  */
-class TVisitor {
-
-    function __construct() {
-
-    }
+class TVisitor
+{
+    public function __construct() {}
 
     /**
      * @todo Detect visitor OS
+     *
      * @return int os number
      */
-    public static function DetectOSI() {
-        if (!isset($_SERVER['HTTP_USER_AGENT']))
+    public static function DetectOSI()
+    {
+        if (! isset($_SERVER['HTTP_USER_AGENT'])) {
             return 0;
+        }
 
         $os_list = array_values(Visitor::$osList);
 
@@ -40,11 +43,14 @@ class TVisitor {
 
     /**
      * @todo Detect visitor OS
+     *
      * @return string OS name
      */
-    public static function DetectOS() {
-        if (!isset($_SERVER['HTTP_USER_AGENT']))
+    public static function DetectOS()
+    {
+        if (! isset($_SERVER['HTTP_USER_AGENT'])) {
             return null;
+        }
 
         $os_list = Visitor::$osList;
 
@@ -59,10 +65,12 @@ class TVisitor {
 
     /**
      * @todo Detect if visitor is using a mobile device
+     *
      * @return bool
      */
-    public static function IsMobile() {
-        if (!isset($_SERVER['HTTP_USER_AGENT'])) {
+    public static function IsMobile()
+    {
+        if (! isset($_SERVER['HTTP_USER_AGENT'])) {
             return false;
         }
 
@@ -110,15 +118,16 @@ class TVisitor {
         return false;
     }
 
-
-
     /**
      * @todo Get browser name only
+     *
      * @return string browser name
      */
-    public static function DetectBrowser() {
-        if (!isset($_SERVER['HTTP_USER_AGENT']))
+    public static function DetectBrowser()
+    {
+        if (! isset($_SERVER['HTTP_USER_AGENT'])) {
             return null;
+        }
 
         $browser_list = Visitor::$browserList;
 
@@ -133,11 +142,14 @@ class TVisitor {
 
     /**
      * @todo Get browser name only
+     *
      * @return int browser num
      */
-    public static function DetectBrowserI() {
-        if (!isset($_SERVER['HTTP_USER_AGENT']))
+    public static function DetectBrowserI()
+    {
+        if (! isset($_SERVER['HTTP_USER_AGENT'])) {
             return 0;
+        }
 
         $browser_list = array_values(Visitor::$browserList);
 
@@ -152,10 +164,12 @@ class TVisitor {
 
     /**
      * @todo Find browser version
+     *
      * @return string version
      */
-    public static function BrowserVersion() {
-        if (!isset($_SERVER['HTTP_USER_AGENT'])) {
+    public static function BrowserVersion()
+    {
+        if (! isset($_SERVER['HTTP_USER_AGENT'])) {
             return '0';
         }
 
@@ -199,7 +213,7 @@ class TVisitor {
                 break;
             default:
                 // Generic version detection for other browsers
-                if (preg_match('/' . preg_quote($browser, '/') . '\/(\d+(\.\d+)*)/', $ua, $matches)) {
+                if (preg_match('/'.preg_quote($browser, '/').'\/(\d+(\.\d+)*)/', $ua, $matches)) {
                     $version = $matches[1];
                 }
                 break;
@@ -210,10 +224,12 @@ class TVisitor {
 
     /**
      * Get searched keywords from referrer URL
-     * @param string $referer
+     *
+     * @param  string  $referer
      * @return array|null
      */
-    public static function GetKeyword($referer = null) {
+    public static function GetKeyword($referer = null)
+    {
         if ($referer === null) {
             $referer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
         }
@@ -233,10 +249,10 @@ class TVisitor {
         foreach ($engines as $engine => $params) {
             if (strpos($host, $engine) !== false) {
                 foreach ($params as $param) {
-                    if (isset($query_params[$param]) && !empty($query_params[$param])) {
+                    if (isset($query_params[$param]) && ! empty($query_params[$param])) {
                         return [
                             'engine' => $engine,
-                            'keyword' => urldecode($query_params[$param])
+                            'keyword' => urldecode($query_params[$param]),
                         ];
                     }
                 }
@@ -246,74 +262,75 @@ class TVisitor {
         return null;
     }
 
-//    /**
-//     * @param string $class alternative class
-//     * return vistor os icon
-//     * @uses awesome font
-//     */
-//    static public function GetOSIcon($class = '') {
-//        // get os
-//        $os_int = self::DetectOSI();
-//
-//        $win = range(1, 16);
-//        $linux = range(17, 19);
-//        $osx = array(20, 21);
-//        $android = array(25);
-//        $searchbot = array(27);
-//        $other = array(0, 22, 23, 24, 26);
-//
-//        switch (true) {
-//            case in_array($os_int, $win):
-//                $icon = 'windows';
-//                break;
-//            case in_array($os_int, $linux):
-//                $icon = 'linux';
-//                break;
-//            case in_array($os_int, $osx):
-//                $icon = 'apple';
-//                break;
-//
-//            case in_array($os_int, $android):
-//                $icon = 'android';
-//                break;
-//
-//            case in_array($os_int, $searchbot):
-//                $icon = 'google';
-//                break;
-//            default:
-//                $icon = 'question';
-//                break;
-//        }
-//
-//        $result = '<span class="fa fa-' . $icon . ' ' . $class . '" title="'
-//            . self::DetectOS() . '" ></span>';
-//
-//        return $result;
-//    }
-//    /**
-//     * @param string $class alternative class
-//     * return vistor browser icon
-//     * @uses awesome font
-//     */
-//    static public function GetBrowerIcon($class = '') {
-//        // get os
-//        $bowser = self::DetectBrowser();
-//
-//
-//
-//        $result = '<span class="fa fa-' . strtolower($bowser) . ' ' . $class . '" title="'
-//            . self::DetectBrowser() . '" ></span>';
-//        return $result;
-//    }
+    //    /**
+    //     * @param string $class alternative class
+    //     * return vistor os icon
+    //     * @uses awesome font
+    //     */
+    //    static public function GetOSIcon($class = '') {
+    //        // get os
+    //        $os_int = self::DetectOSI();
+    //
+    //        $win = range(1, 16);
+    //        $linux = range(17, 19);
+    //        $osx = array(20, 21);
+    //        $android = array(25);
+    //        $searchbot = array(27);
+    //        $other = array(0, 22, 23, 24, 26);
+    //
+    //        switch (true) {
+    //            case in_array($os_int, $win):
+    //                $icon = 'windows';
+    //                break;
+    //            case in_array($os_int, $linux):
+    //                $icon = 'linux';
+    //                break;
+    //            case in_array($os_int, $osx):
+    //                $icon = 'apple';
+    //                break;
+    //
+    //            case in_array($os_int, $android):
+    //                $icon = 'android';
+    //                break;
+    //
+    //            case in_array($os_int, $searchbot):
+    //                $icon = 'google';
+    //                break;
+    //            default:
+    //                $icon = 'question';
+    //                break;
+    //        }
+    //
+    //        $result = '<span class="fa fa-' . $icon . ' ' . $class . '" title="'
+    //            . self::DetectOS() . '" ></span>';
+    //
+    //        return $result;
+    //    }
+    //    /**
+    //     * @param string $class alternative class
+    //     * return vistor browser icon
+    //     * @uses awesome font
+    //     */
+    //    static public function GetBrowerIcon($class = '') {
+    //        // get os
+    //        $bowser = self::DetectBrowser();
+    //
+    //
+    //
+    //        $result = '<span class="fa fa-' . strtolower($bowser) . ' ' . $class . '" title="'
+    //            . self::DetectBrowser() . '" ></span>';
+    //        return $result;
+    //    }
 
-    public static function getRefererDomain() {
-        if(isset($_SERVER['HTTP_REFERER'])) {
+    public static function getRefererDomain()
+    {
+        if (isset($_SERVER['HTTP_REFERER'])) {
             $referer = parse_url($_SERVER['HTTP_REFERER']);
             $domain = isset($referer['host']) ? $referer['host'] : null;
+
             return $domain;
         } else {
             return null;
         }
     }
-
 }

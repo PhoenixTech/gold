@@ -9,7 +9,6 @@ use Spatie\Translatable\HasTranslations;
 
 class Prop extends Model
 {
-
     use HasFactory, HasTranslations, SoftDeletes;
 
     public $translatable = ['label', 'unit'];
@@ -17,7 +16,7 @@ class Prop extends Model
     protected $casts = [
         'dataz',
         'optionz',
-        'datas'
+        'datas',
     ];
 
     public static $prop_types = ['text', 'number', 'checkbox', 'color', 'select', 'multi', 'singlemulti', 'date', 'time'];

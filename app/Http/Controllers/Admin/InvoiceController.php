@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Services\DeliveryService;
 use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -107,9 +108,9 @@ class InvoiceController extends XController
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Builder<\App\Models\Invoice>
+     * @return Builder<Invoice>
      */
-    private function makeSortAndFilterQuery(mixed $displayStatus): \Illuminate\Database\Eloquent\Builder
+    private function makeSortAndFilterQuery(mixed $displayStatus): Builder
     {
         $isReceiptFilter = in_array($displayStatus, [Invoice::WAITING_RECEIPT, Invoice::WAITING_CONFIRMATION], true);
 

@@ -2,10 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Models\Access;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Access>
+ * @extends Factory<Access>
  */
 class AccessFactory extends Factory
 {

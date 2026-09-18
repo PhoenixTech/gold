@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('items', function (Blueprint $table) {
             $table->id();
             $table->text('title');
-//            $table->morphs('menuable')->nullable();;
+            //            $table->morphs('menuable')->nullable();;
             $table->unsignedBigInteger('menuable_id')->nullable();
             $table->string('menuable_type')->nullable();
             $table->string('kind')->nullable();

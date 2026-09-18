@@ -11,7 +11,7 @@ trait HandlesAdminFilters
      */
     protected function makeSortAndFilter()
     {
-        if (!request()->has('sort') || !in_array(request('sort'), $this->cols)) {
+        if (! request()->has('sort') || ! in_array(request('sort'), $this->cols)) {
             $query = $this->_MODEL_::orderByDesc('id');
         } else {
             $query = $this->_MODEL_::orderBy(request('sort'), request('sortType', 'asc'));
@@ -41,14 +41,14 @@ trait HandlesAdminFilters
         }
 
         $search = trim(request()->input('q', ''));
-        if (mb_strlen($search) > 0 && !empty($this->searchable)) {
+        if (mb_strlen($search) > 0 && ! empty($this->searchable)) {
             $searchable = $this->searchable;
             $query->where(function ($q) use ($search, $searchable) {
                 foreach ($searchable as $key => $col) {
                     if ($key === 0) {
-                        $q->where($col, 'LIKE', '%' . $search . '%');
+                        $q->where($col, 'LIKE', '%'.$search.'%');
                     } else {
-                        $q->orWhere($col, 'LIKE', '%' . $search . '%');
+                        $q->orWhere($col, 'LIKE', '%'.$search.'%');
                     }
                 }
             });

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class AttachmentSaveRequest extends FormRequest
@@ -17,16 +18,16 @@ class AttachmentSaveRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
 
         return [
-            'title' => ['required','string','min:2'],
-            'body' => ['nullable','string'],
-            'subtitle' => ['nullable','string'],
-            'file' => ['nullable','mimes:png,jpg,svg,mp4,pdf,docx,zip,rar,mp3','max:'.getMaxUploadSize()]
+            'title' => ['required', 'string', 'min:2'],
+            'body' => ['nullable', 'string'],
+            'subtitle' => ['nullable', 'string'],
+            'file' => ['nullable', 'mimes:png,jpg,svg,mp4,pdf,docx,zip,rar,mp3', 'max:'.getMaxUploadSize()],
         ];
     }
 }

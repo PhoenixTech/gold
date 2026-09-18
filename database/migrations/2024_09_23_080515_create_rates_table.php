@@ -19,7 +19,6 @@ return new class extends Migration
             $table->unsignedBigInteger('evaluation_id');
             $table->timestamps();
 
-
             $table->foreign('evaluation_id')
                 ->references('id')->on('evaluations');
         });

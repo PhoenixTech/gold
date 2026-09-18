@@ -5,7 +5,6 @@ namespace App\Http\Resources;
 use App\Models\Group;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Http\Resources\Json\ResourceCollection;
 
 class GroupCollection extends JsonResource
 {
@@ -19,11 +18,12 @@ class GroupCollection extends JsonResource
         /**
          * @var $this Group
          */
-
-        if (!$request['loadGroup'])
+        if (! $request['loadGroup']) {
             $request->merge([
-                'loadGroup' => false
+                'loadGroup' => false,
             ]);
+        }
+
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -38,7 +38,7 @@ class GroupCollection extends JsonResource
             'posts' => $this->when($request->input('loadPost', true),
                 PostResource::collection($this->posts()->paginate($request->input('per_page', 20)))
                     ->additional(['request' => $request['loadGroup']])),
-            'posts_pages_count' => ceil($this->posts()->count()  / $request->input('per_page', 20) ),
+            'posts_pages_count' => ceil($this->posts()->count() / $request->input('per_page', 20)),
         ];
     }
 }

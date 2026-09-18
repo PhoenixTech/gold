@@ -5,7 +5,6 @@ namespace App\Http\Resources;
 use App\Models\State;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Http\Resources\Json\ResourceCollection;
 
 class StateCollection extends JsonResource
 {
@@ -24,7 +23,7 @@ class StateCollection extends JsonResource
             'name' => $this->name,
             'country' => $this->country,
             'lat' => $this->lat,
-            'lng' => $this->lng
+            'lng' => $this->lng,
         ];
     }
 }

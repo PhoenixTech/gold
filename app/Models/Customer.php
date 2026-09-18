@@ -81,6 +81,7 @@ class Customer extends Authenticatable
     }
 
     protected ?array $memoizedFavoriteProductIds = null;
+
     protected ?array $memoizedBookmarkProductIds = null;
 
     public function favorites()

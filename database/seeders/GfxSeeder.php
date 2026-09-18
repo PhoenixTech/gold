@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Gfx;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class GfxSeeder extends Seeder
@@ -17,62 +16,61 @@ class GfxSeeder extends Seeder
 
         $array = [
             [
-                'key'=>'background',
-                'label'=>'background color',
-                'system'=>'1',
-                'value'=> '#ffffff'
+                'key' => 'background',
+                'label' => 'background color',
+                'system' => '1',
+                'value' => '#ffffff',
             ],
             [
-                'key'=>'primary',
-                'label'=>'Primary color',
-                'system'=>'1',
-                'value'=> '#db9a00'
+                'key' => 'primary',
+                'label' => 'Primary color',
+                'system' => '1',
+                'value' => '#db9a00',
             ],
             [
-                'key'=>'secondary',
-                'label'=>'Secondary color',
-                'system'=>'1',
-                'value'=> '#3d3846'
+                'key' => 'secondary',
+                'label' => 'Secondary color',
+                'system' => '1',
+                'value' => '#3d3846',
             ],
             [
-                'key'=>'text',
-                'label'=>'Text color',
-                'system'=>'1',
-                'value'=> '#111111'
+                'key' => 'text',
+                'label' => 'Text color',
+                'system' => '1',
+                'value' => '#111111',
             ],
             [
-                'key'=>'dark',
-                'label'=>'Theme mode',
-                'system'=>'1',
-                'value'=> '0'
+                'key' => 'dark',
+                'label' => 'Theme mode',
+                'system' => '1',
+                'value' => '0',
             ],
             [
-                'key'=>'border-radius',
-                'label'=>'Border radius',
-                'system'=>'1',
-                'value'=> '7px'
+                'key' => 'border-radius',
+                'label' => 'Border radius',
+                'system' => '1',
+                'value' => '7px',
             ],
             [
-                'key'=>'shadow',
-                'label'=>'Shadow',
-                'system'=>'1',
-                'value'=> '2px 2px 4px #777777'
+                'key' => 'shadow',
+                'label' => 'Shadow',
+                'system' => '1',
+                'value' => '2px 2px 4px #777777',
             ],
             [
-                'key'=>'container',
-                'label'=>'Container',
-                'system'=>'1',
-                'value'=> 'container'
+                'key' => 'container',
+                'label' => 'Container',
+                'system' => '1',
+                'value' => 'container',
             ],
             [
-                'key'=>'font',
-                'label'=>'font',
-                'system'=>'1',
-                'value'=> 'Yekan Bakh VF'
+                'key' => 'font',
+                'label' => 'font',
+                'system' => '1',
+                'value' => 'Yekan Bakh VF',
             ],
 
         ];
-
 
         foreach ($array as $item) {
             $item['created_at'] = date('Y-m-d H:i:s');

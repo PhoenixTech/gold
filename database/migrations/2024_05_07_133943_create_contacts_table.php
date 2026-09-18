@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('name');
             $table->string('email');
             $table->string('subject')->nullable();
-            $table->string('mobile',15);
-            $table->string('hash',32)->unique()->nullable();
+            $table->string('mobile', 15);
+            $table->string('hash', 32)->unique()->nullable();
             $table->text('body');
             $table->boolean('is_answered')->default(false);
             $table->timestamps();

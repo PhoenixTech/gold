@@ -9,15 +9,18 @@ class Order extends Model
 {
     use HasFactory;
 
-    public function product(){
+    public function product()
+    {
         return $this->belongsTo(Product::class);
     }
 
-    public function quantity(){
+    public function quantity()
+    {
         return $this->belongsTo(Quantity::class);
     }
 
-    public function invoice(){
+    public function invoice()
+    {
         return $this->belongsTo(Invoice::class);
     }
 }

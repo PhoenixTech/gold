@@ -14,12 +14,13 @@ class InvoiceSucceed
      * @var Invoice
      */
     public $invoice;
+
     /**
      * @var Payment
      */
     public $payment;
 
-    public function __construct(Invoice $invoice,Payment $payment)
+    public function __construct(Invoice $invoice, Payment $payment)
     {
         $this->invoice = $invoice;
         $this->payment = $payment;

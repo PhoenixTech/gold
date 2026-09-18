@@ -4,8 +4,8 @@ namespace App\Helpers;
 
 class PersianFaker
 {
-
     private static $mobile_prefix = ['0912', '0919', '0935', '0936', '0937', '0933', '0938', '0915'];
+
     private static $card_prefix = ['6037', '6104', '6391', '6280', '6273', '6287', '6280', '5022'];
 
     private static $colors = [
@@ -31,24 +31,22 @@ class PersianFaker
         'olive' => ['name' => 'زیتونی', 'code' => '#808000'],
     ];
 
-    static public function mobile()
+    public static function mobile()
     {
-        return self::$mobile_prefix[rand(0, count(self::$mobile_prefix) - 1)] . rand(1000000, 9999999);
+        return self::$mobile_prefix[rand(0, count(self::$mobile_prefix) - 1)].rand(1000000, 9999999);
     }
 
-
-    static public function shetabCard()
+    public static function shetabCard()
     {
-        return self::$card_prefix[rand(0, count(self::$card_prefix) - 1)] . '-'
-            . rand(1000, 9999) . '-' . rand(1000, 9999) . '-' . rand(1000, 9999);
+        return self::$card_prefix[rand(0, count(self::$card_prefix) - 1)].'-'
+            .rand(1000, 9999).'-'.rand(1000, 9999).'-'.rand(1000, 9999);
     }
 
-
-    static function validCodeMeli()
+    public static function validCodeMeli()
     {
         do {
             $randomNumber = str_pad(mt_rand(1, 99999999), 8, '0', STR_PAD_LEFT);
-            $code = '0000' . $randomNumber;
+            $code = '0000'.$randomNumber;
             $code = substr($code, strlen($code) - 10, 10);
 
             if (intval(substr($code, 3, 6)) == 0) {
@@ -69,10 +67,11 @@ class PersianFaker
         } while (true);
     }
 
-
-    static public function color(){
+    public static function color()
+    {
         $colors = self::$colors;
         shuffle($colors);
+
         return $colors[0];
     }
 }

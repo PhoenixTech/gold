@@ -101,7 +101,7 @@ class ShopVisitController extends XController
                 ->with(['user', 'state', 'city'])
                 ->completed();
 
-            if (!empty($ids)) {
+            if (! empty($ids)) {
                 $query->whereIn('id', $ids);
             }
 

@@ -8,18 +8,17 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Image\Enums\AlignPosition;
 use Spatie\Image\Enums\Fit;
 use Spatie\Image\Enums\Unit;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Tags\HasTags;
 use Spatie\Translatable\HasTranslations;
 
 class Post extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, InteractsWithMedia, HasTranslations, HasTags;
+    use HasFactory, HasTags, HasTranslations, InteractsWithMedia, SoftDeletes;
 
     public $translatable = ['title', 'subtitle', 'body'];
-
 
     public function groups()
     {
@@ -28,14 +27,13 @@ class Post extends Model implements HasMedia
 
     public function author()
     {
-        return $this->belongsTo(\App\Models\User::class);
+        return $this->belongsTo(User::class);
     }
 
     public function getRouteKeyName()
     {
         return 'slug';
     }
-
 
     public function registerMediaConversions(?Media $media = null): void
     {
@@ -86,15 +84,13 @@ class Post extends Model implements HasMedia
         }
     }
 
-
     public function spendTime()
     {
         $word = strlen(strip_tags($this->body));
         $m = ceil($word / 1350);
 
-        return $m . ' ' . __('minute(s)');
+        return $m.' '.__('minute(s)');
     }
-
 
     public function comments()
     {
@@ -116,27 +112,23 @@ class Post extends Model implements HasMedia
         return $this->morphMany(Attachment::class, 'attachable');
     }
 
-
-
-
-//    public function toArray()
-//    {
-//        return [
-//            'id' => $this->id,
-//            'title' => $this->title,
-//            'subtitle' => $this->subtitle,
-//            'body' => $this->body,
-//            'categories' => $this->categories->implode(' ') ?? null,
-//            'author' => $this->author->name ?? null,
-//            'tags' => $this->tags->implode(' ') ?? null,
-//        ];
-//    }
+    //    public function toArray()
+    //    {
+    //        return [
+    //            'id' => $this->id,
+    //            'title' => $this->title,
+    //            'subtitle' => $this->subtitle,
+    //            'body' => $this->body,
+    //            'categories' => $this->categories->implode(' ') ?? null,
+    //            'author' => $this->author->name ?? null,
+    //            'tags' => $this->tags->implode(' ') ?? null,
+    //        ];
+    //    }
 
     public function webUrl()
     {
         return fixUrlLang(route('client.post', $this->slug));
     }
-
 
     public function markup()
     {
@@ -151,6 +143,7 @@ class Post extends Model implements HasMedia
         $app = config('app.name');
         $logo = asset('upload/images/logo.png');
         $author = $this->author->name ?? $app;
+
         return <<<RESULT
 <script type="application/ld+json">
 {
@@ -192,18 +185,22 @@ RESULT;
         }
     }
 
-    public function tableOfContents(){
-        list($toc, $modifiedHtml) = generateTOC($this->body);
+    public function tableOfContents()
+    {
+        [$toc, $modifiedHtml] = generateTOC($this->body);
+
         return $toc;
     }
 
-    public function bodyContent(){
-        list($toc, $modifiedHtml) = generateTOC($this->body);
+    public function bodyContent()
+    {
+        [$toc, $modifiedHtml] = generateTOC($this->body);
+
         return $modifiedHtml;
     }
 
-
-    public function evaluations(){
+    public function evaluations()
+    {
 
         return Evaluation::where(function ($query) {
             $query->whereNull('evaluationable_type')
@@ -211,12 +208,12 @@ RESULT;
         })->orWhere(function ($query) {
             $query->where('evaluationable_type', Post::class)
                 ->whereNull('evaluationable_id');
-        })->orWhere(function ($query ) {
+        })->orWhere(function ($query) {
             $query->where('evaluationable_type', Post::class)
-                ->where('evaluationable_id',$this->id);
-        })->orWhere(function ($query ) {
+                ->where('evaluationable_id', $this->id);
+        })->orWhere(function ($query) {
             $query->where('evaluationable_type', Group::class)
-                ->where('evaluationable_id',$this->group_id);
+                ->where('evaluationable_id', $this->group_id);
         })->get();
     }
 }

@@ -13,6 +13,7 @@ class ProductSkuTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected Category $category;
 
     protected function setUp(): void

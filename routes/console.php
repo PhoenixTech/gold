@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\AdminLog;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -16,4 +17,4 @@ Schedule::command('gold:free')
 
 Schedule::command('offline:expire')->everyFifteenMinutes();
 
-Schedule::command('model:prune', ['--model' => [\App\Models\AdminLog::class]])->daily();
+Schedule::command('model:prune', ['--model' => [AdminLog::class]])->daily();

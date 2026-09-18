@@ -2,39 +2,31 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
 use App\Http\Controllers\XController;
 use App\Http\Requests\AttachmentSaveRequest;
-use App\Models\Access;
 use App\Models\Attachment;
 use Illuminate\Http\Request;
-use App\Helper;
-use function App\Helpers\hasCreateRoute;
 
 class AttachmentController extends XController
 {
-
     // protected  $_MODEL_ = Attachment::class;
     // protected  $SAVE_REQUEST = AttachmentSaveRequest::class;
 
-    protected $cols = ['title','ext','is_fillable'];
-    protected $extra_cols = ['slug','id'];
+    protected $cols = ['title', 'ext', 'is_fillable'];
+
+    protected $extra_cols = ['slug', 'id'];
 
     protected $searchable = ['title', 'subtitle', 'body'];
 
     protected $listView = 'admin.attachments.attachment-list';
+
     protected $formView = 'admin.attachments.attachment-form';
 
-
     protected $buttons = [
-        'edit' =>
-            ['title' => "Edit", 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
-        'show' =>
-            ['title' => "Detail", 'class' => 'btn-outline-secondary', 'icon' => 'ri-eye-line'],
-        'destroy' =>
-            ['title' => "Remove", 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-delete-bin-line'],
+        'edit' => ['title' => 'Edit', 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
+        'show' => ['title' => 'Detail', 'class' => 'btn-outline-secondary', 'icon' => 'ri-eye-line'],
+        'destroy' => ['title' => 'Remove', 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-delete-bin-line'],
     ];
-
 
     public function __construct()
     {
@@ -42,35 +34,35 @@ class AttachmentController extends XController
     }
 
     /**
-     * @param $attachment Attachment
-     * @param $request  AttachmentSaveRequest
+     * @param  $attachment  Attachment
+     * @param  $request  AttachmentSaveRequest
      * @return Attachment
      */
     public function save($attachment, $request)
     {
 
         $attachment->title = $request->input('title');
-        $attachment->slug = $this->getSlug($attachment,'slug','title');
+        $attachment->slug = $this->getSlug($attachment, 'slug', 'title');
         $attachment->body = $request->input('body');
         $attachment->subtitle = $request->input('subtitle');
         $attachment->is_fillable = $request->has('is_fillable');
-        if ($request->has('file')){
-            $attachment->file = $this->storeFile('file',$attachment, 'attachments');
+        if ($request->has('file')) {
+            $attachment->file = $this->storeFile('file', $attachment, 'attachments');
             $attachment->size = $request->file('file')->getSize();
             $attachment->ext = $request->file('file')->getClientOriginalExtension();
         }
-        if ($request->has('attachable_id') && $request->has('attachable_id')){
-            $attachment->attachable_type  = $request->input('attachable_type');
-            $attachment->attachable_id  = $request->input('attachable_id');
-        }else{
-            $attachment->attachable_type  = null;
-            $attachment->attachable_id  = null;
+        if ($request->has('attachable_id') && $request->has('attachable_id')) {
+            $attachment->attachable_type = $request->input('attachable_type');
+            $attachment->attachable_id = $request->input('attachable_id');
+        } else {
+            $attachment->attachable_type = null;
+            $attachment->attachable_id = null;
         }
         $attachment->save();
+
         return $attachment;
 
     }
-
 
     /**
      * Show the form for creating a new resource.
@@ -94,7 +86,7 @@ class AttachmentController extends XController
     public function bulk(Request $request)
     {
 
-//        dd($request->all());
+        //        dd($request->all());
         $data = explode('.', $request->input('action'));
         $action = $data[0];
         $ids = $request->input('id');
@@ -105,7 +97,7 @@ class AttachmentController extends XController
                 break;
 
             default:
-                $msg = __('Unknown bulk action : :ACTION', ["ACTION" => $action]);
+                $msg = __('Unknown bulk action : :ACTION', ['ACTION' => $action]);
         }
 
         return $this->do_bulk($msg, $action, $ids);
@@ -115,32 +107,33 @@ class AttachmentController extends XController
     {
         return parent::delete($item);
     }
+
     public function detach(Attachment $item)
     {
         $item->attachable_id = null;
         $item->attachable_type = null;
         $item->save();
 
-        logAdmin(__METHOD__,__CLASS__,$item->id);
+        logAdmin(__METHOD__, __CLASS__, $item->id);
         if (request()->ajax()) {
-            return  ['OK' => true , 'message' => __('As you wished detached successfully')];
+            return ['OK' => true, 'message' => __('As you wished detached successfully')];
         }
+
         return redirect()->back()
             ->with(['message' => __('As you wished detached successfully')]);
     }
-
 
     public function update(Request $request, Attachment $item)
     {
         return $this->bringUp($request, $item);
     }
 
-    public function attaching(Request $request){
-        $item = new Attachment();
+    public function attaching(Request $request)
+    {
+        $item = new Attachment;
         $item = $this->save($item, $request);
-        logAdmin(__METHOD__,__CLASS__,$item->id);
-        return ['OK' => true,'data'=> $item,'message' => __('File uploaded successfully')];
+        logAdmin(__METHOD__, __CLASS__, $item->id);
+
+        return ['OK' => true, 'data' => $item, 'message' => __('File uploaded successfully')];
     }
-
-
 }

@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('tickets', function (Blueprint $table) {
             $table->id();
-            $table->string('title',128)->nullable()->default(null);
+            $table->string('title', 128)->nullable()->default(null);
             $table->unsignedBigInteger('customer_id');
             $table->unsignedBigInteger('user_id')->nullable();
             $table->text('body');
-            $table->enum('status',['PENDING','ANSWERED','CLOSED'])->default('PENDING');
+            $table->enum('status', ['PENDING', 'ANSWERED', 'CLOSED'])->default('PENDING');
             $table->text('answer')->nullable()->default(null);
             $table->unsignedInteger('parent_id')->nullable()->default(null)->index();
             $table->timestamps();

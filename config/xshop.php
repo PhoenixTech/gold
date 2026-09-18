@@ -1,14 +1,17 @@
 <?php
+
+use App\Payment\Zibal;
+
 return [
-    "payment" => [
-        'active_gateway' => env('PAY_GATEWAY', \App\Payment\Zibal::getName()),
+    'payment' => [
+        'active_gateway' => env('PAY_GATEWAY', Zibal::getName()),
         'gateways' => [
-            \App\Payment\Zibal::class,
+            Zibal::class,
         ],
         'config' => [
             'zibal' => [
                 'merchant' => env('ZIBAL_MERCHANT', 'zibal'),
-            ]
+            ],
         ],
-    ]
+    ],
 ];

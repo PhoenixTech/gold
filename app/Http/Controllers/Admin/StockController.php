@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Enums\QuantityPieceStatus;
 use App\Http\Controllers\XController;
-use App\Models\Category;
 use App\Models\Product;
 use App\Models\Quantity;
 use App\Services\AdminDashboardStats;

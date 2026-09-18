@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -9,12 +10,12 @@ use Symfony\Component\HttpFoundation\Response;
 class RestrictVisitorToPanel
 {
     /**
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
-        if ($user === null || ! $user instanceof \App\Models\User || ! $user->isVisitor()) {
+        if ($user === null || ! $user instanceof User || ! $user->isVisitor()) {
             return $next($request);
         }
 

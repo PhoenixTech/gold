@@ -41,6 +41,7 @@ class Comment extends Model
 
         if ($this->commentator_type == Customer::class) {
             $c = Customer::find($this->commentator_id);
+
             return [
                 'name' => $c?->name ?: ($this->name ?: __('Customer')),
                 'email' => $c?->email ?: ($this->email ?: ''),
@@ -49,6 +50,7 @@ class Comment extends Model
         }
         if ($this->commentator_type == User::class) {
             $c = User::find($this->commentator_id);
+
             return [
                 'name' => $c?->name ?: ($this->name ?: __('Admin')),
                 'email' => $c?->email ?: ($this->email ?: ''),

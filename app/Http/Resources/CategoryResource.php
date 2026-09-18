@@ -3,11 +3,10 @@
 namespace App\Http\Resources;
 
 use App\Models\Category;
-use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-//use Illuminate\Http\Resources\Json\ResourceCollection;
+// use Illuminate\Http\Resources\Json\ResourceCollection;
 
 class CategoryResource extends JsonResource
 {
@@ -21,11 +20,12 @@ class CategoryResource extends JsonResource
         /**
          * @var $this Category
          */
-
-        if (!$request['loadCategory'])
+        if (! $request['loadCategory']) {
             $request->merge([
-                'loadCategory' => false
+                'loadCategory' => false,
             ]);
+        }
+
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -42,7 +42,7 @@ class CategoryResource extends JsonResource
             'products' => $this->when($request->input('loadProduct', true),
                 ProductResource::collection($this->products()->paginate($request->input('per_page', 20)))
                     ->additional(['request' => $request['loadCategory']])),
-            'products_pages_count' => ceil($this->products()->count()  / $request->input('per_page', 20) ),
+            'products_pages_count' => ceil($this->products()->count() / $request->input('per_page', 20)),
         ];
     }
 }

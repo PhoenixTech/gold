@@ -1,16 +1,17 @@
 <?php
 
 namespace App\Providers;
+
 use App\Console\Commands\AssetsBuild;
 use App\Console\Commands\GoldFreePriceUpdate;
 use App\Console\Commands\GoldPriceUpdate;
+use App\Contracts\Payment;
 use App\Helpers\TDate;
 use App\Http\Middleware\Acl;
 use App\Models\Setting;
 use App\Observers\SettingObsever;
 use Carbon\Carbon;
 use Illuminate\Pagination\Paginator;
-use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 use Translator\Framework\TranslatorCommand;
 
@@ -28,8 +29,8 @@ class AppServiceProvider extends ServiceProvider
             GoldPriceUpdate::class,
             GoldFreePriceUpdate::class,
         ]);
-        foreach (config('xshop.payment.gateways') as $gateway){
-            /** @var \App\Contracts\Payment $gateway */
+        foreach (config('xshop.payment.gateways') as $gateway) {
+            /** @var Payment $gateway */
             $gateway::registerService();
         }
 
@@ -50,22 +51,23 @@ class AppServiceProvider extends ServiceProvider
         Paginator::useBootstrap();
         Carbon::macro('jdate', function ($format, $tr_num = 'fa') {
             $dt = TDate::GetInstance();
+
             return $dt->PDate($format, self::this()->timestamp);
         });
         Carbon::macro('ldate', function ($format) {
-            if (self::this()->timestamp == 0){
+            if (self::this()->timestamp == 0) {
                 return null;
             }
-            if (config('app.locale') == 'fa'){
-                $format = str_replace('-','/',$format);
+            if (config('app.locale') == 'fa') {
+                $format = str_replace('-', '/', $format);
+
                 return self::this()->jdate($format);
-            }else{
-                return date($format,self::this()->timestamp);
+            } else {
+                return date($format, self::this()->timestamp);
             }
         });
 
         Setting::observe(SettingObsever::class);
-
 
     }
 }

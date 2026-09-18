@@ -2,40 +2,32 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
 use App\Http\Controllers\XController;
 use App\Http\Requests\GallerySaveRequest;
-use App\Models\Access;
 use App\Models\Gallery;
 use App\Models\Image;
 use Illuminate\Http\Request;
-use App\Helper;
-use function App\Helpers\hasCreateRoute;
 
 class GalleryController extends XController
 {
-
     // protected  $_MODEL_ = Gallery::class;
     // protected  $SAVE_REQUEST = GallerySaveRequest::class;
 
-    protected $cols = ['title','status'];
-    protected $extra_cols = ['id','slug'];
+    protected $cols = ['title', 'status'];
 
-    protected $searchable = ['title','description'];
+    protected $extra_cols = ['id', 'slug'];
+
+    protected $searchable = ['title', 'description'];
 
     protected $listView = 'admin.galleries.gallery-list';
+
     protected $formView = 'admin.galleries.gallery-form';
 
-
     protected $buttons = [
-        'edit' =>
-            ['title' => "Edit", 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
-        'show' =>
-            ['title' => "Detail", 'class' => 'btn-outline-secondary', 'icon' => 'ri-eye-line'],
-        'destroy' =>
-            ['title' => "Remove", 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-delete-bin-line'],
+        'edit' => ['title' => 'Edit', 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
+        'show' => ['title' => 'Detail', 'class' => 'btn-outline-secondary', 'icon' => 'ri-eye-line'],
+        'destroy' => ['title' => 'Remove', 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-delete-bin-line'],
     ];
-
 
     public function __construct()
     {
@@ -43,33 +35,32 @@ class GalleryController extends XController
     }
 
     /**
-     * @param $gallery Gallery
-     * @param $request  GallerySaveRequest
+     * @param  $gallery  Gallery
+     * @param  $request  GallerySaveRequest
      * @return Gallery
      */
     public function save($gallery, $request)
     {
 
         $gallery->title = $request->input('title');
-        $gallery->slug = $this->getSlug($gallery,'slug','title');
+        $gallery->slug = $this->getSlug($gallery, 'slug', 'title');
         $gallery->description = $request->input('description');
         $gallery->status = $request->input('status');
         $gallery->user_id = auth()->id();
 
         $gallery->save();
 
-
         if ($request->hasFile('image')) {
             $gallery->media()->delete();
             $gallery->addMedia($request->file('image'))
-                ->preservingOriginal() //middle method
+                ->preservingOriginal() // middle method
                 ->toMediaCollection();
         }
         $gallery->save();
+
         return $gallery;
 
     }
-
 
     /**
      * Show the form for creating a new resource.
@@ -92,7 +83,7 @@ class GalleryController extends XController
     public function bulk(Request $request)
     {
 
-//        dd($request->all());
+        //        dd($request->all());
         $data = explode('.', $request->input('action'));
         $action = $data[0];
         $ids = $request->input('id');
@@ -110,7 +101,7 @@ class GalleryController extends XController
                 $msg = __(':COUNT items drafted successfully', ['COUNT' => count($ids)]);
                 break;
             default:
-                $msg = __('Unknown bulk action : :ACTION', ["ACTION" => $action]);
+                $msg = __('Unknown bulk action : :ACTION', ['ACTION' => $action]);
         }
 
         return $this->do_bulk($msg, $action, $ids);
@@ -121,21 +112,19 @@ class GalleryController extends XController
         return parent::delete($item);
     }
 
-
     public function update(Request $request, Gallery $item)
     {
         return $this->bringUp($request, $item);
     }
 
-
-    public function updateTitle(Request $request){
+    public function updateTitle(Request $request)
+    {
         foreach ($request->titles as $k => $title) {
             $image = Image::whereId($k)->first();
             $image->title = $title;
             $image->save();
         }
-        return redirect()->back()->with(['message' => __("Titles updated")]);
+
+        return redirect()->back()->with(['message' => __('Titles updated')]);
     }
-
-
 }

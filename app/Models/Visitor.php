@@ -76,7 +76,6 @@ class Visitor extends Model
         'SunOS' => '(SunOS)',
         'OpenSolaris' => '(OpenSolaris)',
         'Chrome OS' => '(Chrome OS)|(CrOS)',
-        'bot' => '(bot)'
+        'bot' => '(bot)',
     ];
-
 }

@@ -5,7 +5,6 @@ namespace App\Http\Resources;
 use App\Models\Prop;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Http\Resources\Json\ResourceCollection;
 
 class PropCollection extends JsonResource
 {
@@ -26,7 +25,7 @@ class PropCollection extends JsonResource
             'label' => $this->label,
             'type' => $this->type,
             'searchable' => (bool) $this->searchable,
-            'priceable'=> (bool) $this->priceable,
+            'priceable' => (bool) $this->priceable,
             'unit' => $this->unit,
             'required' => $this->required,
             'width' => $this->width,

@@ -1,14 +1,30 @@
 <?php
 
+use App\Http\Resources\ProductCardCollection;
+use App\Http\Resources\QunatityCollection;
+use App\Http\Resources\TransportCollection;
 use App\Models\Category;
+use App\Models\Customer;
+use App\Models\Gfx;
 use App\Models\Group;
 use App\Models\Menu;
 use App\Models\Post;
 use App\Models\Product;
+use App\Models\Quantity;
 use App\Models\Rate;
 use App\Models\Setting;
+use App\Models\Transport;
+use App\Services\CartQuoteService;
+use App\Services\ProductPriceCalculator;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Route;
+use LaravelIdea\Helper\App\Models\_IH_Category_C;
+use LaravelIdea\Helper\App\Models\_IH_Group_C;
+use LaravelIdea\Helper\App\Models\_IH_Post_C;
 
 /**
  * @param  $langCode  string code like fa
@@ -140,7 +156,7 @@ function hasRoute($name): bool
     $routes[count($routes) - 1] = $name;
     $cRuote = implode('.', $routes);
 
-    if (\Illuminate\Support\Facades\Route::has($cRuote)) {
+    if (Route::has($cRuote)) {
         return true;
     } else {
         return false;
@@ -160,7 +176,7 @@ function getRoute($name, $args = []): ?string
     $routes[count($routes) - 1] = $name;
     $cRuote = implode('.', $routes);
 
-    if (\Illuminate\Support\Facades\Route::has($cRuote)) {
+    if (Route::has($cRuote)) {
         return \route($cRuote, $args);
     } else {
         return null;
@@ -258,11 +274,12 @@ function gfx()
     ];
 
     try {
-        $db = \App\Models\Gfx::pluck('value', 'key')->toArray();
+        $db = Gfx::pluck('value', 'key')->toArray();
 
         $gfxCache = array_merge($defaults, $db);
+
         return $gfxCache;
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
         return $defaults;
     }
 }
@@ -500,7 +517,7 @@ function getAction($act)
 function getAdminRoutes()
 {
     $routes = [];
-    foreach (Illuminate\Support\Facades\Route::getRoutes() as $r) {
+    foreach (Route::getRoutes() as $r) {
         if (strpos($r->getName(), 'admin') !== false) {
             $routes[] = [
                 'name' => $r->getName(),
@@ -520,7 +537,7 @@ function getAdminRoutes()
 function getClientRoutes()
 {
     $routes = [];
-    foreach (Illuminate\Support\Facades\Route::getRoutes() as $r) {
+    foreach (Route::getRoutes() as $r) {
         if (strpos($r->getName(), 'admin') === false) {
             $routes[] = [
                 'name' => $r->getName(),
@@ -680,12 +697,13 @@ function getAllSettings($fresh = false)
     static $settings = null;
     if ($fresh || $settings === null) {
         try {
-            if (! \Schema::hasTable('settings')) {
+            if (! Schema::hasTable('settings')) {
                 $settings = collect();
+
                 return $settings;
             }
             $settings = Setting::all()->keyBy('key');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $settings = collect();
         }
     }
@@ -701,7 +719,7 @@ function getAllSettings($fresh = false)
 function getSetting($key)
 {
     $settings = getAllSettings();
-    if ($settings->isEmpty() && ! \Schema::hasTable('settings')) {
+    if ($settings->isEmpty() && ! Schema::hasTable('settings')) {
         return false;
     }
 
@@ -849,11 +867,11 @@ function getMenuBySettingItems($key)
 /**
  * get primary navigation menu memoized for current request with eager-loaded relations
  */
-function getPrimaryMenu($fresh = false): ?\App\Models\Menu
+function getPrimaryMenu($fresh = false): ?Menu
 {
     static $menu = false;
     if ($fresh || $menu === false) {
-        $menu = \App\Models\Menu::with(['items.dest'])->first();
+        $menu = Menu::with(['items.dest'])->first();
     }
 
     return $menu;
@@ -867,7 +885,7 @@ function clearMenuCache(): void
 /**
  * get primary navigation menu items memoized for current request
  */
-function getPrimaryMenuItems($fresh = false): \Illuminate\Support\Collection
+function getPrimaryMenuItems($fresh = false): Collection
 {
     $menu = getPrimaryMenu($fresh);
 
@@ -878,7 +896,7 @@ function getPrimaryMenuItems($fresh = false): \Illuminate\Support\Collection
  * get group's posts by setting key
  *
  * @param  int  $limit
- * @return \App\Models\Post[]|\Illuminate\Database\Eloquent\Collection|\LaravelIdea\Helper\App\Models\_IH_Post_C|array
+ * @return Post[]|Illuminate\Database\Eloquent\Collection|_IH_Post_C|array
  */
 function getGroupPostsBySetting($key, $limit = 10, $order = 'id', $dir = 'DESC')
 {
@@ -896,7 +914,7 @@ function getGroupPostsBySetting($key, $limit = 10, $order = 'id', $dir = 'DESC')
  * @param  int  $limit
  * @param  string  $order
  * @param  string  $dir
- * @return \App\Models\Category[]|\Illuminate\Database\Eloquent\Collection|\LaravelIdea\Helper\App\Models\_IH_Post_C
+ * @return Category[]|Illuminate\Database\Eloquent\Collection|_IH_Post_C
  */
 function getCategoryProductBySetting($key, $limit = 10, $order = 'id', $dir = 'DESC')
 {
@@ -908,7 +926,7 @@ function getCategoryProductBySetting($key, $limit = 10, $order = 'id', $dir = 'D
  * get  products by setting key
  *
  * @param  int  $limit
- * @return \App\Models\Product[]|\Illuminate\Database\Eloquent\Collection|\LaravelIdea\Helper\App\Models\_IH_Post_C
+ * @return Product[]|Illuminate\Database\Eloquent\Collection|_IH_Post_C
  */
 function getProductsQueryBySetting($key, $limit = 10)
 {
@@ -926,7 +944,7 @@ function getProductsQueryBySetting($key, $limit = 10)
  * get posts by setting key
  *
  * @param  int  $limit
- * @return \App\Models\Post[]|\Illuminate\Database\Eloquent\Collection|\LaravelIdea\Helper\App\Models\_IH_Post_C
+ * @return Post[]|Illuminate\Database\Eloquent\Collection|_IH_Post_C
  */
 function getPostsQueryBySetting($key, $limit = 10)
 {
@@ -947,7 +965,7 @@ function getPostsQueryBySetting($key, $limit = 10)
  * @param  int  $limit
  * @param  string  $order
  * @param  string  $dir
- * @return \App\Models\Post[]|\Illuminate\Database\Eloquent\Collection|\LaravelIdea\Helper\App\Models\_IH_Post_C | array
+ * @return Post[]|Illuminate\Database\Eloquent\Collection|_IH_Post_C | array
  */
 function getCategorySubCatsBySetting($key, $limit = 10, $order = 'id', $dir = 'DESC')
 {
@@ -970,7 +988,7 @@ function getCategorySubCatsBySetting($key, $limit = 10, $order = 'id', $dir = 'D
  * @param  null  $ogType
  * @param  string  $ogLocate
  * @param  null  $canonical_url
- * @return \Illuminate\Http\JsonResponse
+ * @return JsonResponse
  */
 function success($data = null, $message = null, $meta = [], $og = [], $twitter = [], $canonical_url = null, $jsonLd = null)
 {
@@ -1009,7 +1027,7 @@ function success($data = null, $message = null, $meta = [], $og = [], $twitter =
 }
 
 /**
- * @return \Illuminate\Http\JsonResponse
+ * @return JsonResponse
  */
 function errors($errors, $status = 422, $message = null, $data = null)
 {
@@ -1132,8 +1150,8 @@ function getCartData(): array
     $cards = [];
     $qs = [];
 
-    $cookieCard = \Cookie::get('card') ?? (request()->hasCookie('card') ? request()->cookie('card') : null);
-    $cookieQ = \Cookie::get('q') ?? (request()->hasCookie('q') ? request()->cookie('q') : null);
+    $cookieCard = Cookie::get('card') ?? (request()->hasCookie('card') ? request()->cookie('card') : null);
+    $cookieQ = Cookie::get('q') ?? (request()->hasCookie('q') ? request()->cookie('q') : null);
 
     if (is_array($cookieCard)) {
         $cards = $cookieCard;
@@ -1206,8 +1224,8 @@ function cardItems(): array
         ->keyBy('id');
 
     $quantityIdsClean = array_values(array_filter($quantityIds));
-    $pieces = !empty($quantityIdsClean)
-        ? \App\Models\Quantity::query()->whereIn('id', $quantityIdsClean)->get()->keyBy('id')
+    $pieces = ! empty($quantityIdsClean)
+        ? Quantity::query()->whereIn('id', $quantityIdsClean)->get()->keyBy('id')
         : collect();
 
     $lines = [];
@@ -1217,7 +1235,7 @@ function cardItems(): array
             continue;
         }
 
-        $line = (new \App\Http\Resources\ProductCardCollection($product))->resolve();
+        $line = (new ProductCardCollection($product))->resolve();
         $selectedId = $quantityIds[$index] ?? null;
         $selected = null;
 
@@ -1225,7 +1243,7 @@ function cardItems(): array
             $piece = $pieces->get($selectedId);
 
             if ($piece !== null) {
-                $selected = (new \App\Http\Resources\QunatityCollection($piece))->resolve();
+                $selected = (new QunatityCollection($piece))->resolve();
                 $line['price'] = $piece->price;
             }
         }
@@ -1235,7 +1253,7 @@ function cardItems(): array
         $lines[] = $line;
     }
 
-    return app(\App\Services\CartQuoteService::class)->applyToLines($lines);
+    return app(CartQuoteService::class)->applyToLines($lines);
 }
 
 /**
@@ -1251,11 +1269,11 @@ function cardCount(): int
 /**
  * transports json
  *
- * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+ * @return AnonymousResourceCollection
  */
 function transports()
 {
-    return \App\Http\Resources\TransportCollection::collection(\App\Models\Transport::all());
+    return TransportCollection::collection(Transport::all());
 }
 
 /**
@@ -1265,11 +1283,11 @@ function transports()
  */
 function defTrannsport()
 {
-    if (\App\Models\Transport::where('is_default', 1)->count() == 0) {
+    if (Transport::where('is_default', 1)->count() == 0) {
         return null;
     }
 
-    return \App\Models\Transport::where('is_default', 1)->first()->id;
+    return Transport::where('is_default', 1)->first()->id;
 }
 
 /**
@@ -1341,7 +1359,7 @@ function fixUrlLang($url)
  *
  * @return bool
  *
- * @throws \GuzzleHttp\Exception\GuzzleException
+ * @throws GuzzleException
  */
 function sendingSMS($text, $number, $args)
 {
@@ -1354,7 +1372,7 @@ function sendingSMS($text, $number, $args)
         $response = Http::get($url);
         $r = json_decode($response->body(), true);
         if ($r['return']['status'] != 200) {
-            \Illuminate\Support\Facades\Log::error($r);
+            Illuminate\Support\Facades\Log::error($r);
 
             return false;
         }
@@ -1391,7 +1409,7 @@ function sendingSMS($text, $number, $args)
 
         // Get the response body as a string
         $result = $response->getBody()->getContents();
-    } catch (\Exception $e) {
+    } catch (Exception $e) {
         // Handle exception
         // You can log the error or return an error response here
         Log::error($e->getMessage());
@@ -1512,7 +1530,7 @@ function detectRateCustomer($type, $id, $evaluation)
         return 0;
     }
     $rate = Rate::where('rater_id', auth('customer')->id())
-        ->where('rater_type', \App\Models\Customer::class)
+        ->where('rater_type', Customer::class)
         ->where('rateable_type', $type)
         ->where('rateable_id', $id)
         ->where('evaluation_id', $evaluation);
@@ -1538,11 +1556,11 @@ function cacheNumber()
 /**
  * get website main categories
  *
- * @return Category[]|\LaravelIdea\Helper\App\Models\_IH_Category_C
+ * @return Category[]|_IH_Category_C
  */
 function getMainCategory($limit = 4, $orderBy = 'sort', $asc = 'ASC')
 {
-    return \App\Models\Category::whereNull('parent_id')->where('hide', 0)->limit($limit)->orderBy($orderBy, $asc)->get();
+    return Category::whereNull('parent_id')->where('hide', 0)->limit($limit)->orderBy($orderBy, $asc)->get();
 }
 
 /**
@@ -1551,7 +1569,7 @@ function getMainCategory($limit = 4, $orderBy = 'sort', $asc = 'ASC')
  * @param  int  $limit
  * @param  string  $order
  * @param  string  $dir
- * @return \App\Models\Post[]|\Illuminate\Database\Eloquent\Collection|\LaravelIdea\Helper\App\Models\_IH_Post_C
+ * @return Post[]|Illuminate\Database\Eloquent\Collection|_IH_Post_C
  */
 function getSubGroupSetting($key, $limit = 10, $order = 'id', $dir = 'DESC')
 {
@@ -1571,7 +1589,7 @@ function getSubGroupSetting($key, $limit = 10, $order = 'id', $dir = 'DESC')
  */
 function CalcPrice($gold, $gr, $fee, ?float $profitRate = null, ?float $taxRate = null)
 {
-    return app(\App\Services\ProductPriceCalculator::class)->calculateFromParts(
+    return app(ProductPriceCalculator::class)->calculateFromParts(
         $gold,
         (float) $gr,
         (float) $fee,
@@ -1584,7 +1602,7 @@ function CalcPrice($gold, $gr, $fee, ?float $profitRate = null, ?float $taxRate 
 /**
  * get website main categories
  *
- * @return Category[]|\LaravelIdea\Helper\App\Models\_IH_Category_C
+ * @return Category[]|_IH_Category_C
  */
 function getCategoriesSet($key, $limit = 4, $orderBy = 'sort', $asc = 'ASC')
 {
@@ -1594,13 +1612,13 @@ function getCategoriesSet($key, $limit = 4, $orderBy = 'sort', $asc = 'ASC')
         return collect();
     }
 
-    return \App\Models\Category::whereIn('id', $ids)->where('hide', 0)->limit($limit)->orderBy($orderBy, $asc)->get();
+    return Category::whereIn('id', $ids)->where('hide', 0)->limit($limit)->orderBy($orderBy, $asc)->get();
 }
 
 /**
  * get website main categories
  *
- * @return Group[]|\LaravelIdea\Helper\App\Models\_IH_Group_C
+ * @return Group[]|_IH_Group_C
  */
 function getGroupsSet($key, $limit = 4, $orderBy = 'sort', $asc = 'ASC')
 {
@@ -1610,5 +1628,5 @@ function getGroupsSet($key, $limit = 4, $orderBy = 'sort', $asc = 'ASC')
         return collect();
     }
 
-    return \App\Models\Group::whereIn('id', $ids)->where('hide', 0)->limit($limit)->orderBy($orderBy, $asc)->get();
+    return Group::whereIn('id', $ids)->where('hide', 0)->limit($limit)->orderBy($orderBy, $asc)->get();
 }

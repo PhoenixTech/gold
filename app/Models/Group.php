@@ -5,12 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\DB;
 use Spatie\Translatable\HasTranslations;
 
 class Group extends Model
 {
-    use HasFactory, SoftDeletes, HasTranslations;
+    use HasFactory, HasTranslations, SoftDeletes;
 
     public $translatable = ['name', 'subtitle', 'description'];
 
@@ -37,9 +36,8 @@ class Group extends Model
 
     public function author()
     {
-        return $this->belongsTo(\App\Models\User::class);
+        return $this->belongsTo(User::class);
     }
-
 
     public function imgUrl()
     {
@@ -47,7 +45,7 @@ class Group extends Model
             return asset('/assets/upload/logo.svg');
         }
 
-        return \Storage::url('groups/optimized-' . $this->image);
+        return \Storage::url('groups/optimized-'.$this->image);
     }
 
     public function imgOriginalUrl()
@@ -56,7 +54,7 @@ class Group extends Model
             return asset('/assets/upload/logo.svg');
         }
 
-        return \Storage::url('groups/' . $this->image);
+        return \Storage::url('groups/'.$this->image);
     }
 
     public function bgUrl()
@@ -65,7 +63,7 @@ class Group extends Model
             return asset('/assets/upload/logo.svg');
         }
 
-        return \Storage::url('groups/optimized-' . $this->bg);
+        return \Storage::url('groups/optimized-'.$this->bg);
     }
 
     public function bgOriginalUrl()
@@ -74,7 +72,7 @@ class Group extends Model
             return asset('/assets/upload/logo.svg');
         }
 
-        return \Storage::url('groups/' . $this->bg);
+        return \Storage::url('groups/'.$this->bg);
     }
 
     public function attachs()
@@ -84,7 +82,7 @@ class Group extends Model
 
     public function webUrl()
     {
-        return fixUrlLang(route('client.group',$this->slug));
+        return fixUrlLang(route('client.group', $this->slug));
     }
 
     public function published($limit = 10, $order = 'id', $dir = 'DESC')
@@ -102,7 +100,8 @@ class Group extends Model
         return $posts;
     }
 
-    public function evaluations(){
+    public function evaluations()
+    {
 
         return Evaluation::where(function ($query) {
             $query->whereNull('evaluationable_type')
@@ -110,9 +109,9 @@ class Group extends Model
         })->orWhere(function ($query) {
             $query->where('evaluationable_type', Group::class)
                 ->whereNull('evaluationable_id');
-        })->orWhere(function ($query ) {
+        })->orWhere(function ($query) {
             $query->where('evaluationable_type', Group::class)
-                ->where('evaluationable_id',$this->id);
+                ->where('evaluationable_id', $this->id);
         })->get();
     }
 }

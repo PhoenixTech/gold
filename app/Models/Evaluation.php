@@ -9,7 +9,7 @@ use Spatie\Translatable\HasTranslations;
 
 class Evaluation extends Model
 {
-    use HasFactory, SoftDeletes, HasTranslations;
+    use HasFactory, HasTranslations, SoftDeletes;
 
     public $translatable = ['title'];
 }

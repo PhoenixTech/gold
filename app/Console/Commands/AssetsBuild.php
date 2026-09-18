@@ -3,8 +3,9 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Symfony\Component\Process\Process;
 use Symfony\Component\Process\Exception\ProcessFailedException;
+use Symfony\Component\Process\Process;
+
 class AssetsBuild extends Command
 {
     /**
@@ -50,20 +51,21 @@ class AssetsBuild extends Command
             $npmVersion->setWorkingDirectory($this->getLaravelRoot());
             $npmVersion->run();
 
-            if (!$npmVersion->isSuccessful()) {
+            if (! $npmVersion->isSuccessful()) {
                 $this->addOutput('npm is not installed. Please install npm first.');
+
                 return Command::FAILURE;
             }
 
             // Check if package.json exists
-            if (!file_exists($this->getLaravelRoot() . '/package.json')) {
-                $this->addOutput('package.json not found in ' . $this->getLaravelRoot());
+            if (! file_exists($this->getLaravelRoot().'/package.json')) {
+                $this->addOutput('package.json not found in '.$this->getLaravelRoot());
+
                 return Command::FAILURE;
             }
 
-
             // Check if node_modules exists
-            if (!file_exists($this->getLaravelRoot() . '/node_modules')) {
+            if (! file_exists($this->getLaravelRoot().'/node_modules')) {
                 $this->addOutput('node_modules not found. Installing dependencies...');
 
                 $installProcess = new Process(['npm', 'install']);
@@ -74,17 +76,17 @@ class AssetsBuild extends Command
                     $this->addOutput($buffer);
                 });
 
-                if (!$installProcess->isSuccessful()) {
+                if (! $installProcess->isSuccessful()) {
                     throw new ProcessFailedException($installProcess);
                 }
             }
 
             // Run npm build
-            $this->addOutput('Starting build process in: ' . $this->getLaravelRoot());
+            $this->addOutput('Starting build process in: '.$this->getLaravelRoot());
 
             $buildProcess = new Process(['./node_modules/.bin/vite', 'build']);
             $buildProcess->setWorkingDirectory($this->getLaravelRoot());
-//            $this->addOutput($this->getLaravelRoot());
+            //            $this->addOutput($this->getLaravelRoot());
 
             $buildProcess->setTimeout(3600); // 1 hour timeout
 
@@ -92,7 +94,7 @@ class AssetsBuild extends Command
                 $this->addOutput($buffer);
             });
 
-            if (!$buildProcess->isSuccessful()) {
+            if (! $buildProcess->isSuccessful()) {
                 throw new ProcessFailedException($buildProcess);
             }
 
@@ -104,9 +106,10 @@ class AssetsBuild extends Command
             return Command::SUCCESS;
 
         } catch (\Exception $e) {
-            $errorMessage = 'Build process failed: ' . $e->getMessage();
+            $errorMessage = 'Build process failed: '.$e->getMessage();
             $this->addOutput($errorMessage);
             cache()->put('build_command_output', $this->commandOutput, now()->addMinutes(5));
+
             return Command::FAILURE;
         }
     }
@@ -116,7 +119,7 @@ class AssetsBuild extends Command
      */
     private function addOutput($output)
     {
-        $this->commandOutput .= $output . PHP_EOL;
+        $this->commandOutput .= $output.PHP_EOL;
         $this->info($output); // This will only show in CLI
     }
 

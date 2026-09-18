@@ -9,12 +9,14 @@ use Illuminate\Http\Request;
 class VisitorController extends Controller
 {
     //
-    public function display(Request $request){
+    public function display(Request $request)
+    {
         $visitor = Visitor::where('ip', $request->ip())->orderByDesc('id')->first();
-        if ($visitor != null){
-            $visitor->display = $request->input('display',null);
+        if ($visitor != null) {
+            $visitor->display = $request->input('display', null);
             $visitor->save();
         }
-        return ['OK'=>true];
+
+        return ['OK' => true];
     }
 }

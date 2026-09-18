@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Models\Group;
+use App\Models\Category;
+use App\Models\Item;
 use App\Models\Menu;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class MenuSeeder extends Seeder
@@ -29,17 +29,17 @@ class MenuSeeder extends Seeder
         ];
 
         foreach ($itemsData as $data) {
-            $item = new \App\Models\Item();
+            $item = new Item;
             $item->user_id = 1;
             $item->menu_id = $menu->id;
             $item->sort = $data['sort'];
             $item->kind = $data['kind'];
             $item->title = $data['title'];
             if ($data['kind'] === 'model') {
-                $cat = \App\Models\Category::where('slug', $data['slug'])->first();
+                $cat = Category::where('slug', $data['slug'])->first();
                 if ($cat) {
                     $item->menuable_id = $cat->id;
-                    $item->menuable_type = \App\Models\Category::class;
+                    $item->menuable_type = Category::class;
                     $item->meta = null;
                 }
             } else {
