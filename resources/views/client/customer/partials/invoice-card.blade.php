@@ -68,15 +68,15 @@
             <i class="ri-motorbike-line fs-14"></i>
             <span>{{ __('Courier is delivering your order. Delivery code was sent via SMS.') }}</span>
         </div>
-    @elseif($inv->needsReceiptUpload())
-        <div class="alert alert-warning py-1.5 px-2.5 rounded-3 fs-12 d-flex align-items-center gap-1.5 mb-2.5 border-0 bg-warning-subtle text-warning-emphasis">
-            <i class="ri-time-line fs-14"></i>
-            <span>{{ __('Please upload your payment receipt') }}</span>
-        </div>
     @elseif($inv->displayStatusKey() === \App\Models\Invoice::WAITING_CONFIRMATION)
         <div class="alert alert-info py-1.5 px-2.5 rounded-3 fs-12 d-flex align-items-center gap-1.5 mb-2.5 border-0 bg-info-subtle text-info-emphasis">
             <i class="ri-time-line fs-14"></i>
             <span>{{ __('Payment receipt is under review') }}</span>
+        </div>
+    @elseif($inv->needsReceiptUpload() && ! $inv->hasUploadedReceipt())
+        <div class="alert alert-warning py-1.5 px-2.5 rounded-3 fs-12 d-flex align-items-center gap-1.5 mb-2.5 border-0 bg-warning-subtle text-warning-emphasis">
+            <i class="ri-time-line fs-14"></i>
+            <span>{{ __('Please upload your payment receipt') }}</span>
         </div>
     @endif
 
@@ -89,7 +89,7 @@
         </div>
 
         <div class="d-flex align-items-center gap-2 ms-auto">
-            @if($inv->needsReceiptUpload())
+            @if($inv->needsReceiptUpload() && ! $inv->hasUploadedReceipt())
                 <button type="button"
                         class="btn btn-sm btn-warning text-dark fw-bold rounded-pill px-3"
                         data-receipt-modal-open

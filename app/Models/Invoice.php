@@ -84,6 +84,27 @@ class Invoice extends Model
     }
 
     /**
+     * Active order statuses in progress for customer dashboard.
+     *
+     * @return list<string>
+     */
+    public static function activeStatuses(): array
+    {
+        return [
+            self::PENDING,
+            self::AWAITING_PAYMENT,
+            self::PAID,
+            self::PROCESSING,
+            self::OUT_FOR_DELIVERY,
+        ];
+    }
+
+    public function isActive(): bool
+    {
+        return in_array($this->status, self::activeStatuses(), true);
+    }
+
+    /**
      * Paid or fulfilled invoices, including motorcycle deliveries in transit.
      *
      * @return list<string>

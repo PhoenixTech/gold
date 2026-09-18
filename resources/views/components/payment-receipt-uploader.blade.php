@@ -21,10 +21,12 @@
         </div>
         <div>
             <strong class="receipt-uploader__title">{{ __('Upload your payment receipt') }}</strong>
-            <p class="receipt-uploader__hint mb-0">
-                {{ __('After transferring the money, upload a clear photo or PDF of the receipt so we can confirm your payment.') }}
-            </p>
-            @if($uploaderDeadline)
+            @if(empty($hideHint))
+                <p class="receipt-uploader__hint mb-0">
+                    {{ __('After transferring the money, upload a clear photo or PDF of the receipt so we can confirm your payment.') }}
+                </p>
+            @endif
+            @if($uploaderDeadline && empty($hideDeadline))
                 <p class="receipt-uploader__hint receipt-uploader__deadline mb-0">
                     @if($uploaderIsExpired)
                         <i class="ri-error-warning-line"></i>

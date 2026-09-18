@@ -30,12 +30,7 @@
 
     $allInvoices = $customer->invoices()->with(['payments', 'paymentReceipts', 'orders.product', 'orders.quantity'])->orderByDesc('id')->get();
     $activeInvoices = $allInvoices->filter(function ($inv) {
-        return in_array($inv->status, [
-            \App\Models\Invoice::PENDING,
-            \App\Models\Invoice::AWAITING_PAYMENT,
-            \App\Models\Invoice::PROCESSING,
-            \App\Models\Invoice::OUT_FOR_DELIVERY,
-        ]);
+        return in_array($inv->status, \App\Models\Invoice::activeStatuses(), true);
     });
     $activeOrdersCount = $activeInvoices->count();
 

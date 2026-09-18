@@ -7,11 +7,14 @@ use App\Models\Category;
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Order;
+use App\Models\Payment;
 use App\Models\Product;
 use App\Models\Quantity;
 use App\Models\User;
 use Database\Seeders\GfxSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class CustomerInvoiceViewTest extends TestCase
@@ -157,5 +160,95 @@ class CustomerInvoiceViewTest extends TestCase
         }
 
         $this->assertEmpty($missing, 'The following translation keys are missing or empty in resources/lang/fa.json: ' . implode(', ', $missing));
+    }
+
+    public function test_offline_invoice_shows_positive_remaining_seconds_in_countdown(): void
+    {
+        [$customer, $invoice] = $this->createCustomerWithInvoice();
+
+        $payment = new Payment();
+        $payment->invoice_id = $invoice->id;
+        $payment->type = 'CARD';
+        $payment->status = Payment::PENDING;
+        $payment->amount = $invoice->total_price;
+        $payment->order_id = 'ORDER-'.uniqid();
+        $payment->save();
+
+        $invoice->status = Invoice::AWAITING_PAYMENT;
+        $invoice->save();
+
+        $response = $this->actingAs($customer, 'customer')->get(route('client.invoice', $invoice->hash));
+        $response->assertOk();
+
+        preg_match('/data-deadline="(\d+)"/', $response->getContent(), $matches);
+        $this->assertNotEmpty($matches, 'Could not find data-deadline in invoice response');
+        $this->assertGreaterThan(0, (int) $matches[1], 'Countdown data-deadline should be greater than 0');
+    }
+
+    public function test_invoice_card_updates_alert_and_hides_upload_button_after_receipt_upload(): void
+    {
+        Storage::fake('public');
+        [$customer, $invoice] = $this->createCustomerWithInvoice();
+
+        $payment = new Payment();
+        $payment->invoice_id = $invoice->id;
+        $payment->type = 'CARD';
+        $payment->status = Payment::PENDING;
+        $payment->amount = $invoice->total_price;
+        $payment->order_id = 'ORDER-'.uniqid();
+        $payment->save();
+
+        $invoice->status = Invoice::AWAITING_PAYMENT;
+        $invoice->save();
+
+        // 1. Before uploading receipt: should prompt customer to upload and show upload modal button
+        $responseBefore = $this->actingAs($customer, 'customer')->get(route('client.profile'));
+        $responseBefore->assertOk();
+        $responseBefore->assertSee(__('Please upload your payment receipt'));
+        $responseBefore->assertSee('data-receipt-modal-open', false);
+        $responseBefore->assertDontSee(__('Payment receipt is under review'));
+
+        // 2. Upload receipt
+        $this->actingAs($customer, 'customer')->post(route('client.invoice.receipts.store', $invoice), [
+            'receipts' => [UploadedFile::fake()->image('receipt.jpg')],
+        ])->assertRedirect();
+
+        // 3. After uploading receipt: should show review state and hide upload button
+        $responseAfter = $this->actingAs($customer, 'customer')->get(route('client.profile'));
+        $responseAfter->assertOk();
+        $responseAfter->assertSee(__('Payment receipt is under review'));
+        $responseAfter->assertDontSee(__('Please upload your payment receipt'));
+        $responseAfter->assertDontSee('data-receipt-modal-open', false);
+
+        // In invoice view, payment panel is still visible while awaiting confirmation
+        $responseInvoicePending = $this->actingAs($customer, 'customer')->get(route('client.invoice', $invoice->hash));
+        $responseInvoicePending->assertOk();
+        $responseInvoicePending->assertSee('id="payment-panel"', false);
+
+        // 4. When payment is accepted (marked PAID):
+        $invoice->status = Invoice::PAID;
+        $invoice->save();
+
+        $this->assertTrue($invoice->isActive());
+        $this->assertTrue(in_array(Invoice::PAID, Invoice::activeStatuses(), true));
+
+        // Invoice must still be present in active orders menu/tab in profile
+        $responseAcceptedProfile = $this->actingAs($customer, 'customer')->get(route('client.profile'));
+        $responseAcceptedProfile->assertOk();
+        $responseAcceptedProfile->assertSee(route('client.invoice', $invoice->hash));
+        $responseAcceptedProfile->assertDontSee(__('Payment receipt is under review'));
+        $responseAcceptedProfile->assertDontSee(__('Please upload your payment receipt'));
+        $responseAcceptedProfile->assertDontSee('data-receipt-modal-open', false);
+
+        // Invoice view should NOT show payment-panel once accepted
+        $responseAcceptedInvoice = $this->actingAs($customer, 'customer')->get(route('client.invoice', $invoice->hash));
+        $responseAcceptedInvoice->assertOk();
+        $responseAcceptedInvoice->assertDontSee('id="payment-panel"', false);
+        $responseAcceptedInvoice->assertDontSee('liana-payment-panel', false);
+
+        // 5. When order is finally delivered/completed:
+        $invoice->status = Invoice::COMPLETED;
+        $invoice->save();
+        $this->assertFalse($invoice->isActive());
     }
 }

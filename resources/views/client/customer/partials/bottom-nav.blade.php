@@ -1,11 +1,6 @@
 @php
     $bottomNavCustomer = auth('customer')->user();
-    $bottomNavActiveCount = $activeOrdersCount ?? $bottomNavCustomer?->invoices()->whereIn('status', [
-        \App\Models\Invoice::PENDING,
-        \App\Models\Invoice::AWAITING_PAYMENT,
-        \App\Models\Invoice::PROCESSING,
-        \App\Models\Invoice::OUT_FOR_DELIVERY,
-    ])->count() ?? 0;
+    $bottomNavActiveCount = $activeOrdersCount ?? $bottomNavCustomer?->invoices()->whereIn('status', \App\Models\Invoice::activeStatuses())->count() ?? 0;
     $bottomNavFavCount = $favoritesCount ?? $bottomNavCustomer?->favorites()->count() ?? 0;
     $isProfilePage = request()->routeIs('client.profile*') || request()->routeIs('profile*');
     $isInvoicePage = request()->routeIs('client.invoice*') || request()->routeIs('invoice*');

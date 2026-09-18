@@ -14,10 +14,12 @@
     $offlineHours = \App\Models\Invoice::offlinePaymentHours();
     $offlineDeadline = $invoice->offlinePaymentDeadline();
     $offlineIsExpired = $invoice->isOfflinePaymentExpired();
-    $offlineRemaining = $offlineDeadline ? max(0, (int) $offlineDeadline->diffInSeconds(now())) : 0;
+    $offlineRemaining = ($offlineDeadline && ! $offlineIsExpired) ? max(0, $offlineDeadline->timestamp - now()->timestamp) : 0;
     $showOfflinePaymentHint = $isOfflinePayment
         && ! in_array($invoice->status, [\App\Models\Invoice::FAILED, \App\Models\Invoice::CANCELED])
         && ! $offlineIsExpired;
+    $showPaymentPanel = $showOfflinePaymentHint
+        && in_array($invoice->status, [\App\Models\Invoice::AWAITING_PAYMENT, \App\Models\Invoice::PENDING]);
     $hasUploadedReceipts = $receipts->isNotEmpty();
     $isWaitingConfirmation = $canUploadReceipts && $hasUploadedReceipts;
 
@@ -57,11 +59,8 @@
                     </p>
                 @else
                     <strong>{{ __('This invoice needs a payment receipt') }}</strong>
-                    <p>
-                        {{ __('Pay by card-to-card using the bank details below, then upload your receipt so we can confirm the order.') }}
-                    </p>
                     @if($offlineDeadline)
-                        <div class="liana-offline-deadline">
+                        <div class="liana-offline-deadline mt-1">
                             <i class="ri-timer-line"></i>
                             <span>
                                 {{ __('Pay and upload your receipt within :hours hours.', ['hours' => $offlineHours]) }}
@@ -69,7 +68,8 @@
                                 <b>{{ $offlineDeadline->jdate('Y/m/d H:i') }}</b>
                                 (<span data-deadline-countdown
                                        data-deadline="{{ $offlineRemaining }}"
-                                       data-expired-text="{{ __('Expired') }}">…</span>)
+                                       data-expired-text="{{ __('Expired') }}"
+                                       dir="ltr">…</span>)
                             </span>
                         </div>
                     @endif
@@ -245,65 +245,40 @@
     </div>
 
     {{-- Offline Card-to-Card Payment Section --}}
-    @if($showOfflinePaymentHint)
-        <div class="liana-payment-panel card avisa-card-ref p-3 mb-3 no-print">
+    @if($showPaymentPanel)
+        <div class="liana-payment-panel card avisa-card-ref p-3 mb-3 no-print" id="payment-panel">
             @include('components.err')
 
-            <div class="liana-payment-panel__title d-flex align-items-start gap-2.5 mb-3">
-                <i class="{{ $isWaitingConfirmation ? 'ri-time-line text-info' : 'ri-exchange-funds-line text-primary' }} fs-4"></i>
-                <div>
-                    @if($isWaitingConfirmation)
-                        <strong class="d-block text-dark fs-14">{{ __('Waiting for payment confirmation') }}</strong>
-                        <p class="text-muted fs-13 mb-0">{{ __('We received your upload. Please wait until an admin confirms the payment.') }}</p>
-                    @else
-                        <strong class="d-block text-dark fs-14">{{ __('Offline card-to-card payment') }}</strong>
-                        <p class="text-muted fs-13 mb-0">{{ __('This order is not paid online. Transfer the amount, then upload the receipt.') }}</p>
-                    @endif
+            <div class="liana-payment-panel__title d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="{{ $isWaitingConfirmation ? 'ri-time-line text-info' : 'ri-bank-card-line text-primary' }} fs-5"></i>
+                    <strong class="text-dark fs-14">
+                        @if($isWaitingConfirmation)
+                            {{ __('Waiting for payment confirmation') }}
+                        @else
+                            {{ __('Card to card') }}
+                        @endif
+                    </strong>
                 </div>
-            </div>
-
-            @if($canUploadReceipts)
-                @if($offlineDeadline && ! $offlineIsExpired)
-                    <div class="liana-payment-deadline alert alert-warning py-2 px-3 rounded-3 fs-13 mb-3">
-                        <i class="ri-time-line me-1"></i>
-                        {{ __('Complete the transfer and upload the receipt before the deadline.') }}
-                        <b class="font-fanum">{{ $offlineDeadline->jdate('Y/m/d H:i') }}</b>
-                    </div>
+                @if($canUploadReceipts && $offlineDeadline && ! $offlineIsExpired)
+                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle font-fanum fs-11 d-inline-flex align-items-center gap-1">
+                        <i class="ri-timer-line"></i>
+                        <span data-deadline-countdown data-deadline="{{ $offlineRemaining }}" data-expired-text="{{ __('Expired') }}" dir="ltr">…</span>
+                    </span>
                 @endif
-                <ol class="liana-payment-steps mb-3">
-                    <li class="{{ $isWaitingConfirmation ? 'is-done' : '' }}">
-                        <span>1</span>
-                        <div>
-                            <strong>{{ __('Transfer the amount') }}</strong>
-                            <small>{{ __('Use the bank account details below') }}</small>
-                        </div>
-                    </li>
-                    <li class="{{ $isWaitingConfirmation ? 'is-done' : 'is-current' }}">
-                        <span>2</span>
-                        <div>
-                            <strong>{{ __('Upload the receipt') }}</strong>
-                            <small>{{ __('Photo or PDF of your transfer') }}</small>
-                        </div>
-                    </li>
-                    <li class="{{ $isWaitingConfirmation ? 'is-current' : '' }}">
-                        <span>3</span>
-                        <div>
-                            <strong>{{ __('Wait for confirmation') }}</strong>
-                            <small>{{ __('We will review and confirm your payment') }}</small>
-                        </div>
-                    </li>
-                </ol>
-            @endif
+            </div>
 
             {{-- Bank Account Details Box --}}
             <div class="liana-bank-box p-3 rounded-3 bg-light border border-light-subtle mb-3">
-                <div class="liana-bank-box__head d-flex align-items-center gap-2 mb-2 pb-2 border-bottom">
-                    <i class="ri-bank-line text-primary fs-5"></i>
-                    <strong class="text-dark fs-13">{{ __('Deposit to this account') }}</strong>
-                </div>
-                <div class="liana-bank-box__amount d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-muted fs-12">{{ __('Amount to pay') }}:</span>
-                    <b class="text-primary fs-14 font-fanum">{{ number_format($invoice->total_price) }} {{ config('app.currency.symbol') }}</b>
+                <div class="liana-bank-box__head d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
+                    <div class="d-flex align-items-center gap-1.5">
+                        <i class="ri-bank-line text-primary fs-5"></i>
+                        <strong class="text-dark fs-13">{{ __('Deposit to this account') }}</strong>
+                    </div>
+                    <div class="d-flex align-items-center gap-1">
+                        <span class="text-muted fs-11">{{ __('Amount to pay') }}:</span>
+                        <b class="text-primary fs-13 font-fanum">{{ number_format($invoice->total_price) }} {{ config('app.currency.symbol') }}</b>
+                    </div>
                 </div>
                 <dl class="liana-bank-box__rows mb-0 fs-12">
                     @if($bank['bank_name'] ?? null)
@@ -321,19 +296,43 @@
                     @if($bank['card_number'] ?? null)
                         <div class="d-flex align-items-center justify-content-between py-1">
                             <dt class="text-muted mb-0 fw-normal">{{ __('Card number') }}:</dt>
-                            <dd class="text-dark mb-0 fw-bold font-fanum" dir="ltr">{{ $bank['card_number'] }}</dd>
+                            <dd class="text-dark mb-0 fw-bold font-fanum d-flex align-items-center gap-1.5" dir="ltr">
+                                <span>{{ $bank['card_number'] }}</span>
+                                <button type="button"
+                                        class="btn btn-sm btn-link p-0 text-muted border-0 copy-btn"
+                                        data-copy="{{ str_replace(' ', '', $bank['card_number']) }}"
+                                        title="{{ __('Copy') }}">
+                                    <i class="ri-file-copy-line fs-14"></i>
+                                </button>
+                            </dd>
                         </div>
                     @endif
                     @if($bank['account_number'] ?? null)
                         <div class="d-flex align-items-center justify-content-between py-1">
                             <dt class="text-muted mb-0 fw-normal">{{ __('Account number') }}:</dt>
-                            <dd class="text-dark mb-0 font-fanum" dir="ltr">{{ $bank['account_number'] }}</dd>
+                            <dd class="text-dark mb-0 font-fanum d-flex align-items-center gap-1.5" dir="ltr">
+                                <span>{{ $bank['account_number'] }}</span>
+                                <button type="button"
+                                        class="btn btn-sm btn-link p-0 text-muted border-0 copy-btn"
+                                        data-copy="{{ str_replace(' ', '', $bank['account_number']) }}"
+                                        title="{{ __('Copy') }}">
+                                    <i class="ri-file-copy-line fs-14"></i>
+                                </button>
+                            </dd>
                         </div>
                     @endif
                     @if($bank['iban'] ?? null)
                         <div class="d-flex align-items-center justify-content-between py-1">
                             <dt class="text-muted mb-0 fw-normal">{{ __('IBAN') }}:</dt>
-                            <dd class="text-dark mb-0 font-fanum" dir="ltr">{{ $bank['iban'] }}</dd>
+                            <dd class="text-dark mb-0 font-fanum d-flex align-items-center gap-1.5" dir="ltr">
+                                <span>{{ $bank['iban'] }}</span>
+                                <button type="button"
+                                        class="btn btn-sm btn-link p-0 text-muted border-0 copy-btn"
+                                        data-copy="{{ str_replace(' ', '', $bank['iban']) }}"
+                                        title="{{ __('Copy') }}">
+                                    <i class="ri-file-copy-line fs-14"></i>
+                                </button>
+                            </dd>
                         </div>
                     @endif
                 </dl>
@@ -342,45 +341,40 @@
             {{-- Uploaded Receipts List --}}
             @if($receipts->count())
                 <div class="liana-receipts mb-3">
-                    <strong class="d-block text-dark fs-13 mb-2">{{ __('Uploaded receipts') }}</strong>
-                    <ul class="list-unstyled mb-2 d-flex flex-column gap-1.5">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <strong class="text-dark fs-13">{{ __('Uploaded receipts') }}</strong>
+                        <span class="badge bg-secondary-subtle text-secondary font-fanum fs-11">{{ $receipts->count() }}</span>
+                    </div>
+                    <ul class="list-unstyled mb-0 d-flex flex-column gap-1.5">
                         @foreach($receipts as $receipt)
                             <li class="d-flex align-items-center justify-content-between p-2 rounded-2 bg-light border border-light-subtle fs-12">
-                                <a href="{{ $receipt->url() }}" target="_blank" rel="noopener" class="text-primary text-decoration-none d-flex align-items-center gap-1.5">
-                                    <i class="{{ $receipt->isImage() ? 'ri-image-line' : 'ri-file-pdf-2-line' }}"></i>
+                                <a href="{{ $receipt->url() }}" target="_blank" rel="noopener" class="text-primary text-decoration-none d-flex align-items-center gap-1.5 min-w-0">
+                                    <i class="{{ $receipt->isImage() ? 'ri-image-line' : 'ri-file-pdf-2-line' }} flex-shrink-0"></i>
                                     <span class="text-truncate">{{ $receipt->original_name }}</span>
                                 </a>
-                                <small class="text-muted font-fanum">{{ $receipt->created_at?->diffForHumans() }}</small>
+                                <small class="text-muted font-fanum flex-shrink-0 ms-2">{{ $receipt->created_at?->diffForHumans() }}</small>
                             </li>
                         @endforeach
                     </ul>
-                    @if($canUploadReceipts)
-                        <p class="liana-receipts__note text-muted fs-12 mb-2">
-                            @if($isWaitingConfirmation)
-                                {{ __('We received your upload. Please wait until an admin confirms the payment.') }}
-                            @else
-                                {{ __('Receipt received. You can upload more files if needed while we review your payment.') }}
-                            @endif
-                        </p>
-                    @endif
                 </div>
             @endif
 
             {{-- Receipt Upload Form Component --}}
             @if($canUploadReceipts && ! $isWaitingConfirmation)
-                @include('components.payment-receipt-uploader', ['invoice' => $invoice])
+                @include('components.payment-receipt-uploader', [
+                    'invoice' => $invoice,
+                    'hideHint' => true,
+                    'hideDeadline' => true,
+                ])
             @elseif($canUploadReceipts && $isWaitingConfirmation)
-                <div class="liana-payment-waiting alert alert-info rounded-3 d-flex align-items-center gap-2 mb-2 fs-13">
-                    <i class="ri-time-line fs-5"></i>
-                    <div>
-                        <strong>{{ __('Receipt uploaded successfully') }}</strong>
-                        <p class="mb-0 fs-12">{{ __('Your file is under review. You can still add another receipt if needed.') }}</p>
-                    </div>
-                </div>
                 <details class="liana-receipt-more mt-2">
                     <summary class="btn btn-sm btn-outline-secondary rounded-pill px-3">{{ __('Upload another receipt') }}</summary>
                     <div class="pt-3">
-                        @include('components.payment-receipt-uploader', ['invoice' => $invoice])
+                        @include('components.payment-receipt-uploader', [
+                            'invoice' => $invoice,
+                            'hideHint' => true,
+                            'hideDeadline' => true,
+                        ])
                     </div>
                 </details>
             @elseif($invoice->status === \App\Models\Invoice::PAID)
@@ -413,23 +407,53 @@
     <script>
         (function () {
             var els = document.querySelectorAll('[data-deadline-countdown]');
-            if (!els.length) return;
-            var pad = function (n) { return (n < 10 ? '0' : '') + n; };
-            var render = function (el, s) {
-                var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
-                el.textContent = h + ':' + pad(m) + ':' + pad(sec);
-            };
-            els.forEach(function (el) {
-                var total = parseInt(el.getAttribute('data-deadline'), 10) || 0;
-                render(el, total);
-                var timer = setInterval(function () {
-                    total = Math.max(0, total - 1);
-                    render(el, total);
+            if (els.length) {
+                var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+                var render = function (el, s) {
+                    var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+                    el.textContent = (h > 0 ? pad(h) + ':' : '') + pad(m) + ':' + pad(sec);
+                };
+                els.forEach(function (el) {
+                    var total = parseInt(el.getAttribute('data-deadline'), 10) || 0;
                     if (total <= 0) {
-                        clearInterval(timer);
-                        el.textContent = el.getAttribute('data-expired-text') || '';
+                        el.textContent = el.getAttribute('data-expired-text') || '00:00';
+                        return;
                     }
-                }, 1000);
+                    render(el, total);
+                    var timer = setInterval(function () {
+                        total = Math.max(0, total - 1);
+                        render(el, total);
+                        if (total <= 0) {
+                            clearInterval(timer);
+                            el.textContent = el.getAttribute('data-expired-text') || '00:00';
+                        }
+                    }, 1000);
+                });
+            }
+
+            document.querySelectorAll('[data-copy]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var val = btn.getAttribute('data-copy');
+                    if (!val) return;
+                    if (navigator.clipboard && window.isSecureContext) {
+                        navigator.clipboard.writeText(val);
+                    } else {
+                        var ta = document.createElement('textarea');
+                        ta.value = val;
+                        ta.style.position = 'fixed';
+                        ta.style.top = '-9999px';
+                        document.body.appendChild(ta);
+                        ta.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(ta);
+                    }
+                    var icon = btn.querySelector('i');
+                    if (icon) {
+                        var orig = icon.className;
+                        icon.className = 'ri-check-line text-success fs-14';
+                        setTimeout(function () { icon.className = orig; }, 1800);
+                    }
+                });
             });
         })();
     </script>
