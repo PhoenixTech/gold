@@ -9,10 +9,9 @@
     {{-- Header --}}
     <header class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
         <div>
-            <div class="d-flex align-items-center gap-2 text-primary fs-14 fw-semibold mb-1">
-                <i class="ri-dashboard-2-line"></i>
-                <span>{{ __('Operational order board') }}</span>
-            </div>
+            <code class="fw-bold text-primary font-monospace bg-primary-subtle px-2 py-0.5 rounded border border-primary-subtle fs-12 mb-2 d-inline-block">
+                {{ __('Operational order board') }}
+            </code>
             <h1 class="h3 fw-bold text-dark mb-1">{{ __('Manager dashboard') }}</h1>
             <p class="text-muted fs-13 mb-0">
                 {{ __('Clinic-style daily workflow table for tracking and processing active orders.') }}
@@ -35,21 +34,23 @@
         <div class="card-body p-3">
             <form method="GET" action="{{ route('admin.order-board.index') }}" class="row g-2 align-items-center">
                 <div class="col-12 col-md-auto">
-                    <div class="btn-group btn-group-sm" role="group" aria-label="{{ __('Filter scope') }}">
+                    <div class="d-flex align-items-center gap-3 fs-14">
                         <a href="{{ route('admin.order-board.index', array_merge(request()->except('scope'), ['scope' => 'active'])) }}" 
-                           class="btn {{ $scope === 'active' ? 'btn-primary' : 'btn-outline-secondary' }}">
+                           class="text-decoration-none fw-semibold {{ $scope === 'active' ? 'text-primary' : 'text-muted' }}">
                             <i class="ri-fire-line me-1"></i>{{ __('Active orders') }}
-                            <span class="badge {{ $scope === 'active' ? 'bg-white text-primary' : 'bg-secondary' }} ms-1">{{ number_format($activeCount) }}</span>
+                            <span class="badge {{ $scope === 'active' ? 'bg-primary-subtle text-primary border border-primary-subtle' : 'bg-secondary-subtle text-secondary border border-secondary-subtle' }} ms-1 rounded-pill" title="{{ __('Active orders count') }}">{{ number_format($activeCount) }}</span>
                         </a>
+                        <span class="text-muted opacity-25">|</span>
                         <a href="{{ route('admin.order-board.index', array_merge(request()->except('scope'), ['scope' => 'completed'])) }}" 
-                           class="btn {{ $scope === 'completed' ? 'btn-primary' : 'btn-outline-secondary' }}">
+                           class="text-decoration-none fw-semibold {{ $scope === 'completed' ? 'text-primary' : 'text-muted' }}">
                             <i class="ri-check-double-line me-1"></i>{{ __('Completed orders') }}
-                            <span class="badge {{ $scope === 'completed' ? 'bg-white text-primary' : 'bg-secondary' }} ms-1">{{ number_format($completedCount) }}</span>
+                            <span class="badge {{ $scope === 'completed' ? 'bg-primary-subtle text-primary border border-primary-subtle' : 'bg-secondary-subtle text-secondary border border-secondary-subtle' }} ms-1 rounded-pill" title="{{ __('Completed orders count') }}">{{ number_format($completedCount) }}</span>
                         </a>
+                        <span class="text-muted opacity-25">|</span>
                         <a href="{{ route('admin.order-board.index', array_merge(request()->except('scope'), ['scope' => 'all'])) }}" 
-                           class="btn {{ $scope === 'all' ? 'btn-primary' : 'btn-outline-secondary' }}">
+                           class="text-decoration-none fw-semibold {{ $scope === 'all' ? 'text-primary' : 'text-muted' }}">
                             {{ __('All orders') }}
-                            <span class="badge {{ $scope === 'all' ? 'bg-white text-primary' : 'bg-secondary' }} ms-1">{{ number_format($allCount) }}</span>
+                            <span class="badge {{ $scope === 'all' ? 'bg-primary-subtle text-primary border border-primary-subtle' : 'bg-secondary-subtle text-secondary border border-secondary-subtle' }} ms-1 rounded-pill" title="{{ __('All orders count') }}">{{ number_format($allCount) }}</span>
                         </a>
                     </div>
                     <input type="hidden" name="scope" value="{{ $scope }}">
@@ -262,15 +263,15 @@
                                             </div>
                                         @endif
                                         @if($d['declined_at'])
-                                            <div class="alert alert-warning border border-warning-subtle shadow-sm d-flex align-items-center gap-2 p-2 mt-3 mb-0 rounded-3 fs-13">
-                                                <i class="ri-error-warning-fill text-warning fs-4"></i>
-                                                <span>
-                                                    <strong class="text-dark">{{ __('Receipt declined') }}</strong>
-                                                    <span class="text-muted"> — {{ __('Declined at') }}: <span class="font-monospace">{{ $d['declined_at'] }}</span></span>
+                                            <div class="mt-3 pt-2 border-top d-flex align-items-center justify-content-between text-warning-emphasis fs-12">
+                                                <span class="d-inline-flex align-items-center gap-2">
+                                                    <i class="ri-error-warning-fill fs-5"></i>
+                                                    <span class="fw-semibold">{{ __('Receipt declined at') }} <span class="font-monospace">{{ $d['declined_at'] }}</span></span>
                                                     @if($d['decline_reason'])
-                                                        <span class="d-block text-muted">{{ __('Decline reason') }}: {{ $d['decline_reason'] }}</span>
+                                                        <span class="text-muted ms-1">— {{ $d['decline_reason'] }}</span>
                                                     @endif
                                                 </span>
+                                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">{{ __('Declined') }}</span>
                                             </div>
                                         @endif
                                     </div>

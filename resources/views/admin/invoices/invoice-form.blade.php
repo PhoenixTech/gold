@@ -136,7 +136,9 @@
             <div class="invoice-manage__now item-list mb-3">
                 <div class="invoice-manage__now-main">
                     <div>
-                        <span class="invoice-manage__eyebrow">{{__("Invoice")}} {{$item->hash}}</span>
+                        <code class="fw-bold text-primary font-monospace bg-primary-subtle px-2 py-0.5 rounded border border-primary-subtle fs-12 mb-2 d-inline-block">
+                            {{ __('Invoice') }} / #{{$item->hash}}
+                        </code>
                         <h3 class="invoice-manage__title">
                             {{ $item->statusLabel() }}
                         </h3>
@@ -175,9 +177,13 @@
                     </div>
                     <div class="invoice-manage__now-actions">
                         <span class="{{ $item->statusBadgeClass() }}">{{ $item->statusLabel() }}</span>
-                        <div class="invoice-manage__total">
-                            <span>{{__("Total price")}}</span>
-                            <b>{{number_format($item->total_price)}} {{config('app.currency.symbol')}}</b>
+                        <div class="invoice-manage__total text-end">
+                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle fs-11 mb-2"><i class="ri-lock-line me-1"></i>{{ __('Auto-calculated') }}</span>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-light text-muted border-end-0">{{__("Total price")}}</span>
+                                <input type="text" class="form-control bg-light text-dark fw-bold border-start-0" readonly value="{{number_format($item->total_price)}}">
+                                <span class="input-group-text">{{config('app.currency.symbol')}}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -205,14 +211,20 @@
                 <div class="item-list mb-3">
                     <div class="p-3">
                         <h4 class="mb-2"><i class="ri-bank-card-line me-1"></i> {{ __('Payment') }}</h4>
-                        <p class="text-muted mb-3">{{ __('Waiting for the customer to pay by card-to-card and upload a receipt.') }}</p>
+                        <p class="text-muted mb-1">{{ __('Waiting for the customer to pay by card-to-card and upload a receipt.') }}</p>
+                        <small class="text-muted d-flex align-items-center gap-1 mb-3">
+                            <i class="ri-information-line text-primary"></i>
+                            {{ __('Customer currently sees a countdown timer on their invoice page and a request to upload receipt. A background task (offline:expire) will automatically fail this order if the deadline passes.') }}
+                        </small>
 
                         @if($declinedReason)
-                            <div class="alert alert-warning border border-warning-subtle shadow-sm d-flex align-items-center gap-2 p-2 rounded-3">
-                                <i class="ri-arrow-go-back-line fs-4"></i>
-                                <div>
-                                    <strong class="d-block">{{ __('A receipt was declined and needs to be uploaded again.') }}</strong>
-                                    <span class="text-muted fs-13">{{ $declinedReason }}</span>
+                            <div class="alert alert-warning border border-warning-subtle shadow-sm d-flex align-items-center justify-content-between flex-wrap gap-2 p-3 mb-4 rounded-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="ri-arrow-go-back-line text-warning fs-3"></i>
+                                    <div>
+                                        <strong class="d-block text-dark">{{ __('A receipt was declined and needs to be uploaded again.') }}</strong>
+                                        <span class="text-muted fs-13">{{ $declinedReason }}</span>
+                                    </div>
                                 </div>
                             </div>
                         @endif
@@ -242,7 +254,11 @@
                 <div class="item-list mb-3">
                     <div class="p-3">
                         <h4 class="mb-2"><i class="ri-file-list-3-line me-1"></i> {{ __('Payment review') }}</h4>
-                        <p class="text-muted">{{ __('Review the uploaded receipt and confirm or decline the payment.') }}</p>
+                        <p class="text-muted mb-1">{{ __('Review the uploaded receipt and confirm or decline the payment.') }}</p>
+                        <small class="text-muted d-flex align-items-center gap-1 mb-3">
+                            <i class="ri-information-line text-primary"></i>
+                            {{ __('Customer currently sees "Payment receipt is under review". The countdown timer is paused.') }}
+                        </small>
 
                         <ul class="invoice-manage__receipts mb-3">
                             @foreach($item->paymentReceipts as $receipt)
@@ -301,6 +317,12 @@
             @if($isShipping)
                 <div class="general-form item-list mb-3">
                     <h4 class="p-3 pb-0"><i class="ri-truck-line me-1"></i> {{ __('Shipping') }}</h4>
+                    <div class="px-3 pb-2 pt-2">
+                        <small class="text-muted d-flex align-items-center gap-1">
+                            <i class="ri-information-line text-primary"></i>
+                            {{ __('Customer sees their order is PAID or PROCESSING. The offline payment box is completely hidden.') }}
+                        </small>
+                    </div>
                     <div class="p-3 pt-0">
                         <form action="{{ route('admin.invoice.update', $item) }}" method="post">
                             @csrf
@@ -394,7 +416,11 @@
                 <div class="general-form item-list mb-3">
                     <div class="p-3">
                         <h4 class="mb-2"><i class="ri-motorbike-line me-1"></i> {{ __('Order delivery') }}</h4>
-                        <p class="text-muted">{{ __('The courier will ask the customer for the 4-digit code before handing over the gold.') }}</p>
+                        <p class="text-muted mb-1">{{ __('The courier will ask the customer for the 4-digit code before handing over the gold.') }}</p>
+                        <small class="text-muted d-flex align-items-center gap-1 mb-3">
+                            <i class="ri-information-line text-primary"></i>
+                            {{ __('Customer was notified by SMS. They see a banner instructing them to give the 4-digit code to the courier.') }}
+                        </small>
 
                         @if($item->activeDelivery)
                             <div class="p-3 border rounded bg-light mb-3">
@@ -479,7 +505,11 @@
                 <div class="item-list mb-3">
                     <div class="p-3">
                         <h4 class="mb-2 text-success"><i class="ri-checkbox-circle-line me-1"></i> {{ __('Completed') }}</h4>
-                        <p class="text-muted mb-0">{{ __('This invoice was delivered and confirmed. No further action is needed.') }}</p>
+                        <p class="text-muted mb-1">{{ __('This invoice was delivered and confirmed. No further action is needed.') }}</p>
+                        <small class="text-muted d-flex align-items-center gap-1 mb-0">
+                            <i class="ri-information-line text-primary"></i>
+                            {{ __('Order has moved to Previous Orders in the customer dashboard. They can now print their invoice.') }}
+                        </small>
                     </div>
                 </div>
             @endif
