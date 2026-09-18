@@ -17,8 +17,3 @@ Schedule::command('gold:free')
 Schedule::command('offline:expire')->everyFifteenMinutes();
 
 Schedule::command('model:prune', ['--model' => [\App\Models\AdminLog::class]])->daily();
-
-Artisan::command('adminlogs:clean', function () {
-    $count = \App\Models\AdminLog::where('created_at', '<=', now()->subMonth())->delete();
-    $this->info("Cleaned up {$count} admin logs older than 1 month.");
-})->purpose('Clean up admin logs older than 1 month')->daily();

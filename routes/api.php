@@ -45,7 +45,6 @@ Route::prefix('v1')->name('v1.')->group(
         Route::post('visitor/display', [\App\Http\Controllers\Api\VisitorController::class, 'display'])->name('visitor.display');
 
         Route::apiResource('web', \App\Http\Controllers\Api\HomeController::class)->only('index');
-        Route::apiResource('products' , \App\Http\Controllers\Api\ProductController::class)->only('index');
         Route::get('tag/search/{q?}', [\App\Http\Controllers\Api\TagController::class, 'search'])->name('tag.search');
 
 

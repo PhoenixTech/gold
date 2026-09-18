@@ -23,7 +23,6 @@
         "remixicon": "^4.3.0",
         "sortablejs": "^1.15.2",
         "tiny-slider": "^2.9.4",
-        "vue-toast-notification": "^3.1.2",
         "vuex": "^4.0.2"
     }
 }

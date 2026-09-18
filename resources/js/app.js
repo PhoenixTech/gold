@@ -27,8 +27,6 @@ const app = createApp({});
 const $toast = bsToast;
 
 // Active Admin Vue Components
-import VueJalaliCalendar from './components/vueJalaliCalendar.vue';
-app.component('vue-jalali-calendar', VueJalaliCalendar);
 
 import CurrencyInput from './components/CurrencyInput.vue';
 app.component('currency-input', CurrencyInput);
@@ -38,9 +36,6 @@ app.component('remix-icon-picker', RemixIconPicker);
 
 import vueDateTimePicker from './components/vueDateTimePicker.vue';
 app.component('vue-datetime-picker-input', vueDateTimePicker);
-
-import vueDateRangePicker from './components/vueDateRangePicker.vue';
-app.component('vue-date-range-picker-input', vueDateRangePicker);
 
 import SearchableSelect from './components/SearchableSelect.vue';
 app.component('searchable-select', SearchableSelect);

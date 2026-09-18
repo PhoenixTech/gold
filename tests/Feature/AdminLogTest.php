@@ -43,7 +43,7 @@ class AdminLogTest extends TestCase
             'created_at' => now()->subDays(5),
         ]);
 
-        Artisan::call('adminlogs:clean');
+        Artisan::call('model:prune', ['--model' => [AdminLog::class]]);
 
         $this->assertDatabaseMissing('admin_logs', ['id' => $oldLog->id]);
         $this->assertDatabaseHas('admin_logs', ['id' => $recentLog->id]);

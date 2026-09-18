@@ -189,10 +189,6 @@ return [
         'api_url' => env('XLANG_API_URL',''),
     ],
     'xshop' =>[
-      'payment' => [
-          'gateway' =>  env('PAY_GATEWAY',''),
-          'merchant_id' => env('MERCHANT_ID',''),
-      ],
       'vat' => 0.09
     ],
 
@@ -224,7 +220,6 @@ return [
          */
         App\Providers\AppServiceProvider::class,
         Translator\Framework\TranslatorServiceProvider::class,
-        \App\Providers\BladeServiceProvider::class,
 
     ])->toArray(),
 ];

@@ -211,7 +211,6 @@
                             <div class="p-3 d-flex align-items-center justify-content-between">
                                 <span class="text-dark fw-semibold fs-13">{{ __('Account balance') }}</span>
                                 <div class="d-flex align-items-center gap-1.5">
-                                    <span class="avisa-balance-ring"></span>
                                     <span class="fw-bold fs-14 text-success font-fanum">{{ number_format($customer->credit) }}</span>
                                     <span class="text-muted fs-12">{{ config('app.currency.symbol', 'تومان') }}</span>
                                 </div>
