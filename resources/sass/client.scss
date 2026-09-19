@@ -25,6 +25,7 @@ $xshop-info:#2f5b66;
 --xshop-warning:#a16207;
 --xshop-info:#2f5b66;
 }
+@import 'bootstrap.rtl.min.css';
 
 @import "client-custom/assetsNode";
 @import "client-custom/general";
@@ -44,4 +45,3 @@ $xshop-info:#2f5b66;
 @import "client/posts";
 @import "client/media";
 @import "client/contact";
-

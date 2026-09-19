@@ -1,12 +1,13 @@
 // Fonts
 @import 'fonts';
+// Bootstrap
+@import 'bootstrap.rtl.min.css';
+
 @import "remixicon";
 @import "client-custom/toast";
 // Variables
 @import 'panel/variables';
 
-// Bootstrap
-//@import 'bootstrap/scss/bootstrap';
 
 
 *{
@@ -126,7 +127,3 @@ main {
         content: 'خیلی بزرگ';
     }
 }
-
-
-
-
