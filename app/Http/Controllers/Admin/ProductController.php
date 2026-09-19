@@ -132,10 +132,9 @@ class ProductController extends XController
             $product->stock_quantity = $request->input('stock_quantity', $product->stock_quantity ?? 0);
         }
         $product->average_rating = $request->input('average_rating', 0);
-        $product->average_rating = $request->input('average_rating', 0);
         $product->rating_count = $request->input('rating_count', 0);
         $product->category_id = $request->input('category_id');
-        $product->sku = Product::generateSku($product->target_group, $product->metal_type, $product->category_id, $product->id);
+        $product->sku = $request->input('sku', $product->sku);
         $product->virtual = $request->input('virtual', false);
         $product->downloadable = $request->input('downloadable', false);
         $product->image_index = $request->input('index_image', 0);

@@ -28,11 +28,12 @@ class ProductSkuTest extends TestCase
         $category = Category::factory()->create(['code' => 'A', 'name' => 'انگشتر']);
         $catId = $category->id;
 
-        // Simulate 3 existing products in category
         for ($i = 1; $i <= 3; $i++) {
             Product::factory()->create([
                 'user_id' => $this->user->id,
                 'category_id' => $catId,
+                'target_group' => 'women',
+                'metal_type' => 'gold',
             ]);
         }
 
@@ -82,11 +83,55 @@ class ProductSkuTest extends TestCase
 
         $this->assertStringStartsWith('F1A', $product->sku);
 
-        // Update product to men + silver
         $product->target_group = 'men';
         $product->metal_type = 'silver';
         $product->save();
 
         $this->assertStringStartsWith('M2A', $product->fresh()->sku);
+    }
+
+    public function test_preserves_sku_when_saved_without_prefix_changes(): void
+    {
+        $this->category->update(['code' => 'Gr']);
+
+        $product = Product::factory()->create([
+            'user_id' => $this->user->id,
+            'category_id' => $this->category->id,
+            'target_group' => 'women',
+            'metal_type' => 'gold',
+            'sku' => 'F1Gr0038',
+        ]);
+
+        $product->description = 'Updated description';
+        $product->save();
+
+        $this->assertSame('F1Gr0038', $product->fresh()->sku);
+    }
+
+    public function test_avoids_duplicate_sku_when_updating_colliding_product(): void
+    {
+        $this->category->update(['code' => 'Gr']);
+
+        Product::factory()->create([
+            'user_id' => $this->user->id,
+            'category_id' => $this->category->id,
+            'target_group' => 'women',
+            'metal_type' => 'gold',
+            'sku' => 'F1Gr0038',
+        ]);
+
+        $product2 = Product::factory()->create([
+            'user_id' => $this->user->id,
+            'category_id' => $this->category->id,
+            'target_group' => 'women',
+            'metal_type' => 'gold',
+            'sku' => 'F1Gr0039',
+        ]);
+
+        $product2->sku = 'F1Gr0038';
+        $product2->save();
+
+        $this->assertNotSame('F1Gr0038', $product2->fresh()->sku);
+        $this->assertSame('F1Gr0039', $product2->fresh()->sku);
     }
 }

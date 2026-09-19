@@ -38,49 +38,70 @@ class Product extends Model implements HasMedia
     {
         static::saving(function (Product $product) {
             if ($product->category_id) {
-                $product->sku = static::generateSku(
-                    $product->target_group,
-                    $product->metal_type,
-                    $product->category_id,
-                    $product->id
-                );
+                $targetGroup = $product->target_group ?: 'unisex';
+                $metalType = $product->metal_type ?: 'gold';
+                $expectedPrefix = static::skuPrefix($targetGroup, $metalType, (int) $product->category_id);
+
+                $isSkuValid = $product->sku
+                    && str_starts_with($product->sku, $expectedPrefix)
+                    && ! static::withTrashed()
+                        ->where('sku', $product->sku)
+                        ->when($product->id, fn ($q) => $q->where('id', '!=', $product->id))
+                        ->exists();
+
+                if (! $isSkuValid) {
+                    $product->sku = static::generateSku(
+                        $targetGroup,
+                        $metalType,
+                        (int) $product->category_id,
+                        $product->id
+                    );
+                }
             }
         });
     }
 
-    public static function generateSku(?string $targetGroup, ?string $metalType, ?int $categoryId, ?int $productId = null): string
+    public static function skuPrefix(?string $targetGroup, ?string $metalType, ?int $categoryId): string
     {
         $targets = [
             'women' => 'F', 'female' => 'F', 'f' => 'F',
             'men' => 'M', 'male' => 'M', 'm' => 'M',
             'children' => 'C', 'child' => 'C', 'c' => 'C',
+            'unisex' => 'U', 'u' => 'U',
         ];
-        $t = $targets[strtolower((string) $targetGroup)] ?? 'F';
+        $t = $targets[strtolower((string) $targetGroup)] ?? 'U';
 
-        // Metal: 1 = gold, 2 = silver per sku-2.md
         $metalNorm = strtolower((string) $metalType);
         $m = ($metalNorm === 'silver' || $metalNorm === '2' || $metalNorm === 's') ? '2' : '1';
 
         $c = Category::resolveSkuCode($categoryId);
 
-        $query = self::where('category_id', $categoryId);
-        if ($targetGroup) {
-            $query->where('target_group', $targetGroup);
-        }
-        if ($metalType) {
-            $query->where('metal_type', $metalType);
-        }
+        return "{$t}{$m}{$c}";
+    }
 
+    public static function generateSku(?string $targetGroup, ?string $metalType, ?int $categoryId, ?int $productId = null): string
+    {
+        $prefix = static::skuPrefix($targetGroup, $metalType, $categoryId);
+
+        $query = static::withTrashed()->where('sku', 'LIKE', "{$prefix}%");
         if ($productId) {
-            $count = $query->where('id', '<=', $productId)->count();
-            $count = max(1, $count);
-        } else {
-            $count = $query->count() + 1;
+            $query->where('id', '!=', $productId);
         }
 
-        $n = sprintf('%04d', $count);
+        $existingSkus = $query->pluck('sku')->toArray();
+        $existingNumbers = [];
+        $pattern = '/^'.preg_quote($prefix, '/').'(\d+)$/';
 
-        return "{$t}{$m}{$c}{$n}";
+        foreach ($existingSkus as $sku) {
+            if (preg_match($pattern, (string) $sku, $matches)) {
+                $existingNumbers[(int) $matches[1]] = true;
+            }
+        }
+
+        $nextNumber = ! empty($existingNumbers) ? max(array_keys($existingNumbers)) + 1 : 1;
+        $n = sprintf('%04d', $nextNumber);
+
+        return "{$prefix}{$n}";
     }
 
     public function attachs()

@@ -23,9 +23,13 @@ class ProductSaveRequest extends FormRequest
      */
     public function rules(): array
     {
+        $productId = $this->route('item') instanceof Product
+            ? $this->route('item')->id
+            : ($this->route('item') ?? $this->id);
+
         return [
-            'name' => ['required', 'string', 'min:5', 'max:128', 'unique:products,name,'.$this->id],
-            'sku' => ['nullable', 'string', 'min:1', 'max:128', 'unique:products,sku,'.$this->id],
+            'name' => ['required', 'string', 'min:5', 'max:128', 'unique:products,name,'.$productId],
+            'sku' => ['nullable', 'string', 'min:1', 'max:128', 'unique:products,sku,'.$productId],
             'body' => ['nullable', 'string', 'min:5'],
             'excerpt' => ['required', 'string', 'min:5'],
             'active' => ['nullable', 'boolean'],
