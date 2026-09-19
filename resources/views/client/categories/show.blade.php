@@ -1,13 +1,13 @@
 @extends('website.inc.website-layout')
 
 @section('title')
-    {{$category->name}} - {{config('app.name')}}
+    {{ $title ?? $category->name }} - {{ config('app.name') }}
 @endsection
 
 @php
     $bg = $category->bg ? $category->bgUrl() : null;
-    $title = $category->name;
-    $subtitle = $category->subtitle;
+    $title = $title ?? $category->name;
+    $subtitle = $subtitle ?? $category->subtitle;
     $currentSort = request('sort', 'latest');
     $currentSearch = request('q', '');
     $currentInStock = request()->boolean('in_stock') || request('only') === 'stock';

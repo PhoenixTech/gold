@@ -118,30 +118,23 @@
 
 @if(!$hideWtfFooter)
     @php
-        $footerCats = $footerCategories ?? (function_exists('getCategoriesSet') ? getCategoriesSet('index_WTFFooter_categories') : collect());
-        if ($footerCats->isEmpty()) {
-            $footerCats = \App\Models\Category::where('hide', 0)
-                ->where(function ($q) {
-                    $q->whereNull('parent_id')->orWhere('parent_id', 0);
-                })
-                ->orderBy('sort')
-                ->take(4)
-                ->get();
-        }
+        $footerCats = $footerCategories ?? getWtfFooterCategories();
     @endphp
     @if($footerCats && $footerCats->isNotEmpty())
         <nav class="WTFFooter fixed-bottom-categories" aria-label="Footer Categories">
             @foreach($footerCats as $k => $footerCat)
-                <a class="wtfooter-btn" href="{{$footerCat->webUrl()}}">
-                    @if($k == 3 && file_exists(public_path('assets/default/ballon.webp')))
-                        <img id="ballon" src="{{asset('assets/default/ballon.webp')}}" alt="ballon" loading="lazy">
+                @php
+                    $url = is_object($footerCat) && isset($footerCat->url) ? $footerCat->url : (method_exists($footerCat, 'webUrl') ? $footerCat->webUrl() : '#');
+                    $name = is_object($footerCat) && isset($footerCat->name) ? $footerCat->name : '';
+                    $img = is_object($footerCat) && isset($footerCat->img) ? $footerCat->img : (method_exists($footerCat, 'svgUrl') ? $footerCat->svgUrl() : '');
+                    $hasBalloon = (is_object($footerCat) && !empty($footerCat->has_balloon)) || ($k === 3);
+                @endphp
+                <a class="wtfooter-btn" href="{{ $url }}">
+                    @if($hasBalloon && file_exists(public_path('assets/default/ballon.webp')))
+                        <img id="ballon" src="{{ asset('assets/default/ballon.webp') }}" alt="ballon" loading="lazy">
                     @endif
-                    @if($footerCat->id == 61)
-                        <img class="cat-icon" src="{{Storage::url('categories/1741370193-هدیه طلا.jpg')}}" alt="{{$footerCat->name}}">
-                    @else
-                        <img class="cat-icon" src="{{$footerCat->svgUrl()}}" alt="{{$footerCat->name}}">
-                    @endif
-                    <span class="cat-name">{{$footerCat->name}}</span>
+                    <img class="cat-icon" src="{{ $img }}" alt="{{ $name }}">
+                    <span class="cat-name">{{ $name }}</span>
                 </a>
             @endforeach
         </nav>

@@ -80,7 +80,11 @@ class ClientController extends Controller
         return collect([$goldTab, $silverTab]);
     }
 
-    //
+    protected function getWtfFooterCategories()
+    {
+        return getWtfFooterCategories();
+    }
+
     public function welcome()
     {
         $title = config('app.name');
@@ -103,13 +107,7 @@ class ClientController extends Controller
             ->take(4)
             ->get();
 
-        $footerCategories = getCategoriesSet('index_WTFFooter_categories');
-        if ($footerCategories->isEmpty()) {
-            $footerCategories = Category::where('hide', 0)
-                ->orderBy('sort')
-                ->take(4)
-                ->get();
-        }
+        $footerCategories = $this->getWtfFooterCategories();
 
         $zarMenuItems = collect(getMenuBySettingItems('index_ZarMenu_menu'));
         if ($zarMenuItems->isEmpty()) {
@@ -163,13 +161,7 @@ class ClientController extends Controller
             $mainCategories = $this->getHomeCategoryTabs();
         }
 
-        $footerCategories = getCategoriesSet('index_WTFFooter_categories');
-        if ($footerCategories->isEmpty()) {
-            $footerCategories = Category::where('hide', 0)
-                ->orderBy('sort')
-                ->take(4)
-                ->get();
-        }
+        $footerCategories = $this->getWtfFooterCategories();
 
         $zarMenuItems = collect(getMenuBySettingItems('index_ZarMenu_menu'));
         if ($zarMenuItems->isEmpty()) {
@@ -267,99 +259,36 @@ class ClientController extends Controller
 
     public function products(Request $request)
     {
-        $area = 'products-list';
-        $title = __('Products list');
-        $subtitle = '';
-
-        $query = Product::query()->where('status', 1)->with(['category', 'availableQuantities', 'activeDiscounts', 'media']);
-
-        // Keyword Search
-        if ($request->filled('q')) {
-            $keyword = trim($request->input('q'));
-            $query->where(function ($q) use ($keyword) {
-                $q->where('name->'.config('app.locale'), 'like', "%{$keyword}%")
-                    ->orWhere('name', 'like', "%{$keyword}%")
-                    ->orWhere('excerpt->'.config('app.locale'), 'like', "%{$keyword}%")
-                    ->orWhere('excerpt', 'like', "%{$keyword}%")
-                    ->orWhere('description->'.config('app.locale'), 'like', "%{$keyword}%")
-                    ->orWhere('description', 'like', "%{$keyword}%");
-            });
-        }
-
-        // Category Filter
-        $activeCategory = null;
         if ($request->filled('category')) {
             $catSlug = $request->input('category');
-            $activeCategory = Category::where('slug', $catSlug)->orWhere('id', $catSlug)->first();
-            if ($activeCategory) {
-                $catIds = array_merge([$activeCategory->id], $activeCategory->children()->pluck('id')->toArray());
-                $query->where(function ($q) use ($catIds) {
-                    $q->whereIn('category_id', $catIds)
-                        ->orWhereHas('categories', function ($catQ) use ($catIds) {
-                            $catQ->whereIn('categories.id', $catIds);
-                        });
-                });
-            }
+
+            return redirect()->route('client.category', array_merge(['category' => $catSlug], $request->except(['category'])), 301);
         }
 
-        // Metal Type Filter (gold / silver)
-        if ($request->filled('metal')) {
-            $metal = strtolower($request->input('metal'));
-            if (in_array($metal, ['gold', 'silver'])) {
-                $query->where('metal_type', $metal);
-            }
-        }
+        $metal = $request->filled('metal') ? strtolower($request->input('metal')) : null;
+        $targetGroup = $request->filled('target_group') ? strtolower($request->input('target_group')) : null;
 
-        // In-stock Only Filter
-        if ($request->boolean('in_stock') || $request->input('only') === 'stock') {
-            $query->where(function ($q) {
-                $q->where('stock_status', 'IN_STOCK')
-                    ->orWhere('stock_quantity', '>', 0)
-                    ->orWhereHas('quantities', function ($qPiece) {
-                        $qPiece->where('count', '>', 0);
-                    });
-            });
-        }
-
-        // Discounted Only Filter
-        if ($request->boolean('has_discount')) {
-            $query->whereHas('activeDiscounts');
-        }
-
-        // Price Range Filters
-        if ($request->filled('min_price') && is_numeric($request->input('min_price'))) {
-            $query->where('price', '>=', (int) $request->input('min_price'));
-        }
-        if ($request->filled('max_price') && is_numeric($request->input('max_price'))) {
-            $query->where('price', '<=', (int) $request->input('max_price'));
-        }
-
-        // Sorting
-        $sort = $request->input('sort', 'latest');
-        switch ($sort) {
-            case 'cheap':
-                $query->where('price', '>', 0)->orderBy('price', 'asc');
-                break;
-            case 'expensive':
-                $query->orderByDesc('price');
-                break;
-            case 'fav':
-            case 'popular':
-                $query->orderByDesc('view');
-                break;
-            case 'sale':
-                $query->orderByDesc('sell');
-                break;
-            case 'oldest':
-                $query->orderBy('id', 'asc');
-                break;
-            case 'latest':
-            default:
-                $query->orderByDesc('id');
-                break;
-        }
-
-        $products = $query->paginate($this->paginate)->withQueryString();
+        $titles = [
+            'gold:women' => __('Women\'s Gold'),
+            'gold:men' => __('Men\'s Gold'),
+            'gold:children' => __('Children\'s Gold'),
+            'silver:women' => __('Women\'s Silver'),
+            'silver:men' => __('Men\'s Silver'),
+            'silver:children' => __('Children\'s Silver'),
+            'gold:' => __('Gold products'),
+            'silver:' => __('Silver products'),
+            ':women' => __('Women products'),
+            ':men' => __('Men products'),
+            ':children' => __('Children products'),
+        ];
+        $title = $titles["{$metal}:{$targetGroup}"] ?? __('Products list');
+        $subtitle = '';
+        $products = Product::query()
+            ->where('status', 1)
+            ->with(['category', 'availableQuantities', 'activeDiscounts', 'media'])
+            ->filterCatalog($request)
+            ->paginate($this->paginate)
+            ->withQueryString();
 
         $categories = Category::query()
             ->where('hide', 0)
@@ -374,7 +303,7 @@ class ClientController extends Controller
             }])
             ->get();
 
-        return view('client.products.index', compact('products', 'title', 'subtitle', 'categories', 'activeCategory'));
+        return view('client.products.index', compact('products', 'title', 'subtitle', 'categories'));
     }
 
     public function galleries()
@@ -564,82 +493,36 @@ class ClientController extends Controller
 
     public function category($slug, Request $request)
     {
+        $legacyRedirects = [
+            'women-gold' => ['metal' => 'gold', 'target_group' => 'women'],
+            'men-gold' => ['metal' => 'gold', 'target_group' => 'men'],
+            'child-gold' => ['metal' => 'gold', 'target_group' => 'children'],
+            'children-gold' => ['metal' => 'gold', 'target_group' => 'children'],
+            'women-silver' => ['metal' => 'silver', 'target_group' => 'women'],
+            'men-silver' => ['metal' => 'silver', 'target_group' => 'men'],
+            'child-silver' => ['metal' => 'silver', 'target_group' => 'children'],
+            'children-silver' => ['metal' => 'silver', 'target_group' => 'children'],
+            'gift-gold-or-silver' => ['metal' => 'gold'],
+            'gift-gold' => ['metal' => 'gold'],
+        ];
+
+        if (isset($legacyRedirects[$slug])) {
+            return redirect()->route('client.products', array_merge($legacyRedirects[$slug], $request->query()), 301);
+        }
+
         $category = Category::where('slug', $slug)->with(['parent', 'children'])->firstOrFail();
-        $title = $category->name;
         $subtitle = $category->subtitle;
+
+        $metal = $request->filled('metal') ? strtolower($request->input('metal')) : null;
+        $targetGroup = $request->filled('target_group') ? strtolower($request->input('target_group')) : null;
+        $metalLabels = ['gold' => __('Gold'), 'silver' => __('Silver')];
+        $tgLabels = ['women' => __('Women\'s'), 'men' => __('Men\'s'), 'children' => __('Children\'s'), 'unisex' => __('Unisex')];
+        $title = implode(' ', array_filter([$category->name, $metalLabels[$metal] ?? null, $tgLabels[$targetGroup] ?? null]));
+
         $query = $category->products()
             ->where('status', 1)
-            ->with(['category', 'availableQuantities', 'activeDiscounts', 'media']);
-
-        // Keyword Search inside Category
-        if ($request->filled('q')) {
-            $keyword = trim($request->input('q'));
-            $query->where(function ($q) use ($keyword) {
-                $q->where('name->'.config('app.locale'), 'like', "%{$keyword}%")
-                    ->orWhere('name', 'like', "%{$keyword}%")
-                    ->orWhere('excerpt->'.config('app.locale'), 'like', "%{$keyword}%")
-                    ->orWhere('excerpt', 'like', "%{$keyword}%")
-                    ->orWhere('description->'.config('app.locale'), 'like', "%{$keyword}%")
-                    ->orWhere('description', 'like', "%{$keyword}%");
-            });
-        }
-
-        // Metal Type Filter (gold / silver)
-        if ($request->filled('metal')) {
-            $metal = strtolower($request->input('metal'));
-            if (in_array($metal, ['gold', 'silver'])) {
-                $query->where('metal_type', $metal);
-            }
-        }
-
-        // In-stock Only Filter
-        if ($request->boolean('in_stock') || $request->input('only') === 'stock' || $request->input('only') == '1') {
-            $query->where(function ($q) {
-                $q->where('stock_status', 'IN_STOCK')
-                    ->orWhere('stock_quantity', '>', 0)
-                    ->orWhereHas('quantities', function ($qPiece) {
-                        $qPiece->where('count', '>', 0);
-                    });
-            });
-        }
-
-        // Discounted Only Filter
-        if ($request->boolean('has_discount')) {
-            $query->whereHas('activeDiscounts');
-        }
-
-        // Price Range Filters
-        if ($request->filled('min_price') && is_numeric($request->input('min_price'))) {
-            $query->where('price', '>=', (int) $request->input('min_price'));
-        }
-        if ($request->filled('max_price') && is_numeric($request->input('max_price'))) {
-            $query->where('price', '<=', (int) $request->input('max_price'));
-        }
-
-        // Sorting
-        $sort = $request->input('sort', 'latest');
-        switch ($sort) {
-            case 'cheap':
-                $query->where('price', '>', 0)->orderBy('price', 'asc');
-                break;
-            case 'expensive':
-                $query->orderByDesc('price');
-                break;
-            case 'fav':
-            case 'popular':
-                $query->orderByDesc('view');
-                break;
-            case 'sale':
-                $query->orderByDesc('sell');
-                break;
-            case 'oldest':
-                $query->orderBy('id', 'asc');
-                break;
-            case 'latest':
-            default:
-                $query->orderByDesc('id');
-                break;
-        }
+            ->with(['category', 'availableQuantities', 'activeDiscounts', 'media'])
+            ->filterCatalog($request);
 
         if ($request->has('meta')) {
             foreach ($category->props()->where('searchable', 1)->get() as $prop) {
@@ -704,19 +587,14 @@ class ClientController extends Controller
 
         $products = $query->paginate($this->paginate)->withQueryString();
 
-        if ($category->parent_id == null) {
-            $breadcrumb = [
-                __('Products') => productsUrl(),
-                $category->name => null,
-            ];
-        } else {
-            $breadcrumb = [
-                __('Products') => productsUrl(),
-                $category->parent->name => $category->parent->webUrl(),
-                $category->name => null,
-            ];
-
+        $breadcrumb = [__('Products') => productsUrl()];
+        if ($category->parent) {
+            $breadcrumb[$category->parent->name] = $category->parent->webUrl();
         }
+        if ($title !== $category->name) {
+            $breadcrumb[$category->name] = $category->webUrl();
+        }
+        $breadcrumb[$title] = null;
 
         return view('client.categories.show', compact('products', 'title', 'subtitle', 'category', 'breadcrumb'));
     }

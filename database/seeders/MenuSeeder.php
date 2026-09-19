@@ -19,12 +19,12 @@ class MenuSeeder extends Seeder
 
         $itemsData = [
             ['title' => ['fa' => 'خانه'], 'kind' => 'direct', 'meta' => '/', 'sort' => 0],
-            ['title' => ['fa' => 'طلا زنانه'], 'kind' => 'model', 'slug' => 'women-gold', 'sort' => 1],
-            ['title' => ['fa' => 'طلا مردانه'], 'kind' => 'model', 'slug' => 'men-gold', 'sort' => 2],
-            ['title' => ['fa' => 'طلا بچه‌گانه'], 'kind' => 'model', 'slug' => 'children-gold', 'sort' => 3],
-            ['title' => ['fa' => 'نقره زنانه'], 'kind' => 'model', 'slug' => 'women-silver', 'sort' => 4],
-            ['title' => ['fa' => 'نقره مردانه'], 'kind' => 'model', 'slug' => 'men-silver', 'sort' => 5],
-            ['title' => ['fa' => 'نقره بچه‌گانه'], 'kind' => 'model', 'slug' => 'children-silver', 'sort' => 6],
+            ['title' => ['fa' => 'طلا زنانه'], 'kind' => 'direct', 'meta' => '/products?metal=gold&target_group=women', 'sort' => 1],
+            ['title' => ['fa' => 'طلا مردانه'], 'kind' => 'direct', 'meta' => '/products?metal=gold&target_group=men', 'sort' => 2],
+            ['title' => ['fa' => 'طلا بچه‌گانه'], 'kind' => 'direct', 'meta' => '/products?metal=gold&target_group=children', 'sort' => 3],
+            ['title' => ['fa' => 'نقره زنانه'], 'kind' => 'direct', 'meta' => '/products?metal=silver&target_group=women', 'sort' => 4],
+            ['title' => ['fa' => 'نقره مردانه'], 'kind' => 'direct', 'meta' => '/products?metal=silver&target_group=men', 'sort' => 5],
+            ['title' => ['fa' => 'نقره بچه‌گانه'], 'kind' => 'direct', 'meta' => '/products?metal=silver&target_group=children', 'sort' => 6],
             ['title' => ['fa' => 'ارتباط با ما'], 'kind' => 'direct', 'meta' => '/contact-us', 'sort' => 7],
         ];
 
@@ -35,18 +35,9 @@ class MenuSeeder extends Seeder
             $item->sort = $data['sort'];
             $item->kind = $data['kind'];
             $item->title = $data['title'];
-            if ($data['kind'] === 'model') {
-                $cat = Category::where('slug', $data['slug'])->first();
-                if ($cat) {
-                    $item->menuable_id = $cat->id;
-                    $item->menuable_type = Category::class;
-                    $item->meta = null;
-                }
-            } else {
-                $item->meta = $data['meta'];
-                $item->menuable_id = null;
-                $item->menuable_type = null;
-            }
+            $item->meta = $data['meta'];
+            $item->menuable_id = null;
+            $item->menuable_type = null;
             $item->save();
         }
     }

@@ -1,18 +1,29 @@
 @php
     $currentCategorySlug = request('category', isset($category) ? $category->slug : null);
     $currentSearch = request('q', '');
+    $currentMetal = request('metal', '');
+    $currentTargetGroup = request('target_group', '');
     $currentInStock = request()->boolean('in_stock') || request('only') === 'stock';
     $currentHasDiscount = request()->boolean('has_discount');
     $currentMinPrice = request('min_price', '');
     $currentMaxPrice = request('max_price', '');
     $currentSort = request('sort', 'latest');
     $categoriesList = $categories ?? \App\Models\Category::where('hide', 0)->where(function($q) { $q->whereNull('parent_id')->orWhere('parent_id', 0); })->with(['children' => function($q){ $q->where('hide', 0); }])->withCount(['products' => function($q){ $q->where('status', 1); }])->get();
+    $filterUrl = fn(array $params = [], array $except = ['page']) => isset($category)
+        ? route('client.category', array_merge(['category' => $category->slug], request()->except($except), $params))
+        : route('client.products', array_merge(request()->except($except), $params));
 @endphp
 
 <div class="product-filters-sidebar">
     <form action="{{ isset($category) ? route('client.category', $category->slug) : route('client.products') }}" method="get" id="productFilterForm" class="filter-form">
         @if($currentSort && $currentSort !== 'latest')
             <input type="hidden" name="sort" value="{{ $currentSort }}">
+        @endif
+        @if($currentMetal)
+            <input type="hidden" name="metal" value="{{ $currentMetal }}">
+        @endif
+        @if($currentTargetGroup)
+            <input type="hidden" name="target_group" value="{{ $currentTargetGroup }}">
         @endif
 
         <!-- Search Filter Block -->
@@ -88,7 +99,7 @@
                         @endphp
                         <li class="category-tree-item {{ ($isCatActive || $hasActiveChild) ? 'active open' : '' }}">
                             <div class="d-flex align-items-center justify-content-between p-2 rounded-3 category-tree-row">
-                                <a href="{{ route('client.products', array_merge(request()->except(['category', 'page']), ['category' => $cat->slug])) }}" class="category-tree-link d-flex align-items-center gap-2 text-decoration-none flex-grow-1">
+                                <a href="{{ route('client.category', array_merge(['category' => $cat->slug], request()->except(['category', 'page']))) }}" class="category-tree-link d-flex align-items-center gap-2 text-decoration-none flex-grow-1">
                                     <i class="ri-folder-line fs-14 {{ $isCatActive ? 'text-primary' : 'text-muted' }}"></i>
                                     <span class="fs-13 {{ $isCatActive ? 'fw-bold text-primary' : 'text-dark' }}">{{ $cat->name }}</span>
                                 </a>
@@ -107,7 +118,7 @@
                                         @foreach($cat->children as $sub)
                                             @php $isSubActive = ($currentCategorySlug == $sub->slug || $currentCategorySlug == $sub->id); @endphp
                                             <li class="sub-category-item py-1">
-                                                <a href="{{ route('client.products', array_merge(request()->except(['category', 'page']), ['category' => $sub->slug])) }}" class="sub-category-link d-flex align-items-center justify-content-between text-decoration-none {{ $isSubActive ? 'fw-bold text-primary active' : 'text-muted' }} fs-12">
+                                                <a href="{{ route('client.category', array_merge(['category' => $sub->slug], request()->except(['category', 'page']))) }}" class="sub-category-link d-flex align-items-center justify-content-between text-decoration-none {{ $isSubActive ? 'fw-bold text-primary active' : 'text-muted' }} fs-12">
                                                     <span>{{ $sub->name }}</span>
                                                     @if($isSubActive)
                                                         <i class="ri-check-line text-primary"></i>
@@ -118,6 +129,86 @@
                                     </ul>
                                 </div>
                             @endif
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
+
+        <div class="filter-card mb-3">
+            <div class="filter-card-header d-flex align-items-center justify-content-between">
+                <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">
+                    <i class="ri-vip-diamond-line text-primary"></i>
+                    <span>{{ __("Metal type") }}</span>
+                </h6>
+                @if($currentMetal)
+                    <a href="{{ $filterUrl([], ['metal', 'page']) }}" class="fs-12 text-danger text-decoration-none hover-underline">
+                        {{ __("Clear") }}
+                    </a>
+                @endif
+            </div>
+            <div class="filter-card-body p-2">
+                <ul class="category-tree-list list-unstyled mb-0">
+                    @php
+                        $metals = [
+                            '' => ['label' => __('All metals'), 'icon' => 'ri-apps-2-line'],
+                            'gold' => ['label' => __('Gold'), 'icon' => 'ri-copper-coin-fill text-warning'],
+                            'silver' => ['label' => __('Silver'), 'icon' => 'ri-copper-coin-line text-secondary'],
+                        ];
+                    @endphp
+                    @foreach($metals as $metalKey => $metalData)
+                        @php $isMetalActive = ($currentMetal === $metalKey || ($metalKey === '' && empty($currentMetal))); @endphp
+                        <li class="category-tree-item {{ $isMetalActive ? 'active' : '' }}">
+                            <a href="{{ $filterUrl($metalKey ? ['metal' => $metalKey] : [], ['metal', 'page']) }}" class="category-tree-link d-flex align-items-center justify-content-between p-2 rounded-3 text-decoration-none">
+                                <span class="d-flex align-items-center gap-2">
+                                    <i class="{{ $metalData['icon'] }} fs-14"></i>
+                                    <span class="fs-13 {{ $isMetalActive ? 'fw-bold text-primary' : 'text-dark' }}">{{ $metalData['label'] }}</span>
+                                </span>
+                                @if($isMetalActive)
+                                    <i class="ri-check-line text-primary fw-bold"></i>
+                                @endif
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
+
+        <div class="filter-card mb-3">
+            <div class="filter-card-header d-flex align-items-center justify-content-between">
+                <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">
+                    <i class="ri-user-heart-line text-primary"></i>
+                    <span>{{ __("Target group") }}</span>
+                </h6>
+                @if($currentTargetGroup)
+                    <a href="{{ $filterUrl([], ['target_group', 'page']) }}" class="fs-12 text-danger text-decoration-none hover-underline">
+                        {{ __("Clear") }}
+                    </a>
+                @endif
+            </div>
+            <div class="filter-card-body p-2">
+                <ul class="category-tree-list list-unstyled mb-0">
+                    @php
+                        $targetGroups = [
+                            '' => ['label' => __('All target groups'), 'icon' => 'ri-group-line'],
+                            'women' => ['label' => __('Women'), 'icon' => 'ri-women-line text-danger'],
+                            'men' => ['label' => __('Men'), 'icon' => 'ri-men-line text-primary'],
+                            'children' => ['label' => __('Children'), 'icon' => 'ri-bear-smile-line text-success'],
+                            'unisex' => ['label' => __('Unisex'), 'icon' => 'ri-user-shared-line text-info'],
+                        ];
+                    @endphp
+                    @foreach($targetGroups as $tgKey => $tgData)
+                        @php $isTgActive = ($currentTargetGroup === $tgKey || ($tgKey === '' && empty($currentTargetGroup))); @endphp
+                        <li class="category-tree-item {{ $isTgActive ? 'active' : '' }}">
+                            <a href="{{ $filterUrl($tgKey ? ['target_group' => $tgKey] : [], ['target_group', 'page']) }}" class="category-tree-link d-flex align-items-center justify-content-between p-2 rounded-3 text-decoration-none">
+                                <span class="d-flex align-items-center gap-2">
+                                    <i class="{{ $tgData['icon'] }} fs-14"></i>
+                                    <span class="fs-13 {{ $isTgActive ? 'fw-bold text-primary' : 'text-dark' }}">{{ $tgData['label'] }}</span>
+                                </span>
+                                @if($isTgActive)
+                                    <i class="ri-check-line text-primary fw-bold"></i>
+                                @endif
+                            </a>
                         </li>
                     @endforeach
                 </ul>

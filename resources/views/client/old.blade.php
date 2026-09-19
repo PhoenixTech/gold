@@ -381,16 +381,20 @@ body {
     @if(isset($mainCategories) && $mainCategories->isNotEmpty())
         <section class="WTFIndex live-setting pt-4 pb-2">
             @foreach($mainCategories as $k => $mainCategory)
-                @php($words = explode(' ', $mainCategory->name))
-                @php($metalParam = $mainCategory->metal ?? ($k == 1 ? 'silver' : 'gold'))
-                @php($childCats = is_iterable($mainCategory->children) ? $mainCategory->children : ($mainCategory->relationLoaded('children') ? $mainCategory->children->where('hide', 0) : $mainCategory->children()->where('hide', 0)->get()))
+                @php
+                    $words = explode(' ', $mainCategory->name);
+                    $metalParam = $mainCategory->metal ?? ($k == 1 ? 'silver' : 'gold');
+                    $childCats = is_iterable($mainCategory->children) ? $mainCategory->children : ($mainCategory->relationLoaded('children') ? $mainCategory->children->where('hide', 0) : $mainCategory->children()->where('hide', 0)->get());
+                @endphp
                 <div class="wtf-section container px-2 px-sm-3" id="wtf-{{$mainCategory->id}}" @if($k == 0) style="display: block" @else style="display: none" @endif>
                     <div class="row g-2 g-sm-3" dir="rtl">
                         @foreach($childCats as $childCategory)
                             <div class="col-3 text-center mb-3">
                                 <a href="{{ route('client.category', ['category' => $childCategory->slug, 'metal' => $metalParam]) }}" class="d-block text-decoration-none text-dark cat-item-link">
                                     <div class="cat-img-box d-flex align-items-center justify-content-center">
-                                        @php($hasMetalImg = ($metalParam === 'silver' ? !empty($childCategory->silver_image) : !empty($childCategory->image)))
+                                        @php
+                                            $hasMetalImg = ($metalParam === 'silver' ? !empty($childCategory->silver_image) : !empty($childCategory->image));
+                                        @endphp
                                         @if($hasMetalImg)
                                             <img src="{{$childCategory->imgForMetal($metalParam)}}" 
                                                  onerror="this.onerror=null;this.src='{{$childCategory->imgOriginalForMetal($metalParam)}}';" 
@@ -451,20 +455,21 @@ body {
         </section>
     @endif
 
-    <!-- WTFFooter (Fixed Floating Bottom Bar matching zhonella-core.jpg) -->
     @if(isset($footerCategories) && $footerCategories->isNotEmpty())
         <nav class="WTFFooter fixed-bottom-categories" aria-label="Footer Categories">
             @foreach($footerCategories as $k => $footerCat)
-                <a class="wtfooter-btn" href="{{$footerCat->webUrl()}}">
-                    @if($k == 3 && file_exists(public_path('assets/default/ballon.webp')))
-                        <img id="ballon" src="{{asset('assets/default/ballon.webp')}}" alt="ballon" loading="lazy">
+                @php
+                    $url = is_object($footerCat) && isset($footerCat->url) ? $footerCat->url : (method_exists($footerCat, 'webUrl') ? $footerCat->webUrl() : '#');
+                    $name = is_object($footerCat) && isset($footerCat->name) ? $footerCat->name : '';
+                    $img = is_object($footerCat) && isset($footerCat->img) ? $footerCat->img : (method_exists($footerCat, 'svgUrl') ? $footerCat->svgUrl() : '');
+                    $hasBalloon = (is_object($footerCat) && !empty($footerCat->has_balloon)) || ($k === 3);
+                @endphp
+                <a class="wtfooter-btn" href="{{ $url }}">
+                    @if($hasBalloon && file_exists(public_path('assets/default/ballon.webp')))
+                        <img id="ballon" src="{{ asset('assets/default/ballon.webp') }}" alt="ballon" loading="lazy">
                     @endif
-                    @if($footerCat->id == 61)
-                        <img class="cat-icon" src="{{Storage::url('categories/1741370193-هدیه طلا.jpg')}}" alt="{{$footerCat->name}}">
-                    @else
-                        <img class="cat-icon" src="{{$footerCat->svgUrl()}}" alt="{{$footerCat->name}}">
-                    @endif
-                    <span class="cat-name">{{$footerCat->name}}</span>
+                    <img class="cat-icon" src="{{ $img }}" alt="{{ $name }}">
+                    <span class="cat-name">{{ $name }}</span>
                 </a>
             @endforeach
         </nav>

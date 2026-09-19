@@ -1630,3 +1630,38 @@ function getGroupsSet($key, $limit = 4, $orderBy = 'sort', $asc = 'ASC')
 
     return Group::whereIn('id', $ids)->where('hide', 0)->limit($limit)->orderBy($orderBy, $asc)->get();
 }
+
+function getWtfFooterCategories()
+{
+    $categories = getCategoriesSet('index_WTFFooter_categories');
+    if ($categories->isNotEmpty() && $categories->every(fn ($c) => ! empty($c->webUrl()) && $c->webUrl() !== '#')) {
+        return $categories;
+    }
+
+    return collect([
+        (object) [
+            'name' => __('Women\'s Gold'),
+            'url' => route('client.products', ['metal' => 'gold', 'target_group' => 'women']),
+            'img' => \Storage::url('categories/1741185465-زنانه.svg'),
+            'has_balloon' => false,
+        ],
+        (object) [
+            'name' => __('Men\'s Gold'),
+            'url' => route('client.products', ['metal' => 'gold', 'target_group' => 'men']),
+            'img' => \Storage::url('categories/1741185578-مردانه.svg'),
+            'has_balloon' => false,
+        ],
+        (object) [
+            'name' => __('Children\'s Gold'),
+            'url' => route('client.products', ['metal' => 'gold', 'target_group' => 'children']),
+            'img' => \Storage::url('categories/1741185704-بچگانه.svg'),
+            'has_balloon' => false,
+        ],
+        (object) [
+            'name' => __('Gift Gold'),
+            'url' => route('client.products', ['metal' => 'gold']),
+            'img' => \Storage::url('categories/1741370193-هدیه طلا.jpg'),
+            'has_balloon' => true,
+        ],
+    ]);
+}

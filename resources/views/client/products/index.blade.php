@@ -25,16 +25,7 @@
             <nav aria-label="breadcrumb" class="mb-2">
                 <ol class="breadcrumb fs-13 mb-0">
                     <li class="breadcrumb-item"><a href="{{ route('client.welcome') }}" class="text-muted text-decoration-none hover-primary">{{ __("Home") }}</a></li>
-                    <li class="breadcrumb-item {{ !isset($activeCategory) ? 'active text-dark fw-bold' : '' }}">
-                        @if(isset($activeCategory))
-                            <a href="{{ route('client.products') }}" class="text-muted text-decoration-none hover-primary">{{ __("Products") }}</a>
-                        @else
-                            {{ __("Products") }}
-                        @endif
-                    </li>
-                    @if(isset($activeCategory))
-                        <li class="breadcrumb-item active text-dark fw-bold" aria-current="page">{{ $activeCategory->name }}</li>
-                    @endif
+                    <li class="breadcrumb-item active text-dark fw-bold" aria-current="page">{{ $title ?? __("Products") }}</li>
                 </ol>
             </nav>
 
@@ -43,12 +34,10 @@
                     <h5 class="page-title fw-bold text-dark mb-1 d-flex align-items-center gap-2">
                         <i class="ri-store-2-line text-primary"></i>
                         <span>
-                            @if(isset($activeCategory))
-                                {{ $activeCategory->name }}
-                            @elseif($currentSearch)
+                            @if($currentSearch)
                                 {{ __('Search results for ":q"', ['q' => $currentSearch]) }}
                             @else
-                                {{ __("Products list") }}
+                                {{ $title ?? __("Products list") }}
                             @endif
                         </span>
                     </h5>

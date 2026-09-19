@@ -30,16 +30,20 @@
             <!-- Category Panels -->
             <div class="py-2">
                 @foreach($mainCategories as $k => $mainCategory)
-                    @php($words = explode(' ', $mainCategory->name))
-                    @php($metalParam = $mainCategory->metal ?? ($k == 1 ? 'silver' : 'gold'))
-                    @php($childCats = is_iterable($mainCategory->children) ? $mainCategory->children : ($mainCategory->relationLoaded('children') ? $mainCategory->children->where('hide', 0) : $mainCategory->children()->where('hide', 0)->get()))
+                    @php
+                        $words = explode(' ', $mainCategory->name);
+                        $metalParam = $mainCategory->metal ?? ($k == 1 ? 'silver' : 'gold');
+                        $childCats = is_iterable($mainCategory->children) ? $mainCategory->children : ($mainCategory->relationLoaded('children') ? $mainCategory->children->where('hide', 0) : $mainCategory->children()->where('hide', 0)->get());
+                    @endphp
                     <div class="{{gfx()['container']}} wtf-section" id="wtf-{{$mainCategory->id}}" @if($k == 0) style="display: block" @endif>
                         <div class="row g-3 g-md-4">
                             @foreach($childCats as $childCategory)
                                 <div class="col-6 col-sm-4 col-md-3">
                                     <a class="wtf-cat-card card border-0 shadow-sm rounded-4 overflow-hidden text-decoration-none h-100 transition-all d-block position-relative" href="{{ route('client.category', ['category' => $childCategory->slug, 'metal' => $metalParam]) }}">
                                         <div class="card-img-box position-relative bg-dark overflow-hidden d-flex align-items-center justify-content-center" style="min-height: 180px;">
-                                            @php($hasMetalImg = ($metalParam === 'silver' ? !empty($childCategory->silver_image) : !empty($childCategory->image)))
+                                            @php
+                                                $hasMetalImg = ($metalParam === 'silver' ? !empty($childCategory->silver_image) : !empty($childCategory->image));
+                                            @endphp
                                             @if($hasMetalImg)
                                                 <img src="{{$childCategory->imgForMetal($metalParam)}}" alt="{{$childCategory->name}}" class="w-100 h-100 object-fit-cover cat-img-hover opacity-85" loading="lazy">
                                             @elseif(!empty($childCategory->image))

@@ -800,4 +800,74 @@ RESULT;
     {
         return $query->whereJsonContains('occasions', $occasion);
     }
+
+    public function scopeFilterCatalog($query, $request = null)
+    {
+        $req = $request instanceof \Illuminate\Http\Request ? $request : request();
+
+        if ($req->filled('q')) {
+            $keyword = trim($req->input('q'));
+            $locale = config('app.locale');
+            $query->where(function ($q) use ($keyword, $locale) {
+                $q->where("name->{$locale}", 'like', "%{$keyword}%")
+                    ->orWhere('name', 'like', "%{$keyword}%")
+                    ->orWhere("excerpt->{$locale}", 'like', "%{$keyword}%")
+                    ->orWhere('excerpt', 'like', "%{$keyword}%")
+                    ->orWhere("description->{$locale}", 'like', "%{$keyword}%")
+                    ->orWhere('description', 'like', "%{$keyword}%");
+            });
+        }
+
+        if ($req->filled('metal')) {
+            $metal = strtolower($req->input('metal'));
+            if (in_array($metal, ['gold', 'silver'])) {
+                $query->where('metal_type', $metal);
+            }
+        }
+
+        if ($req->filled('target_group')) {
+            $targetGroup = strtolower($req->input('target_group'));
+            if (in_array($targetGroup, ['women', 'men', 'children', 'unisex'])) {
+                $query->where('target_group', $targetGroup);
+            }
+        }
+
+        if ($req->filled('occasion')) {
+            $query->whereJsonContains('occasions', $req->input('occasion'));
+        }
+
+        if ($req->boolean('in_stock') || $req->input('only') === 'stock' || $req->input('only') == '1') {
+            $query->where(function ($q) {
+                $q->where('stock_status', 'IN_STOCK')
+                    ->orWhere('stock_quantity', '>', 0)
+                    ->orWhereHas('quantities', function ($qPiece) {
+                        $qPiece->where('count', '>', 0);
+                    });
+            });
+        }
+
+        if ($req->boolean('has_discount')) {
+            $query->whereHas('activeDiscounts');
+        }
+
+        if ($req->filled('min_price') && is_numeric($req->input('min_price'))) {
+            $query->where('price', '>=', (int) $req->input('min_price'));
+        }
+
+        if ($req->filled('max_price') && is_numeric($req->input('max_price'))) {
+            $query->where('price', '<=', (int) $req->input('max_price'));
+        }
+
+        $sort = $req->input('sort', 'latest');
+        match ($sort) {
+            'cheap' => $query->where('price', '>', 0)->orderBy('price', 'asc'),
+            'expensive' => $query->orderByDesc('price'),
+            'fav', 'popular' => $query->orderByDesc('view'),
+            'sale' => $query->orderByDesc('sell'),
+            'oldest' => $query->orderBy('id', 'asc'),
+            default => $query->orderByDesc('id'),
+        };
+
+        return $query;
+    }
 }
