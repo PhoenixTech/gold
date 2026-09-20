@@ -1,5 +1,4 @@
 @php
-    $menuItems = getPrimaryMenuItems();
     $socialsRaw = getSettingsGroup('social_');
     $socials = is_array($socialsRaw) ? $socialsRaw : [];
     $tel = getSetting('tel');
@@ -12,7 +11,6 @@
 <footer class="TypicalFooter site-footer mt-auto">
     <div class="{{gfx()['container']}}">
         <div class="tf-grid">
-            <!-- Brand & About -->
             <div class="tf-col about">
                 <a href="{{url('/')}}" class="tf-brand" title="{{config('app.name')}}">
                     <img src="{{asset('upload/images/logo.svg')}}" onerror="this.src='{{asset('assets/default/logo.png')}}'" alt="{{config('app.name')}}">
@@ -26,27 +24,6 @@
                         </p>
                     @endif
                 </div>
-            </div>
-
-            <!-- Quick Links -->
-            <div class="tf-col">
-                <h4>{{__("Quick links")}}</h4>
-                <ul class="tf-links">
-                    @if(!empty($menuItems) && count($menuItems) > 0)
-                        @foreach($menuItems as $item)
-                            <li>
-                                <a href="{{$item->webUrl()}}">
-                                    {{$item->title}}
-                                </a>
-                            </li>
-                        @endforeach
-                    @else
-                        <li><a href="{{route('client.welcome')}}">{{__("Home Page")}}</a></li>
-                        <li><a href="{{route('client.products')}}">{{__("Products")}}</a></li>
-                        <li><a href="{{route('client.posts')}}">{{__("Articles")}}</a></li>
-                        <li><a href="{{route('client.contact')}}">{{__("Contact us")}}</a></li>
-                    @endif
-                </ul>
             </div>
 
             <!-- Contact Information -->

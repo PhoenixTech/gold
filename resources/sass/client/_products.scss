@@ -243,7 +243,6 @@
     }
 }
 
-// Shiva Product Grid Card
 .ShivaProductGrid {
     .card-img-wrapper {
         aspect-ratio: 1 / 1;
@@ -276,6 +275,18 @@
     }
 
     .card-quick-actions {
+        .fav-btn, .bookmark-btn {
+            width: 28px;
+            height: 28px;
+            font-size: 13px;
+
+            @media (min-width: 768px) {
+                width: 32px;
+                height: 32px;
+                font-size: 16px;
+            }
+        }
+
         .btn-white {
             background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(4px);
@@ -308,6 +319,41 @@
         &[data-is-bookmarked="0"], &[data-is-bookmarked="-1"] {
             .ri-bookmark-fill { display: none !important; }
             .ri-bookmark-line { display: inline-block !important; }
+        }
+    }
+
+    .add-to-card {
+        width: 30px;
+        height: 30px;
+        font-size: 14px;
+        transition: all 0.2s ease;
+
+        &:hover {
+            transform: scale(1.08);
+            background-color: var(--xshop-primary) !important;
+            border-color: var(--xshop-primary) !important;
+            color: #ffffff !important;
+        }
+
+        @media (min-width: 768px) {
+            width: 32px;
+            height: 32px;
+            font-size: 15px;
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        .product-title {
+            font-size: 0.8125rem;
+            line-height: 1.35;
+        }
+
+        .price {
+            font-size: 0.8125rem;
+        }
+
+        .old-price {
+            font-size: 0.6875rem;
         }
     }
 }
