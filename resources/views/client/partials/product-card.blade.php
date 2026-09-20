@@ -40,7 +40,7 @@
         </div>
 
         <div class="card-body p-2 p-md-2.5 d-flex flex-column flex-grow-1">
-            <h3 class="product-title fs-13 fs-md-14 fw-semibold mb-1 mb-md-2 leading-snug">
+            <h3 class="product-title fs-12 fs-md-13 fw-semibold mb-1 leading-snug">
                 <a href="{{$product->webUrl()}}" class="text-decoration-none text-main hover-primary" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
                     {{$product->name}}
                 </a>
