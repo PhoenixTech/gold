@@ -16,6 +16,7 @@ use Database\Factories\DeliveryFactory;
 use Database\Seeders\GfxSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Queue;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -50,9 +51,6 @@ class CourierDeliveryTest extends TestCase
         return $user;
     }
 
-    /**
-     * @return array{0: Delivery, 1: Invoice, 2: User}
-     */
     private function makeAssignedDelivery(?User $courier = null, string $status = 'pending'): array
     {
         $courier ??= $this->makeCourier();
@@ -274,5 +272,84 @@ class CourierDeliveryTest extends TestCase
         $this->assertStringNotContainsString(route('admin.product.index'), $html);
         $this->assertStringNotContainsString(route('admin.invoice.index'), $html);
         $this->assertStringNotContainsString(route('admin.help'), $html);
+    }
+
+    public function test_printable_shipping_label_view_renders_recipient_and_order_details(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        $this->actingAsAdmin();
+        [, $invoice] = $this->makeAssignedDelivery();
+
+        $response = $this->get(route('admin.invoice.shipping-label', $invoice));
+
+        $response->assertOk();
+        $response->assertSee('سارا خریدار', false);
+        $response->assertSee('09002223344', false);
+        $response->assertSee('تهران، پاسداران، پلاک ۲۰', false);
+        $response->assertSee($invoice->hash, false);
+    }
+
+    public function test_printable_shipping_label_uses_third_party_recipient_when_present(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        $this->actingAsAdmin();
+        [, $invoice] = $this->makeAssignedDelivery();
+
+        $invoice->forceFill([
+            'is_third_party' => true,
+            'recipient_name' => 'حمید میرزایی',
+            'recipient_mobile' => '09129998877',
+            'recipient_national_id' => '0012345678',
+        ])->save();
+
+        $response = $this->get(route('admin.invoice.shipping-label', $invoice));
+
+        $response->assertOk();
+        $response->assertSee('حمید میرزایی', false);
+        $response->assertSee('09129998877', false);
+        $response->assertSee('0012345678', false);
+    }
+
+    public function test_daily_courier_dispatch_sheet_renders_delivery_listing_and_stats(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        $this->actingAsAdmin();
+        [, $invoice, $courier] = $this->makeAssignedDelivery();
+
+        $response = $this->get(route('admin.delivery.dispatch-sheet'));
+
+        $response->assertOk();
+        $response->assertSee($courier->name, false);
+        $response->assertSee($invoice->hash, false);
+        $response->assertSee('امضا', false);
+    }
+
+    public function test_daily_courier_dispatch_sheet_is_forbidden_for_non_admin_users(): void
+    {
+        $courier = $this->makeCourier();
+        $this->actingAs($courier);
+
+        $response = $this->get(route('admin.delivery.dispatch-sheet'));
+
+        $this->assertTrue($response->isForbidden() || $response->isRedirect());
+    }
+
+    public function test_successful_courier_pin_verification_dispatches_customer_delivery_sms(): void
+    {
+        Queue::fake();
+        [$delivery, $invoice, $courier] = $this->makeAssignedDelivery(status: 'accepted');
+        $this->actingAs($courier);
+
+        $response = $this->from(route('admin.delivery.index'))
+            ->post(route('admin.delivery.confirm', $delivery), [
+                'code' => DeliveryFactory::TEST_PIN,
+            ]);
+
+        $response->assertRedirect();
+        $this->assertSame(DeliveryStatus::Delivered, $delivery->fresh()->status);
+        $this->assertSame(Invoice::COMPLETED, $invoice->fresh()->status);
     }
 }

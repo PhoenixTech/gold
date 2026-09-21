@@ -72,6 +72,12 @@
                                        dir="ltr">…</span>)
                             </span>
                         </div>
+                        <div class="mt-2 pt-2 border-top">
+                            <a href="{{ route('client.invoice.receipt', $invoice) }}" class="btn btn-sm btn-primary rounded-pill px-3 d-inline-flex align-items-center gap-1">
+                                <i class="ri-file-upload-line"></i>
+                                <span>{{ __('Register Payment Receipt') }}</span>
+                            </a>
+                        </div>
                     @endif
                 @endif
             </div>
@@ -87,6 +93,25 @@
                 <p class="mb-0 text-muted fs-13">
                     {{ __('The payment deadline for this order has expired. If you still wish to purchase, please create a new order.') }}
                 </p>
+            </div>
+        </div>
+    @elseif($invoice->status === \App\Models\Invoice::CANCELED)
+        <div class="liana-offline-alert no-print is-failed mb-3">
+            <div class="liana-offline-alert__icon text-secondary">
+                <i class="ri-close-circle-line"></i>
+            </div>
+            <div class="liana-offline-alert__body">
+                <span class="liana-offline-alert__eyebrow text-secondary">{{ __('Canceled invoice') }}</span>
+                <strong class="text-dark">{{ __('This invoice was canceled.') }}</strong>
+                @if($invoice->declinedReceiptReason())
+                    <p class="mb-0 text-muted fs-13">
+                        {{ __('Decline reason:') }} {{ $invoice->declinedReceiptReason() }}
+                    </p>
+                @else
+                    <p class="mb-0 text-muted fs-13">
+                        {{ __('This order was canceled. If you still wish to purchase, please create a new order.') }}
+                    </p>
+                @endif
             </div>
         </div>
     @endif
@@ -359,24 +384,14 @@
                 </div>
             @endif
 
-            {{-- Receipt Upload Form Component --}}
-            @if($canUploadReceipts && ! $isWaitingConfirmation)
-                @include('components.payment-receipt-uploader', [
-                    'invoice' => $invoice,
-                    'hideHint' => true,
-                    'hideDeadline' => true,
-                ])
-            @elseif($canUploadReceipts && $isWaitingConfirmation)
-                <details class="liana-receipt-more mt-2">
-                    <summary class="btn btn-sm btn-outline-secondary rounded-pill px-3">{{ __('Upload another receipt') }}</summary>
-                    <div class="pt-3">
-                        @include('components.payment-receipt-uploader', [
-                            'invoice' => $invoice,
-                            'hideHint' => true,
-                            'hideDeadline' => true,
-                        ])
-                    </div>
-                </details>
+            @if($canUploadReceipts)
+                <div class="my-3 text-center">
+                    <a href="{{ route('client.invoice.receipt', $invoice) }}" class="btn btn-primary btn-md rounded-pill px-4 py-2 d-inline-flex align-items-center gap-2 shadow-sm">
+                        <i class="ri-file-upload-line fs-5"></i>
+                        <span class="fw-bold">{{ __('Register Payment Receipt') }}</span>
+                        <i class="ri-arrow-left-line"></i>
+                    </a>
+                </div>
             @elseif($invoice->status === \App\Models\Invoice::PAID)
                 <div class="liana-payment-done alert alert-success rounded-3 d-flex align-items-center gap-2 fs-13 mb-0">
                     <i class="ri-checkbox-circle-line fs-5"></i>

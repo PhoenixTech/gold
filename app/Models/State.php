@@ -17,4 +17,19 @@ class State extends Model
     {
         return $this->hasMany(City::class);
     }
+
+    public function isTehran(): bool
+    {
+        if ((int) $this->id === 8) {
+            return true;
+        }
+
+        $name = (string) $this->name;
+        $raw = (string) ($this->getAttributes()['name'] ?? '');
+
+        return str_contains($name, 'تهران')
+            || str_contains(strtolower($name), 'tehran')
+            || str_contains($raw, 'تهران')
+            || str_contains(strtolower($raw), 'tehran');
+    }
 }

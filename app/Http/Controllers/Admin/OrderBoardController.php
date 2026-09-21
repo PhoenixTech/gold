@@ -51,7 +51,7 @@ class OrderBoardController extends Controller
 
         // ponytail: map rows into a compact shape; client-side JS handles live column sorting
         $orders = $query->get()->values()->map(function (Invoice $inv, int $i) {
-            $isPaid = ! in_array($inv->status, [Invoice::AWAITING_PAYMENT, Invoice::PENDING], true) || $inv->hasUploadedReceipt();
+            $isPaid = in_array($inv->status, [Invoice::PAID, Invoice::PROCESSING, Invoice::OUT_FOR_DELIVERY, Invoice::COMPLETED], true) || ($inv->hasUploadedReceipt() && ! in_array($inv->status, [Invoice::CANCELED, Invoice::FAILED], true));
             $isConfirmed = in_array($inv->status, [Invoice::PAID, Invoice::PROCESSING, Invoice::OUT_FOR_DELIVERY, Invoice::COMPLETED], true);
             $isCourier = in_array($inv->status, [Invoice::OUT_FOR_DELIVERY, Invoice::COMPLETED], true) || $inv->activeDelivery !== null;
             $isDelivered = $inv->status === Invoice::COMPLETED || $inv->hasSuccessfulDelivery();

@@ -10,7 +10,7 @@
     $customer = auth('customer')->user();
     $isLoggedIn = auth('customer')->check();
     $profileComplete = $isLoggedIn && $customer->isCheckoutReady();
-    $canPay = $profileComplete;
+    $canPay = $isLoggedIn && ($customer->isCheckoutReady() || $customer->isCheckoutReady(true));
     $cartData = getCartData();
     $cartQuote = app(\App\Services\CartQuoteService::class);
     $cartItems = cardItems();
@@ -18,7 +18,7 @@
     $nsCardPayload = [
         'items' => $cartItems,
         'qs' => $cartData['qs'],
-        'addresses' => $isLoggedIn ? $customer->addresses : [],
+        'addresses' => $isLoggedIn ? $customer->addresses()->with('state')->get() : [],
         'customer' => $isLoggedIn ? [
             'name' => $customer->name,
             'mobile' => $customer->mobile,
@@ -31,6 +31,7 @@
         'profileComplete' => $profileComplete,
         'canPay' => $canPay,
         'symbol' => config('app.currency.symbol'),
+        'galleryAddress' => (string) getSetting('address'),
         'bankName' => $bank['bank_name'],
         'bankCardNumber' => $bank['card_number'],
         'bankAccountNumber' => $bank['account_number'],
@@ -43,6 +44,7 @@
         'cardLink' => route('client.product-card-toggle', '').'/',
         'discountLink' => route('client.card.discount', '').'/',
         'productLink' => route('client.product', '').'/',
+        'productsUrl' => route('client.products'),
         'loginUrl' => route('client.sign-in', ['redirect' => route('client.card')]),
         'signupUrl' => route('client.sign-up', ['redirect' => route('client.card')]),
         'profileUrl' => route('client.profile'),
@@ -132,6 +134,25 @@
             'order-notes-hint' => __('Optional notes for packaging or delivery...'),
             'direct-bank-transfer' => __('Direct bank transfer'),
             'bank-transfer-details' => __('Bank transfer details'),
+            'continue-shopping' => __('Continue shopping'),
+            'delivery-method' => __('Delivery method'),
+            'gallery-pickup' => __('Gallery pickup'),
+            'delivery-to-address' => __('Deliver to address'),
+            'gallery-address' => __('Gallery address'),
+            'gallery-pickup-desc' => __('In-person pickup at the gallery showroom'),
+            'gallery-pickup-notice' => __('After order preparation, you can collect your purchase at the gallery showroom by presenting your national ID.'),
+            'tehran-delivery-notice' => __('Your order will be shipped within 48 business hours.'),
+            'province-restriction-notice' => __('Direct shipping to this province is currently unavailable. You can proceed only by selecting gallery pickup or entering an alternate Tehran delivery address.'),
+            'third-party-recipient' => __('Send to another recipient'),
+            'recipient-name' => __('Recipient full name'),
+            'recipient-mobile' => __('Recipient mobile'),
+            'recipient-national-id' => __('Recipient national ID'),
+            'recipient-name-ph' => __('Full name of recipient'),
+            'recipient-privacy-notice' => __('Recipient details are collected purely for delivery security and will not be permanently registered as account data.'),
+            'recipient-name-required' => __('Please enter the recipient full name'),
+            'national-id-invalid' => __('National ID format is invalid'),
+            'buyer-details' => __('Buyer details'),
+            'select-tehran-address-error' => __('Direct shipping to non-Tehran provinces is currently unavailable. Please select gallery pickup or a Tehran delivery address.'),
         ],
     ];
 @endphp

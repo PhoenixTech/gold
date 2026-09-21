@@ -8,6 +8,7 @@ use App\Http\Requests\DeliveryConfirmRequest;
 use App\Http\Requests\DeliveryFailRequest;
 use App\Http\Requests\DeliveryRejectRequest;
 use App\Models\Delivery;
+use App\Models\User;
 use App\Services\DeliveryService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -72,5 +73,31 @@ class CourierDeliveryController extends Controller
         $deliveries->fail($delivery, auth()->user(), $request->validated('reason'));
 
         return back()->with('message', __('Delivery marked as failed. The order returned to the shop.'));
+    }
+
+    public function dispatchSheet(): View
+    {
+        $user = auth('web')->user() ?? (auth()->user() instanceof User ? auth()->user() : null);
+
+        if (! $user instanceof User || ! ($user->role === 'ADMIN' || $user->role === 'DEVELOPER' || $user->hasRole('admin') || $user->hasRole('developer') || $user->hasAccess('admin.delivery.dispatch-sheet'))) {
+            abort(403);
+        }
+
+        $deliveries = Delivery::query()
+            ->with([
+                'courier',
+                'invoice.customer',
+                'invoice.address.state',
+                'invoice.address.city',
+                'invoice.orders.product',
+                'invoice.transport',
+            ])
+            ->open()
+            ->latest('id')
+            ->get();
+
+        $title = __('Daily Courier Dispatch Sheet');
+
+        return view('admin.deliveries.dispatch-sheet', compact('deliveries', 'title'));
     }
 }

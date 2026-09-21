@@ -55,15 +55,19 @@ class Customer extends Authenticatable
         return false;
     }
 
-    public function isCheckoutReady(): bool
+    public function isCheckoutReady(bool $forPickup = false): bool
     {
         $hasName = $this->name !== null && trim((string) $this->name) !== '';
         $hasMobile = $this->mobile !== null && trim((string) $this->mobile) !== '';
 
+        if ($forPickup) {
+            return $hasName && $hasMobile;
+        }
+
         return $hasName && $hasMobile && $this->addresses()->exists();
     }
 
-    public function missingCheckoutFields(): array
+    public function missingCheckoutFields(bool $forPickup = false): array
     {
         $missing = [];
 
@@ -73,7 +77,7 @@ class Customer extends Authenticatable
         if ($this->mobile === null || trim((string) $this->mobile) === '') {
             $missing[] = __('Mobile');
         }
-        if (! $this->addresses()->exists()) {
+        if (! $forPickup && ! $this->addresses()->exists()) {
             $missing[] = __('Address');
         }
 

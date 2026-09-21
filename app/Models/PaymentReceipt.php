@@ -18,6 +18,11 @@ class PaymentReceipt extends Model
         'original_name',
         'mime',
         'size',
+        'amount',
+        'payment_date',
+        'payment_time',
+        'tracking_number',
+        'bank_account_id',
         'uploaded_by_customer_id',
     ];
 
@@ -36,6 +41,11 @@ class PaymentReceipt extends Model
         return $this->belongsTo(Customer::class, 'uploaded_by_customer_id');
     }
 
+    public function bankAccount(): BelongsTo
+    {
+        return $this->belongsTo(BankAccount::class);
+    }
+
     public function url(): string
     {
         return Storage::disk('public')->url($this->path);
@@ -44,5 +54,10 @@ class PaymentReceipt extends Model
     public function isImage(): bool
     {
         return is_string($this->mime) && str_starts_with($this->mime, 'image/');
+    }
+
+    public function formattedAmount(): string
+    {
+        return number_format((int) $this->amount).' '.(config('app.currency.symbol') ?: __('Toman'));
     }
 }

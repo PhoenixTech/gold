@@ -24,9 +24,6 @@ class PaymentReceiptTest extends TestCase
 {
     use RefreshDatabase;
 
-    /**
-     * @return array{0: Customer, 1: Invoice, 2: Payment}
-     */
     private function createAwaitingCardInvoice(): array
     {
         BankAccount::factory()->active()->create([
@@ -152,7 +149,7 @@ class PaymentReceiptTest extends TestCase
         $admin = User::factory()->create(['role' => 'ADMIN']);
         $admin->assignRole('admin');
 
-        $response = $this->actingAs($admin)->post(route('admin.invoice.confirm-payment', $invoice));
+        $response = $this->actingAs($admin, 'web')->post(route('admin.invoice.confirm-payment', $invoice));
 
         $response->assertRedirect(route('admin.invoice.edit', $invoice));
         $this->assertSame(Invoice::PAID, $invoice->fresh()->status);
@@ -316,7 +313,7 @@ class PaymentReceiptTest extends TestCase
         $response->assertSee(__('Decline payment'), false);
     }
 
-    public function test_admin_can_decline_receipt_and_customer_can_upload_again(): void
+    public function test_admin_can_decline_receipt_canceling_invoice(): void
     {
         Storage::fake('public');
         [$customer, $invoice, $payment] = $this->createAwaitingCardInvoice();
@@ -336,21 +333,24 @@ class PaymentReceiptTest extends TestCase
             ->assertRedirect(route('admin.invoice.edit', $invoice));
 
         $invoice->refresh();
-        $this->assertSame(Invoice::AWAITING_PAYMENT, $invoice->status);
-        $this->assertSame(Payment::PENDING, $payment->fresh()->status);
-        $this->assertSame(0, PaymentReceipt::query()->where('invoice_id', $invoice->id)->count());
+        $this->assertSame(Invoice::CANCELED, $invoice->status);
+        $this->assertSame(Payment::CANCEL, $payment->fresh()->status);
         $this->assertSame('مبلغ واریزی مطابقت ندارد', $invoice->declinedReceiptReason());
-        $this->assertTrue($invoice->offlinePaymentDeadline()->isFuture());
-        $this->assertSame(Invoice::WAITING_RECEIPT, $invoice->fresh()->load('paymentReceipts')->displayStatusKey());
+        $this->assertSame(Invoice::CANCELED, $invoice->displayStatusKey());
 
-        $this->actingAs($customer, 'customer')->post(route('client.invoice.receipts.store', $invoice), [
-            'receipts' => [UploadedFile::fake()->image('receipt-again.jpg')],
-        ])->assertRedirect()->assertSessionHasNoErrors();
+        $this->actingAs($customer, 'customer')
+            ->get(route('client.invoice.receipt', $invoice))
+            ->assertRedirect(route('client.invoice', $invoice));
 
-        $this->assertSame(1, PaymentReceipt::query()->where('invoice_id', $invoice->id)->count());
+        $this->actingAs($customer, 'customer')
+            ->post(route('client.invoice.receipts.store', $invoice), [
+                'receipts' => [UploadedFile::fake()->image('receipt-again.jpg')],
+            ])
+            ->assertRedirect()
+            ->assertSessionHasErrors();
     }
 
-    public function test_declined_invoice_deadline_is_not_expired_by_command(): void
+    public function test_declined_invoice_remains_canceled_when_expire_command_runs(): void
     {
         Storage::fake('public');
         [$customer, $invoice] = $this->createAwaitingCardInvoice();
@@ -369,7 +369,7 @@ class PaymentReceiptTest extends TestCase
 
         $this->artisan('offline:expire')->assertSuccessful();
 
-        $this->assertSame(Invoice::AWAITING_PAYMENT, $invoice->fresh()->status);
+        $this->assertSame(Invoice::CANCELED, $invoice->fresh()->status);
     }
 
     public function test_admin_can_filter_invoices_waiting_for_confirmation(): void
@@ -473,5 +473,126 @@ class PaymentReceiptTest extends TestCase
 
         $this->assertStringNotContainsString('liana-payment-panel', $html);
         $this->assertStringNotContainsString('Card to card', $html);
+    }
+
+    public function test_dedicated_receipt_registration_screen_renders_distraction_free(): void
+    {
+        [$customer, $invoice] = $this->createAwaitingCardInvoice();
+
+        $response = $this->actingAs($customer, 'customer')->get(route('client.invoice.receipt', $invoice));
+
+        $response->assertOk();
+        $response->assertDontSee('ns-card', false);
+        $response->assertSee(__('Register Payment Receipt'), false);
+    }
+
+    public function test_receipt_screen_presents_dynamic_gallery_bank_account_payload(): void
+    {
+        [$customer, $invoice] = $this->createAwaitingCardInvoice();
+
+        BankAccount::factory()->active()->create([
+            'bank_name' => 'بانک تجارت',
+            'account_holder_name' => 'گالری ژونلا',
+            'card_number' => '5859831012345678',
+            'iban' => 'IR980180000000001234567890',
+        ]);
+
+        $response = $this->actingAs($customer, 'customer')->get(route('client.invoice.receipt', $invoice));
+
+        $response->assertOk();
+        $response->assertSee('بانک تجارت', false);
+        $response->assertSee('گالری ژونلا', false);
+        $response->assertSee('5859831012345678', false);
+        $response->assertSee('IR980180000000001234567890', false);
+    }
+
+    public function test_split_payment_submission_accepts_multiple_receipts_with_metadata(): void
+    {
+        Storage::fake('public');
+        [$customer, $invoice] = $this->createAwaitingCardInvoice();
+
+        $response = $this->actingAs($customer, 'customer')->post(route('client.invoice.receipts.store', $invoice), [
+            'receipts' => [
+                [
+                    'amount' => 500000,
+                    'payment_date' => '1405/06/31',
+                    'payment_time' => '10:30',
+                    'tracking_number' => 'TRK-1001',
+                    'slip' => UploadedFile::fake()->image('receipt1.jpg'),
+                ],
+                [
+                    'amount' => 550000,
+                    'payment_date' => '1405/06/31',
+                    'payment_time' => '11:15',
+                    'tracking_number' => 'TRK-1002',
+                    'slip' => UploadedFile::fake()->image('receipt2.jpg'),
+                ],
+            ],
+        ]);
+
+        $response->assertRedirect();
+        $this->assertSame(2, PaymentReceipt::query()->where('invoice_id', $invoice->id)->count());
+
+        $receipt1 = PaymentReceipt::query()->where('invoice_id', $invoice->id)->where('tracking_number', 'TRK-1001')->first();
+        $this->assertNotNull($receipt1);
+        $this->assertSame(500000, (int) $receipt1->amount);
+        $this->assertSame('1405/06/31', $receipt1->payment_date);
+
+        $receipt2 = PaymentReceipt::query()->where('invoice_id', $invoice->id)->where('tracking_number', 'TRK-1002')->first();
+        $this->assertNotNull($receipt2);
+        $this->assertSame(550000, (int) $receipt2->amount);
+        $this->assertSame('1405/06/31', $receipt2->payment_date);
+    }
+
+    public function test_live_tally_amounts_calculation_for_split_receipts(): void
+    {
+        [$customer, $invoice, $payment] = $this->createAwaitingCardInvoice();
+        $invoice->forceFill(['total_price' => 1000000])->save();
+
+        PaymentReceipt::query()->create([
+            'payment_id' => $payment->id,
+            'invoice_id' => $invoice->id,
+            'path' => 'receipts/test1.jpg',
+            'original_name' => 'test1.jpg',
+            'amount' => 400000,
+            'payment_date' => '1405/06/31',
+            'tracking_number' => 'TRK-1',
+        ]);
+
+        $this->assertSame(400000, (int) $invoice->receiptsTotalAmount());
+        $this->assertSame(600000, (int) $invoice->remainingReceiptBalance());
+
+        PaymentReceipt::query()->create([
+            'payment_id' => $payment->id,
+            'invoice_id' => $invoice->id,
+            'path' => 'receipts/test2.jpg',
+            'original_name' => 'test2.jpg',
+            'amount' => 600000,
+            'payment_date' => '1405/06/31',
+            'tracking_number' => 'TRK-2',
+        ]);
+
+        $this->assertSame(1000000, (int) $invoice->fresh()->receiptsTotalAmount());
+        $this->assertSame(0, (int) $invoice->fresh()->remainingReceiptBalance());
+    }
+
+    public function test_post_submission_status_displays_awaiting_store_verification_notice(): void
+    {
+        Storage::fake('public');
+        [$customer, $invoice] = $this->createAwaitingCardInvoice();
+
+        $this->actingAs($customer, 'customer')->post(route('client.invoice.receipts.store', $invoice), [
+            'receipts' => [
+                UploadedFile::fake()->image('receipt.jpg'),
+            ],
+        ]);
+
+        $response = $this->actingAs($customer, 'customer')->get(route('client.invoice.receipt', $invoice));
+        $response->assertOk();
+        $this->assertTrue(
+            str_contains($response->getContent(), 'Awaiting store verification. Our team will contact you within a few hours.') ||
+            str_contains($response->getContent(), 'در انتظار بررسی و تأیید فروشگاه') ||
+            str_contains($response->getContent(), 'همکاران ما تا چند ساعت آینده با شما تماس خواهند گرفت')
+        );
     }
 }

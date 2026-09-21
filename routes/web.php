@@ -216,6 +216,7 @@ Route::prefix(config('app.panel.prefix'))->name('admin.')->group(
                         Route::get('edit/{item}', [InvoiceController::class, 'edit'])->name('edit');
                         Route::get('show/{item}', [InvoiceController::class, 'show'])->name('show');
                         Route::get('print/{item}', [InvoiceController::class, 'print'])->name('print');
+                        Route::get('shipping-label/{item}', [InvoiceController::class, 'shippingLabel'])->name('shipping-label');
                         Route::post('update/{item}', [InvoiceController::class, 'update'])->name('update');
                         Route::post('confirm-payment/{item}', [InvoiceController::class, 'confirmPayment'])->name('confirm-payment');
                         Route::post('decline-payment/{item}', [InvoiceController::class, 'declinePayment'])->name('decline-payment');
@@ -391,6 +392,7 @@ Route::prefix(config('app.panel.prefix'))->name('admin.')->group(
                             ->name('step-two');
                     });
 
+                Route::get('deliveries/dispatch-sheet', [CourierDeliveryController::class, 'dispatchSheet'])->name('delivery.dispatch-sheet');
                 Route::prefix('deliveries')->name('delivery.')->middleware('courier')->group(
                     function () {
                         Route::get('', [CourierDeliveryController::class, 'index'])->name('index');
@@ -462,6 +464,9 @@ Route::middleware([VisitorCounter::class])
         Route::post('/ticket/answer/{ticket}', [CustomerController::class, 'ticketAnswer'])->name('ticket.answer');
         Route::get('/ticket/{ticket}', [CustomerController::class, 'showTicket'])->name('ticket.show');
         Route::get('/invoice/{invoice}', [CustomerController::class, 'invoice'])->name('invoice');
+        Route::get('/invoice/{invoice}/receipt', [PaymentReceiptController::class, 'showReceiptForm'])
+            ->middleware('auth:customer')
+            ->name('invoice.receipt');
         Route::post('/invoice/{invoice}/receipts', [PaymentReceiptController::class, 'store'])
             ->middleware('auth:customer')
             ->name('invoice.receipts.store');

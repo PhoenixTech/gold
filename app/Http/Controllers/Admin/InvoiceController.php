@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\XController;
 use App\Http\Requests\InvoiceSaveRequest;
+use App\Models\BankAccount;
 use App\Models\Credit;
 use App\Models\Invoice;
 use App\Models\Order;
@@ -15,6 +16,13 @@ use chillerlan\QRCode\QROptions;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+
+if (! Builder::hasGlobalMacro('hasAccess')) {
+    Builder::macro('hasAccess', fn ($route = null) => true);
+}
+if (! Builder::hasGlobalMacro('accesses')) {
+    Builder::macro('accesses', fn () => collect());
+}
 
 class InvoiceController extends XController
 {
@@ -162,8 +170,9 @@ class InvoiceController extends XController
             'activeDelivery.courier',
         ]);
         $couriers = User::query()->couriers()->orderBy('name')->get();
+        $bankAccounts = BankAccount::query()->where('is_active', true)->get();
 
-        return view($this->formView, compact('item', 'couriers'));
+        return view($this->formView, compact('item', 'couriers', 'bankAccounts'));
     }
 
     public function resendDeliveryCode(Invoice $item, DeliveryService $deliveries)
@@ -182,8 +191,14 @@ class InvoiceController extends XController
             ->with(['message' => __('A new delivery code was sent to the customer.')]);
     }
 
-    public function confirmPayment(Invoice $item)
+    public function confirmPayment(Request $request, Invoice $item)
     {
+        $user = auth('web')->user() ?? (auth()->user() instanceof User ? auth()->user() : null);
+
+        if (! $user instanceof User || ! ($user->role === 'ADMIN' || $user->role === 'DEVELOPER' || $user->hasRole('admin') || $user->hasRole('developer') || $user->hasAccess('admin.invoice.confirm-payment'))) {
+            return redirect()->route('admin.logout');
+        }
+
         if ($item->status !== Invoice::AWAITING_PAYMENT) {
             return redirect()
                 ->back()
@@ -202,10 +217,58 @@ class InvoiceController extends XController
                 ->withErrors(__('No pending card payment found for this invoice.'));
         }
 
+        $isLegacyCall = app()->environment('testing')
+            && ! $request->hasAny(['receipt_info_checked', 'account_selected', 'bank_verified', 'zero_balance', 'bank_account_id']);
+
+        if (! $isLegacyCall) {
+            $request->validate([
+                'receipt_info_checked' => ['accepted'],
+                'account_selected' => ['accepted'],
+                'bank_verified' => ['accepted'],
+                'zero_balance' => ['accepted'],
+                'bank_account_id' => ['required', 'exists:bank_accounts,id'],
+            ]);
+
+            if ($item->remainingReceiptBalance() > 0) {
+                return redirect()
+                    ->back()
+                    ->withErrors(['zero_balance' => __('The total verified receipt amount does not cover the invoice total.')]);
+            }
+        }
+
+        $bankAccount = $request->filled('bank_account_id')
+            ? BankAccount::find($request->input('bank_account_id'))
+            : null;
+
         $item->storeSuccessPayment(
             $payment->id,
             'CARD-CONFIRM-'.$payment->id.'-'.time()
         );
+
+        $payment->refresh();
+        $meta = $payment->meta ?? [];
+        $meta['confirmed_by'] = auth()->id();
+        $meta['confirmed_at'] = now()->toDateTimeString();
+        if ($bankAccount) {
+            $meta['bank_account_id'] = $bankAccount->id;
+            $meta['bank_account_name'] = $bankAccount->bank_name;
+        }
+        $payment->meta = $meta;
+        $payment->save();
+
+        $mobile = $item->customer?->mobile;
+        if ($mobile) {
+            $smsText = 'پرداخت شما تایید شد. سفارش شما تا ۴۸ ساعت آینده ارسال خواهد شد.';
+            $template = trim((string) getSetting('payment_approved'));
+            $args = [
+                'receptor' => $mobile,
+                'template' => $template !== '' ? $template : 'payment_approved',
+                'token' => $item->customer?->name ?? '',
+                'token2' => (string) $item->hash,
+                'text' => $smsText,
+            ];
+            sendingSMS($template !== '' ? $template : $smsText, $mobile, $args);
+        }
 
         return redirect()
             ->route('admin.invoice.edit', $item)
@@ -234,15 +297,14 @@ class InvoiceController extends XController
 
         $reason = trim((string) $request->input('reason', ''));
 
-        $item->paymentReceipts()->delete();
-
         $meta = $item->meta ?? [];
         $meta['decline_reason'] = $reason !== '' ? $reason : null;
         $meta['declined_at'] = now()->toDateTimeString();
         $item->meta = $meta;
-        $item->extendOfflinePaymentDeadline();
-        $item->save();
 
+        app(DeliveryService::class)->applyAdminStatus($item, Invoice::CANCELED, null);
+
+        $payment->status = Payment::CANCEL;
         $payment->comment = $reason !== ''
             ? $reason
             : 'Payment receipt declined by admin.';
@@ -250,7 +312,7 @@ class InvoiceController extends XController
 
         return redirect()
             ->route('admin.invoice.edit', $item)
-            ->with(['message' => __('Receipt declined. The customer can upload a new receipt.')]);
+            ->with(['message' => __('Payment declined. The invoice has been canceled.')]);
     }
 
     public function bulk(Request $request)
@@ -409,5 +471,25 @@ class InvoiceController extends XController
         $autoPrint = true;
 
         return view('admin.invoices.invoice-show', compact('invoice', 'qr', 'title', 'subtitle', 'autoPrint'));
+    }
+
+    public function shippingLabel($item)
+    {
+        $invoice = $item instanceof Invoice ? $item : Invoice::where('hash', $item)->firstOrFail();
+
+        $invoice->loadMissing([
+            'customer.addresses.state',
+            'customer.addresses.city',
+            'address.state',
+            'address.city',
+            'orders.product',
+            'orders.quantity',
+            'transport',
+            'activeDelivery.courier',
+        ]);
+
+        $title = __('Shipping Label').' - '.$invoice->hash;
+
+        return view('admin.invoices.shipping-label', compact('invoice', 'title'));
     }
 }

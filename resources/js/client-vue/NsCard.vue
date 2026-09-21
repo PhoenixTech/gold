@@ -35,11 +35,16 @@
 
         <div class="checkout-layout">
             <div class="checkout-main">
-                <!-- Cart -->
                 <section v-show="currentKey === 'cart'" class="checkout-panel">
-                    <header class="panel-head">
-                        <h5>{{ t('cart', 'سبد خرید') }}</h5>
-                        <span class="panel-count">{{ lines.length }} {{ t('pieces', 'قطعه') }}</span>
+                    <header class="panel-head d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2">
+                            <h5 class="mb-0">{{ t('cart', 'سبد خرید') }}</h5>
+                            <span class="panel-count">{{ lines.length }} {{ t('pieces', 'قطعه') }}</span>
+                        </div>
+                        <a v-if="productsUrl" :href="productsUrl" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 text-decoration-none">
+                            <i class="ri-arrow-right-line"></i>
+                            <span>{{ t('continue-shopping', 'ادامه خرید') }}</span>
+                        </a>
                     </header>
                     <ul class="piece-list">
                         <li v-for="(item, i) in lines" :key="item.id + '-' + i" class="piece-row">
@@ -82,7 +87,6 @@
                     </ul>
                 </section>
 
-                <!-- Account -->
                 <section v-show="currentKey === 'account'" class="checkout-panel">
                     <header class="panel-head">
                         <h5>{{ t('account', 'حساب کاربری') }}</h5>
@@ -98,7 +102,6 @@
                             </button>
                         </div>
 
-                        <!-- SMS login -->
                         <div v-if="smsSign" class="auth-form">
                             <p class="hint">{{ t('sms-hint', 'با شماره موبایل وارد شوید') }}</p>
                             <label>
@@ -117,7 +120,6 @@
                             </button>
                         </div>
 
-                        <!-- Email login -->
                         <div v-else-if="authTab === 'login'" class="auth-form">
                             <label>
                                 {{ t('email', 'ایمیل') }}
@@ -132,7 +134,6 @@
                             </button>
                         </div>
 
-                        <!-- Email signup -->
                         <div v-else class="auth-form">
                             <label>
                                 {{ t('name', 'نام') }}
@@ -156,7 +157,6 @@
                         </div>
                     </template>
 
-                    <!-- Complete profile -->
                     <div v-else class="auth-form">
                         <p class="hint">{{ t('complete-profile', 'لطفا نام، موبایل و آدرس را تکمیل کنید') }}</p>
                         <label>
@@ -179,46 +179,153 @@
                     <button type="button" class="btn-ghost mt panel-back" @click="prev">{{ t('back', 'بازگشت') }}</button>
                 </section>
 
-                <!-- Delivery -->
                 <section v-show="currentKey === 'delivery'" class="checkout-panel">
                     <header class="panel-head">
-                        <h5>{{ t('transport', 'ارسال') }}</h5>
+                        <h5>{{ t('transport', 'ارسال و تحویل') }}</h5>
                     </header>
 
-                    <h4>{{ t('sent-to', 'ارسال به') }}</h4>
-                    <div v-if="!localAddresses.length" class="inline-address auth-form">
-                        <p class="hint">{{ t('no-address', 'آدرسی ثبت نشده است.') }}</p>
-                        <label>
-                            {{ t('address', 'آدرس') }}
-                            <textarea v-model="profileForm.address" rows="3"></textarea>
-                        </label>
-                        <button type="button" class="btn-secondary-cta" :disabled="authBusy" @click="addAddressQuick">
-                            {{ t('add-address', 'افزودن آدرس') }}
-                        </button>
+                    <div class="delivery-method-selector mb-4">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <button
+                                    type="button"
+                                    class="btn w-100 py-3 text-center border rounded-3 d-flex flex-column align-items-center justify-content-center gap-2"
+                                    :class="deliveryType === 'address' ? 'btn-primary text-white shadow-sm' : 'btn-outline-secondary bg-white text-dark'"
+                                    @click="setDeliveryType('address')"
+                                >
+                                    <i class="ri-truck-line fs-4"></i>
+                                    <strong class="fs-14">{{ t('delivery-to-address', 'ارسال به آدرس') }}</strong>
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <button
+                                    type="button"
+                                    class="btn w-100 py-3 text-center border rounded-3 d-flex flex-column align-items-center justify-content-center gap-2"
+                                    :class="deliveryType === 'pickup' ? 'btn-primary text-white shadow-sm' : 'btn-outline-secondary bg-white text-dark'"
+                                    @click="setDeliveryType('pickup')"
+                                >
+                                    <i class="ri-store-2-line fs-4"></i>
+                                    <strong class="fs-14">{{ t('gallery-pickup', 'تحویل حضوری') }}</strong>
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    <div v-for="adr in localAddresses" :key="adr.id" class="choice" :class="{ selected: selectedAddressId == adr.id }">
-                        <label>
-                            <input type="radio" name="address_id" :value="adr.id" v-model="selectedAddressId">
-                            <span>{{ adr.address }}</span>
-                        </label>
+                    <input type="hidden" name="delivery_type" :value="deliveryType">
+
+                    <div v-if="deliveryType === 'pickup'" class="gallery-pickup-box mb-4">
+                        <div class="p-3 p-md-4 rounded-3 border bg-light">
+                            <div class="d-flex align-items-start gap-3">
+                                <div class="bg-primary-subtle text-primary rounded-circle p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
+                                    <i class="ri-store-3-line fs-4"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="fw-bold mb-1 text-dark">{{ t('gallery-pickup', 'تحویل حضوری در گالری') }}</h6>
+                                    <p class="text-muted fs-13 mb-3">{{ t('gallery-pickup-desc', 'تحویل حضوری سفارش در شوروم و گالری') }}</p>
+
+                                    <div class="bg-white p-3 rounded-2 border mb-3">
+                                        <span class="text-secondary fs-12 fw-bold d-block mb-1">
+                                            <i class="ri-map-pin-line text-primary me-1"></i>
+                                            {{ t('gallery-address', 'نشانی گالری') }}:
+                                        </span>
+                                        <p class="mb-0 text-dark fs-14 fw-medium">{{ galleryAddress || 'تهران' }}</p>
+                                    </div>
+
+                                    <div class="p-2 px-3 rounded-2 bg-white border d-flex flex-wrap align-items-center justify-content-between gap-2">
+                                        <span class="text-muted fs-12">{{ t('buyer-details', 'مشخصات تحویل‌گیرنده') }}:</span>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <strong class="text-dark fs-13">{{ customerName || profileForm.name }}</strong>
+                                            <span class="badge bg-secondary-subtle text-secondary" dir="ltr">{{ customer?.mobile || profileForm.mobile }}</span>
+                                        </div>
+                                    </div>
+
+                                    <small class="text-muted d-block mt-2 fs-12">
+                                        <i class="ri-information-line text-info me-1"></i>
+                                        {{ t('gallery-pickup-notice', 'پس از آماده‌سازی سفارش، می‌توانید با همراه داشتن کارت ملی به نشانی فوق مراجعه نمایید.') }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <h4 class="mt">{{ t('transport', 'ارسال') }}</h4>
-                    <div v-for="trs in transports" :key="trs.id" class="choice choice-transport" :class="{ selected: transport_index == trs.id }">
-                        <label>
-                            <input type="radio" name="transport_id" :value="trs.id" v-model="transport_index">
-                            <span>
-                                <strong>{{ trs.title }}</strong>
-                                <small v-if="trs.description">{{ trs.description }}</small>
-                            </span>
-                            <em>{{ priceing(trs.price) }}</em>
-                        </label>
+                    <div v-else class="address-delivery-box">
+                        <h4>{{ t('sent-to', 'ارسال به') }}</h4>
+                        <div v-if="!localAddresses.length" class="inline-address auth-form">
+                            <p class="hint">{{ t('no-address', 'آدرسی ثبت نشده است.') }}</p>
+                            <label>
+                                {{ t('address', 'آدرس') }}
+                                <textarea v-model="profileForm.address" rows="3"></textarea>
+                            </label>
+                            <button type="button" class="btn-secondary-cta" :disabled="authBusy" @click="addAddressQuick">
+                                {{ t('add-address', 'افزودن آدرس') }}
+                            </button>
+                        </div>
+                        <div v-for="adr in localAddresses" :key="adr.id" class="choice" :class="{ selected: selectedAddressId == adr.id }">
+                            <label>
+                                <input type="radio" name="address_id" :value="adr.id" v-model="selectedAddressId">
+                                <span>{{ adr.address }}</span>
+                            </label>
+                        </div>
+
+                        <div v-if="selectedAddress" class="mt-3">
+                            <div v-if="selectedAddress.is_tehran" class="alert alert-success border border-success-subtle shadow-sm d-flex align-items-center gap-2 p-3 rounded-3 mb-0">
+                                <i class="ri-checkbox-circle-fill text-success fs-4"></i>
+                                <div class="fs-13 text-success-emphasis">
+                                    <strong>{{ t('tehran-delivery-notice', 'سفارش شما ظرف ۴۸ ساعت کاری ارسال خواهد شد.') }}</strong>
+                                </div>
+                            </div>
+                            <div v-else class="alert alert-danger border border-danger-subtle shadow-sm d-flex align-items-start gap-2 p-3 rounded-3 mb-0">
+                                <i class="ri-error-warning-fill text-danger fs-4 flex-shrink-0"></i>
+                                <div class="fs-13 text-danger-emphasis">
+                                    <strong>{{ t('province-restriction-notice', 'ارسال مستقیم به این استان در حال حاضر مقدور نمی‌باشد. جهت ثبت سفارش می‌توانید تحویل حضوری در گالری را انتخاب کرده یا آدرس تحویل دیگری در تهران ثبت نمایید.') }}</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h4 class="mt-4">{{ t('transport', 'ارسال') }}</h4>
+                        <div v-for="trs in transports" :key="trs.id" class="choice choice-transport" :class="{ selected: transport_index == trs.id }">
+                            <label>
+                                <input type="radio" name="transport_id" :value="trs.id" v-model="transport_index">
+                                <span>
+                                    <strong>{{ trs.title }}</strong>
+                                    <small v-if="trs.description">{{ trs.description }}</small>
+                                </span>
+                                <em>{{ priceing(trs.price) }}</em>
+                            </label>
+                        </div>
+
+                        <div class="third-party-box mt-4 p-3 rounded-3 border bg-light">
+                            <label class="d-flex align-items-center gap-2 cursor-pointer mb-0">
+                                <input type="checkbox" v-model="isThirdParty" class="form-check-input mt-0">
+                                <span class="fw-bold fs-14 text-dark">{{ t('third-party-recipient', 'سفارش به شخص دیگری تحویل داده شود') }}</span>
+                            </label>
+                            <input type="hidden" name="is_third_party" :value="isThirdParty ? '1' : '0'">
+
+                            <div v-if="isThirdParty" class="third-party-form mt-3 pt-3 border-top">
+                                <div class="alert alert-info border border-info-subtle p-2 mb-3 rounded-2 fs-12 d-flex align-items-start gap-2">
+                                    <i class="ri-shield-user-line text-info fs-5 flex-shrink-0"></i>
+                                    <span>{{ t('recipient-privacy-notice', 'اطلاعات گیرنده صرفاً جهت امنیت و احراز هویت تحویل سفارش دریافت می‌شود و به عنوان اطلاعات حساب ذخیره نخواهد شد.') }}</span>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label fs-12 fw-medium mb-1 text-muted">{{ t('recipient-name', 'نام و نام خانوادگی گیرنده') }}</label>
+                                        <input type="text" name="recipient_name" v-model="recipientName" class="form-control form-control-sm" :placeholder="t('recipient-name-ph', 'نام کامل گیرنده')">
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label fs-12 fw-medium mb-1 text-muted">{{ t('recipient-mobile', 'شماره موبایل گیرنده') }}</label>
+                                        <input type="tel" name="recipient_mobile" v-model="recipientMobile" class="form-control form-control-sm" dir="ltr" maxlength="11" placeholder="09xxxxxxxxx">
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label fs-12 fw-medium mb-1 text-muted">{{ t('recipient-national-id', 'کد ملی گیرنده') }}</label>
+                                        <input type="text" name="recipient_national_id" v-model="recipientNationalId" class="form-control form-control-sm" dir="ltr" maxlength="10" placeholder="۱۰ رقمی">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <button type="button" class="btn-ghost mt panel-back" @click="prev">{{ t('back', 'بازگشت') }}</button>
                 </section>
 
-                <!-- Payment -->
                 <section v-show="currentKey === 'payment'" class="checkout-panel">
                     <header class="panel-head">
                         <h5>{{ t('order-review', 'بررسی نهایی و پرداخت') }}</h5>
@@ -236,19 +343,47 @@
                             </button>
                         </div>
                         <div class="review-box-body">
-                            <div class="review-row" v-if="customerName || profileForm.name || customer?.mobile || profileForm.mobile">
-                                <strong class="text-dark">{{ customerName || profileForm.name }}</strong>
-                                <span class="review-badge" dir="ltr">{{ customer?.mobile || profileForm.mobile }}</span>
-                            </div>
-                            <div class="review-row" v-if="selectedAddress">
-                                <i class="ri-map-pin-2-line text-muted"></i>
-                                <span>{{ selectedAddress.address }}</span>
-                            </div>
-                            <div class="review-row transport-row" v-if="selectedTransport">
-                                <i class="ri-truck-line text-primary"></i>
-                                <span>{{ selectedTransport.title }}</span>
-                                <span class="text-muted">({{ selectedTransport.price > 0 ? priceing(selectedTransport.price) : t('free', 'رایگان') }})</span>
-                            </div>
+                            <template v-if="deliveryType === 'pickup'">
+                                <div class="review-row">
+                                    <i class="ri-store-line text-primary"></i>
+                                    <strong>{{ t('gallery-pickup', 'تحویل حضوری در گالری') }}</strong>
+                                </div>
+                                <div class="review-row">
+                                    <i class="ri-map-pin-2-line text-muted"></i>
+                                    <span>{{ galleryAddress || 'تهران' }}</span>
+                                </div>
+                                <div class="review-row" v-if="customerName || profileForm.name || customer?.mobile || profileForm.mobile">
+                                    <strong class="text-dark">{{ customerName || profileForm.name }}</strong>
+                                    <span class="review-badge" dir="ltr">{{ customer?.mobile || profileForm.mobile }}</span>
+                                </div>
+                            </template>
+                            <template v-else>
+                                <template v-if="isThirdParty">
+                                    <div class="review-row">
+                                        <span class="badge bg-info-subtle text-info">{{ t('third-party-recipient', 'تحویل‌گیرنده شخص دیگر') }}</span>
+                                    </div>
+                                    <div class="review-row">
+                                        <strong class="text-dark">{{ recipientName }}</strong>
+                                        <span class="review-badge" dir="ltr">{{ recipientMobile }}</span>
+                                        <span v-if="recipientNationalId" class="badge bg-light text-secondary border font-monospace ms-2">{{ recipientNationalId }}</span>
+                                    </div>
+                                </template>
+                                <template v-else>
+                                    <div class="review-row" v-if="customerName || profileForm.name || customer?.mobile || profileForm.mobile">
+                                        <strong class="text-dark">{{ customerName || profileForm.name }}</strong>
+                                        <span class="review-badge" dir="ltr">{{ customer?.mobile || profileForm.mobile }}</span>
+                                    </div>
+                                </template>
+                                <div class="review-row" v-if="selectedAddress">
+                                    <i class="ri-map-pin-2-line text-muted"></i>
+                                    <span>{{ selectedAddress.address }}</span>
+                                </div>
+                                <div class="review-row transport-row" v-if="selectedTransport">
+                                    <i class="ri-truck-line text-primary"></i>
+                                    <span>{{ selectedTransport.title }}</span>
+                                    <span class="text-muted">({{ selectedTransport.price > 0 ? priceing(selectedTransport.price) : t('free', 'رایگان') }})</span>
+                                </div>
+                            </template>
                         </div>
                     </div>
 
@@ -355,7 +490,20 @@
                         </div>
                     </div>
 
-                    <p v-if="!canPayLocal" class="warn">{{ t('plz', 'لطفا وارد شوید یا اطلاعات ضروری را تکمیل کنید') }}</p>
+                    <p v-if="!canSubmitOrder" class="warn">
+                        <template v-if="!loggedIn || (!customerName && !profileForm.name) || (!customer?.mobile && !profileForm.mobile)">
+                            {{ t('plz', 'لطفا وارد شوید یا اطلاعات ضروری را تکمیل کنید') }}
+                        </template>
+                        <template v-else-if="deliveryType === 'address' && selectedAddress && !selectedAddress.is_tehran">
+                            {{ t('province-restriction-notice', 'ارسال مستقیم به این استان در حال حاضر مقدور نمی‌باشد.') }}
+                        </template>
+                        <template v-else-if="deliveryType === 'address' && isThirdParty && (!recipientName || !recipientMobile || !recipientNationalId)">
+                            {{ t('recipient-name-required', 'لطفا اطلاعات گیرنده را کامل وارد کنید') }}
+                        </template>
+                        <template v-else>
+                            {{ t('plz', 'لطفا وارد شوید یا اطلاعات ضروری را تکمیل کنید') }}
+                        </template>
+                    </p>
                     <button type="button" class="btn-ghost mt panel-back" @click="prev">{{ t('back', 'بازگشت') }}</button>
                 </section>
             </div>
@@ -372,12 +520,16 @@
                 <button v-if="currentKey !== 'payment'" type="button" class="btn-primary-cta wide aside-cta" @click="next">
                     {{ t('continue', 'ادامه') }}
                 </button>
-                <button v-else-if="canPayLocal" type="submit" class="btn-primary-cta wide aside-cta">
+                <button v-else-if="canSubmitOrder" type="submit" class="btn-primary-cta wide aside-cta">
                     {{ t('register-order', 'ثبت سفارش') }}
                 </button>
                 <button v-if="index > 0" type="button" class="btn-ghost wide mt aside-cta" @click="prev">
                     {{ t('back', 'بازگشت') }}
                 </button>
+                <a v-if="productsUrl && currentKey === 'cart'" :href="productsUrl" class="btn btn-outline-secondary wide mt-2 aside-cta text-decoration-none d-flex align-items-center justify-content-center gap-2">
+                    <i class="ri-arrow-right-line"></i>
+                    <span>{{ t('continue-shopping', 'ادامه خرید') }}</span>
+                </a>
                 <p class="aside-note">{{ t('aside-note', 'بعد از صدور فاکتور ۳ ساعت برای واریز فرصت دارید.') }}</p>
             </aside>
         </div>
@@ -390,7 +542,7 @@
             <button v-if="currentKey !== 'payment'" type="button" class="btn-primary-cta" @click="next">
                 {{ t('continue', 'ادامه') }}
             </button>
-            <button v-else-if="canPayLocal" type="submit" class="btn-primary-cta">
+            <button v-else-if="canSubmitOrder" type="submit" class="btn-primary-cta">
                 {{ t('register-order', 'ثبت سفارش') }}
             </button>
         </div>
@@ -448,6 +600,13 @@ export default {
         profileCompleteLocal: false,
         canPayLocal: false,
         localAddresses: [],
+        deliveryType: 'address',
+        galleryAddress: '',
+        productsUrl: '',
+        isThirdParty: false,
+        recipientName: '',
+        recipientMobile: '',
+        recipientNationalId: '',
         authTab: 'login',
         smsSent: false,
         authBusy: false,
@@ -531,7 +690,12 @@ export default {
     },
     computed: {
         needsAccount() {
-            return !this.loggedIn || !this.profileCompleteLocal;
+            if (!this.loggedIn) return true;
+            const hasName = !!(this.customerName || this.profileForm.name);
+            const hasMobile = !!(this.customer?.mobile || this.profileForm.mobile);
+            if (!hasName || !hasMobile) return true;
+            if (this.deliveryType === 'pickup') return false;
+            return !this.localAddresses.length;
         },
         steps() {
             const list = [{key: 'cart', label: this.t('cart', 'سبد')}];
@@ -568,6 +732,9 @@ export default {
             return sum;
         },
         transportPrice() {
+            if (this.deliveryType === 'pickup') {
+                return 0;
+            }
             for (const trs of (this.transports || [])) {
                 if (trs.id == this.transport_index) {
                     return Number(trs.price || 0);
@@ -603,6 +770,29 @@ export default {
             }
             return this.totalWithTransportDiscount;
         },
+        canSubmitOrder() {
+            if (!this.loggedIn) return false;
+            const hasName = !!(this.customerName || this.profileForm.name);
+            const hasMobile = !!(this.customer?.mobile || this.profileForm.mobile);
+            if (!hasName || !hasMobile) return false;
+
+            if (this.deliveryType === 'pickup') {
+                return true;
+            }
+
+            if (!this.selectedAddressId || !this.selectedAddress?.is_tehran) {
+                return false;
+            }
+
+            if (this.isThirdParty) {
+                const nameValid = !!(this.recipientName && this.recipientName.trim().length >= 2);
+                const mobileValid = /^09\d{9}$/.test(this.recipientMobile?.trim() || '');
+                const idValid = /^\d{10}$/.test(this.recipientNationalId?.trim() || '');
+                return nameValid && mobileValid && idValid;
+            }
+
+            return true;
+        },
     },
     methods: {
         hydrateFromPayload() {
@@ -624,6 +814,8 @@ export default {
             }
 
             this.productLink = data.productLink || '';
+            this.productsUrl = data.productsUrl || '';
+            this.galleryAddress = data.galleryAddress || '';
             this.cardLink = data.cardLink || '';
             this.discountLink = data.discountLink || '';
             this.loginUrl = data.loginUrl || '';
@@ -666,6 +858,7 @@ export default {
             this.canPayLocal = this.canPay;
             this.localAddresses = Array.isArray(this.addresses) ? [...this.addresses] : [];
             this.transport_index = this.defTransport;
+            this.deliveryType = (this.localAddresses && this.localAddresses.length > 0) ? 'address' : 'pickup';
             this.selectedAddressId = this.localAddresses?.[0]?.id ?? null;
             this.customerName = this.customer?.name || '';
             this.profileForm.name = this.customer?.name || '';
@@ -699,6 +892,9 @@ export default {
         t(key, fallback = '') {
             return this.translate?.[key] || fallback;
         },
+        setDeliveryType(type) {
+            this.deliveryType = type;
+        },
         goTo(i) {
             if (i === this.index) return;
             if (i < this.index) {
@@ -723,21 +919,49 @@ export default {
                 return;
             }
             if (this.currentKey === 'account') {
-                if (!this.loggedIn || !this.profileCompleteLocal) {
-                    window.$toast?.warning?.(this.t('complete-profile', 'لطفا نام، موبایل و آدرس را تکمیل کنید'));
+                const hasName = !!(this.customerName || this.profileForm.name);
+                const hasMobile = !!(this.customer?.mobile || this.profileForm.mobile);
+                if (!this.loggedIn || !hasName || !hasMobile) {
+                    window.$toast?.warning?.(this.t('complete-profile', 'لطفا نام و شماره موبایل را تکمیل کنید'));
+                    return;
+                }
+                if (this.deliveryType !== 'pickup' && !this.localAddresses.length) {
+                    window.$toast?.warning?.(this.t('complete-profile', 'لطفا آدرس را تکمیل کنید'));
                     return;
                 }
                 this.index = this.steps.findIndex(s => s.key === 'delivery');
                 return;
             }
             if (this.currentKey === 'delivery') {
+                if (this.deliveryType === 'pickup') {
+                    this.index = this.steps.findIndex(s => s.key === 'payment');
+                    return;
+                }
                 if (!this.selectedAddressId) {
                     window.$toast?.error?.(this.t('select-address', 'یک آدرس را انتخاب کنید'));
+                    return;
+                }
+                if (this.selectedAddress && !this.selectedAddress.is_tehran) {
+                    window.$toast?.error?.(this.t('province-restriction-notice', 'ارسال مستقیم به این استان در حال حاضر مقدور نمی‌باشد. جهت ثبت سفارش می‌توانید تحویل حضوری در گالری را انتخاب کرده یا آدرس تحویل دیگری در تهران ثبت نمایید.'));
                     return;
                 }
                 if (!this.transport_index) {
                     window.$toast?.error?.(this.t('select-transport', 'روش ارسال را انتخاب کنید'));
                     return;
+                }
+                if (this.isThirdParty) {
+                    if (!this.recipientName || this.recipientName.trim().length < 2) {
+                        window.$toast?.error?.(this.t('recipient-name-required', 'نام و نام خانوادگی گیرنده را وارد کنید'));
+                        return;
+                    }
+                    if (!/^09\d{9}$/.test(this.recipientMobile?.trim() || '')) {
+                        window.$toast?.error?.(this.t('mobile-invalid', 'فرمت شماره موبایل گیرنده نامعتبر است'));
+                        return;
+                    }
+                    if (!/^\d{10}$/.test(this.recipientNationalId?.trim() || '')) {
+                        window.$toast?.error?.(this.t('national-id-invalid', 'کد ملی گیرنده باید ۱۰ رقم باشد'));
+                        return;
+                    }
                 }
                 this.index = this.steps.findIndex(s => s.key === 'payment');
             }
@@ -752,11 +976,14 @@ export default {
             this.profileCompleteLocal = !!data.profile_complete;
             this.canPayLocal = !!data.profile_complete;
             this.localAddresses = data.addresses || [];
-            this.selectedAddressId = this.localAddresses?.[0]?.id ?? null;
+            if (this.localAddresses.length > 0 && !this.selectedAddressId) {
+                this.selectedAddressId = this.localAddresses[0].id;
+                this.deliveryType = 'address';
+            }
             this.customerName = data.customer?.name || '';
             this.profileForm.name = data.customer?.name || this.profileForm.name;
             this.profileForm.mobile = data.customer?.mobile || this.profileForm.mobile;
-            if (this.profileCompleteLocal) {
+            if (this.profileCompleteLocal || (this.deliveryType === 'pickup' && (this.customerName || this.profileForm.name) && (data.customer?.mobile || this.profileForm.mobile))) {
                 this.index = this.steps.findIndex(s => s.key === 'delivery');
             } else {
                 this.index = this.steps.findIndex(s => s.key === 'account');
@@ -854,8 +1081,9 @@ export default {
                 const payload = {
                     name: this.profileForm.name,
                     mobile: this.profileForm.mobile,
+                    for_pickup: this.deliveryType === 'pickup' ? 1 : 0,
                 };
-                if (!this.localAddresses.length) {
+                if (!this.localAddresses.length && this.profileForm.address) {
                     payload.address = this.profileForm.address;
                 }
                 const resp = await axios.post(this.completeProfileUrl, payload, {

@@ -192,6 +192,16 @@ class Invoice extends Model
         return $this->hasMany(PaymentReceipt::class);
     }
 
+    public function receiptsTotalAmount(): int
+    {
+        return (int) $this->paymentReceipts()->sum('amount');
+    }
+
+    public function remainingReceiptBalance(): int
+    {
+        return max(0, (int) $this->total_price - $this->receiptsTotalAmount());
+    }
+
     public function cardPayment(): ?Payment
     {
         if ($this->relationLoaded('payments')) {

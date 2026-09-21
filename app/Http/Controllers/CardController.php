@@ -117,30 +117,62 @@ class CardController extends Controller
 
     public function check(Request $request)
     {
-        /** @var Customer $customer */
         $customer = auth('customer')->user();
 
-        if (! $customer->isCheckoutReady()) {
+        $deliveryType = $request->input('delivery_type', 'address');
+        $isPickup = $deliveryType === 'pickup';
+
+        if (! $customer->isCheckoutReady($isPickup)) {
             return redirect()
                 ->route('client.profile')
-                ->withErrors(__('Please complete your name, mobile and address before checkout.'));
+                ->withErrors($isPickup
+                    ? __('Please complete your name and mobile before checkout.')
+                    : __('Please complete your name, mobile and address before checkout.'));
         }
 
-        $request->validate([
+        $rules = [
             'product_id' => ['required', 'array'],
             'count' => ['required', 'array'],
             'quantity_id' => ['nullable', 'array'],
-            'address_id' => ['required', 'exists:addresses,id'],
-            'transport_id' => ['required', 'exists:transports,id'],
+            'delivery_type' => ['nullable', 'in:address,pickup'],
             'payment_method' => ['required', 'in:card'],
             'discount_id' => ['nullable', 'exists:discounts,id'],
             'desc' => ['nullable', 'string'],
+        ];
+
+        if (! $isPickup) {
+            $rules['address_id'] = ['required', 'exists:addresses,id'];
+            $rules['transport_id'] = ['required', 'exists:transports,id'];
+            $rules['is_third_party'] = ['nullable', 'boolean'];
+        } else {
+            $rules['address_id'] = ['nullable'];
+            $rules['transport_id'] = ['nullable'];
+        }
+
+        if (! $isPickup && $request->boolean('is_third_party')) {
+            $rules['recipient_name'] = ['required', 'string', 'min:2', 'max:255'];
+            $rules['recipient_mobile'] = ['required', 'string', 'regex:/^09\d{9}$/'];
+            $rules['recipient_national_id'] = ['required', 'string', 'regex:/^\d{10}$/'];
+        }
+
+        $request->validate($rules, [
+            'recipient_mobile.regex' => __('Recipient mobile number format is invalid'),
+            'recipient_national_id.regex' => __('Recipient national ID format is invalid'),
         ]);
 
-        if (! $customer->addresses()->whereKey($request->address_id)->exists()) {
-            throw ValidationException::withMessages([
-                'address_id' => __('Selected address is invalid'),
-            ]);
+        if (! $isPickup) {
+            $address = $customer->addresses()->whereKey($request->address_id)->first();
+            if (! $address) {
+                throw ValidationException::withMessages([
+                    'address_id' => __('Selected address is invalid'),
+                ]);
+            }
+
+            if (! $address->isTehran()) {
+                throw ValidationException::withMessages([
+                    'address_id' => __('Direct shipping to non-Tehran provinces is currently unavailable. Please select gallery pickup or a Tehran delivery address.'),
+                ]);
+            }
         }
 
         $quote = app(CartQuoteService::class);
@@ -156,18 +188,41 @@ class CardController extends Controller
         }
 
         try {
-            $invoice = DB::transaction(function () use ($request, &$total, $calculator, $customer, $quote) {
+            $invoice = DB::transaction(function () use ($request, &$total, $calculator, $customer, $quote, $isPickup) {
                 $invoice = new Invoice;
                 $invoice->customer_id = $customer->id;
                 $invoice->count = array_sum($request->count);
-                $invoice->address_id = $request->address_id;
                 $invoice->desc = $request->desc;
                 $invoice->status = Invoice::AWAITING_PAYMENT;
+                $invoice->delivery_type = $isPickup ? 'pickup' : 'address';
 
-                $transport = Transport::query()->findOrFail($request->input('transport_id'));
-                $invoice->transport_id = $transport->id;
-                $invoice->transport_price = $transport->price;
-                $total += (int) $transport->price;
+                if ($isPickup) {
+                    $invoice->address_id = null;
+                    $invoice->transport_id = null;
+                    $invoice->transport_price = 0;
+                    $invoice->is_third_party = false;
+                    $invoice->recipient_name = null;
+                    $invoice->recipient_mobile = null;
+                    $invoice->recipient_national_id = null;
+                } else {
+                    $invoice->address_id = $request->address_id;
+                    $transport = Transport::query()->findOrFail($request->input('transport_id'));
+                    $invoice->transport_id = $transport->id;
+                    $invoice->transport_price = $transport->price;
+                    $total += (int) $transport->price;
+
+                    $isThirdParty = $request->boolean('is_third_party');
+                    $invoice->is_third_party = $isThirdParty;
+                    if ($isThirdParty) {
+                        $invoice->recipient_name = $request->input('recipient_name');
+                        $invoice->recipient_mobile = $request->input('recipient_mobile');
+                        $invoice->recipient_national_id = $request->input('recipient_national_id');
+                    } else {
+                        $invoice->recipient_name = null;
+                        $invoice->recipient_mobile = null;
+                        $invoice->recipient_national_id = null;
+                    }
+                }
 
                 if ($request->filled('discount_id')) {
                     $invoice->discount_id = $request->input('discount_id');
@@ -401,15 +456,15 @@ class CardController extends Controller
 
     public function completeCheckoutProfile(Request $request)
     {
-        /** @var Customer $customer */
         $customer = auth('customer')->user();
+        $forPickup = $request->input('delivery_type') === 'pickup' || $request->boolean('for_pickup');
 
         $rules = [
             'name' => ['required', 'string', 'min:2', 'max:255'],
             'mobile' => ['required', 'string', 'regex:/^09\d{9}$/', 'unique:customers,mobile,'.$customer->id],
         ];
 
-        if (! $customer->addresses()->exists()) {
+        if (! $customer->addresses()->exists() && ! $forPickup) {
             $rules['address'] = ['required', 'string', 'min:10'];
         }
 
@@ -421,17 +476,17 @@ class CardController extends Controller
         $customer->mobile = $request->input('mobile');
         $customer->save();
 
-        if (! $customer->addresses()->exists()) {
+        if ($request->filled('address') && ! $customer->addresses()->exists()) {
             $address = new Address;
             $address->customer_id = $customer->id;
             $address->address = $request->input('address');
             $address->save();
         }
 
-        $customer->load('addresses');
+        $customer->load('addresses.state');
 
         return success([
-            'profile_complete' => $customer->isCheckoutReady(),
+            'profile_complete' => $customer->isCheckoutReady($forPickup),
             'addresses' => $customer->addresses,
             'customer' => [
                 'name' => $customer->name,
