@@ -221,64 +221,138 @@
                 <!-- Payment -->
                 <section v-show="currentKey === 'payment'" class="checkout-panel">
                     <header class="panel-head">
-                        <h5>{{ t('payment', 'پرداخت') }}</h5>
+                        <h5>{{ t('order-review', 'بررسی نهایی و پرداخت') }}</h5>
                     </header>
 
-                    <h4>{{ t('check-dis', 'بررسی تخفیف') }}</h4>
-                    <div class="discount-row">
-                        <input type="text" :placeholder="t('discount-code', 'کد تخفیف')"
-                               :readonly="discount != null" v-model="code">
-                        <button type="button" class="btn-secondary-cta" @click="discountCheck">{{ t('check', 'بررسی') }}</button>
-                    </div>
-                    <div v-if="discount_id != null">
-                        <input type="hidden" name="discount_id" :value="discount_id">
-                        <p class="ok-msg">{{ discount_human }}</p>
-                    </div>
-
-                    <h4>{{ t('extra-desc', 'توضیحات سفارش') }}</h4>
-                    <textarea rows="3" class="full" name="desc" :placeholder="t('your-msg', 'پیام شما برای این سفارش...')"></textarea>
-
-                    <input type="hidden" name="payment_method" value="card">
-                    <div class="pay-option active">
-                        <i class="ri-bank-card-line pay-icon"></i>
-                        <div>
-                            <strong>{{ t('card-pay', 'کارت به کارت') }}</strong>
-                            <small>{{ t('card-pay-hint', 'واریز به کارت و انتظار تایید فروشگاه') }}</small>
-                        </div>
-                    </div>
-
-                    <div class="bank-box">
-                        <h5>{{ t('bank-info', 'اطلاعات کارت‌به‌کارت') }}</h5>
-                        <div v-if="bankName" class="bank-row">
-                            <span>{{ t('bank-name', 'بانک') }}</span>
-                            <strong>{{ bankName }}</strong>
-                        </div>
-                        <div v-if="bankAccountName" class="bank-row">
-                            <span>{{ t('account-name', 'به‌نام') }}</span>
-                            <strong>{{ bankAccountName }}</strong>
-                        </div>
-                        <div v-if="bankCardNumber" class="bank-row">
-                            <span>{{ t('card-number', 'شماره کارت') }}</span>
-                            <strong dir="ltr">{{ bankCardNumber }}</strong>
-                            <button type="button" class="copy-btn" @click="copyText(bankCardNumber, 'card')">
-                                {{ copiedKey === 'card' ? t('copied', 'کپی شد') : t('copy', 'کپی') }}
+                    <div class="review-box">
+                        <div class="review-box-header">
+                            <span class="review-title">
+                                <i class="ri-map-pin-user-line"></i>
+                                <strong>{{ t('delivery-info', 'مشخصات تحویل گیرنده') }}</strong>
+                            </span>
+                            <button type="button" class="btn-link-action" @click="goToStep('delivery')">
+                                <i class="ri-edit-line"></i>
+                                {{ t('edit', 'ویرایش') }}
                             </button>
                         </div>
-                        <div v-if="bankAccountNumber" class="bank-row">
-                            <span>{{ t('account-number', 'شماره حساب') }}</span>
-                            <strong dir="ltr">{{ bankAccountNumber }}</strong>
-                            <button type="button" class="copy-btn" @click="copyText(bankAccountNumber, 'account')">
-                                {{ copiedKey === 'account' ? t('copied', 'کپی شد') : t('copy', 'کپی') }}
-                            </button>
+                        <div class="review-box-body">
+                            <div class="review-row" v-if="customerName || profileForm.name || customer?.mobile || profileForm.mobile">
+                                <strong class="text-dark">{{ customerName || profileForm.name }}</strong>
+                                <span class="review-badge" dir="ltr">{{ customer?.mobile || profileForm.mobile }}</span>
+                            </div>
+                            <div class="review-row" v-if="selectedAddress">
+                                <i class="ri-map-pin-2-line text-muted"></i>
+                                <span>{{ selectedAddress.address }}</span>
+                            </div>
+                            <div class="review-row transport-row" v-if="selectedTransport">
+                                <i class="ri-truck-line text-primary"></i>
+                                <span>{{ selectedTransport.title }}</span>
+                                <span class="text-muted">({{ selectedTransport.price > 0 ? priceing(selectedTransport.price) : t('free', 'رایگان') }})</span>
+                            </div>
                         </div>
-                        <div v-if="bankSheba" class="bank-row">
-                            <span>{{ t('sheba', 'شبا') }}</span>
-                            <strong dir="ltr">{{ bankSheba }}</strong>
-                            <button type="button" class="copy-btn" @click="copyText(bankSheba, 'sheba')">
-                                {{ copiedKey === 'sheba' ? t('copied', 'کپی شد') : t('copy', 'کپی') }}
+                    </div>
+
+                    <div class="discount-box">
+                        <template v-if="discount == null">
+                            <button type="button" class="discount-toggle" @click="discountCollapsed = !discountCollapsed">
+                                <div class="discount-toggle-label">
+                                    <i class="ri-coupon-3-line"></i>
+                                    <span>{{ t('have-discount', 'کد تخفیف دارید؟') }}</span>
+                                </div>
+                                <i :class="discountCollapsed ? 'ri-arrow-down-s-line' : 'ri-arrow-up-s-line'"></i>
                             </button>
+                            <div v-show="!discountCollapsed" class="discount-form">
+                                <div class="discount-input-wrap">
+                                    <input type="text"
+                                           :placeholder="t('enter-discount-code', 'کد تخفیف را وارد کنید')"
+                                           v-model="code"
+                                           @keyup.enter.prevent="discountCheck">
+                                    <button type="button" class="btn-discount-apply" :disabled="discountLoading || !code.trim()" @click="discountCheck">
+                                        <span v-if="discountLoading" class="spinner-border spinner-border-sm me-1" role="status"></span>
+                                        <span>{{ t('apply-discount', 'اعمال کد') }}</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </template>
+                        <template v-else>
+                            <div class="discount-applied-card">
+                                <div class="discount-applied-info">
+                                    <i class="ri-checkbox-circle-fill text-success"></i>
+                                    <div>
+                                        <strong class="discount-human-text">{{ discount_human }}</strong>
+                                        <span class="discount-code-tag">{{ code }}</span>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn-remove-discount" @click="removeDiscount" :title="t('remove-discount', 'حذف کد تخفیف')">
+                                    <i class="ri-delete-bin-line"></i>
+                                    <span>{{ t('remove', 'حذف') }}</span>
+                                </button>
+                            </div>
+                            <input type="hidden" name="discount_id" :value="discount_id">
+                        </template>
+                    </div>
+
+                    <div class="order-notes-box">
+                        <label class="order-notes-label">
+                            <i class="ri-file-text-line"></i>
+                            <span>{{ t('extra-desc', 'توضیحات سفارش') }}</span>
+                            <span class="badge-optional">{{ t('optional', 'اختیاری') }}</span>
+                        </label>
+                        <textarea rows="2" class="full" name="desc" :placeholder="t('order-notes-hint', 'یادداشت اختیاری درباره نحوه ارسال یا بسته‌بندی...')"></textarea>
+                    </div>
+
+                    <div class="payment-method-box">
+                        <input type="hidden" name="payment_method" value="card">
+                        <div class="pay-option active">
+                            <i class="ri-bank-card-line pay-icon"></i>
+                            <div>
+                                <strong>{{ t('card-pay', 'کارت به کارت') }}</strong>
+                                <small>{{ t('card-pay-hint', 'واریز به کارت و انتظار تایید فروشگاه') }}</small>
+                            </div>
                         </div>
-                        <p class="muted">{{ t('card-wait-hint', 'پس از ثبت سفارش، مبلغ را واریز کنید تا سفارش تایید شود.') }}</p>
+
+                        <div class="bank-box">
+                            <div class="bank-box-header">
+                                <div class="bank-box-title">
+                                    <i class="ri-bank-line"></i>
+                                    <h5>{{ t('bank-info', 'اطلاعات کارت‌به‌کارت') }}</h5>
+                                </div>
+                                <span v-if="bankName" class="bank-tag">{{ bankName }}</span>
+                            </div>
+
+                            <div v-if="bankAccountName" class="bank-row">
+                                <span>{{ t('account-name', 'به‌نام') }}</span>
+                                <strong>{{ bankAccountName }}</strong>
+                            </div>
+                            <div v-if="bankCardNumber" class="bank-row bank-row-highlight">
+                                <span>{{ t('card-number', 'شماره کارت') }}</span>
+                                <strong dir="ltr" class="font-monospace">{{ formatCardNumber(bankCardNumber) }}</strong>
+                                <button type="button" class="copy-btn" @click="copyText(bankCardNumber, 'card')">
+                                    <i :class="copiedKey === 'card' ? 'ri-check-line text-success' : 'ri-file-copy-line'"></i>
+                                    <span>{{ copiedKey === 'card' ? t('copied', 'کپی شد') : t('copy', 'کپی') }}</span>
+                                </button>
+                            </div>
+                            <div v-if="bankSheba" class="bank-row">
+                                <span>{{ t('sheba', 'شبا') }}</span>
+                                <strong dir="ltr" class="font-monospace fs-12">{{ bankSheba }}</strong>
+                                <button type="button" class="copy-btn" @click="copyText(bankSheba, 'sheba')">
+                                    <i :class="copiedKey === 'sheba' ? 'ri-check-line text-success' : 'ri-file-copy-line'"></i>
+                                    <span>{{ copiedKey === 'sheba' ? t('copied', 'کپی شد') : t('copy', 'کپی') }}</span>
+                                </button>
+                            </div>
+                            <div v-if="bankAccountNumber" class="bank-row">
+                                <span>{{ t('account-number', 'شماره حساب') }}</span>
+                                <strong dir="ltr" class="font-monospace">{{ bankAccountNumber }}</strong>
+                                <button type="button" class="copy-btn" @click="copyText(bankAccountNumber, 'account')">
+                                    <i :class="copiedKey === 'account' ? 'ri-check-line text-success' : 'ri-file-copy-line'"></i>
+                                    <span>{{ copiedKey === 'account' ? t('copied', 'کپی شد') : t('copy', 'کپی') }}</span>
+                                </button>
+                            </div>
+                            <p class="muted">
+                                <i class="ri-information-line"></i>
+                                {{ t('card-wait-hint', 'پس از ثبت سفارش، مبلغ را واریز کنید تا سفارش تایید شود.') }}
+                            </p>
+                        </div>
                     </div>
 
                     <p v-if="!canPayLocal" class="warn">{{ t('plz', 'لطفا وارد شوید یا اطلاعات ضروری را تکمیل کنید') }}</p>
@@ -290,8 +364,9 @@
                 <p class="aside-label">{{ t('payable', 'قابل پرداخت') }}</p>
                 <p class="aside-total">{{ priceing(displayTotal) }}</p>
                 <ul class="aside-lines">
-                    <li><span>{{ t('products-total', 'جمع کالاها') }}</span><span>{{ priceing(productsTotalAfterDiscount) }}</span></li>
-                    <li v-if="currentKey !== 'cart' && currentKey !== 'account'"><span>{{ t('transport', 'ارسال') }}</span><span>{{ priceing(transportPrice) }}</span></li>
+                    <li><span>{{ t('products-total', 'جمع کالاها') }}</span><span>{{ priceing(total) }}</span></li>
+                    <li v-if="discountAmount > 0" class="discount-line"><span>{{ t('discount', 'تخفیف') }}</span><span>- {{ priceing(discountAmount) }}</span></li>
+                    <li v-if="currentKey !== 'cart' && currentKey !== 'account'"><span>{{ t('transport', 'ارسال') }}</span><span>{{ transportPrice > 0 ? priceing(transportPrice) : t('free', 'رایگان') }}</span></li>
                 </ul>
                 <slot></slot>
                 <button v-if="currentKey !== 'payment'" type="button" class="btn-primary-cta wide aside-cta" @click="next">
@@ -358,6 +433,8 @@ export default {
         discount_id: null,
         discount_human: '',
         discount: null,
+        discountCollapsed: true,
+        discountLoading: false,
         paymentMethod: 'card',
         quoteExpiresAt: 0,
         quoteMinutes: 30,
@@ -498,16 +575,21 @@ export default {
             }
             return 0;
         },
-        productsTotalAfterDiscount() {
-            let sum = this.total;
-            if (this.discount != null) {
-                if (this.discount.type == 'PERCENT') {
-                    sum = ((100 - this.discount.amount) * sum) / 100;
-                } else {
-                    sum -= this.discount.amount;
-                }
+        selectedAddress() {
+            return (this.localAddresses || []).find(a => a.id == this.selectedAddressId) || null;
+        },
+        selectedTransport() {
+            return (this.transports || []).find(t => t.id == this.transport_index) || null;
+        },
+        discountAmount() {
+            if (!this.discount) return 0;
+            if (this.discount.type === 'PERCENT') {
+                return Math.round((Number(this.discount.amount || 0) * this.total) / 100);
             }
-            return sum;
+            return Math.min(this.total, Number(this.discount.amount || 0));
+        },
+        productsTotalAfterDiscount() {
+            return Math.max(0, this.total - this.discountAmount);
         },
         totalWithTransportDiscount() {
             return this.productsTotalAfterDiscount + this.transportPrice;
@@ -802,18 +884,45 @@ export default {
             await this.completeProfile();
         },
         async discountCheck() {
+            const rawCode = (this.code || '').trim();
+            if (!rawCode) {
+                window.$toast?.warning?.(this.t('enter-discount-code', 'لطفاً کد تخفیف را وارد کنید'));
+                return;
+            }
+            this.discountLoading = true;
             try {
-                const resp = await axios.get(this.discountLink + this.code);
+                const resp = await axios.get(this.discountLink + encodeURIComponent(rawCode));
                 if (!resp.data.OK) {
-                    window.$toast.error(resp.data.err);
+                    window.$toast?.error?.(resp.data.err || this.t('discount-invalid', 'کد تخفیف معتبر نیست'));
                 } else {
-                    window.$toast.success(resp.data.msg);
+                    window.$toast?.success?.(resp.data.msg || this.t('discount-applied', 'کد تخفیف اعمال شد'));
                     this.discount_id = resp.data.data.id;
                     this.discount_human = resp.data.human;
                     this.discount = resp.data.data;
+                    this.discountCollapsed = true;
                 }
             } catch (e) {
-                window.$toast.error(e.message);
+                window.$toast?.error?.(e.response?.data?.message || e.message);
+            } finally {
+                this.discountLoading = false;
+            }
+        },
+        removeDiscount() {
+            this.discount = null;
+            this.discount_id = null;
+            this.discount_human = '';
+            this.code = '';
+            this.discountCollapsed = true;
+        },
+        formatCardNumber(num) {
+            if (!num) return '';
+            const cleaned = String(num).replace(/\s+/g, '');
+            return cleaned.replace(/(\d{4})(?=\d)/g, '$1-');
+        },
+        goToStep(key) {
+            const idx = this.steps.findIndex(s => s.key === key);
+            if (idx !== -1) {
+                this.index = idx;
             }
         },
         priceing(p) {
@@ -826,9 +935,37 @@ export default {
             if (!value) {
                 return;
             }
-            try {
-                await navigator.clipboard.writeText(String(value).replace(/\s/g, ''));
+            const cleanText = String(value).replace(/\s/g, '');
+            let copied = false;
+            if (navigator.clipboard && window.isSecureContext) {
+                try {
+                    await navigator.clipboard.writeText(cleanText);
+                    copied = true;
+                } catch (e) {
+                    copied = false;
+                }
+            }
+            if (!copied) {
+                try {
+                    const textarea = document.createElement('textarea');
+                    textarea.value = cleanText;
+                    textarea.style.position = 'fixed';
+                    textarea.style.top = '-9999px';
+                    textarea.style.left = '-9999px';
+                    textarea.setAttribute('readonly', '');
+                    document.body.appendChild(textarea);
+                    textarea.focus();
+                    textarea.select();
+                    copied = document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                } catch (err) {
+                    copied = false;
+                }
+            }
+
+            if (copied) {
                 this.copiedKey = key;
+                window.$toast?.success?.(this.t('copied', 'کپی شد'));
                 if (this.copyTimer) {
                     clearTimeout(this.copyTimer);
                 }
@@ -837,7 +974,7 @@ export default {
                         this.copiedKey = null;
                     }
                 }, 1800);
-            } catch (e) {
+            } else {
                 window.$toast?.error?.(this.t('copy-failed', 'کپی نشد'));
             }
         },
@@ -1338,9 +1475,239 @@ textarea.full {
     white-space: nowrap;
 }
 
-.discount-row {
+.review-box {
+    border: 1px solid var(--ck-line);
+    border-radius: .75rem;
+    background: #fff;
+    margin-bottom: 1rem;
+    overflow: hidden;
+}
+
+.review-box-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .75rem 1rem;
+    background: var(--ck-soft);
+    border-bottom: 1px solid var(--ck-line);
+}
+
+.review-title {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: .88rem;
+    color: var(--ck-ink);
+}
+
+.review-title i {
+    color: var(--ck-accent);
+    font-size: 1.1rem;
+}
+
+.btn-link-action {
+    display: inline-flex;
+    align-items: center;
+    gap: .25rem;
+    background: none;
+    border: none;
+    color: var(--ck-accent);
+    font-size: .82rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+}
+
+.btn-link-action:hover {
+    text-decoration: underline;
+}
+
+.review-box-body {
+    padding: .85rem 1rem;
+    display: grid;
+    gap: .5rem;
+    font-size: .88rem;
+}
+
+.review-row {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    color: var(--ck-ink);
+}
+
+.review-badge {
+    background: var(--ck-soft);
+    border: 1px solid var(--ck-line);
+    padding: .15rem .45rem;
+    border-radius: .35rem;
+    font-size: .78rem;
+    color: var(--ck-muted);
+}
+
+.transport-row {
+    padding-top: .5rem;
+    margin-top: .25rem;
+    border-top: 1px dashed var(--ck-line);
+}
+
+.discount-box {
+    margin-bottom: 1rem;
+}
+
+.discount-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #fff;
+    border: 1px solid var(--ck-line);
+    border-radius: .75rem;
+    padding: .75rem 1rem;
+    font-weight: 600;
+    font-size: .9rem;
+    color: var(--ck-ink);
+    cursor: pointer;
+    transition: all .2s ease;
+}
+
+.discount-toggle:hover {
+    border-color: var(--ck-accent);
+    background: color-mix(in srgb, var(--ck-accent) 4%, white);
+}
+
+.discount-toggle-label {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+
+.discount-toggle-label i {
+    color: var(--ck-accent);
+    font-size: 1.15rem;
+}
+
+.discount-form {
+    margin-top: .5rem;
+    background: #fff;
+    border: 1px solid var(--ck-line);
+    border-radius: .75rem;
+    padding: .75rem;
+}
+
+.discount-input-wrap {
     display: flex;
     gap: .5rem;
+}
+
+.discount-input-wrap input {
+    flex: 1;
+    border: 1px solid var(--ck-line);
+    border-radius: .65rem;
+    padding: .65rem .85rem;
+    font-size: .88rem;
+    background: #fff;
+}
+
+.btn-discount-apply {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--ck-accent);
+    color: #fff;
+    border: 0;
+    border-radius: .65rem;
+    padding: .65rem 1.15rem;
+    font-weight: 600;
+    font-size: .88rem;
+    cursor: pointer;
+    transition: opacity .2s;
+    white-space: nowrap;
+}
+
+.btn-discount-apply:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+}
+
+.discount-applied-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: color-mix(in srgb, var(--xshop-success) 8%, white);
+    border: 1px solid color-mix(in srgb, var(--xshop-success) 30%, white);
+    border-radius: .75rem;
+    padding: .75rem 1rem;
+}
+
+.discount-applied-info {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+}
+
+.discount-applied-info i {
+    font-size: 1.25rem;
+}
+
+.discount-human-text {
+    font-size: .88rem;
+    color: var(--ck-ink);
+}
+
+.discount-code-tag {
+    display: block;
+    font-size: .75rem;
+    color: var(--ck-muted);
+}
+
+.btn-remove-discount {
+    display: inline-flex;
+    align-items: center;
+    gap: .25rem;
+    background: transparent;
+    border: 1px solid color-mix(in srgb, var(--xshop-danger) 40%, white);
+    color: var(--xshop-danger);
+    border-radius: .5rem;
+    padding: .35rem .65rem;
+    font-size: .78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s ease;
+}
+
+.btn-remove-discount:hover {
+    background: var(--xshop-danger);
+    color: #fff;
+}
+
+.order-notes-box {
+    margin-bottom: 1rem;
+}
+
+.order-notes-label {
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+    font-size: .88rem;
+    font-weight: 600;
+    color: var(--ck-ink);
+    margin-bottom: .45rem;
+}
+
+.order-notes-label i {
+    color: var(--ck-muted);
+}
+
+.badge-optional {
+    margin-inline-start: auto;
+    background: var(--ck-soft);
+    border: 1px solid var(--ck-line);
+    color: var(--ck-muted);
+    font-size: .72rem;
+    font-weight: normal;
+    padding: .1rem .45rem;
+    border-radius: .35rem;
 }
 
 .pay-option {
@@ -1350,7 +1717,7 @@ textarea.full {
     border: 1px solid color-mix(in srgb, var(--ck-accent) 45%, white);
     border-radius: .75rem;
     padding: .85rem 1rem;
-    margin: 1rem 0 .75rem;
+    margin: .5rem 0 .75rem;
     background: color-mix(in srgb, var(--ck-accent) 8%, white);
 }
 
@@ -1372,7 +1739,40 @@ textarea.full {
     border: 1px solid var(--xshop-gold-300);
 }
 
-.bank-box h5 { margin: 0 0 .75rem; }
+.bank-box-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: .75rem;
+    padding-bottom: .5rem;
+    border-bottom: 1px solid var(--ck-line);
+}
+
+.bank-box-title {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+}
+
+.bank-box-title i {
+    color: var(--ck-accent);
+    font-size: 1.1rem;
+}
+
+.bank-box-title h5 {
+    margin: 0;
+    font-size: .95rem;
+}
+
+.bank-tag {
+    background: color-mix(in srgb, var(--ck-accent) 15%, white);
+    border: 1px solid color-mix(in srgb, var(--ck-accent) 40%, white);
+    color: var(--ck-deep);
+    font-size: .75rem;
+    font-weight: 700;
+    padding: .2rem .55rem;
+    border-radius: .4rem;
+}
 
 .bank-row {
     display: grid;
@@ -1384,10 +1784,22 @@ textarea.full {
     font-size: .9rem;
 }
 
+.bank-row-highlight {
+    background: #fff;
+    padding: .5rem .65rem;
+    border-radius: .5rem;
+    border-bottom: 0;
+    margin: .35rem 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+
 .bank-row span { color: var(--ck-muted); }
 .bank-row strong { overflow-wrap: anywhere; }
 
 .copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .25rem;
     border: 1px solid var(--ck-line);
     background: #fff;
     border-radius: .5rem;
@@ -1397,7 +1809,12 @@ textarea.full {
     cursor: pointer;
 }
 
-.muted { color: var(--ck-muted); font-size: .88rem; margin: .75rem 0 0; }
+.discount-line {
+    color: var(--xshop-danger);
+    font-weight: 600;
+}
+
+.muted { color: var(--ck-muted); font-size: .88rem; margin: .75rem 0 0; display: flex; align-items: center; gap: .35rem; }
 .ok-msg { color: var(--xshop-success); }
 .warn { color: var(--xshop-danger); }
 

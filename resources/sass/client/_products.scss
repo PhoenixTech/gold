@@ -387,7 +387,7 @@
         box-shadow: var(--xshop-shadow-xs);
     }
 
-    .fav-btn, .compare-btn, .bookmark-btn, .comment-btn, .share-btn {
+    .fav-btn, .bookmark-btn, .comment-btn, .share-btn {
         cursor: pointer;
         transition: all 0.2s ease;
         &:hover {

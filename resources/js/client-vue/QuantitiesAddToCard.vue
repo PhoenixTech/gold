@@ -129,6 +129,10 @@ export default {
                 if (resp.data.OK || resp.data.success) {
                     window.$toast.success(resp.data.message);
                     window.updateCardCount(resp.data.data.count);
+                    const redirectUrl = resp.data.data?.redirect || '/card';
+                    setTimeout(() => {
+                        window.location.href = redirectUrl;
+                    }, 800);
                 } else {
                     window.$toast.error(resp.data.message || "Error!");
                 }

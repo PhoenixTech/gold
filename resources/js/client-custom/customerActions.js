@@ -164,29 +164,6 @@ window.addEventListener('load', function () {
             return;
         }
 
-        // --- Compare Button ---
-        const compBtn = e.target.closest('.compare-btn');
-        if (compBtn) {
-            e.preventDefault();
-            e.stopPropagation();
-            const slug = compBtn.getAttribute('data-slug');
-            if (!slug) return;
-
-            try {
-                const url = makeActionUrl('#api-compare-toggle', '/product/compare/toggle', slug);
-                const resp = await axios.get(url);
-                if (resp.data && resp.data.OK) {
-                    window.$toast?.success(resp.data.message);
-                } else {
-                    window.$toast?.error(resp.data?.message || "خطا در افزودن به مقایسه");
-                }
-            } catch (err) {
-                window.$toast?.error(err.response?.data?.message || "خطا در افزودن به مقایسه");
-            }
-            return;
-        }
-
-        // --- Add to Cart Button ---
         const cartBtn = e.target.closest('.add-to-card');
         if (cartBtn && !cartBtn.classList.contains('disabled')) {
             e.preventDefault();
@@ -202,6 +179,10 @@ window.addEventListener('load', function () {
                 if (resp.data.OK) {
                     window.$toast?.success(resp.data.message);
                     window.updateCardCount(resp.data.data.count);
+                    const redirectUrl = resp.data.data?.redirect || '/card';
+                    setTimeout(() => {
+                        window.location.href = redirectUrl;
+                    }, 800);
                 } else {
                     window.$toast?.error(resp.data.message || "خطا در افزودن به سبد خرید");
                 }

@@ -211,7 +211,7 @@ a {
 }
 
 // Interactive State Toggles
-.fav-btn, .bookmark-btn, .compare-btn {
+.fav-btn, .bookmark-btn {
     cursor: pointer;
     transition: transform var(--xshop-duration-fast) var(--xshop-ease);
 

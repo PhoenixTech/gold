@@ -106,14 +106,6 @@
                                data-bs-toggle="tooltip" data-bs-placement="auto" title="{{__("Share")}}">
                                 <i class="ri-share-forward-line text-muted fs-16"></i>
                             </button>
-
-                            <a class="compare-btn btn btn-sm btn-light border rounded-circle shadow-xs p-0 d-flex align-items-center justify-content-center"
-                               style="width: 34px; height: 34px;"
-                               data-slug="{{$product->slug}}"
-                               data-bs-custom-class="custom-tooltip"
-                               data-bs-toggle="tooltip" data-bs-placement="auto" title="{{__("Add to/ Remove from compare list")}}">
-                                <i class="ri-scales-3-line text-muted fs-16"></i>
-                            </a>
                         </div>
                     </div>
 

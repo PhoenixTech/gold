@@ -101,7 +101,7 @@ class CardController extends Controller
         app(CartQuoteService::class)->forget();
 
         if (request()->ajax() || request()->expectsJson()) {
-            return success(['count' => $count], $msg);
+            return success(['count' => $count, 'redirect' => route('client.card')], $msg);
         }
 
         return redirect()->back()->with(['message' => $msg]);
@@ -240,11 +240,19 @@ class CardController extends Controller
                 }
 
                 if ($invoice->discount_id) {
-                    $discount = Discount::query()->whereKey($invoice->discount_id)->first();
+                    $discount = Discount::query()
+                        ->whereKey($invoice->discount_id)
+                        ->where(function ($query) {
+                            $query->where('expire', '>=', now())
+                                ->orWhereNull('expire');
+                        })
+                        ->first();
                     if ($discount) {
                         $productsTotal = $discount->type === 'PERCENT'
                             ? (int) (((100 - $discount->amount) * $productsTotal) / 100)
                             : max(0, $productsTotal - (int) $discount->amount);
+                    } else {
+                        $invoice->discount_id = null;
                     }
                 }
 
@@ -328,21 +336,35 @@ class CardController extends Controller
 
     public function discount($code)
     {
-        $discount = Discount::where('code', trim($code))->where(function ($query) {
-            $query->where('expire', '>=', date('Y-m-d'))
-                ->orWhereNull('expire');
-        })->first();
-        if ($discount == null) {
+        $code = trim((string) $code);
+        if ($code === '') {
             return [
                 'OK' => false,
                 'err' => __("Discount code isn't valid."),
             ];
         }
 
-        if ($discount->type == 'PERCENT') {
-            $human = $discount->title.'( '.$discount->amount.'%'.' )';
+        $discount = Discount::query()
+            ->where('code', $code)
+            ->where(function ($query) {
+                $query->where('expire', '>=', now())
+                    ->orWhereNull('expire');
+            })
+            ->first();
+
+        if ($discount === null) {
+            return [
+                'OK' => false,
+                'err' => __("Discount code isn't valid."),
+            ];
+        }
+
+        if ($discount->type === 'PERCENT') {
+            $human = $discount->title ? $discount->title.' ( '.$discount->amount.'%'.' )' : $discount->amount.'%';
         } else {
-            $human = '- '.$discount->title.'( '.$discount->amount.config('app.currency.symbol').' )';
+            $human = $discount->title
+                ? '- '.$discount->title.' ( '.number_format($discount->amount).' '.config('app.currency.symbol').' )'
+                : '- '.number_format($discount->amount).' '.config('app.currency.symbol');
         }
 
         return [

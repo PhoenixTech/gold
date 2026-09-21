@@ -2010,5 +2010,16 @@
     "yesterday": "دیروز",
     ":category :metal :target_group": ":category :metal :target_group",
     ":category :metal": ":category :metal",
-    ":category :target_group": ":category :target_group"
+    ":category :target_group": ":category :target_group",
+    "Do you have a discount code?": "کد تخفیف دارید؟",
+    "Apply code": "اعمال کد",
+    "Remove discount": "حذف کد تخفیف",
+    "Delivery details": "مشخصات تحویل گیرنده",
+    "Order notes": "یادداشت سفارش",
+    "Free": "رایگان",
+    "Order review": "بررسی نهایی و پرداخت",
+    "Optional notes for packaging or delivery...": "یادداشت اختیاری درباره نحوه ارسال یا بسته‌بندی...",
+    "Direct bank transfer": "کارت به کارت رسمی",
+    "Bank transfer details": "اطلاعات حساب جهت واریز",
+    "Enter discount code": "کد تخفیف را وارد کنید"
 }
