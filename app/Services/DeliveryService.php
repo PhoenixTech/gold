@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\DeliveryStatus;
+use App\Events\InvoiceCompleted;
 use App\Jobs\SendDeliveryCodeSms;
 use App\Models\Delivery;
 use App\Models\Invoice;
@@ -57,13 +58,18 @@ class DeliveryService
             $this->cancelOpenDeliveries($invoice, __('Cancelled by admin'));
         }
 
+        $previousStatus = $invoice->status;
         $invoice->status = $newStatus;
         $invoice->save();
 
         if (in_array($newStatus, Invoice::successfulStatuses(), true)) {
             $invoice->markOrderedPiecesAsSold();
-        } elseif ($newStatus === Invoice::CANCELED) {
+        } elseif ($newStatus === Invoice::CANCELED || $newStatus === Invoice::FAILED) {
             $invoice->releaseReservedStock();
+        }
+
+        if ($newStatus === Invoice::COMPLETED && $previousStatus !== Invoice::COMPLETED) {
+            event(new InvoiceCompleted($invoice));
         }
     }
 
@@ -175,9 +181,11 @@ class DeliveryService
         });
     }
 
-    public function confirm(Delivery $delivery, User $courier, string $code): void
+    public function confirm(Delivery $delivery, ?User $courier, string $code): void
     {
-        $this->assertOwned($delivery, $courier);
+        if ($courier !== null) {
+            $this->assertOwned($delivery, $courier);
+        }
 
         if (! $delivery->isAccepted()) {
             throw ValidationException::withMessages([
@@ -214,9 +222,26 @@ class DeliveryService
             $delivery->save();
 
             $invoice = $delivery->invoice;
+            $previousStatus = $invoice->status;
             $invoice->status = Invoice::COMPLETED;
             $invoice->save();
+
+            if ($previousStatus !== Invoice::COMPLETED) {
+                event(new InvoiceCompleted($invoice));
+            }
         });
+    }
+
+    public function confirmDelivery(Delivery $delivery, string|User $courierOrCode, ?string $code = null): void
+    {
+        if ($courierOrCode instanceof User) {
+            $this->confirm($delivery, $courierOrCode, (string) $code);
+
+            return;
+        }
+
+        $courier = $delivery->courier ?? (auth()->user() instanceof User ? auth()->user() : null);
+        $this->confirm($delivery, $courier, (string) $courierOrCode);
     }
 
     private function queueSms(Delivery $delivery, string $code): void

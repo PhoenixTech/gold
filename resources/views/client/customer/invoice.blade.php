@@ -33,7 +33,22 @@
 @endphp
 
 <div class="avisa-invoice-page">
-    {{-- Customer Subnav Header with Back Button --}}
+    @if(session('message'))
+        <div class="alert alert-success border border-success-subtle rounded-3 p-3 mb-3 fs-13 d-flex align-items-center gap-2">
+            <i class="ri-checkbox-circle-line fs-5 text-success"></i>
+            <span>{{ session('message') }}</span>
+        </div>
+    @endif
+    @if($errors->any())
+        <div class="alert alert-danger border border-danger-subtle rounded-3 p-3 mb-3 fs-13">
+            <ul class="mb-0 ps-3">
+                @foreach($errors->all() as $err)
+                    <li>{{ $err }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     <div class="avisa-subnav-head mb-3">
         <a href="{{ route('client.profile') }}#invoices" class="avisa-subnav-back" aria-label="{{ __('Back to orders') }}">
             <i class="ri-arrow-right-line"></i>
@@ -44,7 +59,6 @@
         </div>
     </div>
 
-    {{-- Offline Payment Alert Banner --}}
     @if($canUploadReceipts && ! $offlineIsExpired)
         <div class="liana-offline-alert no-print {{ $isWaitingConfirmation ? 'is-waiting' : '' }} mb-3" id="receipt-upload">
             <div class="liana-offline-alert__icon">
@@ -59,6 +73,15 @@
                     </p>
                 @else
                     <strong>{{ __('This invoice needs a payment receipt') }}</strong>
+                    @if($invoice->declinedReceiptReason())
+                        <div class="alert alert-warning border border-warning-subtle rounded-3 p-2.5 my-2 fs-13 d-flex align-items-center gap-2">
+                            <i class="ri-alert-line text-warning fs-5 flex-shrink-0"></i>
+                            <div>
+                                <strong class="d-block text-dark">{{ __('Previous receipt was declined') }}</strong>
+                                <span class="text-dark">{{ __('Reason:') }} {{ $invoice->declinedReceiptReason() }}</span>
+                            </div>
+                        </div>
+                    @endif
                     @if($offlineDeadline)
                         <div class="liana-offline-deadline mt-1">
                             <i class="ri-timer-line"></i>
@@ -82,17 +105,40 @@
                 @endif
             </div>
         </div>
+    @elseif($invoice->isOnlinePayment() && $invoice->status === \App\Models\Invoice::PENDING)
+        <div class="alert alert-warning border border-warning-subtle rounded-3 p-3 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <i class="ri-time-line fs-4 text-warning"></i>
+                <div>
+                    <strong class="d-block text-dark">{{ __('Awaiting online payment') }}</strong>
+                    <span class="text-muted fs-13">{{ __('Please complete your online payment to confirm the order.') }}</span>
+                </div>
+            </div>
+            <a href="{{ route('client.pay', $invoice->hash) }}" class="btn btn-sm btn-primary rounded-pill px-3">
+                <i class="ri-secure-payment-line me-1"></i> {{ __('Pay online now') }}
+            </a>
+        </div>
     @elseif($offlineIsExpired || $invoice->status === \App\Models\Invoice::FAILED)
         <div class="liana-offline-alert no-print is-failed mb-3">
             <div class="liana-offline-alert__icon text-danger">
                 <i class="ri-error-warning-line"></i>
             </div>
             <div class="liana-offline-alert__body">
-                <span class="liana-offline-alert__eyebrow text-danger">{{ __('Expired invoice') }}</span>
-                <strong class="text-danger">{{ __('Deadline passed — this invoice was failed.') }}</strong>
-                <p class="mb-0 text-muted fs-13">
-                    {{ __('The payment deadline for this order has expired. If you still wish to purchase, please create a new order.') }}
-                </p>
+                <span class="liana-offline-alert__eyebrow text-danger">{{ __('Failed invoice') }}</span>
+                <strong class="text-danger">{{ __('Payment was not completed.') }}</strong>
+                @if($invoice->isOnlinePayment() && $invoice->canRetryOnlinePayment())
+                    <p class="mb-2 text-muted fs-13">
+                        {{ __('Payment failed or was interrupted. You can retry paying online before your session expires.') }}
+                    </p>
+                    <a href="{{ route('client.pay', $invoice->hash) }}" class="btn btn-sm btn-primary rounded-pill px-3 d-inline-flex align-items-center gap-1">
+                        <i class="ri-restart-line"></i>
+                        <span>{{ __('Retry payment') }}</span>
+                    </a>
+                @else
+                    <p class="mb-0 text-muted fs-13">
+                        {{ __('The payment deadline for this order has expired. If you still wish to purchase, please create a new order.') }}
+                    </p>
+                @endif
             </div>
         </div>
     @elseif($invoice->status === \App\Models\Invoice::CANCELED)
@@ -114,16 +160,52 @@
                 @endif
             </div>
         </div>
-    @endif
-
-    {{-- Courier Delivery Alert --}}
-    @if($invoice->status === \App\Models\Invoice::OUT_FOR_DELIVERY)
-        <div class="alert alert-warning border border-warning-subtle rounded-3 p-3 mb-3 d-flex align-items-center gap-2.5">
-            <i class="ri-motorbike-line fs-4 text-warning"></i>
-            <div class="fs-13 text-dark fw-medium">
-                {{ __('A 4-digit code was sent to your mobile. Give it only to the courier.') }}
+    @elseif($invoice->status === \App\Models\Invoice::PAID)
+        <div class="liana-payment-done alert alert-success border border-success-subtle rounded-3 d-flex align-items-center gap-2 fs-13 mb-3">
+            <i class="ri-checkbox-circle-line fs-5"></i>
+            <span>{{ __('Payment confirmed') }}</span>
+        </div>
+    @elseif($invoice->status === \App\Models\Invoice::PROCESSING)
+        <div class="alert alert-info border border-info-subtle rounded-3 d-flex align-items-center gap-2.5 fs-13 mb-3 p-3">
+            <i class="ri-box-3-line fs-4 text-info flex-shrink-0"></i>
+            <div>
+                <strong class="d-block text-dark">{{ __('Order is being prepared') }}</strong>
+                <span class="text-muted">{{ __('Your order is confirmed and being prepared in the warehouse.') }}</span>
             </div>
         </div>
+    @elseif($invoice->status === \App\Models\Invoice::COMPLETED)
+        <div class="alert alert-success border border-success-subtle rounded-3 d-flex align-items-center gap-2.5 fs-13 mb-3 p-3">
+            <i class="ri-checkbox-circle-fill fs-4 text-success flex-shrink-0"></i>
+            <div>
+                <strong class="d-block text-dark">{{ __('Order delivered') }}</strong>
+                <span class="text-muted">{{ __('Your order has been delivered successfully. Thank you for your purchase.') }}</span>
+            </div>
+        </div>
+    @endif
+
+    @if($invoice->status === \App\Models\Invoice::OUT_FOR_DELIVERY)
+        @if($invoice->isPickup())
+            <div class="alert alert-info border border-info-subtle rounded-3 p-3 mb-3 d-flex align-items-center gap-2.5">
+                <i class="ri-store-2-line fs-4 text-info"></i>
+                <div class="fs-13 text-dark fw-medium">
+                    {{ __('Your order is ready for pickup at the gallery.') }}
+                </div>
+            </div>
+        @elseif($invoice->requiresDeliveryCode())
+            <div class="alert alert-warning border border-warning-subtle rounded-3 p-3 mb-3 d-flex align-items-center gap-2.5">
+                <i class="ri-motorbike-line fs-4 text-warning"></i>
+                <div class="fs-13 text-dark fw-medium">
+                    {{ __('A 4-digit code was sent to your mobile. Give it only to the courier.') }}
+                </div>
+            </div>
+        @else
+            <div class="alert alert-primary border border-primary-subtle rounded-3 p-3 mb-3 d-flex align-items-center gap-2.5">
+                <i class="ri-truck-line fs-4 text-primary"></i>
+                <div class="fs-13 text-dark fw-medium">
+                    {{ __('Your order has been dispatched and is on its way to you.') }}
+                </div>
+            </div>
+        @endif
     @endif
 
     {{-- Order Meta Summary Card --}}
@@ -392,12 +474,25 @@
                         <i class="ri-arrow-left-line"></i>
                     </a>
                 </div>
-            @elseif($invoice->status === \App\Models\Invoice::PAID)
-                <div class="liana-payment-done alert alert-success rounded-3 d-flex align-items-center gap-2 fs-13 mb-0">
-                    <i class="ri-checkbox-circle-line fs-5"></i>
-                    <span>{{ __('Payment confirmed') }}</span>
-                </div>
             @endif
+        </div>
+    @endif
+
+    @if($invoice->isOnlinePayment() && $invoice->status === \App\Models\Invoice::PENDING)
+        <div class="my-3 text-center">
+            <a href="{{ route('client.pay', $invoice->hash) }}" class="btn btn-primary btn-md rounded-pill px-4 py-2 d-inline-flex align-items-center gap-2 shadow-sm">
+                <i class="ri-secure-payment-line fs-5"></i>
+                <span class="fw-bold">{{ __('Pay online now') }}</span>
+                <i class="ri-arrow-left-line"></i>
+            </a>
+        </div>
+    @elseif($invoice->isOnlinePayment() && $invoice->status === \App\Models\Invoice::FAILED && $invoice->canRetryOnlinePayment())
+        <div class="my-3 text-center">
+            <a href="{{ route('client.pay', $invoice->hash) }}" class="btn btn-primary btn-md rounded-pill px-4 py-2 d-inline-flex align-items-center gap-2 shadow-sm">
+                <i class="ri-restart-line fs-5"></i>
+                <span class="fw-bold">{{ __('Retry payment') }}</span>
+                <i class="ri-arrow-left-line"></i>
+            </a>
         </div>
     @endif
 

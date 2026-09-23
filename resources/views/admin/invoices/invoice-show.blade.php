@@ -11,6 +11,9 @@
             && $cardPayment
             && $cardPayment->status === \App\Models\Payment::PENDING
             && $invoice->hasUploadedReceipt();
+        $receiptsTotal = $invoice->receiptsTotalAmount();
+        $remainingBalance = $invoice->remainingReceiptBalance();
+        $activeBankAccounts = $bankAccounts ?? \App\Models\BankAccount::where('is_active', true)->get();
         $offlineHours = \App\Models\Invoice::offlinePaymentHours();
         $offlineDeadline = $invoice->offlinePaymentDeadline();
         $offlineIsExpired = $invoice->isOfflinePaymentExpired();
@@ -60,7 +63,7 @@
                 </a>
 
                 @if($canConfirmPayment)
-                    <button type="submit" form="confirm-payment-form" class="btn btn-sm btn-success d-inline-flex align-items-center gap-1">
+                    <button type="button" class="btn btn-sm btn-success d-inline-flex align-items-center gap-1 shadow-sm px-3" data-bs-toggle="modal" data-bs-target="#confirmPaymentModal">
                         <i class="ri-check-double-line"></i>
                         {{ __("Confirm payment") }}
                     </button>
@@ -82,7 +85,7 @@
                         </div>
                     </div>
                     @if($canConfirmPayment)
-                        <button type="submit" form="confirm-payment-form" class="btn btn-sm btn-success">
+                        <button type="button" class="btn btn-sm btn-success d-inline-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#confirmPaymentModal">
                             <i class="ri-check-double-line me-1"></i>{{ __("Confirm payment") }}
                         </button>
                     @endif
@@ -478,15 +481,145 @@
         </div>
     </div>
 
-    {{-- Hidden form for confirm payment action --}}
     @if($canConfirmPayment)
-        <form id="confirm-payment-form"
-              action="{{ route('admin.invoice.confirm-payment', $invoice) }}"
-              method="post"
-              class="d-none"
-              onsubmit="return confirm('{{ __("Confirm this card-to-card payment?") }}');">
-            @csrf
-        </form>
+        <div class="modal fade" id="confirmPaymentModal" tabindex="-1" aria-labelledby="confirmPaymentModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow">
+                    <form action="{{ route('admin.invoice.confirm-payment', $invoice) }}" method="post" id="confirm-payment-form">
+                        @csrf
+                        <div class="modal-header bg-light">
+                            <h5 class="modal-title fs-15 fw-bold text-dark d-flex align-items-center gap-2" id="confirmPaymentModalLabel">
+                                <i class="ri-shield-check-line text-success fs-5"></i>
+                                {{ __('4-Point Payment Approval Safeguards') }}
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('Close') }}"></button>
+                        </div>
+                        <div class="modal-body p-3">
+                            <div class="card bg-light border border-light-subtle rounded-3 p-2 mb-3">
+                                <div class="row g-2 text-center fs-12">
+                                    <div class="col-4">
+                                        <span class="text-muted d-block">{{ __('Invoice Total Amount') }}</span>
+                                        <strong class="text-dark">{{ number_format($invoice->total_price) }} {{ __('Toman') }}</strong>
+                                    </div>
+                                    <div class="col-4 border-start border-end">
+                                        <span class="text-muted d-block">{{ __('Uploaded Sum') }}</span>
+                                        <strong class="text-success">{{ number_format($receiptsTotal) }} {{ __('Toman') }}</strong>
+                                    </div>
+                                    <div class="col-4">
+                                        <span class="text-muted d-block">{{ __('Remaining Balance') }}</span>
+                                        <strong class="{{ $remainingBalance === 0 ? 'text-success' : 'text-danger' }}">
+                                            {{ number_format($remainingBalance) }} {{ __('Toman') }}
+                                        </strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="modal_bank_account_id" class="form-label fs-13 fw-semibold text-dark">
+                                    {{ __('Destination bank account') }} <span class="text-danger">*</span>
+                                </label>
+                                <select name="bank_account_id" id="modal_bank_account_id" class="form-select @error('bank_account_id') is-invalid @enderror" required>
+                                    <option value="">{{ __('Select destination bank account') }}</option>
+                                    @foreach($activeBankAccounts as $bankAccount)
+                                        <option value="{{ $bankAccount->id }}" {{ old('bank_account_id') == $bankAccount->id ? 'selected' : '' }}>
+                                            {{ $bankAccount->bank_name }} — {{ $bankAccount->card_number }} ({{ $bankAccount->account_holder_name }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('bank_account_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="checklist-items border-top pt-3 mb-2">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input modal-approval-checkbox @error('receipt_info_checked') is-invalid @enderror" type="checkbox" name="receipt_info_checked" id="modal_receipt_info_checked" value="1" {{ old('receipt_info_checked') ? 'checked' : '' }} required>
+                                    <label class="form-check-label fs-13" for="modal_receipt_info_checked">
+                                        {{ __('Receipt Info Checked') }}
+                                    </label>
+                                </div>
+
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input modal-approval-checkbox @error('account_selected') is-invalid @enderror" type="checkbox" name="account_selected" id="modal_account_selected" value="1" {{ old('account_selected') ? 'checked' : '' }} required>
+                                    <label class="form-check-label fs-13" for="modal_account_selected">
+                                        {{ __('Account Selected') }}
+                                    </label>
+                                </div>
+
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input modal-approval-checkbox @error('bank_verified') is-invalid @enderror" type="checkbox" name="bank_verified" id="modal_bank_verified" value="1" {{ old('bank_verified') ? 'checked' : '' }} required>
+                                    <label class="form-check-label fs-13" for="modal_bank_verified">
+                                        {{ __('Bank Verification') }}
+                                    </label>
+                                </div>
+
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input modal-approval-checkbox @error('zero_balance') is-invalid @enderror" type="checkbox" name="zero_balance" id="modal_zero_balance" value="1" {{ old('zero_balance') ? 'checked' : '' }} {{ $remainingBalance > 0 ? 'disabled' : '' }} required>
+                                    <label class="form-check-label fs-13" for="modal_zero_balance">
+                                        {{ __('Zero Balance') }}
+                                        @if($remainingBalance > 0)
+                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle ms-2">
+                                                {{ __('Remaining balance must be zero') }}
+                                            </span>
+                                        @endif
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer bg-light">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">
+                                {{ __('Cancel') }}
+                            </button>
+                            <button type="submit" id="modal-approve-payment-btn" class="btn btn-sm btn-success px-3" disabled>
+                                <i class="ri-check-double-line me-1"></i> {{ __('Approve Payment') }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const bankSelect = document.getElementById('modal_bank_account_id');
+                const check1 = document.getElementById('modal_receipt_info_checked');
+                const check2 = document.getElementById('modal_account_selected');
+                const check3 = document.getElementById('modal_bank_verified');
+                const check4 = document.getElementById('modal_zero_balance');
+                const approveBtn = document.getElementById('modal-approve-payment-btn');
+
+                if (!approveBtn) {
+                    return;
+                }
+
+                function updateApprovalButton() {
+                    const hasBank = Boolean(bankSelect && bankSelect.value !== '');
+                    const c1 = Boolean(check1 && check1.checked);
+                    const c2 = Boolean(check2 && check2.checked);
+                    const c3 = Boolean(check3 && check3.checked);
+                    const c4 = Boolean(check4 && check4.checked && !check4.disabled);
+
+                    approveBtn.disabled = !(hasBank && c1 && c2 && c3 && c4);
+                }
+
+                if (bankSelect) {
+                    bankSelect.addEventListener('change', function () {
+                        if (check2 && bankSelect.value !== '') {
+                            check2.checked = true;
+                        }
+                        updateApprovalButton();
+                    });
+                }
+
+                [check1, check2, check3, check4].forEach(function (checkbox) {
+                    if (checkbox) {
+                        checkbox.addEventListener('change', updateApprovalButton);
+                    }
+                });
+
+                updateApprovalButton();
+            });
+        </script>
     @endif
 
     {{-- Auto-print trigger when ?print=1 or opened via print action --}}

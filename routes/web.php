@@ -220,6 +220,7 @@ Route::prefix(config('app.panel.prefix'))->name('admin.')->group(
                         Route::post('update/{item}', [InvoiceController::class, 'update'])->name('update');
                         Route::post('confirm-payment/{item}', [InvoiceController::class, 'confirmPayment'])->name('confirm-payment');
                         Route::post('decline-payment/{item}', [InvoiceController::class, 'declinePayment'])->name('decline-payment');
+                        Route::post('request-receipt-reupload/{item}', [InvoiceController::class, 'requestReceiptReupload'])->name('request-receipt-reupload');
                         Route::post('resend-delivery-code/{item}', [InvoiceController::class, 'resendDeliveryCode'])->name('resend-delivery-code');
                         Route::get('delete/{item}', [InvoiceController::class, 'destroy'])->name('destroy');
                         Route::get('restore/{item}', [InvoiceController::class, 'restore'])->name('restore');

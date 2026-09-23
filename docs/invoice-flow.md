@@ -1,20 +1,23 @@
 # Invoice Flow & Status Lifecycle
 
-Comprehensive technical reference for human developers and AI assistants regarding the invoice and order management lifecycle across customer dashboard and admin panels.
+Comprehensive technical reference for human developers and AI assistants regarding the checkout, invoice, and order management lifecycle across customer dashboard, admin panels, and order fulfillment boards.
 
 ---
 
 ## 1. Overview & Core Architecture
 
-Every customer purchase in the system revolves around the `App\Models\Invoice` model. An invoice can be paid online via gateway or offline via bank card-to-card transfer.
+Every customer purchase in Zhonella revolves around the `App\Models\Invoice` model. An invoice can be paid online via payment gateway or offline via bank card-to-card transfer.
 
 ### Relevant Models & Services
 - **`App\Models\Invoice`**: Core order record storing financial totals, status, shipping address, transport method, and metadata.
 - **`App\Models\Payment`**: Associated payment attempt records (`CARD`, `ONLINE`, `CASH`, `CREDIT`, etc.).
 - **`App\Models\PaymentReceipt`**: Uploaded receipt images or PDFs submitted by the customer for offline transfers.
 - **`App\Models\Order`**: Line items representing purchased products and quantities.
-- **`App\Services\DeliveryService`**: Dispatches couriers, generates delivery PINs, and handles delivery confirmation.
-- **`App\Console\Commands\ExpireOfflineInvoices`**: Scheduled background worker (`offline:expire`) that fails overdue unpaid offline invoices.
+- **`App\Models\Quantity`**: Individual physical pieces of jewelry (`QuantityPieceStatus`).
+- **`App\Services\DeliveryService`**: Dispatches couriers, generates delivery PINs, validates delivery codes, and executes status transitions.
+- **`App\Services\ProductPriceCalculator`**: Recalculates product stock aggregates and maintains live quoted gold prices.
+- **`App\Console\Commands\ExpireOfflineInvoices`**: Scheduled background worker (`offline:expire`) that fails overdue unpaid offline invoices and restores inventory.
+- **`App\Console\Commands\CaptureInvoiceWorkflowScreenshots`**: Automated visual harness capturing high-resolution customer and admin screenshots for all lifecycle states.
 
 ---
 
@@ -24,22 +27,22 @@ The system distinguishes between **Database Statuses** (saved in `invoices.statu
 
 ### Database Statuses (`invoices.status`)
 
-| Database Status | Description | Is Active? |
-|---|---|:---:|
-| `PENDING` | Initial state for online payment checkout. | Yes |
-| `AWAITING_PAYMENT` | Offline order placed. Waiting for customer transfer and receipt. | Yes |
-| `PAID` | Payment confirmed by gateway or accepted by admin. | Yes |
-| `PROCESSING` | Payment accepted; shop staff packaging/preparing order. | Yes |
-| `OUT_FOR_DELIVERY` | Handed over to courier; 4-digit PIN dispatched to buyer. | Yes |
-| `COMPLETED` | Delivered to customer (PIN verified or confirmed). Order closed. | No |
-| `FAILED` | Payment deadline expired without receipt, or online transaction failed. | No |
-| `CANCELED` | Order canceled by administrator or customer. | No |
+| Database Status | Description | Is Active? | Stock State |
+|---|---|:---:|---|
+| `PENDING` | Initial state for online payment checkout. | Yes | Reserved (`QuantityPieceStatus::Reserved`) |
+| `AWAITING_PAYMENT` | Offline order placed. Waiting for customer transfer and receipt. | Yes | Reserved (`QuantityPieceStatus::Reserved`) |
+| `PAID` | Payment confirmed by gateway or accepted by admin. | Yes | Marked Sold (`QuantityPieceStatus::Sold`) |
+| `PROCESSING` | Payment accepted; shop staff packaging/preparing order. | Yes | Marked Sold (`QuantityPieceStatus::Sold`) |
+| `OUT_FOR_DELIVERY` | Handed over to courier; 4-digit PIN dispatched to buyer. | Yes | Marked Sold (`QuantityPieceStatus::Sold`) |
+| `COMPLETED` | Delivered to customer (PIN verified or confirmed). Order closed. | No | Final Sold (`QuantityPieceStatus::Sold`) |
+| `FAILED` | Payment deadline expired without receipt, or online transaction failed. | No | Restored (`QuantityPieceStatus::Available`) |
+| `CANCELED` | Order canceled by administrator or customer. | No | Restored (`QuantityPieceStatus::Available`) |
 
 ### Virtual / Display Statuses (`$invoice->displayStatusKey()`)
 
 When an invoice is in `AWAITING_PAYMENT` or `PENDING`, the user-facing status splits based on whether the customer has submitted a receipt:
 
-- **`WAITING_RECEIPT`**: The customer hasn't uploaded a receipt yet (`!$invoice->hasUploadedReceipt()`).
+- **`WAITING_RECEIPT`**: The customer has not uploaded a receipt yet (`!$invoice->hasUploadedReceipt()`).
 - **`WAITING_CONFIRMATION`**: The customer uploaded at least one receipt; pending admin review (`$invoice->hasUploadedReceipt()`).
 - For all other statuses (`PAID`, `PROCESSING`, `OUT_FOR_DELIVERY`, `COMPLETED`, `FAILED`, `CANCELED`), `displayStatusKey()` matches `invoices.status`.
 
@@ -54,159 +57,170 @@ Invoice::adminFilterStatuses();// Statuses shown in admin order filter dropdown
 $invoice->isActive();          // bool: true if status is in activeStatuses()
 $invoice->displayStatusKey();  // string: WAITING_RECEIPT, WAITING_CONFIRMATION, PAID, etc.
 $invoice->statusLabel();       // string: localized Persian label via __($this->displayStatusKey())
+$invoice->statusBadgeClass();  // string: Bootstrap 5 badge class matching status
 ```
 
 ---
 
-## 3. The 5-Step Order Lifecycle
+## 3. The End-to-End Order Lifecycles
 
 ```mermaid
 flowchart TD
-    Start([Checkout: Card-to-Card]) --> Step1[Step 1: Payment\nWAITING_RECEIPT]
-    Step1 -- Customer uploads receipt --> Step2[Step 2: Payment Review\nWAITING_CONFIRMATION]
-    Step1 -- Deadline passes with no receipt --> Failed[FAILED\nExpired Order]
-    Step2 -- Admin declines receipt --> Step1Re[Step 1: Re-upload\nDeadline extended +3h]
-    Step1Re --> Step2
-    Step2 -- Admin confirms payment --> Step3[Step 3: Shipping & Processing\nPAID / PROCESSING]
-    Step3 -- Courier assigned & dispatched --> Step4[Step 4: Order Delivery\nOUT_FOR_DELIVERY + SMS PIN]
-    Step4 -- Courier enters 4-digit PIN --> Step5[Step 5: Completed\nCOMPLETED]
+    Checkout([Checkout / Cart]) --> PaymentChoice{Payment Method}
+    
+    %% Online Flow
+    PaymentChoice -- Online Gateway --> Pending[1. PENDING\nReserved Stock]
+    Pending -- Gateway Success --> Paid[5. PAID\nSold Stock]
+    Pending -- Gateway Failure / Cancel --> Failed[10. FAILED\nRestored Stock]
+    
+    %% Offline Flow
+    PaymentChoice -- Card-to-Card --> WaitingReceipt[2/3. WAITING_RECEIPT\n3h Countdown Timer]
+    WaitingReceipt -- Deadline Expired --> Failed
+    WaitingReceipt -- Customer Uploads Receipt --> WaitingConfirmation[4. WAITING_CONFIRMATION\nCountdown Paused]
+    
+    %% Admin Review
+    WaitingConfirmation -- Admin Declines Receipt --> Canceled[9. CANCELED\nRestored Stock]
+    WaitingConfirmation -- Admin 4-Point Approval --> Paid
+    
+    %% Fulfillment Flow
+    Paid --> Processing[6. PROCESSING\nPackaging in Gallery]
+    
+    Processing --> TransportChoice{Transport Type}
+    TransportChoice -- In-Person Pickup --> Completed[8. COMPLETED\nOrder Closed]
+    TransportChoice -- Standard Post --> Completed
+    TransportChoice -- Courier Delivery --> OutForDelivery[7. OUT_FOR_DELIVERY\nSMS 4-Digit PIN]
+    
+    OutForDelivery -- Courier Enters Customer PIN --> Completed
+    OutForDelivery -- Admin Cancels Delivery --> Processing
 ```
 
-### Step 1: Payment (`WAITING_RECEIPT`)
-- **Status**: `invoices.status = AWAITING_PAYMENT`, `payments.status = PENDING`, 0 receipts.
-- **Deadline**: `offlinePaymentDeadline()` = `created_at + offlinePaymentHours()` (default 3 hours, configurable in settings).
-- **Customer Invoice View (`/invoice/{hash}`)**:
-  - Top alert banner shows the compact notice and live JavaScript countdown timer (`data-deadline-countdown`).
-  - `#payment-panel` is visible, presenting bank details (with 1-click copy buttons for card number, account number, IBAN) and the receipt file dropzone.
-- **Customer Dashboard Card (`profile#invoices`)**:
-  - Displays yellow warning notice: `لطفاً رسید پرداخت را بارگذاری نمایید` (`Please upload your payment receipt`).
-  - Shows `بارگذاری رسید` (`Upload receipt`) button which launches the receipt modal.
-- **Expiry Command**: `php artisan offline:expire` scans for invoices past deadline with 0 receipts and marks them `FAILED`.
+### Flow 1: Online Gateway Payment
+1. **Checkout**: Customer initiates online payment. Invoice created in `PENDING` with reserved pieces.
+2. **Success**: Gateway callback marks payment `SUCCESS`, moves invoice to `PAID`, pieces marked `SOLD`, and dispatches `InvoiceSucceed`.
+3. **Failure**: Unsuccessful callback or exception triggers `Invoice::failPayment()`, moving invoice to `FAILED`, releasing reserved pieces back to `AVAILABLE`, and resynchronizing product aggregates.
 
-### Step 2: Payment Review (`WAITING_CONFIRMATION`)
-- **Status**: `invoices.status = AWAITING_PAYMENT`, `payments.status = PENDING`, >= 1 receipts.
-- **Expiry Protection**: The `offline:expire` command explicitly **skips** invoices that have uploaded receipts. The customer's order will not expire while waiting for admin review.
-- **Customer Invoice View (`/invoice/{hash}`)**:
-  - Top banner displays: `در انتظار تایید پرداخت` (`Waiting for payment confirmation`).
-  - Payment panel displays uploaded receipt files and provides an accordion to `Upload another receipt` if additional proof is needed.
-- **Customer Dashboard Card (`profile#invoices`)**:
-  - Displays info alert: `رسید پرداخت در حال بررسی است` (`Payment receipt is under review`).
-  - The `Upload receipt` button is **hidden** to prevent clutter.
-- **Admin Invoice Form (`/dashboard/invoices/edit/{id}`)**:
-  - Stepper highlights **Step 2: Payment review** (`بررسی پرداخت`).
-  - Admin sees receipt thumbnail and full preview.
-  - **Confirm Payment Action**: Sets invoice to `PAID` and payment to `SUCCESS`.
-  - **Decline Receipt Action**: Prompts admin for decline reason, stores it in `invoices.meta['decline_reason']`, extends deadline by 3 hours (`meta['offline_deadline_at']`), and resets status so the customer can upload a corrected receipt.
+### Flow 2: Offline Card-to-Card Payment
+1. **Creation**: Order placed with `AWAITING_PAYMENT`.
+2. **`WAITING_RECEIPT`**: Customer sees 3-hour live countdown (`data-deadline-countdown`), bank account details, and receipt upload button.
+3. **`WAITING_CONFIRMATION`**: Once receipt is uploaded, countdown is paused and customer sees "Payment receipt is under review". Expiry command explicitly skips this order.
+4. **Admin Approval**: Admin visits `dashboard/invoices/edit/{hash}`, completes 4-point verification checklist (Destination Account, Receipt Info Checked, Bank Verification, Zero Balance), and clicks **Approve Payment**. Invoice moves to `PAID`.
+5. **Admin Decline**: Admin declines receipt with optional decline reason. Invoice moves to `CANCELED`, payment set to `CANCEL`, and reserved stock is immediately released.
+6. **Automatic Expiry**: If no receipt is uploaded within 3 hours, `php artisan offline:expire` transitions invoice to `FAILED` and releases reserved stock.
 
-### Step 3: Shipping / Preparing (`PAID` or `PROCESSING`)
-- **Status**: `invoices.status = PAID` or `PROCESSING`.
-- **Customer Invoice View (`/invoice/{hash}`)**:
-  - The offline alert banner and `#payment-panel` are **completely hidden**. The page displays only order details, ordered items, shipping address, and financial breakdown.
-- **Customer Dashboard Card (`profile#invoices`)**:
-  - Remains in the **Active orders** tab (`#active-orders`) and counts towards the mobile bottom navigation badge.
-  - The review alert and upload buttons are cleared.
-  - Status pill reflects `پرداخت شده` (`PAID`) or `در حال آماده‌سازی` (`PROCESSING`).
-- **Admin Invoice Form**:
-  - Stepper highlights **Step 3: Shipping** (`ارسال`). Admin can prepare package and select transport/courier.
-
-### Step 4: Order Delivery (`OUT_FOR_DELIVERY`)
-- **Status**: `invoices.status = OUT_FOR_DELIVERY`.
-- **Courier & SMS**:
-  - `DeliveryService` generates a random 4-digit verification PIN.
-  - System sends SMS notification to customer mobile containing the delivery notification.
-- **Customer Views**:
-  - Invoice page & order card display notice banner: `کد ۴ رقمی تحویل برای شما پیامک شد. آن را تنها به پیک تحویل دهید.` (`A 4-digit code was sent to your mobile. Give it only to the courier.`).
-  - Remains in **Active orders** tab.
-
-### Step 5: Completed (`COMPLETED`)
-- **Status**: `invoices.status = COMPLETED`.
-- **Trigger**: Courier submits the 4-digit PIN via the courier portal, or administrator marks delivery finished.
-- **Customer Views**:
-  - Order moves from **Active orders** (`#active-orders`) to **Previous orders & invoices** (`#invoices`).
-  - Bottom navigation active badge decreases.
-  - "Print invoice" (`چاپ فاکتور`) button becomes available on the invoice view.
+### Flow 3: Shipping & Delivery
+1. **`PROCESSING`**: Staff prepares and packages the jewelry.
+2. **Courier Delivery**:
+   - Transport requires delivery code (`requires_delivery_code = true`).
+   - Admin assigns courier and dispatches order -> status becomes `OUT_FOR_DELIVERY`.
+   - System generates random 4-digit PIN and sends SMS to customer.
+   - Courier enters 4-digit PIN upon arrival -> delivery completed, invoice moves to `COMPLETED`, `InvoiceCompleted` event fired.
+   - **Guardrail**: Admin cannot bypass courier PIN verification directly if courier delivery is active.
+3. **In-Person Gallery Pickup (`pickup`)**:
+   - Customer picks up item at store.
+   - No courier required. Admin directly transitions invoice from `PROCESSING` to `COMPLETED`.
 
 ---
 
-## 4. Front-End Component Map
+## 4. Primary Views & Visual Interface Guide
 
-```
-resources/views/
-├── client/
-│   ├── customer/
-│   │   ├── invoice.blade.php                 <-- Standalone customer invoice view (/invoice/{hash})
-│   │   ├── profile.blade.php                 <-- Customer profile with #active-orders & #invoices tabs
-│   │   └── partials/
-│   │       ├── invoice-card.blade.php        <-- Customer order card component
-│   │       └── bottom-nav.blade.php          <-- Mobile bottom nav with active order badge
-│   └── cart/
-│       └── index.blade.php                   <-- Cart and checkout selection
-└── components/
-    └── payment-receipt-uploader.blade.php    <-- Reusable dropzone component with hideHint/hideDeadline props
-```
+The application provides three primary interfaces for monitoring and interacting with invoices:
 
-### Key UI Rules & Logic Checks
+### 1. Customer Invoice View (`/invoice/{hash}`)
+- **Header**: Back button to profile orders, Persian order number, and dynamic status badge.
+- **Alert Banners**:
+  - `WAITING_RECEIPT`: Yellow alert with countdown timer, bank credentials, and upload button.
+  - `WAITING_CONFIRMATION`: Blue alert stating receipt is under review.
+  - `PAID`: Green alert confirming payment success.
+  - `OUT_FOR_DELIVERY`: Warning banner reminding customer of the 4-digit courier PIN.
+  - `FAILED` / `CANCELED`: Informative alert indicating cancellation/expiry and stock release.
+- **Order Details**: Breakdown of ordered pieces, weights, live prices, discounts, shipping address, and QR code.
 
-1. **Active Orders List Filter**:
-   ```php
-   // In profile.blade.php & bottom-nav.blade.php
-   $activeInvoices = $allInvoices->filter(fn ($inv) => $inv->isActive());
-   // or whereIn('status', Invoice::activeStatuses())
-   ```
+### 2. Primary Admin Edit Invoice Page (`/dashboard/invoices/edit/{hash}`)
+- **Top Summary**: Dynamic status banner, breadcrumb `#hash`, Persian deadline notice, auto-calculated total price.
+- **5-Step Visual Stepper**:
+  - Step 1: Payment (`پرداخت`)
+  - Step 2: Payment review (`بررسی پرداخت`)
+  - Step 3: Shipping (`ارسال`)
+  - Step 4: Order delivery (`تحویل سفارش`)
+  - Step 5: Completed (`تکمیل شده`)
+- **Action Panels**:
+  - Step 2 Receipt Review: Receipt image preview, amount, tracking number, uploaded sum vs invoice total, 4-point approval safeguard form, and decline button.
+  - Step 3/4 Courier Dispatch: Transport selection, courier assignment, active delivery status, resend PIN button.
+  - Customer History: Total paid, waiting, and failed orders for buyer.
 
-2. **Invoice Card Alert & Button Visibility**:
-   ```blade
-   {{-- In invoice-card.blade.php --}}
-   @if($inv->status === Invoice::OUT_FOR_DELIVERY)
-       {{-- Show Courier PIN Warning --}}
-   @elseif($inv->displayStatusKey() === Invoice::WAITING_CONFIRMATION)
-       {{-- Show "Payment receipt is under review" alert --}}
-   @elseif($inv->displayStatusKey() === Invoice::WAITING_RECEIPT && ! $inv->isOfflinePaymentExpired())
-       {{-- Show "Please upload your payment receipt" alert --}}
-   @endif
-
-   {{-- Action Button --}}
-   @if($inv->displayStatusKey() === Invoice::WAITING_RECEIPT && ! $inv->isOfflinePaymentExpired())
-       {{-- Show "Upload receipt" button (opens modal) --}}
-   @endif
-   <a href="{{ route('client.invoice', $inv->hash) }}">{{ __('Order details') }}</a>
-   ```
-
-3. **Payment Panel Visibility on Invoice Page**:
-   ```blade
-   {{-- In invoice.blade.php --}}
-   @if($showPaymentPanel)
-       <div class="liana-payment-panel card ...">
-           {{-- Bank details box + receipt uploader --}}
-       </div>
-   @endif
-   ```
-   `$showPaymentPanel` is strictly `true` when:
-   `$isOfflinePayment && in_array($invoice->status, [Invoice::AWAITING_PAYMENT, Invoice::PENDING]) && ! $offlineIsExpired`.
-   Once accepted (`PAID`, `PROCESSING`, etc.), the panel is hidden.
-
-4. **Countdown Calculation**:
-   Always compute remaining seconds using unix timestamps rather than signed Carbon diffs:
-   ```php
-   $offlineRemaining = ($offlineDeadline && ! $offlineIsExpired)
-       ? max(0, $offlineDeadline->timestamp - now()->timestamp)
-       : 0;
-   ```
-   Render with `dir="ltr"` so Persian RTL text direction does not invert `HH:MM:SS`.
+### 3. Admin Order Board (`/dashboard/order-board`)
+- **Purpose**: Operational dashboard for fulfillment staff to track order pipelines in real-time.
+- **Scope Filters**: Active orders, Completed orders, All orders.
+- **5 Progression Stages**:
+  - `Payment`: Paid / Unpaid indicator.
+  - `Confirm`: Payment verified by admin or gateway.
+  - `Settle`: Zero balance check.
+  - `Courier`: Dispatched / Awaiting courier pickup.
+  - `Delivery`: Delivered / In transit.
+- **Quick Actions**: Direct links to edit invoice, print invoice, and dispatch details.
 
 ---
 
-## 5. Automated Test Coverage
+## 5. Visual Documentation & Screenshots Catalog
 
-Key tests covering this lifecycle:
-- **`Tests\Feature\CustomerInvoiceViewTest`**:
-  - `test_invoice_view_uses_customer_dashboard_layout`: Validates dashboard layout wrapper.
-  - `test_offline_invoice_shows_positive_remaining_seconds_in_countdown`: Ensures countdown timer has positive seconds.
-  - `test_invoice_card_updates_alert_and_hides_upload_button_after_receipt_upload`: Tests card states through receipt upload, acceptance, and completion.
-  - `test_all_translation_keys_in_invoice_and_card_views_exist_in_fa_json`: Enforces full Persian localization.
-- **`Tests\Feature\PaymentReceiptTest`**:
-  - `test_admin_can_confirm_payment_marks_invoice_paid`
-  - `test_admin_can_decline_receipt_and_customer_can_upload_again`
-  - `test_expire_offline_command_skips_invoices_with_receipts`
-  - `test_invoice_page_hides_offline_payment_panel_for_failed_invoices`
-  - `test_invoice_page_hides_offline_payment_panel_when_offline_deadline_is_expired`
+An automated snapshot suite (`CaptureInvoiceWorkflowScreenshots`) generates dual-perspective HD screenshots (1400x1000) for all 10 invoice statuses plus the order board.
+
+Files are stored in `storage/app/workflow-screenshots/` and published to `public/workflow-screenshots/`:
+
+| # | Status Key | Status (Fa) | Customer View | Admin Edit View | Admin Detail View | Stock State |
+|---|---|---|---|---|---|---|
+| 01 | `PENDING` | در انتظار پرداخت آنلاین | `customer_01_pending.png` | `admin_edit_01_pending.png` | `admin_show_01_pending.png` | Reserved |
+| 02 | `AWAITING_PAYMENT` | در انتظار پرداخت | `customer_02_awaiting_payment.png` | `admin_edit_02_awaiting_payment.png` | `admin_show_02_awaiting_payment.png` | Reserved |
+| 03 | `WAITING_RECEIPT` | در انتظار ثبت فیش | `customer_03_waiting_receipt.png` | `admin_edit_03_waiting_receipt.png` | `admin_show_03_waiting_receipt.png` | Reserved |
+| 04 | `WAITING_CONFIRMATION` | در انتظار تایید فیش | `customer_04_waiting_confirmation.png` | `admin_edit_04_waiting_confirmation.png` | `admin_show_04_waiting_confirmation.png` | Reserved |
+| 05 | `PAID` | پرداخت شده | `customer_05_paid.png` | `admin_edit_05_paid.png` | `admin_show_05_paid.png` | Sold |
+| 06 | `PROCESSING` | در حال بسته‌بندی | `customer_06_processing.png` | `admin_edit_06_processing.png` | `admin_show_06_processing.png` | Sold |
+| 07 | `OUT_FOR_DELIVERY` | تحویل به پیک | `customer_07_out_for_delivery.png` | `admin_edit_07_out_for_delivery.png` | `admin_show_07_out_for_delivery.png` | Sold |
+| 08 | `COMPLETED` | تکمیل شده | `customer_08_completed.png` | `admin_edit_08_completed.png` | `admin_show_08_completed.png` | Sold |
+| 09 | `CANCELED` | لغو شده | `customer_09_canceled.png` | `admin_edit_09_canceled.png` | `admin_show_09_canceled.png` | Restored |
+| 10 | `FAILED` | ناموفق / منقضی | `customer_10_failed.png` | `admin_edit_10_failed.png` | `admin_show_10_failed.png` | Restored |
+| -- | **Order Board** | تابلوی سفارشات | — | `admin_order_board.png` | `dashboard/order-board` | Active Pipeline |
+
+Interactive browser gallery: `http://zhonella.test/workflow-screenshots/index.html`
+
+---
+
+## 6. Workflow Gaps Resolution
+
+All identified operational gaps have been resolved:
+
+### Gap 1: In-Person Gallery Pickup on the Order Board [RESOLVED]
+- **Previous Issue**: The Order Board displayed courier-centric stages for all orders, even when `delivery_type = 'pickup'`.
+- **Resolution**: `OrderBoardController` detects `isPickup()`, displaying `تحویل حضوری در گالری` (`In-person gallery pickup`) and `در انتظار مراجعه مشتری به گالری` (`Awaiting customer visit to gallery`) with gallery pickup icons (`ri-store-2-fill`).
+
+### Gap 2: Processing Status Banner in Customer View [RESOLVED]
+- **Previous Issue**: When transitioning to `PROCESSING`, no reassurance banner was displayed to the customer.
+- **Resolution**: Added reassurance banner in `client/customer/invoice.blade.php`: `سفارش شما تایید شده و در حال بسته‌بندی در انبار است` (`Your order is confirmed and being prepared in the warehouse.`) and completion banner for `COMPLETED`.
+
+### Gap 3: Request Re-Upload vs Permanent Cancellation [RESOLVED]
+- **Previous Issue**: Declining a blurry receipt permanently canceled the invoice and released reserved gold pieces.
+- **Resolution**: Added two distinct admin actions in `admin/invoices/invoice-form.blade.php`:
+  1. **Request Receipt Re-upload**: Extends deadline by 3 hours, stores decline reason in invoice meta, removes unreadable receipt files, returns status to `WAITING_RECEIPT`, preserves reserved stock, and informs the customer on the invoice view with the decline reason.
+  2. **Decline & Cancel**: Terminal cancellation releasing reserved stock.
+
+### Gap 4: Courier PIN vs Postal Dispatch vs Gallery Pickup [RESOLVED]
+- **Previous Issue**: Customer invoice showed courier PIN warnings even for standard post deliveries and gallery pickups.
+- **Resolution**: Customer invoice view checks `$invoice->isPickup()`, `$invoice->requiresDeliveryCode()`, and standard delivery, showing the appropriate banner (gallery pickup, courier 4-digit PIN, or postal dispatch).
+
+### Gap 5: Online Payment Retry with Stock Re-reservation [RESOLVED]
+- **Previous Issue**: Failed online payments had no direct retry mechanism on customer invoice view and could lead to race conditions if retried after stock release.
+- **Resolution**: Added `canRetryOnlinePayment()` on `Invoice`, "Pay online now" / "Retry payment" buttons on customer invoice view, and atomical piece availability checking with re-reservation to `Sold` upon retry in `ClientController::pay()`.
+
+---
+
+## 7. Automated Test Suites
+
+All state transitions and inventory safeguards are validated by 114 automated tests (`php artisan test --filter=Invoice`):
+
+- **`Tests\Feature\InvoiceWorkflowGapsResolutionTest`**: Verification of all 5 gap resolutions (gallery pickup board labels, customer reassurance banners, receipt re-upload flow with deadline extension, dispatch alert branching, and online payment retry stock re-reservation).
+- **`Tests\Feature\InvoiceLifecycleTransitionTest`**: Complete 10-status traversal, online payment, offline receipt 4-point approval, courier PIN verification, in-person pickup, decline, and expiration.
+- **`Tests\Feature\InvoiceStockRestorationTest`**: Stock release idempotency, multiple order piece releases, aggregate recalculation, and cross-invoice inventory isolation.
+- **`Tests\Feature\InvoiceLifecycleAdversarialChallengerTest`**: Invalid PIN attempts, courier lockout after 5 failed tries, unauthorized courier protection, and guardrail enforcement.
+- **`Tests\Feature\ViewAndUiEmpiricalVerificationTest`**: Modal checklist field verification, zero-balance enforcement, and view rendering across statuses.
+- **`Tests\Feature\CustomerInvoiceViewTest`**: Customer dashboard tab synchronization, countdown timer, and localization keys.
+- **`Tests\Feature\PaymentReceiptTest`**: Receipt confirmation, expiration bypass for uploaded receipts, and receipt filtering.

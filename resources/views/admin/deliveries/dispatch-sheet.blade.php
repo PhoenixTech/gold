@@ -79,7 +79,7 @@
                         <th style="width: 140px;">{{ __('Mobile') }}</th>
                         <th style="width: 140px;">{{ __('Courier') }}</th>
                         <th class="text-center" style="width: 110px;">{{ __('Status') }}</th>
-                        <th class="text-center" style="width: 150px;">{{ __('امضا') }}</th>
+                        <th class="text-center" style="width: 150px;">{{ __('Signature') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -88,7 +88,7 @@
                             $invoice = $delivery->invoice;
                             $recipientName = $invoice->is_third_party ? $invoice->recipient_name : ($invoice->customer->name ?? '-');
                             $recipientMobile = $invoice->is_third_party ? $invoice->recipient_mobile : ($invoice->customer->mobile ?? '-');
-                            $addressText = $invoice->delivery_type === 'gallery_pickup' ? __('In-person Gallery Pickup') : ($invoice->address?->address ?? '-');
+                            $addressText = $invoice->isPickup() ? __('In-person Gallery Pickup') : ($invoice->address?->address ?? '-');
                         @endphp
                         <tr>
                             <td class="text-center font-monospace">{{ $index + 1 }}</td>
@@ -109,7 +109,7 @@
                                 </span>
                             </td>
                             <td class="text-center text-muted fs-12" style="height: 60px;">
-                                <span class="d-print-none text-muted">{{ __('امضا') }}</span>
+                                <span class="d-print-none text-muted">{{ __('Signature') }}</span>
                             </td>
                         </tr>
                     @empty

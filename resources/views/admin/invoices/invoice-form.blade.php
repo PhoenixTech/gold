@@ -432,11 +432,38 @@
                             </div>
 
                             <div class="col-lg-5">
-                                <div class="card border border-danger-subtle shadow-sm rounded-3 p-3">
-                                    <h6 class="fw-bold mb-3 d-flex align-items-center gap-2 text-danger">
-                                        <i class="ri-close-circle-line fs-5"></i>
-                                        {{ __('Decline payment') }}
+                                <div class="card border border-warning-subtle shadow-sm rounded-3 p-3 mb-3">
+                                    <h6 class="fw-bold mb-2 d-flex align-items-center gap-2 text-warning-emphasis">
+                                        <i class="ri-refresh-line fs-5"></i>
+                                        {{ __('Request Receipt Re-upload') }}
                                     </h6>
+                                    <p class="fs-12 text-muted mb-3">
+                                        {{ __('Keep invoice active, extend deadline by 3 hours, and ask customer for a new slip.') }}
+                                    </p>
+                                    <form action="{{ route('admin.invoice.request-receipt-reupload', $item) }}" method="post"
+                                          onsubmit="return confirm('{{__("Request receipt re-upload from customer?")}}');">
+                                        @csrf
+                                        <div class="mb-3">
+                                            <label for="reupload_reason" class="form-label fs-13 text-muted">
+                                                {{ __('Reason for re-upload') }}
+                                            </label>
+                                            <input type="text" id="reupload_reason" name="reason" class="form-control"
+                                                   placeholder="{{ __('e.g. Unreadable receipt image or incorrect amount') }}" required maxlength="255">
+                                        </div>
+                                        <button type="submit" class="btn btn-warning w-100 fw-bold">
+                                            <i class="ri-refresh-line me-1"></i> {{ __('Request Re-upload') }}
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <div class="card border border-danger-subtle shadow-sm rounded-3 p-3">
+                                    <h6 class="fw-bold mb-2 d-flex align-items-center gap-2 text-danger">
+                                        <i class="ri-close-circle-line fs-5"></i>
+                                        {{ __('Decline and Cancel') }}
+                                    </h6>
+                                    <p class="fs-12 text-muted mb-3">
+                                        {{ __('Permanently cancel the invoice and release reserved gold stock.') }}
+                                    </p>
                                     <form action="{{ route('admin.invoice.decline-payment', $item) }}" method="post"
                                           onsubmit="return confirm('{{__("Are you sure you want to decline this payment and cancel the invoice?")}}');">
                                         @csrf

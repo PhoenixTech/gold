@@ -16,6 +16,7 @@ use chillerlan\QRCode\QROptions;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 if (! Builder::hasGlobalMacro('hasAccess')) {
     Builder::macro('hasAccess', fn ($route = null) => true);
@@ -313,6 +314,52 @@ class InvoiceController extends XController
         return redirect()
             ->route('admin.invoice.edit', $item)
             ->with(['message' => __('Payment declined. The invoice has been canceled.')]);
+    }
+
+    public function requestReceiptReupload(Request $request, Invoice $item)
+    {
+        if ($item->status !== Invoice::AWAITING_PAYMENT) {
+            return redirect()
+                ->back()
+                ->withErrors(__('Only invoices awaiting payment can have receipt re-upload requested.'));
+        }
+
+        $payment = $item->payments()
+            ->where('type', 'CARD')
+            ->where('status', Payment::PENDING)
+            ->latest('id')
+            ->first();
+
+        if ($payment === null || ! $item->hasUploadedReceipt()) {
+            return redirect()
+                ->back()
+                ->withErrors(__('No pending receipt found for this invoice.'));
+        }
+
+        $reason = trim((string) $request->input('reason', ''));
+        if ($reason === '') {
+            return redirect()
+                ->back()
+                ->withErrors(__('Please provide a reason for requesting a receipt re-upload.'));
+        }
+
+        $meta = $item->meta ?? [];
+        $meta['decline_reason'] = $reason;
+        $meta['reupload_requested_at'] = now()->toDateTimeString();
+        $item->meta = $meta;
+        $item->extendOfflinePaymentDeadline(3);
+        $item->save();
+
+        foreach ($item->paymentReceipts as $receipt) {
+            if ($receipt->path) {
+                Storage::disk('public')->delete($receipt->path);
+            }
+            $receipt->delete();
+        }
+
+        return redirect()
+            ->route('admin.invoice.edit', $item)
+            ->with(['message' => __('Receipt re-upload requested. The customer was notified to upload a new receipt.')]);
     }
 
     public function bulk(Request $request)

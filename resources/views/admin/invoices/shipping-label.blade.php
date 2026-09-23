@@ -93,7 +93,7 @@
         <div class="border-top pt-3 mb-3">
             <span class="text-muted fs-13 d-block mb-1">{{ __('Delivery Address') }}:</span>
             <p class="fs-14 fw-medium text-dark mb-0 line-height-base">
-                @if($invoice->delivery_type === 'gallery_pickup')
+                @if($invoice->isPickup())
                     {{ __('In-person Gallery Pickup') }}
                 @else
                     {{ $invoice->address?->address ?? ($invoice->address_title ?? '-') }}

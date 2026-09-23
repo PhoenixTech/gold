@@ -157,7 +157,9 @@ class ProductPriceCalculator
 
         $isBelowBuyPrice = (int) ($product->buy_price ?? 0) > 0 && $product->price < (int) $product->buy_price;
 
-        if ($product->stock_quantity <= 0 || $product->price <= 0 || $isBelowBuyPrice) {
+        if ($product->stock_quantity > 0 && $product->price > 0 && ! $isBelowBuyPrice) {
+            $product->stock_status = 'IN_STOCK';
+        } else {
             $product->stock_status = 'OUT_STOCK';
         }
 

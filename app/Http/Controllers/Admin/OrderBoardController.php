@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Enums\DeliveryStatus;
 use App\Http\Controllers\Controller;
-use App\Models\Delivery;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\PaymentReceipt;
@@ -49,11 +48,11 @@ class OrderBoardController extends Controller
             });
         }
 
-        // ponytail: map rows into a compact shape; client-side JS handles live column sorting
         $orders = $query->get()->values()->map(function (Invoice $inv, int $i) {
+            $isPickup = $inv->isPickup();
             $isPaid = in_array($inv->status, [Invoice::PAID, Invoice::PROCESSING, Invoice::OUT_FOR_DELIVERY, Invoice::COMPLETED], true) || ($inv->hasUploadedReceipt() && ! in_array($inv->status, [Invoice::CANCELED, Invoice::FAILED], true));
             $isConfirmed = in_array($inv->status, [Invoice::PAID, Invoice::PROCESSING, Invoice::OUT_FOR_DELIVERY, Invoice::COMPLETED], true);
-            $isCourier = in_array($inv->status, [Invoice::OUT_FOR_DELIVERY, Invoice::COMPLETED], true) || $inv->activeDelivery !== null;
+            $isCourier = ! $isPickup && (in_array($inv->status, [Invoice::OUT_FOR_DELIVERY, Invoice::COMPLETED], true) || $inv->activeDelivery !== null);
             $isDelivered = $inv->status === Invoice::COMPLETED || $inv->hasSuccessfulDelivery();
 
             $confirmedPayment = $inv->payments
@@ -81,7 +80,6 @@ class OrderBoardController extends Controller
                 'uploader' => $r->customer?->name ?? '—',
             ])->values();
 
-            /** @var Delivery|null $delivery */
             $delivery = $inv->activeDelivery ?: $inv->deliveries->sortByDesc('id')->first();
             $deliveredDelivery = $inv->deliveries
                 ->where('status', DeliveryStatus::Delivered->value)
@@ -158,14 +156,16 @@ class OrderBoardController extends Controller
                         'title' => $isConfirmed ? __('Balance fully settled') : __('Unsettled balance'),
                     ],
                     'courier' => [
-                        'done' => $isCourier,
-                        'text' => $isCourier ? __('Dispatched') : __('Pending pickup'),
-                        'title' => $isCourier ? __('Handed over to courier') : __('Awaiting courier pickup'),
+                        'done' => $isPickup ? $isConfirmed : $isCourier,
+                        'text' => $isPickup ? __('In-person') : ($isCourier ? __('Dispatched') : __('Pending pickup')),
+                        'title' => $isPickup ? __('In-person gallery pickup') : ($isCourier ? __('Handed over to courier') : __('Awaiting courier pickup')),
+                        'is_pickup' => $isPickup,
                     ],
                     'delivery' => [
                         'done' => $isDelivered,
-                        'text' => $isDelivered ? __('Delivered') : __('In transit'),
-                        'title' => $isDelivered ? __('Delivered to customer') : __('In delivery transit'),
+                        'text' => $isDelivered ? __('Delivered') : ($isPickup ? __('Awaiting visit') : __('In transit')),
+                        'title' => $isDelivered ? ($isPickup ? __('Delivered in gallery') : __('Delivered to customer')) : ($isPickup ? __('Awaiting customer visit to gallery') : __('In delivery transit')),
+                        'is_pickup' => $isPickup,
                     ],
                 ],
                 'details' => $details,

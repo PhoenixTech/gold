@@ -330,7 +330,9 @@ class Invoice extends Model
         }
 
         $quantity->markAvailable();
-        app(ProductPriceCalculator::class)->syncProductAggregates($quantity->product);
+        if ($quantity->product !== null) {
+            app(ProductPriceCalculator::class)->syncProductAggregates($quantity->product);
+        }
     }
 
     public function markOrderedPiecesAsSold(): void
@@ -413,6 +415,57 @@ class Invoice extends Model
         }
 
         return (string) $this->status;
+    }
+
+    public function isPickup(): bool
+    {
+        return in_array($this->delivery_type, ['pickup', 'gallery_pickup'], true);
+    }
+
+    public function isOnlinePayment(): bool
+    {
+        return ! $this->isOfflineCardPayment();
+    }
+
+    public function canRetryOnlinePayment(): bool
+    {
+        if (! $this->isOnlinePayment()) {
+            return false;
+        }
+
+        if (! in_array($this->status, [self::PENDING, self::FAILED], true)) {
+            return false;
+        }
+
+        if ($this->created_at === null || $this->created_at->timestamp < (time() - 3600)) {
+            return false;
+        }
+
+        return $this->areOrderedPiecesAvailable();
+    }
+
+    public function areOrderedPiecesAvailable(): bool
+    {
+        foreach ($this->orders as $order) {
+            if (! $order->quantity_id) {
+                continue;
+            }
+
+            $quantity = Quantity::query()->find($order->quantity_id);
+            if ($quantity === null) {
+                return false;
+            }
+
+            if ($this->status === self::PENDING) {
+                continue;
+            }
+
+            if (! $quantity->isAvailable()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public function statusLabel(): string
@@ -574,9 +627,9 @@ class Invoice extends Model
         } catch (\Throwable $exception) {
             $payment = new Payment;
         }
-        $this->status = 'FAILED';
-        /** @var Invoice $this */
+        $this->status = self::FAILED;
         $this->save();
+        $this->releaseReservedStock();
         event(new InvoiceFailed($this, $payment));
 
         return $payment;

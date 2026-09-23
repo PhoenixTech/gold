@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>گالری بصری چرخه فاکتور ژونلا - Dual-Perspective Workflow Gallery</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
+    <style>
+        body {
+            background-color: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: #1e293b;
+        }
+        .hover-zoom {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .hover-zoom:hover {
+            transform: scale(1.015);
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+        }
+        .sticky-filter-bar {
+            position: sticky;
+            top: 0;
+            z-index: 1020;
+            backdrop-filter: blur(8px);
+            background-color: rgba(255, 255, 255, 0.92);
+        }
+        .fs-13 { font-size: 0.8125rem; }
+        .fs-12 { font-size: 0.75rem; }
+        .fs-11 { font-size: 0.6875rem; }
+        .fs-14 { font-size: 0.875rem; }
+        .shadow-xs { box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .shadow-2xs { box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
+    </style>
+</head>
+<body class="pb-5">
+
+    <header class="bg-dark text-white py-4 shadow-sm border-bottom border-secondary mb-4">
+        <div class="container">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <i class="ri-gallery-line fs-3 text-warning"></i>
+                        <h1 class="h4 mb-0 fw-bold">گالری بصری چرخه فاکتور ژونلا</h1>
+                    </div>
+                    <p class="text-white-50 fs-13 mb-0">مستندسازی تصویری همه‌جانبه: نمای مشتری، ویرایش فاکتور ادمین، جزئیات و تابلوی سفارشات</p>
+                </div>
+                <div class="d-flex align-items-center gap-2 font-monospace">
+                    <span class="badge bg-primary px-3 py-2 rounded-pill fs-12">۱۰ وضعیت حیات</span>
+                    <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fs-12">۳۱ اسکرین‌شات HD</span>
+                    <span class="badge bg-success px-3 py-2 rounded-pill fs-12">Native Chrome Headless</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="sticky-filter-bar py-3 border-bottom shadow-xs mb-4">
+        <div class="container d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div class="btn-group" role="group" aria-label="Perspective Filter">
+                <button type="button" class="btn btn-sm btn-outline-dark active" onclick="setPerspective('all')">
+                    <i class="ri-layout-grid-line me-1"></i> همه نماها
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="setPerspective('customer')">
+                    <i class="ri-user-smile-line me-1"></i> نمای مشتری
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="setPerspective('admin-edit')">
+                    <i class="ri-edit-box-line me-1"></i> ویرایش فاکتور ادمین
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setPerspective('admin-show')">
+                    <i class="ri-file-list-3-line me-1"></i> جزئیات ادمین
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-success" onclick="setPerspective('board')">
+                    <i class="ri-dashboard-line me-1"></i> تابلوی سفارشات
+                </button>
+            </div>
+            
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-muted fs-13">فیلتر وضعیت:</span>
+                <select class="form-select form-select-sm" style="width: auto;" onchange="filterStatus(this.value)">
+                    <option value="all">همه ۱۰ وضعیت</option>
+                    <option value="PENDING">1. PENDING (در انتظار پرداخت آنلاین)</option>
+                    <option value="AWAITING_PAYMENT">2. AWAITING_PAYMENT (در انتظار پرداخت)</option>
+                    <option value="WAITING_RECEIPT">3. WAITING_RECEIPT (در انتظار ثبت فیش)</option>
+                    <option value="WAITING_CONFIRMATION">4. WAITING_CONFIRMATION (در انتظار تایید فیش)</option>
+                    <option value="PAID">5. PAID (پرداخت شده)</option>
+                    <option value="PROCESSING">6. PROCESSING (در حال بسته‌بندی)</option>
+                    <option value="OUT_FOR_DELIVERY">7. OUT_FOR_DELIVERY (تحویل به پیک)</option>
+                    <option value="COMPLETED">8. COMPLETED (تکمیل شده)</option>
+                    <option value="CANCELED">9. CANCELED (لغو شده)</option>
+                    <option value="FAILED">10. FAILED (ناموفق)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <main class="container">
+        <div class="row" id="cards-container">
+                        <div class="col-12 mb-5 perspective-board">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden border-top border-4 border-primary">
+                    <div class="card-header bg-white border-bottom p-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2.5">
+                            <span class="badge bg-primary fs-13 px-3 py-1.5 rounded-pill">داشبورد سفارشات (Order Board)</span>
+                            <span class="text-muted fs-13 font-monospace">dashboard/order-board</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-secondary-subtle text-secondary font-monospace fs-11">164 KB</span>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle fs-12">نمای زنده سفارشات فعال و در مسیر</span>
+                        </div>
+                    </div>
+                    <div class="card-body p-3 p-md-4 bg-light bg-opacity-25">
+                        <p class="text-muted fs-14 mb-3">تابلوی جامع سفارشات در پنل مدیریت جهت مانیتورینگ بلادرنگ فاکتورهای پرداخت‌شده، تخصیص پیک و وضعیت تحویل.</p>
+                        <div class="card border rounded-3 overflow-hidden shadow-xs bg-white text-center p-2">
+                            <a href="admin_order_board.png" target="_blank" class="preview-lightbox-trigger d-block" data-title="تابلوی سفارشات - Order Board">
+                                <img src="admin_order_board.png" alt="admin_order_board.png" class="img-fluid rounded border shadow-2xs hover-zoom" loading="lazy">
+                            </a>
+                            <div class="card-footer bg-white border-top py-2 px-3 text-end">
+                                <a href="admin_order_board.png" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fs-12">
+                                    <i class="ri-fullscreen-line me-1"></i> مشاهده در سایز اصلی
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                        <div class="col-12 mb-5 status-card" data-status="PENDING">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="card-header bg-white border-bottom p-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2.5">
+                            <span class="badge rounded-pill bg-dark font-monospace fs-13 px-2.5 py-1">#01</span>
+                            <span class="badge bg-warning text-dark fs-13 px-3 py-1.5 rounded-pill">در انتظار پرداخت آنلاین</span>
+                            <span class="text-muted fs-13 font-monospace">(PENDING)</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-light text-secondary border fs-12">رزرو شده (Piece Reserved)</span>
+                        </div>
+                    </div>
+                    <div class="card-body p-3 p-md-4 bg-light bg-opacity-25">
+                        <p class="text-muted fs-14 mb-4">سفارش ثبت شده و در انتظار اتصال به درگاه پرداخت اینترنتی است.</p>
+                        
+                        <div class="row g-3">
+                            <div class="col-lg-4 perspective-customer">
+                                <div class="card h-100 border rounded-3 overflow-hidden shadow-xs bg-white">
+                                    <div class="card-header bg-white py-2.5 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ri-user-smile-line text-primary fs-5"></i>
+                                            <span class="fw-bold fs-13">نمای مشتری (Customer)</span>
+                                        </div>
+                                        <span class="badge bg-secondary-subtle text-secondary font-monospace fs-11">71.6 KB</span>
+                                    </div>
+                                    <div class="card-body p-2 text-center">
+                                        <a href="customer_01_pending.png" target="_blank" class="preview-lightbox-trigger d-block" data-title="در انتظار پرداخت آنلاین - نمای مشتری">
+                                            <img src="customer_01_pending.png" alt="customer_01_pending.png" class="img-fluid rounded border shadow-2xs hover-zoom" loading="lazy">
+                                        </a>
+                                    </div>
+                                    <div class="card-footer bg-white border-top py-2 px-3 text-end">
+                                        <a href="customer_01_pending.png" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fs-12">
+                                            <i class="ri-fullscreen-line me-1"></i> مشاهده اصلی
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-4 perspective-admin-edit">
+                                <div class="card h-100 border rounded-3 overflow-hidden shadow-xs bg-white border-primary-subtle">
+                                    <div class="card-header bg-white py-2.5 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ri-edit-box-line text-danger fs-5"></i>
+                                            <span class="fw-bold fs-13">ویرایش فاکتور (Admin Edit)</span>
+                                        </div>
+                                        <span class="badge bg-danger-subtle text-danger font-monospace fs-11">133 KB</span>
+                                    </div>
+                                    <div class="card-body p-2 text-center">
+                                        <a href="admin_edit_01_pending.png" target="_blank" class="preview-lightbox-trigger d-block" data-title="در انتظار پرداخت آنلاین - ویرایش فاکتور ادمین">
+                                            <img src="admin_edit_01_pending.png" alt="admin_edit_01_pending.png" class="img-fluid rounded border shadow-2xs hover-zoom" loading="lazy">
+                                        </a>
+                                    </div>
+                                    <div class="card-footer bg-white border-top py-2 px-3 text-end">
+                                        <a href="admin_edit_01_pending.png" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill px-3 fs-12">
+                                            <i class="ri-fullscreen-line me-1"></i> مشاهده اصلی
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-4 perspective-admin-show">
+                                <div class="card h-100 border rounded-3 overflow-hidden shadow-xs bg-white">
+                                    <div class="card-header bg-white py-2.5 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ri-file-list-3-line text-secondary fs-5"></i>
+                                            <span class="fw-bold fs-13">جزئیات / چاپ (Admin Show)</span>
+                                        </div>
+                                        <span class="badge bg-secondary-subtle text-secondary font-monospace fs-11">155.8 KB</span>
+                                    </div>
+                                    <div class="card-body p-2 text-center">
+                                        <a href="admin_show_01_pending.png" target="_blank" class="preview-lightbox-trigger d-block" data-title="در انتظار پرداخت آنلاین - جزئیات ادمین">
+                                            <img src="admin_show_01_pending.png" alt="admin_show_01_pending.png" class="img-fluid rounded border shadow-2xs hover-zoom" loading="lazy">
+                                        </a>
+                                    </div>
+                                    <div class="card-footer bg-white border-top py-2 px-3 text-end">
+                                        <a href="admin_show_01_pending.png" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fs-12">
+                                            <i class="ri-fullscreen-line me-1"></i> مشاهده اصلی
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>            <div class="col-12 mb-5 status-card" data-status="AWAITING_PAYMENT">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="card-header bg-white border-bottom p-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2.5">
+                            <span class="badge rounded-pill bg-dark font-monospace fs-13 px-2.5 py-1">#02</span>
+                            <span class="badge bg-warning text-dark fs-13 px-3 py-1.5 rounded-pill">در انتظار پرداخت</span>
+                            <span class="text-muted fs-13 font-monospace">(AWAITING_PAYMENT)</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-light text-secondary border fs-12">رزرو شده (Piece Reserved)</span>
+                        </div>
+                    </div>
+                    <div class="card-body p-3 p-md-4 bg-light bg-opacity-25">
+                        <p class="text-muted fs-14 mb-4">فاکتور کارت به کارت ثبت شده و در مهلت قانونی پرداخت قرار دارد.</p>
+                        
+                        <div class="row g-3">
+                            <div class="col-lg-4 perspective-customer">
+                                <div class="card h-100 border rounded-3 overflow-hidden shadow-xs bg-white">
+                                    <div class="card-header bg-white py-2.5 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ri-user-smile-line text-primary fs-5"></i>
+                                            <span class="fw-bold fs-13">نمای مشتری (Customer)</span>
+                                        </div>
+                                        <span class="badge bg-secondary-subtle text-secondary font-monospace fs-11">84.2 KB</span>
+                                    </div>
+                                    <div class="card-body p-2 text-center">
+                                        <a href="customer_02_awaiting_payment.png" target="_blank" class="preview-lightbox-trigger d-block" data-title="در انتظار پرداخت - نمای مشتری">
+                                            <img src="customer_02_awaiting_payment.png" alt="customer_02_awaiting_payment.png" class="img-fluid rounded border shadow-2xs hover-zoom" loading="lazy">
+                                        </a>
+                                    </div>
+                                    <div class="card-footer bg-white border-top py-2 px-3 text-end">
+                                        <a href="customer_02_awaiting_payment.png" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fs-12">
+                                            <i class="ri-fullscreen-line me-1"></i> مشاهده اصلی
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-4 perspective-admin-edit">
+                                <div class="card h-100 border rounded-3 overflow-hidden shadow-xs bg-white border-primary-subtle">
+                                    <div class="card-header bg-white py-2.5 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ri-edit-box-line text-danger fs-5"></i>
+                                            <span class="fw-bold fs-13">ویرایش فاکتور (Admin Edit)</span>
+                                        </div>
+                                        <span class="badge bg-danger-subtle text-danger font-monospace fs-11">136.4 KB</span>
+                                    </div>
+                                    <div class="card-body p-2 text-center">
+                                        <a href="admin_edit_02_awaiting_payment.png" target="_blank" class="preview-lightbox-trigger d-block" data-title="در انتظار پرداخت - ویرایش فاکتور ادمین">
+                                            <img src="admin_edit_02_awaiting_payment.png" alt="admin_edit_02_awaiting_payment.png" class="img-fluid rounded border shadow-2xs hover-zoom" loading="lazy">
+                                        </a>
+                                    </div>
+                                    <div class="card-footer bg-white border-top py-2 px-3 text-end">
+                                        <a href="admin_edit_02_awaiting_payment.png" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill px-3 fs-12">
+                                            <i class="ri-fullscreen-line me-1"></i> مشاهده اصلی
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-4 perspective-admin-show">
+                                <div class="card h-100 border rounded-3 overflow-hidden shadow-xs bg-white">
+                                    <div class="card-header bg-white py-2.5 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ri-file-list-3-line text-secondary fs-5"></i>
+                                            <span class="fw-bold fs-13">جزئیات / چاپ (Admin Show)</span>
+                                        </div>
+                                        <span class="badge bg-secondary-subtle text-secondary font-monospace fs-11">157.2 KB</span>
+                                    </div>
+                                    <div class="card-body p-2 text-center">
+                                        <a href="admin_show_02_awaiting_payment.png" target="_blank" class="preview-lightbox-trigger d-block" data-title="در انتظار پرداخت - جزئیات ادمین">
+                                            <img src="admin_show_02_awaiting_payment.png" alt="admin_show_02_awaiting_payment.png" class="img-fluid rounded border shadow-2xs hover-zoom" loading="lazy">
+                                        </a>
+                                    </div>
+                                    <div class="card-footer bg-white border-top py-2 px-3 text-end">
+                                        <a href="admin_show_02_awaiting_payment.png" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fs-12">
+                                            <i class="ri-fullscreen-line me-1"></i> مشاهده اصلی
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>            <div class="col-12 mb-5 status-card" data-status="WAITING_RECEIPT">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="card-header bg-white border-bottom p-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2.5">
+                            <span class="badge rounded-pill bg-dark font-monospace fs-13 px-2.5 py-1">#03</span>
+                            <span class="badge bg-warning text-dark fs-13 px-3 py-1.5 rounded-pill">در انتظار ثبت فیش</span>
+                            <span class="text-muted fs-13 font-monospace">(WAITING_RECEIPT)</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-light text-secondary border fs-12">رزرو شده (Piece Reserved)</span>
+                        </div>
+                    </div>
+                    <div class="card-body p-3 p-md-4 bg-light bg-opacity-25">
+                        <p class="text-muted fs-14 mb-4">پرداخت کارت به کارت با تایمر شمارش معکوس مهلت بارگذاری رسید بانکی.</p>
+                        
+                        <div class="row g-3">
+                            <div class="col-lg-4 perspective-customer">
+                                <div class="card h-100 border rounded-3 overflow-hidden shadow-xs bg-white">
+                                    <div class="card-header bg-white py-2.5 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ri-user-smile-line text-primary fs-5"></i>
+                                            <span class="fw-bold fs-13">نمای مشتری (Customer)</span>
+                                        </div>
+                                        <span class="badge bg-secondary-subtle text-secondary font-monospace fs-11">84.2 KB</span>
+                                    </div>
+                                    <div class="card-body p-2 text-center">
+                                        <a href="customer_03_waiting_receipt.png" target="_blank" class="preview-lightbox-trigger d-block" data-title="در انتظار ثبت فیش - نمای مشتری">
+                                            <img src="customer_03_waiting_receipt.png" alt="customer_03_waiting_receipt.png" class="img-fluid rounded border shadow-2xs hover-zoom" loading="lazy">
+                                        </a>
+                                    </div>
+                                    <div class="card-footer bg-white border-top py-2 px-3 text-end">
+                                        <a href="customer_03_waiting_receipt.png" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fs-12">
+                                            <i class="ri-fullscreen-line me-1"></i> مشاهده اصلی
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-4 perspective-admin-edit">
+                                <div class="card h-100 border rounded-3 overflow-hidden shadow-xs bg-white border-primary-subtle">
+                                    <div class="card-header bg-white py-2.5 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ri-edit-box-line text-danger fs-5"></i>
+                                            <span class="fw-bold fs-13">ویرایش فاکتور (Admin Edit)</span>
+                                        </div>
+                                        <span class="badge bg-danger-subtle text-danger font-monospace fs-11">137.2 KB</span>
+                                    </div>
+                                    <div class="card-body p-2 text-center">
+                                        <a href="admin_edit_03_waiting_receipt.png" target="_blank" class="preview-lightbox-trigger d-block" data-title="در انتظار ثبت فیش - ویرایش فاکتور ادمین">
+                                            <img src="admin_edit_03_waiting_receipt.png" alt="admin_edit_03_waiting_receipt.png" class="img-fluid rounded border shadow-2xs hover-zoom" loading="lazy">
+                                        </a>
+                                    </div>
+                                    <div class="card-footer bg-white border-top py-2 px-3 text-end">
+                                        <a href="admin_edit_03_waiting_receipt.png" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill px-3 fs-12">
+                                            <i class="ri-fullscreen-line me-1"></i> مشاهده اصلی
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-4 perspective-admin-show">
+                                <div class="card h-100 border rounded-3 overflow-hidden shadow-xs bg-white">
+                                    <div class="card-header bg-white py-2.5 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ri-file-list-3-line text-secondary fs-5"></i>
+                                            <span class="fw-bold fs-13">جزئیات / چاپ (Admin Show)</span>
+                                        </div>
+                                        <span class="badge bg-secondary-subtle text-secondary font-monospace fs-11">157.1 KB</span>
+                                    </div>
+                                    <div class="card-body p-2 text-center">
+                                        <a href="admin_show_03_waiting_receipt.png" target="_blank" class="preview-lightbox-trigger d-block" data-title="در انتظار ثبت فیش - جزئیات ادمین">
+                                            <img src="admin_show_03_waiting_receipt.png" alt="admin_show_03_waiting_receipt.png" class="img-fluid rounded border shadow-2xs hover-zoom" loading="lazy">
+                                        </a>
+                                    </div>
+                                    <div class="card-footer bg-white border-top py-2 px-3 text-end">
+                                        <a href="admin_show_03_waiting_receipt.png" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fs-12">
+                                            <i class="ri-fullscreen-line me-1"></i> مشاهده اصلی
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>            <div class="col-12 mb-5 status-card" data-status="WAITING_CONFIRMATION">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="card-header bg-white border-bottom p-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2.5">
+                            <span class="badge rounded-pill bg-dark font-monospace fs-13 px-2.5 py-1">#04</span>
+                            <span class="badge bg-primary text-white fs-13 px-3 py-1.5 rounded-pill">در انتظار تایید فیش توسط مدیر</span>
+                            <span class="text-muted fs-13 font-monospace">(WAITING_CONFIRMATION)</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-light text-secondary border fs-12">رزرو شده (Piece Reserved)</span>
+                        </div>
+                    </div>
+                    <div class="card-body p-3 p-md-4 bg-light bg-opacity-25">
+                        <p class="text-muted fs-14 mb-4">فیش بانکی بارگذاری شده و چک‌لیست ۴ گانه مدیریت جهت تایید فعال است.</p>
+                        
+                        <div class="row g-3">
+                            <div class="col-lg-4 perspective-customer">
+                                <div class="card h-100 border rounded-3 overflow-hidden shadow-xs bg-white">
+                                    <div class="card-header bg-white py-2.5 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ri-user-smile-line text-primary fs-5"></i>
+                                            <span class="fw-bold fs-13">نمای مشتری (Customer)</span>
+                                        </div>
+                                        <span class="badge bg-secondary-subtle text-secondary font-monospace fs-11">81.1 KB</span>
+                                    </div>
+                                    <div class="card-body p-2 text-center">
+                                        <a href="customer_04_waiting_confirmation.png" target="_blank" class="preview-lightbox-trigger d-block" data-title="در انتظار تایید فیش توسط مدیر - نمای مشتری">
+                                            <img src="customer_04_waiting_confirmation.png" alt="customer_04_waiting_confirmation.png" class="img-fluid rounded border shadow-2xs hover-zoom" loading="lazy">
+                                        </a>
+                                    </div>
+                                    <div class="card-footer bg-white border-top py-2 px-3 text-end">
+                                        <a href="customer_04_waiting_confirmation.png" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fs-12">
+                                            <i class="ri-fullscreen-line me-1"></i> مشاهده اصلی
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-4 perspective-admin-edit">
+                                <div class="card h-100 border rounded-3 overflow-hidden shadow-xs bg-white border-primary-subtle">
+                                    <div class="card-header bg-white py-2.5 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ri-edit-box-line text-danger fs-5"></i>
+                                            <span class="fw-bold fs-13">ویرایش فاکتور (Admin Edit)</span>
+                                        </div>
+                                        <span class="badge bg-danger-subtle text-danger font-monospace fs-11">167.4 KB</span>
+                                    </div>
+                                    <div class="card-body p-2 text-center">
+                                        <a href="admin_edit_04_waiting_confirmation.png" target="_blank" class="preview-lightbox-trigger d-block" data-title="در انتظار تایید فیش توسط مدیر - ویرایش فاکتور ادمین">
+                                            <img src="admin_edit_04_waiting_confirmation.png" alt="admin_edit_04_waiting_confirmation.png" class="img-fluid rounded border shadow-2xs hover-zoom" loading="lazy">
+                                        </a>
+                                    </div>
+                                    <div class="card-footer bg-white border-top py-2 px-3 text-end">
+                                        <a href="admin_edit_04_waiting_confirmation.png" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill px-3 fs-12">
+                                            <i class="ri-fullscreen-line me-1"></i> مشاهده اصلی
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-4 perspective-admin-show">
+                                <div class="card h-100 border rounded-3 overflow-hidden shadow-xs bg-white">
+                                    <div class="card-header bg-white py-2.5 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ri-file-list-3-line text-secondary fs-5"></i>
+                                            <span class="fw-bold fs-13">جزئیات / چاپ (Admin Show)</span>
+                                        </div>
+                                        <span class="badge bg-secondary-subtle text-secondary font-monospace fs-11">171 KB</span>
+                                    </div>
+                                    <div class="card-body p-2 text-center">
+                                        <a href="admin_show_04_waiting_confirmation.png" target="_blank" class="preview-lightbox-trigger d-block" data-title="در انتظار تایید فیش توسط مدیر - جزئیات ادمین">
+                                            <img src="admin_show_04_waiting_confirmation.png" alt="admin_show_04_waiting_confirmation.png" class="img-fluid rounded border shadow-2xs hover-zoom" loading="lazy">
+                                        </a>
+                                    </div>
+                                    <div class="card-footer bg-white border-top py-2 px-3 text-end">
+                                        <a href="admin_show_04_waiting_confirmation.png" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fs-12">
+                                            <i class="ri-fullscreen-line me-1"></i> مشاهده اصلی
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>            <div class="col-12 mb-5 status-card" data-status="PAID">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="card-header bg-white border-bottom p-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2.5">
+                            <span class="badge rounded-pill bg-dark font-monospace fs-13 px-2.5 py-1">#05</span>
+                            <span class="badge bg-success text-white fs-13 px-3 py-1.5 rounded-pill">پرداخت شده و تایید شده</span>
+                            <span class="text-muted fs-13 font-monospace">(PAID)</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-light text-secondary border fs-12">فروخته شده (Piece Sold)</span>
+                        </div>
+                    </div>
+                    <div class="card-body p-3 p-md-4 bg-light bg-opacity-25">
+                        <p class="text-muted fs-14 mb-4">پرداخت با موفقیت تایید گردیده و قطعه طلای رزرو شده به فروخته شده تغییر یافت.</p>
+                        
+                        <div class="row g-3">
+                            <div class="col-lg-4 perspective-customer">
+                                <div class="card h-100 border rounded-3 overflow-hidden shadow-xs bg-white">
+                                    <div class="card-header bg-white py-2.5 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ri-user-smile-line text-primary fs-5"></i>
+                                            <span class="fw-bold fs-13">نمای مشتری (Customer)</span>
+                                        </div>
+                                        <span class="badge bg-secondary-subtle text-secondary font-monospace fs-11">74.3 KB</span>
+                                    </div>
+                                    <div class="card-body p-2 text-center">
+                                        <a href="customer_05_paid.png" target="_blank" class="preview-lightbox-trigger d-block" data-title="پرداخت شده و تایید شده - نمای مشتری">
+                                            <img src="customer_05_paid.png" alt="customer_05_paid.png" class="img-fluid rounded border shadow-2xs hover-zoom" loading="lazy">
+                                        </a>
+                                    </div>
+                                    <div class="card-footer bg-white border-top py-2 px-3 text-end">
+                                        <a href="customer_05_paid.png" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fs-12">
+                                            <i class="ri-fullscreen-line me-1"></i> مشاهده اصلی
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-4 perspective-admin-edit">
+                                <div class="card h-100 border rounded-3 overflow-hidden shadow-xs bg-white border-primary-subtle">
+                                    <div class="card-header bg-white py-2.5 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ri-edit-box-line text-danger fs-5"></i>
+                                            <span class="fw-bold fs-13">ویرایش فاکتور (Admin Edit)</span>
+                                        </div>
+                                        <span class="badge bg-danger-subtle text-danger font-monospace fs-11">144.1 KB</span>
+                                    </div>
+                                    <div class="card-body p-2 text-center">
+                                        <a href="admin_edit_05_paid.png" target="_blank" class="preview-lightbox-trigger d-block" data-title="پرداخت شده و تایید شده - ویرایش فاکتور ادمین">
+                                            <img src="admin_edit_05_paid.png" alt="admin_edit_05_paid.png" class="img-fluid rounded border shadow-2xs hover-zoom" loading="lazy">
+                                        </a>
+                                    </div>
+                                    <div class="card-footer bg-white border-top py-2 px-3 text-end">
+                                        <a href="admin_edit_05_paid.png" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill px-3 fs-12">
+                                            <i class="ri-fullscreen-line me-1"></i> مشاهده اصلی
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-4 perspective-admin-show">
+                                <div class="card h-100 border rounded-3 overflow-hidden shadow-xs bg-white">
+                                    <div class="card-header bg-white py-2.5 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ri-file-list-3-line text-secondary fs-5"></i>
+                                            <span class="fw-bold fs-13">جزئیات / چاپ (Admin Show)</span>
+                                        </div>
+                                        <span class="badge bg-secondary-subtle text-secondary font-monospace fs-11">152.6 KB</span>
+                                    </div>
+                                    <div class="card-body p-2 text-center">
+                                        <a href="admin_show_05_paid.png" target="_blank" class="preview-lightbox-trigger d-block" data-title="پرداخت شده و تایید شده - جزئیات ادمین">
+                                            <img src="admin_show_05_paid.png" alt="admin_show_05_paid.png" class="img-fluid rounded border shadow-2xs hover-zoom" loading="lazy">
+                                        </a>
+                                    </div>
+                                    <div class="card-footer bg-white border-top py-2 px-3 text-end">
+                                        <a href="admin_show_05_paid.png" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fs-12">
+                                            <i class="ri-fullscreen-line me-1"></i> مشاهده اصلی
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>            <div class="col-12 mb-5 status-card" data-status="PROCESSING">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="card-header bg-white border-bottom p-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2.5">
+                            <span class="badge rounded-pill bg-dark font-monospace fs-13 px-2.5 py-1">#06</span>
+                            <span class="badge bg-info text-dark fs-13 px-3 py-1.5 rounded-pill">در حال بسته‌بندی در انبار</span>
+                            <span class="text-muted fs-13 font-monospace">(PROCESSING)</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-light text-secondary border fs-12">فروخته شده (Piece Sold)</span>
+                        </div>
+                    </div>
+                    <div class="card-body p-3 p-md-4 bg-light bg-opacity-25">
+                        <p class="text-muted fs-14 mb-4">فاکتور در مرحله انبارداری، صدور حواله خروج و بسته‌بندی امن قرار دارد.</p>
+                        
+                        <div class="row g-3">
+                            <div class="col-lg-4 perspective-customer">
+                                <div class="card h-100 border rounded-3 overflow-hidden shadow-xs bg-white">
+                                    <div class="card-header bg-white py-2.5 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ri-user-smile-line text-primary fs-5"></i>
+                                            <span class="fw-bold fs-13">نمای مشتری (Customer)</span>
+                                        </div>
+                                        <span class="badge bg-secondary-subtle text-secondary font-monospace fs-11">71.5 KB</span>
+                                    </div>
+                                    <div class="card-body p-2 text-center">
+                                        <a href="customer_06_processing.png" target="_blank" class="preview-lightbox-trigger d-block" data-title="در حال بسته‌بندی در انبار - نمای مشتری">
+                                            <img src="customer_06_processing.png" alt="customer_06_processing.png" class="img-fluid rounded border shadow-2xs hover-zoom" loading="lazy">
+                                        </a>
+                                    </div>
+                                    <div class="card-footer bg-white border-top py-2 px-3 text-end">
+                                        <a href="customer_06_processing.png" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fs-12">
+                                            <i class="ri-fullscreen-line me-1"></i> مشاهده اصلی
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-4 perspective-admin-edit">
+                                <div class="card h-100 border rounded-3 overflow-hidden shadow-xs bg-white border-primary-subtle">
+                                    <div class="card-header bg-white py-2.5 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ri-edit-box-line text-danger fs-5"></i>
+                                            <span class="fw-bold fs-13">ویرایش فاکتور (Admin Edit)</span>
+                                        </div>
+                                        <span class="badge bg-danger-subtle text-danger font-monospace fs-11">141.5 KB</span>
+                                    </div>
+                                    <div class="card-body p-2 text-center">
+                                        <a href="admin_edit_06_processing.png" target="_blank" class="preview-lightbox-trigger d-block" data-title="در حال بسته‌بندی در انبار - ویرایش فاکتور ادمین">
+                                            <img src="admin_edit_06_processing.png" alt="admin_edit_06_processing.png" class="img-fluid rounded border shadow-2xs hover-zoom" loading="lazy">
+                                        </a>
+                                    </div>
+                                    <div class="card-footer bg-white border-top py-2 px-3 text-end">
+                                        <a href="admin_edit_06_processing.png" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill px-3 fs-12">
+                                            <i class="ri-fullscreen-line me-1"></i> مشاهده اصلی
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-4 perspective-admin-show">
+                                <div class="card h-100 border rounded-3 overflow-hidden shadow-xs bg-white">
+                                    <div class="card-header bg-white py-2.5 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ri-file-list-3-line text-secondary fs-5"></i>
+                                            <span class="fw-bold fs-13">جزئیات / چاپ (Admin Show)</span>
+                                        </div>
+                                        <span class="badge bg-secondary-subtle text-secondary font-monospace fs-11">151.4 KB</span>
+                                    </div>
+                                    <div class="card-body p-2 text-center">
+                                        <a href="admin_show_06_processing.png" target="_blank" class="preview-lightbox-trigger d-block" data-title="در حال بسته‌بندی در انبار - جزئیات ادمین">
+                                            <img src="admin_show_06_processing.png" alt="admin_show_06_processing.png" class="img-fluid rounded border shadow-2xs hover-zoom" loading="lazy">
+                                        </a>
+                                    </div>
+                                    <div class="card-footer bg-white border-top py-2 px-3 text-end">
+                                        <a href="admin_show_06_processing.png" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fs-12">
+                                            <i class="ri-fullscreen-line me-1"></i> مشاهده اصلی
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>            <div class="col-12 mb-5 status-card" data-status="OUT_FOR_DELIVERY">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="card-header bg-white border-bottom p-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2.5">
+                            <span class="badge rounded-pill bg-dark font-monospace fs-13 px-2.5 py-1">#07</span>
+                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning fs-13 px-3 py-1.5 rounded-pill">تحویل به پیک موتوری</span>
+                            <span class="text-muted fs-13 font-monospace">(OUT_FOR_DELIVERY)</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-light text-secondary border fs-12">فروخته شده (Piece Sold)</span>
+                        </div>
+                    </div>
+                    <div class="card-body p-3 p-md-4 bg-light bg-opacity-25">
+                        <p class="text-muted fs-14 mb-4">مرسوله به پیک تحویل داده شده و کد ۴ رقمی امنیتی به مشتری پیامک شده است.</p>
+                        
+                        <div class="row g-3">
+                            <div class="col-lg-4 perspective-customer">
+                                <div class="card h-100 border rounded-3 overflow-hidden shadow-xs bg-white">
+                                    <div class="card-header bg-white py-2.5 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ri-user-smile-line text-primary fs-5"></i>
+                                            <span class="fw-bold fs-13">نمای مشتری (Customer)</span>
+                                        </div>
+                                        <span class="badge bg-secondary-subtle text-secondary font-monospace fs-11">79.3 KB</span>
+                                    </div>
+                                    <div class="card-body p-2 text-center">
+                                        <a href="customer_07_out_for_delivery.png" target="_blank" class="preview-lightbox-trigger d-block" data-title="تحویل به پیک موتوری - نمای مشتری">
+                                            <img src="customer_07_out_for_delivery.png" alt="customer_07_out_for_delivery.png" class="img-fluid rounded border shadow-2xs hover-zoom" loading="lazy">
+                                        </a>
+                                    </div>
+                                    <div class="card-footer bg-white border-top py-2 px-3 text-end">
+                                        <a href="customer_07_out_for_delivery.png" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fs-12">
+                                            <i class="ri-fullscreen-line me-1"></i> مشاهده اصلی
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-4 perspective-admin-edit">
+                                <div class="card h-100 border rounded-3 overflow-hidden shadow-xs bg-white border-primary-subtle">
+                                    <div class="card-header bg-white py-2.5 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ri-edit-box-line text-danger fs-5"></i>
+                                            <span class="fw-bold fs-13">ویرایش فاکتور (Admin Edit)</span>
+                                        </div>
+                                        <span class="badge bg-danger-subtle text-danger font-monospace fs-11">146.5 KB</span>
+                                    </div>
+                                    <div class="card-body p-2 text-center">
+                                        <a href="admin_edit_07_out_for_delivery.png" target="_blank" class="preview-lightbox-trigger d-block" data-title="تحویل به پیک موتوری - ویرایش فاکتور ادمین">
+                                            <img src="admin_edit_07_out_for_delivery.png" alt="admin_edit_07_out_for_delivery.png" class="img-fluid rounded border shadow-2xs hover-zoom" loading="lazy">
+                                        </a>
+                                    </div>
+                                    <div class="card-footer bg-white border-top py-2 px-3 text-end">
+                                        <a href="admin_edit_07_out_for_delivery.png" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill px-3 fs-12">
+                                            <i class="ri-fullscreen-line me-1"></i> مشاهده اصلی
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-4 perspective-admin-show">
+                                <div class="card h-100 border rounded-3 overflow-hidden shadow-xs bg-white">
+                                    <div class="card-header bg-white py-2.5 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ri-file-list-3-line text-secondary fs-5"></i>
+                                            <span class="fw-bold fs-13">جزئیات / چاپ (Admin Show)</span>
+                                        </div>
+                                        <span class="badge bg-secondary-subtle text-secondary font-monospace fs-11">160.5 KB</span>
+                                    </div>
+                                    <div class="card-body p-2 text-center">
+                                        <a href="admin_show_07_out_for_delivery.png" target="_blank" class="preview-lightbox-trigger d-block" data-title="تحویل به پیک موتوری - جزئیات ادمین">
+                                            <img src="admin_show_07_out_for_delivery.png" alt="admin_show_07_out_for_delivery.png" class="img-fluid rounded border shadow-2xs hover-zoom" loading="lazy">
+                                        </a>
+                                    </div>
+                                    <div class="card-footer bg-white border-top py-2 px-3 text-end">
+                                        <a href="admin_show_07_out_for_delivery.png" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fs-12">
+                                            <i class="ri-fullscreen-line me-1"></i> مشاهده اصلی
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>            <div class="col-12 mb-5 status-card" data-status="COMPLETED">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="card-header bg-white border-bottom p-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2.5">
+                            <span class="badge rounded-pill bg-dark font-monospace fs-13 px-2.5 py-1">#08</span>
+                            <span class="badge bg-success text-white fs-13 px-3 py-1.5 rounded-pill">سفارش تکمیل شده و تحویل داده شده</span>
+                            <span class="text-muted fs-13 font-monospace">(COMPLETED)</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-light text-secondary border fs-12">فروخته شده نهایی (Piece Sold)</span>
+                        </div>
+                    </div>
+                    <div class="card-body p-3 p-md-4 bg-light bg-opacity-25">
+                        <p class="text-muted fs-14 mb-4">پیک کد تایید تحویل را ثبت کرده و سفارش با موفقیت به پایان رسیده است.</p>
+                        
+                        <div class="row g-3">
+                            <div class="col-lg-4 perspective-customer">
+                                <div class="card h-100 border rounded-3 overflow-hidden shadow-xs bg-white">
+                                    <div class="card-header bg-white py-2.5 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ri-user-smile-line text-primary fs-5"></i>
+                                            <span class="fw-bold fs-13">نمای مشتری (Customer)</span>
+                                        </div>
+                                        <span class="badge bg-secondary-subtle text-secondary font-monospace fs-11">71.7 KB</span>
+                                    </div>
+                                    <div class="card-body p-2 text-center">
+                                        <a href="customer_08_completed.png" target="_blank" class="preview-lightbox-trigger d-block" data-title="سفارش تکمیل شده و تحویل داده شده - نمای مشتری">
+                                            <img src="customer_08_completed.png" alt="customer_08_completed.png" class="img-fluid rounded border shadow-2xs hover-zoom" loading="lazy">
+                                        </a>
+                                    </div>
+                                    <div class="card-footer bg-white border-top py-2 px-3 text-end">
+                                        <a href="customer_08_completed.png" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fs-12">
+                                            <i class="ri-fullscreen-line me-1"></i> مشاهده اصلی
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-4 perspective-admin-edit">
+                                <div class="card h-100 border rounded-3 overflow-hidden shadow-xs bg-white border-primary-subtle">
+                                    <div class="card-header bg-white py-2.5 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ri-edit-box-line text-danger fs-5"></i>
+                                            <span class="fw-bold fs-13">ویرایش فاکتور (Admin Edit)</span>
+                                        </div>
+                                        <span class="badge bg-danger-subtle text-danger font-monospace fs-11">121.7 KB</span>
+                                    </div>
+                                    <div class="card-body p-2 text-center">
+                                        <a href="admin_edit_08_completed.png" target="_blank" class="preview-lightbox-trigger d-block" data-title="سفارش تکمیل شده و تحویل داده شده - ویرایش فاکتور ادمین">
+                                            <img src="admin_edit_08_completed.png" alt="admin_edit_08_completed.png" class="img-fluid rounded border shadow-2xs hover-zoom" loading="lazy">
+                                        </a>
+                                    </div>
+                                    <div class="card-footer bg-white border-top py-2 px-3 text-end">
+                                        <a href="admin_edit_08_completed.png" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill px-3 fs-12">
+                                            <i class="ri-fullscreen-line me-1"></i> مشاهده اصلی
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-4 perspective-admin-show">
+                                <div class="card h-100 border rounded-3 overflow-hidden shadow-xs bg-white">
+                                    <div class="card-header bg-white py-2.5 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ri-file-list-3-line text-secondary fs-5"></i>
+                                            <span class="fw-bold fs-13">جزئیات / چاپ (Admin Show)</span>
+                                        </div>
+                                        <span class="badge bg-secondary-subtle text-secondary font-monospace fs-11">148.5 KB</span>
+                                    </div>
+                                    <div class="card-body p-2 text-center">
+                                        <a href="admin_show_08_completed.png" target="_blank" class="preview-lightbox-trigger d-block" data-title="سفارش تکمیل شده و تحویل داده شده - جزئیات ادمین">
+                                            <img src="admin_show_08_completed.png" alt="admin_show_08_completed.png" class="img-fluid rounded border shadow-2xs hover-zoom" loading="lazy">
+                                        </a>
+                                    </div>
+                                    <div class="card-footer bg-white border-top py-2 px-3 text-end">
+                                        <a href="admin_show_08_completed.png" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fs-12">
+                                            <i class="ri-fullscreen-line me-1"></i> مشاهده اصلی
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>            <div class="col-12 mb-5 status-card" data-status="CANCELED">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="card-header bg-white border-bottom p-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2.5">
+                            <span class="badge rounded-pill bg-dark font-monospace fs-13 px-2.5 py-1">#09</span>
+                            <span class="badge bg-secondary text-white fs-13 px-3 py-1.5 rounded-pill">لغو شده توسط مدیر یا خریدار</span>
+                            <span class="text-muted fs-13 font-monospace">(CANCELED)</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-light text-secondary border fs-12">آزاد شده به قفسه فروش (Piece Restored)</span>
+                        </div>
+                    </div>
+                    <div class="card-body p-3 p-md-4 bg-light bg-opacity-25">
+                        <p class="text-muted fs-14 mb-4">سفارش لغو شده و موجودی طلای رزرو شده مجددا به چرخه فروش بازگشت.</p>
+                        
+                        <div class="row g-3">
+                            <div class="col-lg-4 perspective-customer">
+                                <div class="card h-100 border rounded-3 overflow-hidden shadow-xs bg-white">
+                                    <div class="card-header bg-white py-2.5 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ri-user-smile-line text-primary fs-5"></i>
+                                            <span class="fw-bold fs-13">نمای مشتری (Customer)</span>
+                                        </div>
+                                        <span class="badge bg-secondary-subtle text-secondary font-monospace fs-11">81.2 KB</span>
+                                    </div>
+                                    <div class="card-body p-2 text-center">
+                                        <a href="customer_09_canceled.png" target="_blank" class="preview-lightbox-trigger d-block" data-title="لغو شده توسط مدیر یا خریدار - نمای مشتری">
+                                            <img src="customer_09_canceled.png" alt="customer_09_canceled.png" class="img-fluid rounded border shadow-2xs hover-zoom" loading="lazy">
+                                        </a>
+                                    </div>
+                                    <div class="card-footer bg-white border-top py-2 px-3 text-end">
+                                        <a href="customer_09_canceled.png" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fs-12">
+                                            <i class="ri-fullscreen-line me-1"></i> مشاهده اصلی
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-4 perspective-admin-edit">
+                                <div class="card h-100 border rounded-3 overflow-hidden shadow-xs bg-white border-primary-subtle">
+                                    <div class="card-header bg-white py-2.5 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ri-edit-box-line text-danger fs-5"></i>
+                                            <span class="fw-bold fs-13">ویرایش فاکتور (Admin Edit)</span>
+                                        </div>
+                                        <span class="badge bg-danger-subtle text-danger font-monospace fs-11">113 KB</span>
+                                    </div>
+                                    <div class="card-body p-2 text-center">
+                                        <a href="admin_edit_09_canceled.png" target="_blank" class="preview-lightbox-trigger d-block" data-title="لغو شده توسط مدیر یا خریدار - ویرایش فاکتور ادمین">
+                                            <img src="admin_edit_09_canceled.png" alt="admin_edit_09_canceled.png" class="img-fluid rounded border shadow-2xs hover-zoom" loading="lazy">
+                                        </a>
+                                    </div>
+                                    <div class="card-footer bg-white border-top py-2 px-3 text-end">
+                                        <a href="admin_edit_09_canceled.png" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill px-3 fs-12">
+                                            <i class="ri-fullscreen-line me-1"></i> مشاهده اصلی
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-4 perspective-admin-show">
+                                <div class="card h-100 border rounded-3 overflow-hidden shadow-xs bg-white">
+                                    <div class="card-header bg-white py-2.5 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ri-file-list-3-line text-secondary fs-5"></i>
+                                            <span class="fw-bold fs-13">جزئیات / چاپ (Admin Show)</span>
+                                        </div>
+                                        <span class="badge bg-secondary-subtle text-secondary font-monospace fs-11">149.6 KB</span>
+                                    </div>
+                                    <div class="card-body p-2 text-center">
+                                        <a href="admin_show_09_canceled.png" target="_blank" class="preview-lightbox-trigger d-block" data-title="لغو شده توسط مدیر یا خریدار - جزئیات ادمین">
+                                            <img src="admin_show_09_canceled.png" alt="admin_show_09_canceled.png" class="img-fluid rounded border shadow-2xs hover-zoom" loading="lazy">
+                                        </a>
+                                    </div>
+                                    <div class="card-footer bg-white border-top py-2 px-3 text-end">
+                                        <a href="admin_show_09_canceled.png" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fs-12">
+                                            <i class="ri-fullscreen-line me-1"></i> مشاهده اصلی
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>            <div class="col-12 mb-5 status-card" data-status="FAILED">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="card-header bg-white border-bottom p-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2.5">
+                            <span class="badge rounded-pill bg-dark font-monospace fs-13 px-2.5 py-1">#10</span>
+                            <span class="badge bg-danger text-white fs-13 px-3 py-1.5 rounded-pill">ناموفق / انقضای مهلت پرداخت</span>
+                            <span class="text-muted fs-13 font-monospace">(FAILED)</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-light text-secondary border fs-12">آزاد شده به قفسه فروش (Piece Restored)</span>
+                        </div>
+                    </div>
+                    <div class="card-body p-3 p-md-4 bg-light bg-opacity-25">
+                        <p class="text-muted fs-14 mb-4">مهلت پرداخت به پایان رسیده یا تراکنش ناموفق بود؛ قطعه طلا آزاد شد.</p>
+                        
+                        <div class="row g-3">
+                            <div class="col-lg-4 perspective-customer">
+                                <div class="card h-100 border rounded-3 overflow-hidden shadow-xs bg-white">
+                                    <div class="card-header bg-white py-2.5 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ri-user-smile-line text-primary fs-5"></i>
+                                            <span class="fw-bold fs-13">نمای مشتری (Customer)</span>
+                                        </div>
+                                        <span class="badge bg-secondary-subtle text-secondary font-monospace fs-11">83.7 KB</span>
+                                    </div>
+                                    <div class="card-body p-2 text-center">
+                                        <a href="customer_10_failed.png" target="_blank" class="preview-lightbox-trigger d-block" data-title="ناموفق / انقضای مهلت پرداخت - نمای مشتری">
+                                            <img src="customer_10_failed.png" alt="customer_10_failed.png" class="img-fluid rounded border shadow-2xs hover-zoom" loading="lazy">
+                                        </a>
+                                    </div>
+                                    <div class="card-footer bg-white border-top py-2 px-3 text-end">
+                                        <a href="customer_10_failed.png" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fs-12">
+                                            <i class="ri-fullscreen-line me-1"></i> مشاهده اصلی
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-4 perspective-admin-edit">
+                                <div class="card h-100 border rounded-3 overflow-hidden shadow-xs bg-white border-primary-subtle">
+                                    <div class="card-header bg-white py-2.5 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ri-edit-box-line text-danger fs-5"></i>
+                                            <span class="fw-bold fs-13">ویرایش فاکتور (Admin Edit)</span>
+                                        </div>
+                                        <span class="badge bg-danger-subtle text-danger font-monospace fs-11">114.3 KB</span>
+                                    </div>
+                                    <div class="card-body p-2 text-center">
+                                        <a href="admin_edit_10_failed.png" target="_blank" class="preview-lightbox-trigger d-block" data-title="ناموفق / انقضای مهلت پرداخت - ویرایش فاکتور ادمین">
+                                            <img src="admin_edit_10_failed.png" alt="admin_edit_10_failed.png" class="img-fluid rounded border shadow-2xs hover-zoom" loading="lazy">
+                                        </a>
+                                    </div>
+                                    <div class="card-footer bg-white border-top py-2 px-3 text-end">
+                                        <a href="admin_edit_10_failed.png" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill px-3 fs-12">
+                                            <i class="ri-fullscreen-line me-1"></i> مشاهده اصلی
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-4 perspective-admin-show">
+                                <div class="card h-100 border rounded-3 overflow-hidden shadow-xs bg-white">
+                                    <div class="card-header bg-white py-2.5 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ri-file-list-3-line text-secondary fs-5"></i>
+                                            <span class="fw-bold fs-13">جزئیات / چاپ (Admin Show)</span>
+                                        </div>
+                                        <span class="badge bg-secondary-subtle text-secondary font-monospace fs-11">150.4 KB</span>
+                                    </div>
+                                    <div class="card-body p-2 text-center">
+                                        <a href="admin_show_10_failed.png" target="_blank" class="preview-lightbox-trigger d-block" data-title="ناموفق / انقضای مهلت پرداخت - جزئیات ادمین">
+                                            <img src="admin_show_10_failed.png" alt="admin_show_10_failed.png" class="img-fluid rounded border shadow-2xs hover-zoom" loading="lazy">
+                                        </a>
+                                    </div>
+                                    <div class="card-footer bg-white border-top py-2 px-3 text-end">
+                                        <a href="admin_show_10_failed.png" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fs-12">
+                                            <i class="ri-fullscreen-line me-1"></i> مشاهده اصلی
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal fade" id="imageLightboxModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-fullscreen p-3">
+            <div class="modal-content rounded-4 shadow-lg overflow-hidden border-0">
+                <div class="modal-header bg-dark text-white border-0 py-2.5 px-4">
+                    <h5 class="modal-title fs-14 fw-bold" id="lightboxTitle"></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0 bg-dark d-flex align-items-center justify-content-center">
+                    <img src="" id="lightboxImg" class="img-fluid" style="max-height: 92vh; object-fit: contain;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function setPerspective(mode) {
+            document.querySelectorAll('.btn-group button').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const cust = document.querySelectorAll('.perspective-customer');
+            const edit = document.querySelectorAll('.perspective-admin-edit');
+            const show = document.querySelectorAll('.perspective-admin-show');
+            const board = document.querySelectorAll('.perspective-board');
+            
+            if (mode === 'customer') {
+                board.forEach(el => el.style.display = 'none');
+                edit.forEach(el => el.style.display = 'none');
+                show.forEach(el => el.style.display = 'none');
+                cust.forEach(el => { el.style.display = 'block'; el.className = 'col-12 perspective-customer'; });
+            } else if (mode === 'admin-edit') {
+                board.forEach(el => el.style.display = 'none');
+                cust.forEach(el => el.style.display = 'none');
+                show.forEach(el => el.style.display = 'none');
+                edit.forEach(el => { el.style.display = 'block'; el.className = 'col-12 perspective-admin-edit'; });
+            } else if (mode === 'admin-show') {
+                board.forEach(el => el.style.display = 'none');
+                cust.forEach(el => el.style.display = 'none');
+                edit.forEach(el => el.style.display = 'none');
+                show.forEach(el => { el.style.display = 'block'; el.className = 'col-12 perspective-admin-show'; });
+            } else if (mode === 'board') {
+                cust.forEach(el => el.style.display = 'none');
+                edit.forEach(el => el.style.display = 'none');
+                show.forEach(el => el.style.display = 'none');
+                board.forEach(el => el.style.display = 'block');
+            } else {
+                board.forEach(el => el.style.display = 'block');
+                cust.forEach(el => { el.style.display = 'block'; el.className = 'col-lg-4 perspective-customer'; });
+                edit.forEach(el => { el.style.display = 'block'; el.className = 'col-lg-4 perspective-admin-edit'; });
+                show.forEach(el => { el.style.display = 'block'; el.className = 'col-lg-4 perspective-admin-show'; });
+            }
+        }
+
+        function filterStatus(val) {
+            const cards = document.querySelectorAll('.status-card');
+            cards.forEach(card => {
+                if (val === 'all' || card.dataset.status === val) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        const modalEl = document.getElementById('imageLightboxModal');
+        const modal = new bootstrap.Modal(modalEl);
+        const lightboxImg = document.getElementById('lightboxImg');
+        const lightboxTitle = document.getElementById('lightboxTitle');
+
+        document.querySelectorAll('.preview-lightbox-trigger').forEach(trigger => {
+            trigger.addEventListener('click', (e) => {
+                e.preventDefault();
+                lightboxImg.src = trigger.getAttribute('href');
+                lightboxTitle.textContent = trigger.getAttribute('data-title');
+                modal.show();
+            });
+        });
+    </script>
+</body>
+</html>

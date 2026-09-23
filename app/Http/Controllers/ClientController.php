@@ -21,6 +21,7 @@ use App\Models\Product;
 use App\Models\Quantity;
 use App\Models\Rate;
 use App\Models\User;
+use App\Services\ProductPriceCalculator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -1006,6 +1007,28 @@ class ClientController extends Controller
         if (! in_array($invoice->status, ['PENDING', 'CANCELED', 'FAILED']) || $invoice->created_at->timestamp < (time() - 3600)) {
             return redirect()->back()->withErrors(__('This payment method is not available.'));
         }
+
+        if (in_array($invoice->status, ['FAILED', 'CANCELED'], true)) {
+            if (! $invoice->canRetryOnlinePayment()) {
+                return redirect()->back()->withErrors(__('Some items in this order are no longer available in stock.'));
+            }
+
+            foreach ($invoice->orders as $order) {
+                if ($order->quantity_id) {
+                    $quantity = Quantity::query()->whereKey($order->quantity_id)->lockForUpdate()->first();
+                    if ($quantity === null || ! $quantity->isAvailable()) {
+                        return redirect()->back()->withErrors(__('Some items in this order are no longer available in stock.'));
+                    }
+                    $quantity->markSold();
+                    if ($quantity->product !== null) {
+                        app(ProductPriceCalculator::class)->syncProductAggregates($quantity->product);
+                    }
+                }
+            }
+
+            $invoice->status = 'PENDING';
+            $invoice->save();
+        }
         $activeGateway = config('xshop.payment.active_gateway');
         /** @var Payment $gateway */
         $gateway = app($activeGateway.'-gateway');
@@ -1027,6 +1050,7 @@ class ClientController extends Controller
         } catch (\Throwable $exception) {
             $invoice->status = 'FAILED';
             $invoice->save();
+            $invoice->releaseReservedStock();
             \Log::error('Payment REQUEST exception: '.$exception->getMessage());
             \Log::warning($exception->getTraceAsString());
             $result = false;
