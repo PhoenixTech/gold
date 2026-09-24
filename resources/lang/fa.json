@@ -2225,5 +2225,21 @@
     "Resend SMS & Courier Reassignment": "ارسال مجدد پیامک و تغییر پیک",
     "Courier PIN Verification Guardrail": "حفاظت امنیتی: الزام ثبت کد ۴ رقمی توسط پیک",
     "Immediate Gold Stock Restoration": "بازگشت فوری قطعه طلا به موجودی قابل فروش",
-    "Automatic background worker (offline:expire)": "ربات پس‌زمینه انقضای سفارشات (offline:expire)"
+    "Automatic background worker (offline:expire)": "ربات پس‌زمینه انقضای سفارشات (offline:expire)",
+    "Delivery type": "روش تحویل",
+    "Select delivery method": "انتخاب شیوه تحویل",
+    "Gallery pickup details": "مشخصات تحویل حضوری",
+    "Address and shipping method": "آدرس و شیوه ارسال",
+    "Invoice details": "جزئیات فاکتور",
+    "Order review and invoice": "بررسی سفارش و جزئیات فاکتور",
+    "Continue to payment": "ادامه به پرداخت",
+    "Selected products": "محصولات انتخاب شده",
+    "Express courier delivery in Tehran": "ارسال با پیک اختصاصی در تهران",
+    "Direct pickup from gallery showroom": "تحویل مستقیم در شووروم گالری",
+    "Cart short": "سبد",
+    "Delivery type short": "روش",
+    "Delivery details short": "مشخصات",
+    "Invoice short": "فاکتور",
+    "Payment short": "پرداخت",
+    "Account short": "حساب"
 }

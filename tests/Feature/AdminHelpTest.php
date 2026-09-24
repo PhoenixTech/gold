@@ -138,10 +138,8 @@ class AdminHelpTest extends TestCase
 
         $this->get(route('admin.help', ['topic' => 'checkout']))
             ->assertOk()
-            ->assertSee('خرید مشتری چطور انجام می‌شود؟', false)
-            ->assertSee('قطعه را به سبد بگذارید', false)
-            ->assertSee('به کارت بانکی فعال بپردازید', false)
-            ->assertSee('رسید را بارگذاری کنید', false);
+            ->assertSee('راهنمای جامع مراحل خرید مشتری و مدیریت سفارشات', false)
+            ->assertSee('مرحله ۱ سبد: اقلام و تثبیت قیمت زنده طلا', false);
     }
 
     public function test_shop_settings_topic_covers_gold_checkout_and_bank_card(): void

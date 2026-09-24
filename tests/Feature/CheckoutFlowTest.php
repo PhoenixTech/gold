@@ -386,4 +386,61 @@ class CheckoutFlowTest extends TestCase
         $this->assertStringContainsString('تهران خیابان آزادی پلاک ۱۰', $html);
         $this->assertStringNotContainsString('Attempt to read property', $html);
     }
+
+    public function test_card_view_payload_contains_5_step_workflow_translations(): void
+    {
+        $this->seed(GfxSeeder::class);
+
+        $customer = Customer::factory()->create([
+            'name' => 'خریدار نمونه',
+            'mobile' => '09121113344',
+        ]);
+
+        $product = Product::factory()->create([
+            'user_id' => User::factory()->create()->id,
+            'category_id' => Category::factory()->create()->id,
+            'status' => 1,
+            'stock_status' => 'IN_STOCK',
+            'price' => 1_000_000,
+            'stock_quantity' => 1,
+            'sku' => 'SKU-'.uniqid(),
+            'slug' => 'p-'.uniqid(),
+        ]);
+
+        $quantity = Quantity::factory()->create([
+            'product_id' => $product->id,
+            'weight' => 2,
+            'count' => 1,
+            'price' => 1_000_000,
+            'code' => 'C-'.uniqid(),
+        ]);
+
+        $response = $this->actingAs($customer, 'customer')
+            ->withCookie('card', json_encode([$product->id]))
+            ->withCookie('q', json_encode([$quantity->id]))
+            ->get(route('client.card'));
+
+        $response->assertOk();
+        $response->assertSee('ns-card', false);
+
+        preg_match('/payload-b64="([^"]+)"/', $response->getContent(), $matches);
+        $this->assertNotEmpty($matches);
+
+        $payload = json_decode(base64_decode($matches[1]), true);
+        $this->assertIsArray($payload);
+        $this->assertArrayHasKey('translate', $payload);
+
+        $translations = $payload['translate'];
+        $this->assertArrayHasKey('delivery-type', $translations);
+        $this->assertArrayHasKey('delivery-details', $translations);
+        $this->assertArrayHasKey('invoice-details', $translations);
+        $this->assertArrayHasKey('payment-details', $translations);
+        $this->assertArrayHasKey('continue-to-payment', $translations);
+
+        $this->assertSame('روش تحویل', $translations['delivery-type']);
+        $this->assertSame('مشخصات تحویل گیرنده', $translations['delivery-details']);
+        $this->assertSame('جزئیات فاکتور', $translations['invoice-details']);
+        $this->assertSame('اطلاعات پرداخت', $translations['payment-details']);
+        $this->assertSame('ادامه به پرداخت', $translations['continue-to-payment']);
+    }
 }
