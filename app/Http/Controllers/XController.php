@@ -45,17 +45,10 @@ abstract class XController extends Controller
         }
     }
 
-    /**
-     * Child classes should persist and return the model item.
-     */
     public function save($item, $request)
     {
         return $item;
     }
-
-    // =========================================================================
-    // Core List & Resource Actions
-    // =========================================================================
 
     public function index()
     {
@@ -115,10 +108,6 @@ abstract class XController extends Controller
         return $this->do_bulk($msg, $action, $ids);
     }
 
-    // =========================================================================
-    // CRUD Handlers (Invoked directly or through fallback __call)
-    // =========================================================================
-
     public function bringUp(Request $request, $item)
     {
         $target = $this->resolveItem($item);
@@ -159,11 +148,6 @@ abstract class XController extends Controller
         return redirect()->back()->with(['message' => __('As you wished restored successfully')]);
     }
 
-    // =========================================================================
-    // Dynamic Fallback for standard methods (create, edit, update, destroy, restore)
-    // Allows child controllers to omit them without signature conflict errors.
-    // =========================================================================
-
     public function __call($method, $parameters)
     {
         switch ($method) {
@@ -187,10 +171,6 @@ abstract class XController extends Controller
 
         return parent::__call($method, $parameters);
     }
-
-    // =========================================================================
-    // Helper Methods
-    // =========================================================================
 
     protected function do_bulk($msg, $action, $ids)
     {

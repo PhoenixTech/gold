@@ -75,7 +75,7 @@ class XControllerTest extends TestCase
 
         $cat = Category::create([
             'name' => 'Rings',
-            'slug' => 'rings',
+            'slug' => 'rings-'.uniqid(),
         ]);
 
         $controller = new TestDummyController;

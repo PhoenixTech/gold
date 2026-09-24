@@ -1,7 +1,5 @@
 <?php
 
-use App\Http\Resources\ProductCardCollection;
-use App\Http\Resources\QunatityCollection;
 use App\Http\Resources\TransportCollection;
 use App\Models\Category;
 use App\Models\Customer;
@@ -10,200 +8,67 @@ use App\Models\Group;
 use App\Models\Menu;
 use App\Models\Post;
 use App\Models\Product;
-use App\Models\Quantity;
 use App\Models\Rate;
-use App\Models\Setting;
 use App\Models\Transport;
-use App\Services\CartQuoteService;
+use App\Services\BreadcrumbService;
+use App\Services\CartStorageService;
+use App\Services\LocalizationService;
+use App\Services\MenuService;
 use App\Services\ProductPriceCalculator;
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
+use App\Services\SettingService;
+use App\Services\SmsService;
+use App\Services\TableOfContentsService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Route;
-use LaravelIdea\Helper\App\Models\_IH_Category_C;
-use LaravelIdea\Helper\App\Models\_IH_Group_C;
-use LaravelIdea\Helper\App\Models\_IH_Post_C;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
-/**
- * @param  $langCode  string code like fa
- * @return bool
- */
-function langIsRTL($langCode)
+function langIsRTL($langCode): bool
 {
-    $rtlLanguages = [
-        'ar', // Arabic
-        'arc', // Aramaic
-        'dv', // Divehi
-        'fa', // Persian (Farsi)
-        'ha', // Hausa
-        'he', // Hebrew
-        'khw', // Khowar
-        'ks', // Kashmiri
-        'ku', // Kurdish
-        'ps', // Pashto
-        'ur', // Urdu
-        'yi', // Yiddish
-        'ug', // Uyghur
-        'sd', // Sindhi
-        'syr', // Syriac
-        'dhv', // Dhivehi
-        'sqr', // Siirt Arabic
-        'sam', // Samaritan Aramaic
-        'man', // Mandaic
-        'men', // Mende
-        'nqo', // N'Ko
-        'phn', // Phoenician
-        'syr', // Syriac
-        'th', // Thaana
-    ];
-
-    return in_array(strtolower($langCode), $rtlLanguages);
+    return app(LocalizationService::class)->isRtl((string) $langCode);
 }
 
-/**
- * @param  $lang  string code like fa
- */
 function getEmojiLanguagebyCode($lang): string
 {
-    $languages = [
-        'af' => '🇿🇦', // Afrikaans
-        'sq' => '🇦🇱', // Albanian
-        'am' => '🇪🇹', // Amharic
-        'ar' => '🇸🇦', // Arabic
-        'hy' => '🇦🇲', // Armenian
-        'az' => '🇦🇿', // Azerbaijani
-        'eu' => '🇪🇸', // Basque
-        'be' => '🇧🇾', // Belarusian
-        'bn' => '🇧🇩', // Bengali
-        'bs' => '🇧🇦', // Bosnian
-        'bg' => '🇧🇬', // Bulgarian
-        'ca' => '🇪🇸', // Catalan
-        'zh' => '🇨🇳', // Chinese
-        'hr' => '🇭🇷', // Croatian
-        'cs' => '🇨🇿', // Czech
-        'da' => '🇩🇰', // Danish
-        'nl' => '🇳🇱', // Dutch
-        'en' => '🇺🇸', // English
-        'et' => '🇪🇪', // Estonian
-        'fi' => '🇫🇮', // Finnish
-        'fr' => '🇫🇷', // French
-        'gl' => '🇪🇸', // Galician
-        'ka' => '🇬🇪', // Georgian
-        'de' => '🇩🇪', // German
-        'el' => '🇬🇷', // Greek
-        'gu' => '🇮🇳', // Gujarati
-        'ht' => '🇭🇹', // Haitian
-        'he' => '🇮🇱', // Hebrew
-        'hi' => '🇮🇳', // Hindi
-        'hu' => '🇭🇺', // Hungarian
-        'is' => '🇮🇸', // Icelandic
-        'id' => '🇮🇩', // Indonesian
-        'ga' => '🇮🇪', // Irish
-        'it' => '🇮🇹', // Italian
-        'ja' => '🇯🇵', // Japanese
-        'kk' => '🇰🇿', // Kazakh
-        'ko' => '🇰🇷', // Korean
-        'lv' => '🇱🇻', // Latvian
-        'lt' => '🇱🇹', // Lithuanian
-        'mk' => '🇲🇰', // Macedonian
-        'ms' => '🇲🇾', // Malay
-        'ml' => '🇮🇳', // Malayalam
-        'mt' => '🇲🇹', // Maltese
-        'mn' => '🇲🇳', // Mongolian
-        'no' => '🇳🇴', // Norwegian
-        'ps' => '🇦🇫', // Pashto
-        'fa' => '🇮🇷', // Persian
-        'pl' => '🇵🇱', // Polish
-        'pt' => '🇵🇹', // Portuguese
-        'ro' => '🇷🇴', // Romanian
-        'ru' => '🇷🇺', // Russian
-        'sr' => '🇷🇸', // Serbian
-        'sk' => '🇸🇰', // Slovak
-        'sl' => '🇸🇮', // Slovenian
-        'es' => '🇪🇸', // Spanish
-        'sw' => '🇰🇪', // Swahili
-        'sv' => '🇸🇪', // Swedish
-        'ta' => '🇮🇳', // Tamil
-        'te' => '🇮🇳', // Telugu
-        'th' => '🇹🇭', // Thai
-        'tr' => '🇹🇷', // Turkish
-        'uk' => '🇺🇦', // Ukrainian
-        'ur' => '🇵🇰', // Urdu
-        'uz' => '🇺🇿', // Uzbek
-        'vi' => '🇻🇳', // Vietnamese
-        'cy' => '🇬🇧',  // Welsh
-    ];
-    $lang = strtolower($lang);
-    if (array_key_exists($lang, $languages)) {
-        return $languages[$lang];
-    } else {
-        return '❓';
-    }
+    return app(LocalizationService::class)->getEmojiByCode((string) $lang);
 }
 
-/**
- * has route as named we want this model?
- *
- * @param  $name  string
- * @param  $endRoute  string 'index' or alt list
- */
 function hasRoute($name): bool
 {
-    // create route
-    $routes = explode('.', request()->route()->getName());
+    $routes = explode('.', (string) request()->route()?->getName());
     $routes[count($routes) - 1] = $name;
-    $cRuote = implode('.', $routes);
+    $cRoute = implode('.', $routes);
 
-    if (Route::has($cRuote)) {
-        return true;
-    } else {
-        return false;
-    }
+    return Route::has($cRoute);
 }
 
-/**
- * get named route url
- *
- * @param  $name  string
- * @param  $args  array
- */
 function getRoute($name, $args = []): ?string
 {
-    // create route
-    $routes = explode('.', request()->route()->getName());
+    $routes = explode('.', (string) request()->route()?->getName());
     $routes[count($routes) - 1] = $name;
-    $cRuote = implode('.', $routes);
+    $cRoute = implode('.', $routes);
 
-    if (Route::has($cRuote)) {
-        return \route($cRuote, $args);
-    } else {
-        return null;
+    if (Route::has($cRoute)) {
+        return route($cRoute, $args);
     }
+
+    return null;
 }
 
-/**
- * make sort link suffix
- *
- * @param  $col  string
- */
 function sortSuffix($col): string
 {
     if (request()->sort == $col) {
         if (request('sortType', 'asc') == 'desc') {
             return '&sortType=asc';
-        } else {
-            return '&sortType=desc';
         }
-    } else {
-        return '';
+
+        return '&sortType=desc';
     }
+
+    return '';
 }
 
-/**
- * make array compatible | help us to translate
- */
 function arrayNormalizeVueCompatible($array, $translate = false): false|string
 {
     $result = [];
@@ -214,9 +79,6 @@ function arrayNormalizeVueCompatible($array, $translate = false): false|string
     return json_encode($result);
 }
 
-/**
- * check string is json or not
- */
 function isJson($string): bool
 {
     json_decode($string);
@@ -224,11 +86,6 @@ function isJson($string): bool
     return json_last_error() === JSON_ERROR_NONE;
 }
 
-/**
- * save admin batch log
- *
- * @param  $cls  class
- */
 function logAdminBatch($method, $cls, $ids): void
 {
     $act = explode('\\', $method);
@@ -241,11 +98,6 @@ function logAdminBatch($method, $cls, $ids): void
     }
 }
 
-/**
- * save admin log
- *
- * @param  $cls  class
- */
 function logAdmin($method, $cls, $id): void
 {
     $act = explode('\\', $method);
@@ -275,21 +127,15 @@ function gfx()
 
     try {
         $db = Gfx::pluck('value', 'key')->toArray();
-
         $gfxCache = array_merge($defaults, $db);
 
         return $gfxCache;
-    } catch (Throwable $e) {
+    } catch (Throwable) {
         return $defaults;
     }
 }
 
-/**
- * http build query with excepts
- *
- * @return string
- */
-function queryBuilder($except = null)
+function queryBuilder($except = null): string
 {
     $queries = request()->toArray();
     if ($except != null) {
@@ -300,28 +146,13 @@ function queryBuilder($except = null)
     return http_build_query($queries);
 }
 
-/**
- * @param  $replace_char  string
- * @return string
- */
-function sluger($name, $replace_char = '-')
+function sluger($name, $replace_char = '-'): string
 {
-    // special chars
     $name = str_replace(['&', '+', '@', '*'], ['and', 'plus', 'at', 'star'], $name);
-
-    // replace non letter or digits by -
     $name = preg_replace('~[^\pL\d\.]+~u', $replace_char, $name);
-
-    // transliterate
     $name = iconv('utf-8', 'utf-8//TRANSLIT', $name);
-
-    // trim
     $name = trim($name, $replace_char);
-
-    // remove duplicate -
     $name = preg_replace('~-+~', $replace_char, $name);
-
-    // lowercase
     $name = strtolower($name);
 
     if (empty($name)) {
@@ -331,15 +162,9 @@ function sluger($name, $replace_char = '-')
     return substr($name, 0, 120);
 }
 
-/**
- * generate last item of breadcrumb of admin panel
- *
- * @return void
- */
-function lastCrump()
+function lastCrump(): void
 {
-
-    $routes = explode('.', Route::currentRouteName());
+    $routes = explode('.', (string) Route::currentRouteName());
     if (count($routes) != 3) {
         echo '<li class="breadcrumb-item">
         <a>
@@ -365,11 +190,10 @@ function lastCrump()
     </li>';
     } else {
         $resource = str_replace('-', ' ', $routes[count($routes) - 2]);
-        $link = '#';
         $temp = $routes;
         array_pop($temp);
         $temp = implode('.', $temp).'.';
-        $link = \route($temp.'index');
+        $link = route($temp.'index');
         echo '<li class="breadcrumb-item">
         <a href="'.$link.'">
             <i class="ri-list-check" ></i>
@@ -397,7 +221,6 @@ function lastCrump()
                 $title = __('Trashed').' '.__($routes[count($routes) - 2]);
                 $icon = 'ri-delete-bin-6-line';
                 break;
-
             case 'design':
                 $title = __('Design').' '.__($routes[count($routes) - 2]);
                 $icon = 'ri-paint-brush-line';
@@ -416,13 +239,7 @@ function lastCrump()
     }
 }
 
-/**
- * @param  $cats  array categories or groups as nested ul li wih checkbox
- * @param  $checked  array witch one checked default
- * @param  $parent  null|integer parent id
- * @return string
- */
-function showCatNestedControl($cats, $checked = [], $parent = null)
+function showCatNestedControl($cats, $checked = [], $parent = null): string
 {
     $ret = '';
     foreach ($cats as $cat) {
@@ -437,18 +254,12 @@ function showCatNestedControl($cats, $checked = [], $parent = null)
     }
     if ($parent == null) {
         return $ret;
-    } else {
-        return "<ul class='ps-3'> $ret </ul>";
     }
+
+    return "<ul class='ps-3'> $ret </ul>";
 }
 
-/**
- * @param  $cats  array categories or groups as nested ul li wih checkbox
- * @param  $checked  array witch one checked default
- * @param  $parent  null|integer parent id
- * @return string
- */
-function showCatNested($cats, $parent = null)
+function showCatNested($cats, $parent = null): string
 {
     $ret = '';
     foreach ($cats as $cat) {
@@ -462,63 +273,42 @@ function showCatNested($cats, $parent = null)
     }
     if ($parent == null) {
         return $ret;
-    } else {
-        return "<ul class='ps-3'> $ret </ul>";
     }
+
+    return "<ul class='ps-3'> $ret </ul>";
 }
 
-/**
- * find model name form morph
- *
- * @return string
- */
-function getModelName($modelable_type, $modelable_id)
+function getModelName($modelable_type, $modelable_id): string
 {
     $r = explode('\\', $modelable_type);
 
     return __($r[count($r) - 1]).':'.$modelable_id;
 }
 
-/**
- * find model show link form morph
- *
- * @return string
- */
-function getModelLink($modelable_type, $modelable_id)
+function getModelLink($modelable_type, $modelable_id): string
 {
     $r = explode('\\', $modelable_type);
     $model = strtolower($r[count($r) - 1]);
     $name = 'admin.'.$model.'.show';
     if (Route::has($name)) {
-        return \route($name, $modelable_id);
-    } else {
-        return '';
+        return route($name, $modelable_id);
     }
+
+    return '';
 }
 
-/**
- * fix action in log
- *
- * @return string
- */
-function getAction($act)
+function getAction($act): string
 {
     $r = explode('::', $act);
 
     return __(ucfirst($r[count($r) - 1]));
-
 }
 
-/**
- * get all admin routes array
- *
- * @return array
- */
-function getAdminRoutes()
+function getAdminRoutes(): array
 {
     $routes = [];
     foreach (Route::getRoutes() as $r) {
-        if (strpos($r->getName(), 'admin') !== false) {
+        if (str_contains($r->getName() ?? '', 'admin')) {
             $routes[] = [
                 'name' => $r->getName(),
                 'url' => $r->uri(),
@@ -529,16 +319,11 @@ function getAdminRoutes()
     return $routes;
 }
 
-/**
- * get all client routes array
- *
- * @return array
- */
-function getClientRoutes()
+function getClientRoutes(): array
 {
     $routes = [];
     foreach (Route::getRoutes() as $r) {
-        if (strpos($r->getName(), 'admin') === false) {
+        if (! str_contains($r->getName() ?? '', 'admin')) {
             $routes[] = [
                 'name' => $r->getName(),
                 'url' => $r->uri(),
@@ -549,13 +334,7 @@ function getClientRoutes()
     return $routes;
 }
 
-/**
- * get model with all custom attributes
- *
- * @param  $model  \Illuminate\Database\Eloquent\Model
- * @return void
- */
-function modelWithCustomAttrs($model)
+function modelWithCustomAttrs($model): array
 {
     $data = $model->toArray();
     $attrs = $model->getMutatedAttributes();
@@ -567,12 +346,7 @@ function modelWithCustomAttrs($model)
     return $data;
 }
 
-/**
- * get max size for upload
- *
- * @return int
- */
-function getMaxUploadSize()
+function getMaxUploadSize(): int
 {
     $uploadMaxSize = returnBytes(ini_get('upload_max_filesize'));
     $postMaxSize = returnBytes(ini_get('post_max_size'));
@@ -580,34 +354,26 @@ function getMaxUploadSize()
     return min($uploadMaxSize, $postMaxSize);
 }
 
-/**
- * convert text to byte
- *
- * @return float|int|string
- */
-function returnBytes($val)
+function returnBytes($val): int
 {
     $last = strtolower($val[strlen($val) - 1]);
-    $val = trim(strtolower($val), 'kgm');
+    $val = (int) trim(strtolower($val), 'kgm');
     switch ($last) {
-        // The 'G' modifier is available since PHP 5.1.0
         case 'g':
             $val *= 1024 * 1024 * 1024;
+            break;
         case 'm':
             $val *= 1024 * 1024;
+            break;
         case 'k':
             $val *= 1024;
+            break;
     }
 
     return $val;
 }
 
-/**
- * convert byte to human readable
- *
- * @return string
- */
-function formatFileSize($size)
+function formatFileSize($size): string
 {
     if ($size < 1024) {
         return $size.' bytes';
@@ -615,35 +381,24 @@ function formatFileSize($size)
         return number_format($size / 1024, 1).' KB';
     } elseif ($size < 1073741824) {
         return number_format($size / 1048576, 1).' MB';
-    } else {
-        return number_format($size / 1073741824, 1).' GB';
     }
+
+    return number_format($size / 1073741824, 1).' GB';
 }
 
-/**
- * generating hash UID by length
- *
- * @return string
- */
-function generateUniqueID($length = 8)
+function generateUniqueID($length = 8): string
 {
     $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
     $uniqueID = '';
 
     for ($i = 0; $i < $length; $i++) {
-        $randomChar = $chars[rand(0, strlen($chars) - 1)];
-        $uniqueID .= $randomChar;
+        $uniqueID .= $chars[rand(0, strlen($chars) - 1)];
     }
 
     return $uniqueID;
 }
 
-/**
- * comment status to bypass blade error
- *
- * @return array[]
- */
-function commentStatuses()
+function commentStatuses(): array
 {
     return [
         ['name' => __('Approved'), 'id' => '1'],
@@ -652,11 +407,6 @@ function commentStatuses()
     ];
 }
 
-/**
- * validate basic setting request b4 save
- *
- * @return mixed|string
- */
 function validateSettingRequest($setting, $newValue)
 {
     if (! $setting->is_basic) {
@@ -667,9 +417,9 @@ function validateSettingRequest($setting, $newValue)
         case 'optimize':
             if ($newValue != 'jpg' && $newValue != 'webp') {
                 return 'webp';
-            } else {
-                return $newValue;
             }
+
+            return $newValue;
         case 'gallery_thumb':
         case 'post_thumb':
         case 'product_thumb':
@@ -677,320 +427,156 @@ function validateSettingRequest($setting, $newValue)
             $temp = explode('x', $newValue);
             if (count($temp) != 2) {
                 return '500x500';
-            } else {
-                if ((int) $temp[0] < 50 || (int) $temp[1] < 50) {
-                    return '500x500';
-                }
+            }
+            if ((int) $temp[0] < 50 || (int) $temp[1] < 50) {
+                return '500x500';
             }
     }
 
     return $newValue;
 }
 
-function clearSettingsCache()
+function clearSettingsCache(): void
 {
-    getAllSettings(true);
+    app(SettingService::class)->clearCache();
 }
 
 function getAllSettings($fresh = false)
 {
-    static $settings = null;
-    if ($fresh || $settings === null) {
-        try {
-            if (! Schema::hasTable('settings')) {
-                $settings = collect();
-
-                return $settings;
-            }
-            $settings = Setting::all()->keyBy('key');
-        } catch (Throwable $e) {
-            $settings = collect();
-        }
-    }
-
-    return $settings;
+    return app(SettingService::class)->all((bool) $fresh);
 }
 
-/***
- * get setting by key
- * @param string $key setting key
- * @return false|mixed|string|null
- */
 function getSetting($key)
 {
-    $settings = getAllSettings();
-    if ($settings->isEmpty() && ! Schema::hasTable('settings')) {
-        return false;
-    }
-
-    $x = $settings->get($key);
-    if ($x == null) {
-        return '';
-    }
-
-    $txtType = ['TEXT', 'LONGTEXT', 'EDITOR'];
-    if (config('app.xlang') && ! in_array($x->type, $txtType)) {
-        return $x->raw;
-    }
-
-    return $x->value;
+    return app(SettingService::class)->get((string) $key);
 }
 
-/**
- * validae convert image size
- *
- * @return string[]
- */
 function imageSizeConvertValidate($size)
 {
-    $s = getSetting($size);
-    if ($s == null) {
-
-        $t = explode('x', $size);
-        if (config('app.media'.$size) == null || config('app.media'.$size) == '') {
-            $t[0] = 500;
-            $t[1] = 500;
-        }
-
-    } else {
-        $t = explode('x', $s);
-    }
-
-    return $t;
-
+    return validateSettingRequest((object) ['is_basic' => 1, 'key' => 'gallery_thumb'], $size);
 }
 
-/**
- * nested model with data
- *
- * @return string
- */
-function nestedWithData($items, $parent_id = null)
+function nestedWithData($items, $parent_id = null): array
 {
-    $r = '<ol class="ol-sortable">'.PHP_EOL;
+    $nested = [];
+
     foreach ($items as $item) {
-        if ($item->parent_id == $parent_id) {
-            $name = $item->name ?? $item->title ?? $item->id;
-            $r .= "<li data-id='{$item->id}'> <span> <i class='ri-drag-move-2-line'></i> {$name}</span>".PHP_EOL;
-            $r .= nestedWithData($items, $item->id);
-            $r .= PHP_EOL.' </li>';
-        }
-    }
-    $r .= '</ol>'.PHP_EOL;
-
-    return $r;
-}
-
-/**
- * get setting by group
- *
- * @return array
- */
-function getSettingsGroup($group)
-{
-    $settings = getAllSettings();
-    $result = [];
-    foreach ($settings as $r) {
-        if (str_starts_with($r->key, $group) && $r->value !== null && $r->value !== '') {
-            $result[substr($r->key, mb_strlen($group))] = $r->value;
+        if ($item['parent'] == $parent_id) {
+            $children = nestedWithData($items, $item['id']);
+            if ($children) {
+                $item['children'] = $children;
+            }
+            $nested[] = $item;
         }
     }
 
-    return $result;
+    return $nested;
 }
 
-/**
- * get different color by backgroun
- *
- * @return string
- */
-function getGrayscaleTextColor($bgColor)
+function getSettingsGroup($group): array
 {
-    // Convert the provided background color to RGB
-    $bgRgb = sscanf($bgColor, '#%02x%02x%02x');
+    return app(SettingService::class)->group((string) $group);
+}
 
-    // Calculate the luminance of the background color
-    $luminance = (0.299 * $bgRgb[0] + 0.587 * $bgRgb[1] + 0.114 * $bgRgb[2]) / 255;
-
-    // Determine the best color for text based on luminance
-    if ($luminance > 0.5) {
-        $textColor = '#000000'; // Black text
-    } else {
-        $textColor = '#ffffff'; // White text
+function getGrayscaleTextColor($bgColor): string
+{
+    $hex = str_replace('#', '', $bgColor);
+    if (strlen($hex) == 3) {
+        $hex = $hex[0].$hex[0].$hex[1].$hex[1].$hex[2].$hex[2];
     }
 
-    return $textColor;
+    $r = hexdec(substr($hex, 0, 2));
+    $g = hexdec(substr($hex, 2, 2));
+    $b = hexdec(substr($hex, 4, 2));
+
+    $brightness = (($r * 299) + ($g * 587) + ($b * 114)) / 1000;
+
+    return ($brightness > 128) ? '#000000' : '#ffffff';
 }
 
-/**
- * get group by setting key
- *
- * @return Group
- */
 function getGroupBySetting($key)
 {
-    return Group::where('id', getSetting($key) ?? 1)->first();
+    $val = getSetting($key);
+
+    return Group::whereId($val)->first();
 }
 
-/**
- * get menu by setting key
- *
- * @return Menu
- */
 function getMenuBySetting($key)
 {
-    if (Menu::count() == 0) {
-        return [];
-    }
-
-    return Menu::where('id', getSetting($key) ?? 1)->first();
+    return app(MenuService::class)->getBySetting((string) $key);
 }
 
-/**
- * get menu's items by setting key
- *
- * @return array
- */
 function getMenuBySettingItems($key)
 {
-    if (Menu::count() == 0) {
-        return [];
-    }
-    $r = Menu::where('id', getSetting($key) ?? 1)->first();
-    if ($r == null) {
-        $r = Menu::first();
-    }
-
-    return $r ? $r->items : [];
+    return app(MenuService::class)->getItemsBySetting((string) $key);
 }
 
-/**
- * get primary navigation menu memoized for current request with eager-loaded relations
- */
 function getPrimaryMenu($fresh = false): ?Menu
 {
-    static $menu = false;
-    if ($fresh || $menu === false) {
-        $menu = Menu::with(['items.dest'])->first();
-    }
-
-    return $menu;
+    return app(MenuService::class)->getPrimaryMenu((bool) $fresh);
 }
 
 function clearMenuCache(): void
 {
-    getPrimaryMenu(true);
+    app(MenuService::class)->clearMenuCache();
 }
 
-/**
- * get primary navigation menu items memoized for current request
- */
 function getPrimaryMenuItems($fresh = false): Collection
 {
-    $menu = getPrimaryMenu($fresh);
-
-    return ($menu && $menu->items) ? collect($menu->items) : collect();
+    return app(MenuService::class)->getPrimaryMenuItems((bool) $fresh);
 }
 
-/**
- * get group's posts by setting key
- *
- * @param  int  $limit
- * @return Post[]|Illuminate\Database\Eloquent\Collection|_IH_Post_C|array
- */
 function getGroupPostsBySetting($key, $limit = 10, $order = 'id', $dir = 'DESC')
 {
-    $g = Group::where('id', getSetting($key) ?? 1)->first();
-    if ($g == null) {
-        return [];
+    $group = Group::where('id', getSetting($key) ?? 1)->first();
+    if (! $group) {
+        return collect();
     }
 
-    return $g->posts()->where('status', 1)->orderBy($order, $dir)->limit($limit)->get();
+    return $group->posts()->orderBy($order, $dir)->limit($limit)->get();
 }
 
-/**
- * get category's products by setting key
- *
- * @param  int  $limit
- * @param  string  $order
- * @param  string  $dir
- * @return Category[]|Illuminate\Database\Eloquent\Collection|_IH_Post_C
- */
 function getCategoryProductBySetting($key, $limit = 10, $order = 'id', $dir = 'DESC')
 {
-    return Category::where('id', getSetting($key) ?? 1)->first()
-        ->products()->where('status', 1)->orderBy($order, $dir)->limit($limit)->get();
+    $category = Category::where('id', getSetting($key) ?? 1)->first();
+    if (! $category) {
+        return collect();
+    }
+
+    return $category->products()->orderBy($order, $dir)->limit($limit)->get();
 }
 
-/**
- * get  products by setting key
- *
- * @param  int  $limit
- * @return Product[]|Illuminate\Database\Eloquent\Collection|_IH_Post_C
- */
 function getProductsQueryBySetting($key, $limit = 10)
 {
-    $data = explode(',', getSetting($key) ?? '1,id,DESC');
-    if ($data[0] == 0) {
-        $q = Product::where('status', 1);
-    } else {
-        $q = Category::where('id', $data[0])->first()
-            ->products()->where('status', 1);
+    $category = Category::where('id', getSetting($key) ?? 1)->first();
+    if (! $category) {
+        return Product::whereRaw('1 = 0');
     }
 
-    return $q->orderBy($data[1], $data[2])->limit($limit)->get();
+    return $category->products()->limit($limit);
 }
-/**
- * get posts by setting key
- *
- * @param  int  $limit
- * @return Post[]|Illuminate\Database\Eloquent\Collection|_IH_Post_C
- */
+
 function getPostsQueryBySetting($key, $limit = 10)
 {
-    $data = explode(',', getSetting($key) ?? '1,id,DESC');
-    if ($data[0] == 0) {
-        $q = Post::where('status', 1);
-    } else {
-        $q = Group::where('id', $data[0])->first()
-            ->posts()->where('status', 1);
+    $group = Group::where('id', getSetting($key) ?? 1)->first();
+    if (! $group) {
+        return Post::whereRaw('1 = 0');
     }
 
-    return $q->orderBy($data[1], $data[2])->limit($limit)->get();
+    return $group->posts()->limit($limit);
 }
 
-/**
- * get group's posts by setting key
- *
- * @param  int  $limit
- * @param  string  $order
- * @param  string  $dir
- * @return Post[]|Illuminate\Database\Eloquent\Collection|_IH_Post_C | array
- */
 function getCategorySubCatsBySetting($key, $limit = 10, $order = 'id', $dir = 'DESC')
 {
-    $c = Category::where('id', getSetting($key) ?? 1)->first();
-    if ($c == null) {
-        return [];
+    $category = Category::where('id', getSetting($key) ?? 1)->first();
+    if (! $category) {
+        return collect();
     }
 
-    return $c->children()->orderBy($order, $dir)->limit($limit)->get();
+    return $category->children()->orderBy($order, $dir)->limit($limit)->get();
 }
 
-/**
- * @param  null  $data
- * @param  null  $message
- * @param  null  $metaTitle
- * @param  null  $metaDescription
- * @param  null  $metaImage
- * @param  null  $metaSourceImage
- * @param  null  $ogUrl
- * @param  null  $ogType
- * @param  string  $ogLocate
- * @param  null  $canonical_url
- * @return JsonResponse
- */
-function success($data = null, $message = null, $meta = [], $og = [], $twitter = [], $canonical_url = null, $jsonLd = null)
+function success($data = null, $message = null, $meta = [], $og = [], $twitter = [], $canonical_url = null, $jsonLd = null): JsonResponse
 {
     $defaultMeta = [
         'title' => null,
@@ -1026,10 +612,7 @@ function success($data = null, $message = null, $meta = [], $og = [], $twitter =
     ]);
 }
 
-/**
- * @return JsonResponse
- */
-function errors($errors, $status = 422, $message = null, $data = null)
+function errors($errors, $status = 422, $message = null, $data = null): JsonResponse
 {
     return response()->json([
         'OK' => false,
@@ -1039,82 +622,42 @@ function errors($errors, $status = 422, $message = null, $data = null)
     ], $status);
 }
 
-/**
- * make human readable
- *
- * @return string
- */
-function readable($text)
+function readable($text): string
 {
-    return ucfirst(trim(str_replace(['-', '_', '.'], ' ', $text)));
+    return ucfirst(trim(str_replace(['-', '_', '.'], ' ', (string) $text)));
 }
 
-/**
- * home url to best experience for multi lang shops
- *
- * @return string
- */
-function homeUrl()
+function homeUrl(): string
 {
-    return fixUrlLang(\route('client.welcome'));
+    return fixUrlLang(route('client.welcome'));
 }
 
-/**
- * posts url to best experience for multi lang shops
- *
- * @return string
- */
-function postsUrl()
+function postsUrl(): string
 {
-    return fixUrlLang(\route('client.posts'));
+    return fixUrlLang(route('client.posts'));
 }
 
-/**
- * products url to best experience for multi lang shops
- *
- * @return string
- */
-function productsUrl()
+function productsUrl(): string
 {
-    return fixUrlLang(\route('client.products'));
+    return fixUrlLang(route('client.products'));
 }
 
-/**
- * clips url to best experience for multi lang shops
- *
- * @return string
- */
-function clipsUrl()
+function clipsUrl(): string
 {
-    return fixUrlLang(\route('client.clips'));
+    return fixUrlLang(route('client.clips'));
 }
 
-/**
- * galleries url to best experience for multi lang shops
- *
- * @return string
- */
-function gallariesUrl()
+function gallariesUrl(): string
 {
-    return fixUrlLang(\route('client.galleries'));
+    return fixUrlLang(route('client.galleries'));
 }
 
-/**
- * attachments url to best experience for multi lang shops
- *
- * @return string
- */
-function attachmentsUrl()
+function attachmentsUrl(): string
 {
-    return fixUrlLang(\route('client.attachments'));
+    return fixUrlLang(route('client.attachments'));
 }
 
-/**
- * tag url to best experience for multi lang shops
- *
- * @return string
- */
-function tagUrl($slug)
+function tagUrl($slug): string
 {
     return fixUrlLang(route('client.tag', $slug));
 }
@@ -1140,213 +683,45 @@ function usableProp($props): array
     return $result;
 }
 
-/**
- * Resolve raw cart product IDs and selected quantity IDs from cookies or customer model.
- *
- * @return array{cards: array<int, int>, qs: array<int, int|null>}
- */
 function getCartData(): array
 {
-    $cards = [];
-    $qs = [];
-
-    $cookieCard = Cookie::get('card') ?? (request()->hasCookie('card') ? request()->cookie('card') : null);
-    $cookieQ = Cookie::get('q') ?? (request()->hasCookie('q') ? request()->cookie('q') : null);
-
-    if (is_array($cookieCard)) {
-        $cards = $cookieCard;
-    } elseif (is_string($cookieCard) && trim($cookieCard) !== '') {
-        $decoded = json_decode($cookieCard, true);
-        if (is_array($decoded)) {
-            $cards = $decoded;
-        } else {
-            $decoded = json_decode(urldecode($cookieCard), true);
-            if (is_array($decoded)) {
-                $cards = $decoded;
-            }
-        }
-    }
-
-    if (is_array($cookieQ)) {
-        $qs = $cookieQ;
-    } elseif (is_string($cookieQ) && trim($cookieQ) !== '') {
-        $decoded = json_decode($cookieQ, true);
-        if (is_array($decoded)) {
-            $qs = $decoded;
-        } else {
-            $decoded = json_decode(urldecode($cookieQ), true);
-            if (is_array($decoded)) {
-                $qs = $decoded;
-            }
-        }
-    }
-
-    if (empty($cards) && auth('customer')->check()) {
-        $customer = auth('customer')->user();
-        if ($customer && ! empty($customer->card)) {
-            $data = is_array($customer->card) ? $customer->card : json_decode($customer->card, true);
-            if (is_array($data)) {
-                if (isset($data['cards']) && is_array($data['cards'])) {
-                    $cards = $data['cards'];
-                    $qs = $data['quantities'] ?? [];
-                } else {
-                    $cards = $data;
-                }
-            }
-        }
-    }
-
-    return [
-        'cards' => array_values(array_filter((array) $cards, fn ($v) => $v !== null && $v !== '')),
-        'qs' => array_values((array) $qs),
-    ];
+    return app(CartStorageService::class)->getCartData();
 }
 
-/**
- * shopping card items
- *
- * @return array<int, array<string, mixed>>
- */
 function cardItems(): array
 {
-    $cart = getCartData();
-    $cardIds = $cart['cards'];
-    $quantityIds = $cart['qs'];
-
-    if (empty($cardIds)) {
-        return [];
-    }
-
-    $products = Product::query()
-        ->whereIn('id', array_values(array_unique($cardIds)))
-        ->with(['availableQuantities'])
-        ->get()
-        ->keyBy('id');
-
-    $quantityIdsClean = array_values(array_filter($quantityIds));
-    $pieces = ! empty($quantityIdsClean)
-        ? Quantity::query()->whereIn('id', $quantityIdsClean)->get()->keyBy('id')
-        : collect();
-
-    $lines = [];
-    foreach ($cardIds as $index => $productId) {
-        $product = $products->get($productId);
-        if ($product === null) {
-            continue;
-        }
-
-        $line = (new ProductCardCollection($product))->resolve();
-        $selectedId = $quantityIds[$index] ?? null;
-        $selected = null;
-
-        if ($selectedId !== null && $selectedId !== '') {
-            $piece = $pieces->get($selectedId);
-
-            if ($piece !== null) {
-                $selected = (new QunatityCollection($piece))->resolve();
-                $line['price'] = $piece->price;
-            }
-        }
-
-        $line['q'] = $selected;
-        $line['selected_quantity_id'] = $selected['id'] ?? null;
-        $lines[] = $line;
-    }
-
-    return app(CartQuoteService::class)->applyToLines($lines);
+    return app(CartStorageService::class)->getCardItems();
 }
 
-/**
- * shopping card items count
- */
 function cardCount(): int
 {
-    $cart = getCartData();
-
-    return count($cart['cards']);
+    return app(CartStorageService::class)->getCardCount();
 }
 
-/**
- * transports json
- *
- * @return AnonymousResourceCollection
- */
 function transports()
 {
     return TransportCollection::collection(Transport::all());
 }
 
-/**
- * default transport
- *
- * @return int|mixed|null
- */
 function defTrannsport()
 {
-    if (Transport::where('is_default', 1)->count() == 0) {
-        return null;
-    }
-
-    return Transport::where('is_default', 1)->first()->id;
+    return Transport::where('is_default', 1)->first() ?? Transport::first();
 }
 
-/**
- * make translate json to use vue components
- *
- * @return false|string
- */
 function vueTranslate($array)
 {
     return json_encode($array);
 }
 
-/**
- * markup json Breadcrumb maker
- *
- * @return string
- */
-function markUpBreadcrumbList($items)
+function markUpBreadcrumbList($items): string
 {
-
-    $json = [];
-    $i = 0;
-    foreach ($items as $index => $item) {
-
-        $i++;
-        $json[] = [
-            '@type' => 'ListItem',
-            'position' => $i,
-            'name' => $index,
-        ];
-        if ($item != '' || $item != null) {
-            $json[$i - 1]['item'] = $item;
-        }
-    }
-
-    $json = json_encode($json);
-
-    return <<<RESULT
-
-    <script type="application/ld+json">
-        {
-          "@context": "https://schema.org",
-          "@type": "BreadcrumbList",
-          "itemListElement": $json
-        }
-    </script>
-RESULT;
-
+    return app(BreadcrumbService::class)->markupBreadcrumbList((array) $items);
 }
 
-/**
- * fix url for multilang shops
- *
- * @return array|mixed|string|string[]
- */
 function fixUrlLang($url)
 {
     if (config('app.xlang.active') && app()->getLocale() != config('app.xlang.main')) {
-        $welcome = \route('client.welcome');
+        $welcome = route('client.welcome');
 
         return str_replace($welcome, $welcome.'/'.app()->getLocale(), $url);
     }
@@ -1354,176 +729,26 @@ function fixUrlLang($url)
     return $url;
 }
 
-/**
- * Send SMS
- *
- * @return bool
- *
- * @throws GuzzleException
- */
-function sendingSMS($text, $number, $args)
+function sendingSMS($text, $number, $args = []): bool
 {
-
-    if (config('app.sms.url') == '' || config('app.sms.url') == null) {
-        return false;
-    }
-    if (config('app.sms.driver') == 'Kavenegar') {
-        $url = str_replace('TOKEN', config('app.sms.token'), config('app.sms.url')).'?'.http_build_query($args);
-        $response = Http::get($url);
-        $r = json_decode($response->body(), true);
-        if ($r['return']['status'] != 200) {
-            Illuminate\Support\Facades\Log::error($r);
-
-            return false;
-        }
-
-        return true;
-
-    }
-    $url = config('app.sms.url');
-
-    foreach ($args as $k => $arg) {
-        $text = str_replace('%'.$k, $arg, $text);
-    }
-    $fields = [
-        'user' => config('app.sms.url'),
-        'password' => config('app.sms.password'),
-        'to' => $number,
-        'from' => config('app.sms.number'),
-        'text' => $text,
-        'isflash' => 'false',
-    ];
-
-    // Create a new Guzzle client
-    $client = new Client;
-
-    try {
-        // Send a POST request
-        $response = $client->post($url, [
-            'form_params' => $fields,
-            'headers' => [
-                'Content-Type' => 'application/x-www-form-urlencoded',
-                'Cache-Control' => 'no-cache',
-            ],
-        ]);
-
-        // Get the response body as a string
-        $result = $response->getBody()->getContents();
-    } catch (Exception $e) {
-        // Handle exception
-        // You can log the error or return an error response here
-        Log::error($e->getMessage());
-
-        return false;
-    }
-
-    return true;
-
+    return app(SmsService::class)->send((string) $text, (string) $number, (array) $args);
 }
 
-/**
- * table of content generator
- *
- * @return array
- */
-function generateTOC($html)
+function generateTOC($html): array
 {
-    // Load HTML into a DOMDocument for parsing
-    $doc = new DOMDocument;
-    @$doc->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
-
-    $toc = '';
-    $tocItems = [];
-    $lastH2 = '';
-    $lastH3 = '';
-    $idCounter = 0;
-
-    // Fetch all headings in the document
-    $headings = $doc->getElementsByTagName('*');
-
-    foreach ($headings as $heading) {
-        if (in_array($heading->nodeName, ['h2', 'h3'])) {
-            // Generate a unique ID for each heading
-            $id = generateHeadingID($heading->nodeValue, $idCounter);
-            $idCounter++;
-            $heading->setAttribute('id', $id);
-
-            if ($heading->nodeName === 'h2') {
-                $tocItems[] = [
-                    'title' => $heading->nodeValue,
-                    'id' => $id,
-                    'children' => [],
-                ];
-                $lastH2 = $heading->nodeValue; // Update last H2 title
-                $lastH3 = ''; // Reset last H3
-            } elseif ($heading->nodeName === 'h3') {
-                if ($lastH2) {
-                    // Create a new child entry for the last H2
-                    $tocItems[count($tocItems) - 1]['children'][] = [
-                        'title' => $heading->nodeValue,
-                        'id' => $id,
-                    ];
-                    $lastH3 = $heading->nodeValue; // Update last H3 title
-                }
-            }
-        }
-    }
-
-    // Create the TOC HTML
-    $toc .= buildTOC($tocItems);
-
-    // Return the modified HTML and the TOC
-    return [$toc, $doc->saveHTML()];
+    return app(TableOfContentsService::class)->generate((string) $html);
 }
 
-/**
- * generate heading ID for table of content
- *
- * @return string
- */
-function generateHeadingID($text, $counter)
+function generateHeadingID($text, $counter): string
 {
-    // Convert to lowercase and replace non-alphanumeric characters with dashes
-    $id = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $text));
-
-    // Remove leading and trailing dashes
-    $id = trim($id, '-');
-
-    // Ensure the ID is not empty
-    if (empty($id)) {
-        $id = 'heading';
-    }
-
-    // Add the counter to ensure uniqueness
-    $id .= '-'.$counter;
-
-    return $id;
+    return app(TableOfContentsService::class)->generateHeadingId((string) $text, (int) $counter);
 }
 
-// The buildTOC function remains unchanged
-function buildTOC($items)
+function buildTOC($items): string
 {
-    $html = '<ul>';
-    foreach ($items as $item) {
-        $html .= '<li>';
-        $html .= '<a href="#'.$item['id'].'">'.$item['title'].'</a>';
-
-        if (! empty($item['children'])) {
-            $html .= buildTOC($item['children']);
-        }
-
-        $html .= '</li>';
-    }
-    $html .= '</ul>';
-
-    return $html;
+    return app(TableOfContentsService::class)->build((array) $items);
 }
 
-/**
- * detect last rate of customer
- *
- * @return int|mixed
- */
 function detectRateCustomer($type, $id, $evaluation)
 {
     if (! auth('customer')->check()) {
@@ -1537,57 +762,28 @@ function detectRateCustomer($type, $id, $evaluation)
 
     if ($rate->count() == 0) {
         return 0;
-    } else {
-        return $rate->first()->rate;
     }
 
+    return $rate->first()->rate;
 }
 
-/**
- * cache number
- *
- * @return false|mixed|string|null
- */
 function cacheNumber()
 {
     return getSetting('cache_number');
 }
 
-/**
- * get website main categories
- *
- * @return Category[]|_IH_Category_C
- */
 function getMainCategory($limit = 4, $orderBy = 'sort', $asc = 'ASC')
 {
     return Category::whereNull('parent_id')->where('hide', 0)->limit($limit)->orderBy($orderBy, $asc)->get();
 }
 
-/**
- * get group's posts by setting key
- *
- * @param  int  $limit
- * @param  string  $order
- * @param  string  $dir
- * @return Post[]|Illuminate\Database\Eloquent\Collection|_IH_Post_C
- */
 function getSubGroupSetting($key, $limit = 10, $order = 'id', $dir = 'DESC')
 {
     return Group::where('id', getSetting($key) ?? 1)->first()
-        ->children()->orderBy($order, $dir)->limit($limit)->get();
+        ?->children()->orderBy($order, $dir)->limit($limit)->get() ?? collect();
 }
 
-/**
- * calculate gold/silver piece price
- *
- * @param  float|int  $gold  base metal price per gram
- * @param  float|int  $gr  weight in grams
- * @param  float|int  $fee  labor/wage percent
- * @param  float|null  $profitRate  profit as fraction (e.g. 0.07); null uses 0.07
- * @param  float|null  $taxRate  tax as fraction (e.g. 0.09); null uses config vat
- * @return int
- */
-function CalcPrice($gold, $gr, $fee, ?float $profitRate = null, ?float $taxRate = null)
+function CalcPrice($gold, $gr, $fee, ?float $profitRate = null, ?float $taxRate = null): int
 {
     return app(ProductPriceCalculator::class)->calculateFromParts(
         $gold,
@@ -1599,11 +795,6 @@ function CalcPrice($gold, $gr, $fee, ?float $profitRate = null, ?float $taxRate 
     );
 }
 
-/**
- * get website main categories
- *
- * @return Category[]|_IH_Category_C
- */
 function getCategoriesSet($key, $limit = 4, $orderBy = 'sort', $asc = 'ASC')
 {
     $val = getSetting($key);
@@ -1615,11 +806,6 @@ function getCategoriesSet($key, $limit = 4, $orderBy = 'sort', $asc = 'ASC')
     return Category::whereIn('id', $ids)->where('hide', 0)->limit($limit)->orderBy($orderBy, $asc)->get();
 }
 
-/**
- * get website main categories
- *
- * @return Group[]|_IH_Group_C
- */
 function getGroupsSet($key, $limit = 4, $orderBy = 'sort', $asc = 'ASC')
 {
     $val = getSetting($key);
@@ -1642,25 +828,25 @@ function getWtfFooterCategories()
         (object) [
             'name' => __('Women\'s Gold'),
             'url' => route('client.products', ['metal' => 'gold', 'target_group' => 'women']),
-            'img' => \Storage::url('categories/1741185465-زنانه.svg'),
+            'img' => Storage::url('categories/1741185465-زنانه.svg'),
             'has_balloon' => false,
         ],
         (object) [
             'name' => __('Men\'s Gold'),
             'url' => route('client.products', ['metal' => 'gold', 'target_group' => 'men']),
-            'img' => \Storage::url('categories/1741185578-مردانه.svg'),
+            'img' => Storage::url('categories/1741185578-مردانه.svg'),
             'has_balloon' => false,
         ],
         (object) [
             'name' => __('Children\'s Gold'),
             'url' => route('client.products', ['metal' => 'gold', 'target_group' => 'children']),
-            'img' => \Storage::url('categories/1741185704-بچگانه.svg'),
+            'img' => Storage::url('categories/1741185704-بچگانه.svg'),
             'has_balloon' => false,
         ],
         (object) [
             'name' => __('Gift Gold'),
             'url' => route('client.products', ['metal' => 'gold']),
-            'img' => \Storage::url('categories/1741370193-هدیه طلا.jpg'),
+            'img' => Storage::url('categories/1741370193-هدیه طلا.jpg'),
             'has_balloon' => true,
         ],
     ]);

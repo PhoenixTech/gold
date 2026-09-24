@@ -181,11 +181,11 @@ return new class extends Migration
 
             $oldCats = DB::table('categories')->whereIn('id', $relatedCatIds)->get();
             $parentCatIds = $oldCats->pluck('parent_id')->filter()->toArray();
-            $parentCats = !empty($parentCatIds) ? DB::table('categories')->whereIn('id', $parentCatIds)->get() : collect();
+            $parentCats = ! empty($parentCatIds) ? DB::table('categories')->whereIn('id', $parentCatIds)->get() : collect();
 
-            $allText = $p->name . ' ' . ($p->slug ?? '') . ' ' . ($p->description ?? '') . ' ' . ($p->excerpt ?? '') . ' ';
+            $allText = $p->name.' '.($p->slug ?? '').' '.($p->description ?? '').' '.($p->excerpt ?? '').' ';
             foreach ($oldCats->merge($parentCats) as $cat) {
-                $allText .= $cat->name . ' ' . ($cat->slug ?? '') . ' ' . ($cat->code ?? '') . ' ';
+                $allText .= $cat->name.' '.($cat->slug ?? '').' '.($cat->code ?? '').' ';
             }
 
             // A. Detect Metal Type (Silver vs Gold)
@@ -200,13 +200,13 @@ return new class extends Migration
             $matchedCode = null;
             // Check direct category code match first
             foreach ($oldCats as $cat) {
-                if (!empty($cat->code) && isset($mainCategoryMap[$cat->code])) {
+                if (! empty($cat->code) && isset($mainCategoryMap[$cat->code])) {
                     $matchedCode = $cat->code;
                     break;
                 }
             }
 
-            if (!$matchedCode) {
+            if (! $matchedCode) {
                 foreach ($categoryKeywords as $code => $keywords) {
                     foreach ($keywords as $kw) {
                         if (mb_stripos($allText, $kw) !== false) {
@@ -221,10 +221,10 @@ return new class extends Migration
 
             // C. Detect Target Group (Gender)
             $targetGroup = $p->target_group;
-            if (!in_array($targetGroup, ['women', 'men', 'children'])) {
+            if (! in_array($targetGroup, ['women', 'men', 'children'])) {
                 $targetGroup = null;
             }
-            if (!$targetGroup) {
+            if (! $targetGroup) {
                 foreach ($targetKeywords as $tg => $kws) {
                     foreach ($kws as $kw) {
                         if (mb_stripos($allText, $kw) !== false) {
@@ -280,10 +280,10 @@ return new class extends Migration
             $matchedOldIds = [];
 
             foreach ($allOldCategories as $oldCat) {
-                $catText = (string) $oldCat->name . ' ' . (string) ($oldCat->slug ?? '') . ' ' . (string) ($oldCat->code ?? '');
-                $matched = (!empty($oldCat->code) && $oldCat->code === $code);
+                $catText = (string) $oldCat->name.' '.(string) ($oldCat->slug ?? '').' '.(string) ($oldCat->code ?? '');
+                $matched = (! empty($oldCat->code) && $oldCat->code === $code);
 
-                if (!$matched) {
+                if (! $matched) {
                     foreach ($keywords as $kw) {
                         if (mb_stripos($catText, $kw) !== false) {
                             $matched = true;
@@ -302,38 +302,38 @@ return new class extends Migration
 
                     if ($isOldCatSilver) {
                         // Silver category image -> silver_image
-                        if (empty($newCat->silver_image) && empty($updateData['silver_image']) && !empty($oldCat->image)) {
+                        if (empty($newCat->silver_image) && empty($updateData['silver_image']) && ! empty($oldCat->image)) {
                             $updateData['silver_image'] = $oldCat->image;
                         }
                     } else {
                         // Gold category image -> image
-                        if (empty($newCat->image) && empty($updateData['image']) && !empty($oldCat->image)) {
+                        if (empty($newCat->image) && empty($updateData['image']) && ! empty($oldCat->image)) {
                             $updateData['image'] = $oldCat->image;
                         }
                     }
 
-                    if (empty($newCat->svg) && empty($updateData['svg']) && !empty($oldCat->svg)) {
+                    if (empty($newCat->svg) && empty($updateData['svg']) && ! empty($oldCat->svg)) {
                         $updateData['svg'] = $oldCat->svg;
                     }
-                    if (empty($newCat->bg) && empty($updateData['bg']) && !empty($oldCat->bg)) {
+                    if (empty($newCat->bg) && empty($updateData['bg']) && ! empty($oldCat->bg)) {
                         $updateData['bg'] = $oldCat->bg;
                     }
-                    if (empty($newCat->description) && empty($updateData['description']) && !empty($oldCat->description)) {
+                    if (empty($newCat->description) && empty($updateData['description']) && ! empty($oldCat->description)) {
                         $updateData['description'] = $oldCat->description;
                     }
                 }
             }
 
             // Fallback: if silver_image is empty, use image; if image is empty, use silver_image
-            if (empty($newCat->image) && empty($updateData['image']) && !empty($updateData['silver_image'])) {
+            if (empty($newCat->image) && empty($updateData['image']) && ! empty($updateData['silver_image'])) {
                 $updateData['image'] = $updateData['silver_image'];
             }
 
-            if (!empty($updateData)) {
+            if (! empty($updateData)) {
                 DB::table('categories')->where('id', $newId)->update($updateData);
             }
 
-            if (!empty($matchedOldIds)) {
+            if (! empty($matchedOldIds)) {
                 DB::table('attachments')
                     ->where('attachable_type', 'App\Models\Category')
                     ->whereIn('attachable_id', $matchedOldIds)

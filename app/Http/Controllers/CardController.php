@@ -2,20 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CheckoutRequest;
 use App\Models\Address;
 use App\Models\BankAccount;
-use App\Models\Customer;
 use App\Models\Discount;
 use App\Models\Invoice;
-use App\Models\Order;
-use App\Models\Payment as PaymentModel;
 use App\Models\Product;
 use App\Models\Quantity;
-use App\Models\Transport;
 use App\Services\CartQuoteService;
+use App\Services\CheckoutService;
 use App\Services\ProductPriceCalculator;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class CardController extends Controller
@@ -115,10 +112,9 @@ class CardController extends Controller
         return view('client.cart.index', compact('title', 'subtitle'));
     }
 
-    public function check(Request $request)
+    public function check(Request $request, CheckoutService $checkoutService)
     {
         $customer = auth('customer')->user();
-
         $deliveryType = $request->input('delivery_type', 'address');
         $isPickup = $deliveryType === 'pickup';
 
@@ -130,193 +126,14 @@ class CardController extends Controller
                     : __('Please complete your name, mobile and address before checkout.'));
         }
 
-        $rules = [
-            'product_id' => ['required', 'array'],
-            'count' => ['required', 'array'],
-            'quantity_id' => ['nullable', 'array'],
-            'delivery_type' => ['nullable', 'in:address,pickup'],
-            'payment_method' => ['required', 'in:card'],
-            'discount_id' => ['nullable', 'exists:discounts,id'],
-            'desc' => ['nullable', 'string'],
-        ];
-
-        if (! $isPickup) {
-            $rules['address_id'] = ['required', 'exists:addresses,id'];
-            $rules['transport_id'] = ['required', 'exists:transports,id'];
-            $rules['is_third_party'] = ['nullable', 'boolean'];
-        } else {
-            $rules['address_id'] = ['nullable'];
-            $rules['transport_id'] = ['nullable'];
-        }
-
-        if (! $isPickup && $request->boolean('is_third_party')) {
-            $rules['recipient_name'] = ['required', 'string', 'min:2', 'max:255'];
-            $rules['recipient_mobile'] = ['required', 'string', 'regex:/^09\d{9}$/'];
-            $rules['recipient_national_id'] = ['required', 'string', 'regex:/^\d{10}$/'];
-        }
-
-        $request->validate($rules, [
-            'recipient_mobile.regex' => __('Recipient mobile number format is invalid'),
-            'recipient_national_id.regex' => __('Recipient national ID format is invalid'),
-        ]);
-
-        if (! $isPickup) {
-            $address = $customer->addresses()->whereKey($request->address_id)->first();
-            if (! $address) {
-                throw ValidationException::withMessages([
-                    'address_id' => __('Selected address is invalid'),
-                ]);
-            }
-
-            if (! $address->isTehran()) {
-                throw ValidationException::withMessages([
-                    'address_id' => __('Direct shipping to non-Tehran provinces is currently unavailable. Please select gallery pickup or a Tehran delivery address.'),
-                ]);
-            }
-        }
-
-        $quote = app(CartQuoteService::class);
-        $quote->assertValidForCheckout();
-
-        $total = 0;
-        $calculator = app(ProductPriceCalculator::class);
-        $activeBankAccount = BankAccount::activeAccount();
-        if ($activeBankAccount === null) {
-            throw ValidationException::withMessages([
-                'payment_method' => __('No active bank account is configured. Please contact support.'),
-            ]);
-        }
+        $validated = app(CheckoutRequest::class)->validated();
 
         try {
-            $invoice = DB::transaction(function () use ($request, &$total, $calculator, $customer, $quote, $isPickup) {
-                $invoice = new Invoice;
-                $invoice->customer_id = $customer->id;
-                $invoice->count = array_sum($request->count);
-                $invoice->desc = $request->desc;
-                $invoice->status = Invoice::AWAITING_PAYMENT;
-                $invoice->delivery_type = $isPickup ? 'pickup' : 'address';
+            $invoice = $checkoutService->processCheckout($customer, $validated);
 
-                if ($isPickup) {
-                    $invoice->address_id = null;
-                    $invoice->transport_id = null;
-                    $invoice->transport_price = 0;
-                    $invoice->is_third_party = false;
-                    $invoice->recipient_name = null;
-                    $invoice->recipient_mobile = null;
-                    $invoice->recipient_national_id = null;
-                } else {
-                    $invoice->address_id = $request->address_id;
-                    $transport = Transport::query()->findOrFail($request->input('transport_id'));
-                    $invoice->transport_id = $transport->id;
-                    $invoice->transport_price = $transport->price;
-                    $total += (int) $transport->price;
-
-                    $isThirdParty = $request->boolean('is_third_party');
-                    $invoice->is_third_party = $isThirdParty;
-                    if ($isThirdParty) {
-                        $invoice->recipient_name = $request->input('recipient_name');
-                        $invoice->recipient_mobile = $request->input('recipient_mobile');
-                        $invoice->recipient_national_id = $request->input('recipient_national_id');
-                    } else {
-                        $invoice->recipient_name = null;
-                        $invoice->recipient_mobile = null;
-                        $invoice->recipient_national_id = null;
-                    }
-                }
-
-                if ($request->filled('discount_id')) {
-                    $invoice->discount_id = $request->input('discount_id');
-                }
-
-                $invoice->save();
-
-                $productsTotal = 0;
-                foreach ($request->product_id as $i => $productId) {
-                    $product = Product::query()->lockForUpdate()->findOrFail($productId);
-                    if ($product->isBelowBuyPrice()) {
-                        throw ValidationException::withMessages([
-                            'product_id' => __('This product is not available for purchase'),
-                        ]);
-                    }
-                    $order = new Order;
-                    $order->product_id = $product->id;
-                    $order->invoice_id = $invoice->id;
-                    $order->count = (int) $request->count[$i];
-
-                    $quantityId = $request->quantity_id[$i] ?? null;
-
-                    if ($product->availableQuantities()->exists()) {
-                        if ($quantityId === null || $quantityId === '') {
-                            throw ValidationException::withMessages([
-                                'quantity_id' => __('You need to select one stock piece'),
-                            ]);
-                        }
-
-                        $quantity = Quantity::query()
-                            ->where('product_id', $product->id)
-                            ->whereKey($quantityId)
-                            ->lockForUpdate()
-                            ->first();
-
-                        if ($quantity === null || $quantity->count <= 0) {
-                            throw ValidationException::withMessages([
-                                'quantity_id' => __('Selected stock piece is not available'),
-                            ]);
-                        }
-
-                        if ($order->count > 1) {
-                            throw ValidationException::withMessages([
-                                'count' => __('Each stock piece can only be purchased once'),
-                            ]);
-                        }
-
-                        $order->quantity_id = $quantity->id;
-                        $order->price_total = $quote->unitPrice($product, $quantity) * $order->count;
-                        $order->data = $quantity->data;
-                        $order->save();
-
-                        $quantity->markSold();
-                        $calculator->syncProductAggregates($product->fresh());
-                    } elseif ($quantityId !== null && $quantityId !== '') {
-                        $quantity = Quantity::query()->whereKey($quantityId)->lockForUpdate()->firstOrFail();
-                        $order->quantity_id = $quantity->id;
-                        $order->price_total = $quote->unitPrice($product, $quantity) * $order->count;
-                        $order->data = $quantity->data;
-                        $order->save();
-
-                        $quantity->markSold();
-                        $calculator->syncProductAggregates($product->fresh());
-                    } else {
-                        $order->price_total = $quote->unitPrice($product, null) * $order->count;
-                        $order->save();
-                    }
-
-                    $productsTotal += $order->price_total;
-                }
-
-                if ($invoice->discount_id) {
-                    $discount = Discount::query()
-                        ->whereKey($invoice->discount_id)
-                        ->where(function ($query) {
-                            $query->where('expire', '>=', now())
-                                ->orWhereNull('expire');
-                        })
-                        ->first();
-                    if ($discount) {
-                        $productsTotal = $discount->type === 'PERCENT'
-                            ? (int) (((100 - $discount->amount) * $productsTotal) / 100)
-                            : max(0, $productsTotal - (int) $discount->amount);
-                    } else {
-                        $invoice->discount_id = null;
-                    }
-                }
-
-                $total = $productsTotal + (int) $invoice->transport_price;
-                $invoice->total_price = $total;
-                $invoice->save();
-
-                return $invoice;
-            });
+            return redirect()
+                ->route('client.invoice', $invoice->hash)
+                ->with('message', __('Order registered. Please pay by card-to-card and wait for confirmation.'));
         } catch (ValidationException $exception) {
             throw $exception;
         } catch (\Throwable $exception) {
@@ -324,28 +141,6 @@ class CardController extends Controller
 
             return redirect()->back()->withErrors(__('error in payment. contact admin.'));
         }
-
-        $payableAmount = (int) (($invoice->total_price - $invoice->credit_price) * config('app.currency.factor'));
-
-        $invoice->storePaymentRequest(
-            'CARD-'.$invoice->hash.'-'.time(),
-            $payableAmount,
-            null,
-            'CARD',
-            'card-to-card'
-        );
-        $payment = $invoice->payments()->latest('id')->first();
-        if ($payment) {
-            $payment->status = PaymentModel::PENDING;
-            $payment->meta = array_merge($payment->meta ?? [], $activeBankAccount->toPaymentMeta());
-            $payment->save();
-        }
-
-        self::clear();
-
-        return redirect()
-            ->route('client.invoice', $invoice->hash)
-            ->with('message', __('Order registered. Please pay by card-to-card and wait for confirmation.'));
     }
 
     public static function clear()

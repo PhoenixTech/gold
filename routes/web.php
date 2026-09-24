@@ -33,6 +33,7 @@ use App\Http\Controllers\Admin\TicketController;
 use App\Http\Controllers\Admin\TransportController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\XLangController;
+use App\Http\Controllers\Auth\CustomerAuthController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\CardController;
 use App\Http\Controllers\ClientController;
@@ -40,6 +41,8 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Payment\GatewayVerifyController;
 use App\Http\Controllers\PaymentReceiptController;
+use App\Http\Controllers\RssFeedController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\ThemeController;
 use App\Http\Controllers\VisitorFormController;
 use App\Http\Middleware\LangControl;
@@ -299,6 +302,7 @@ Route::prefix(config('app.panel.prefix'))->name('admin.')->group(
                     function () {
                         Route::get('', [StockController::class, 'index'])->name('index');
                         Route::get('edit/{item}', fn ($item) => redirect()->route('admin.product.edit', $item))->name('edit');
+                        Route::get('show/{item}', fn ($item) => redirect()->route('admin.product.show', $item))->name('show');
                         Route::get('product/{product}/pieces', [StockController::class, 'pieces'])->name('pieces');
                         Route::post('piece/{quantity}/toggle-scrap', [StockController::class, 'togglePieceScrap'])->name('piece.toggle-scrap');
                     });
@@ -432,13 +436,13 @@ Route::middleware([VisitorCounter::class])
         Route::get('/old', [ClientController::class, 'oldHome'])->name('old');
         Route::get('/posts', [ClientController::class, 'posts'])->name('posts');
         Route::get('/post/{post}', [ClientController::class, 'post'])->name('post');
-        Route::get('/customer/sign-out', [ClientController::class, 'signOut'])->name('sign-out');
-        Route::post('/customer/sign-in/do', [ClientController::class, 'singInDo'])->name('sign-in-do');
-        Route::get('/customer/sign-in', [ClientController::class, 'signIn'])->name('sign-in');
-        Route::get('/customer/sign-up', [ClientController::class, 'signUp'])->name('sign-up');
-        Route::post('/customer/sign-up/now', [ClientController::class, 'signUpNow'])->name('sign-up-now');
-        Route::get('/customer/send/auth-code', [ClientController::class, 'sendSms'])->name('send-sms');
-        Route::get('/customer/check/auth-code', [ClientController::class, 'checkAuth'])->name('check-auth');
+        Route::get('/customer/sign-out', [CustomerAuthController::class, 'signOut'])->name('sign-out');
+        Route::post('/customer/sign-in/do', [CustomerAuthController::class, 'singInDo'])->name('sign-in-do');
+        Route::get('/customer/sign-in', [CustomerAuthController::class, 'signIn'])->name('sign-in');
+        Route::get('/customer/sign-up', [CustomerAuthController::class, 'signUp'])->name('sign-up');
+        Route::post('/customer/sign-up/now', [CustomerAuthController::class, 'signUpNow'])->name('sign-up-now');
+        Route::get('/customer/send/auth-code', [CustomerAuthController::class, 'sendSms'])->name('send-sms');
+        Route::get('/customer/check/auth-code', [CustomerAuthController::class, 'checkAuth'])->name('check-auth');
         Route::get('/customer/profile', [CustomerController::class, 'profile'])->name('customer.profile');
         Route::post('/customer/rate', [ClientController::class, 'rate'])->name('rate');
         Route::get('/compare', [ClientController::class, 'compare'])->name('compare');
@@ -495,15 +499,15 @@ Route::middleware([VisitorCounter::class])
         Route::post('/comment/submit', [ClientController::class, 'submitComment'])->name('comment.submit');
     });
 
-Route::get('/sitemap.xml', [ClientController::class, 'sitemap'])->name('sitemap');
-Route::get('/sitemap/products.xml', [ClientController::class, 'sitemapProducts'])->name('sitemap.products');
-Route::get('/sitemap/posts.xml', [ClientController::class, 'sitemapPosts'])->name('sitemap.posts');
-Route::get('/sitemap/clips.xml', [ClientController::class, 'sitemapClips'])->name('sitemap.clips');
-Route::get('/sitemap/galleries.xml', [ClientController::class, 'sitemapGalleries'])->name('sitemap.galleries');
-Route::get('/sitemap/attachments.xml', [ClientController::class, 'sitemapAttachments'])->name('sitemap.attachments');
-Route::get('/sitemap/categories.xml', [ClientController::class, 'sitemapGroupCategory'])->name('sitemap.categories');
-Route::get('/rss/post.xml', [ClientController::class, 'postRss'])->name('rss.post');
-Route::get('/rss/product.xml', [ClientController::class, 'productRss'])->name('rss.product');
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
+Route::get('/sitemap/products.xml', [SitemapController::class, 'products'])->name('sitemap.products');
+Route::get('/sitemap/posts.xml', [SitemapController::class, 'posts'])->name('sitemap.posts');
+Route::get('/sitemap/clips.xml', [SitemapController::class, 'clips'])->name('sitemap.clips');
+Route::get('/sitemap/galleries.xml', [SitemapController::class, 'galleries'])->name('sitemap.galleries');
+Route::get('/sitemap/attachments.xml', [SitemapController::class, 'attachments'])->name('sitemap.attachments');
+Route::get('/sitemap/categories.xml', [SitemapController::class, 'categories'])->name('sitemap.categories');
+Route::get('/rss/post.xml', [RssFeedController::class, 'posts'])->name('rss.post');
+Route::get('/rss/product.xml', [RssFeedController::class, 'products'])->name('rss.product');
 
 // to developer test
 Route::get('login/as/{mobile}', function ($mobile) {

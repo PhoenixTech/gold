@@ -2,22 +2,13 @@
 
 namespace App\Http\Resources;
 
-use App\Models\Quantity;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class QunatityCollection extends JsonResource
+class QuantityResource extends JsonResource
 {
-    /**
-     * Transform the resource collection into an array.
-     *
-     * @return array<int|string, mixed>
-     */
     public function toArray(Request $request): array
     {
-        /**
-         * @var $this Quantity
-         */
         $image = null;
         if ($this->image !== null && isset($this->product->getMedia()[$this->image])) {
             $image = $this->product->getMedia()[$this->image]->getUrl('product-image');

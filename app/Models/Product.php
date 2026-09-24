@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Http\Request;
 use Plank\Metable\Metable;
 use Spatie\Image\Enums\AlignPosition;
 use Spatie\Image\Enums\Fit;
@@ -803,7 +804,7 @@ RESULT;
 
     public function scopeFilterCatalog($query, $request = null)
     {
-        $req = $request instanceof \Illuminate\Http\Request ? $request : request();
+        $req = $request instanceof Request ? $request : request();
 
         if ($req->filled('q')) {
             $keyword = trim($req->input('q'));

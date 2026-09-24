@@ -44,11 +44,9 @@ class AdminStockInventoryTest extends TestCase
         $response = $this->get(route('admin.stock.index'));
 
         $response->assertOk();
-        $response->assertSee(__('Stock inventory'));
-        $response->assertSee(__('Total stock count'));
+        $response->assertSee(__('Stock audit'));
+        $response->assertSee(__('Net stock'));
         $response->assertSee(__('Total stock weight'));
-        $response->assertSee(__('In-stock products'));
-        $response->assertSee(__('Total inventory value'));
     }
 
     public function test_stock_inventory_only_displays_products_with_stock(): void
@@ -136,8 +134,7 @@ class AdminStockInventoryTest extends TestCase
         $response = $this->get(route('admin.stock.index'));
 
         $response->assertOk();
-        // Check column headers
-        $response->assertSee(__('stock_quantity'));
+        $response->assertSee(__('Net stock'));
         $response->assertSee(__('total_weight'));
         $response->assertSee(__('total_price'));
 

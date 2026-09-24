@@ -3,9 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Contracts\Payment;
+use App\Http\Controllers\Auth\CustomerAuthController;
 use App\Http\Requests\ContactSubmitRequest;
-use App\Mail\AuthMail;
-use App\Models\Address;
 use App\Models\Attachment;
 use App\Models\Category;
 use App\Models\Clip;
@@ -23,8 +22,6 @@ use App\Models\Rate;
 use App\Models\User;
 use App\Services\ProductPriceCalculator;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 use Plank\Metable\Meta;
 use Spatie\Tags\Tag;
@@ -650,307 +647,72 @@ class ClientController extends Controller
 
     public function signOut()
     {
-        auth('customer')->logout();
-
-        return redirect()->route('client.sign-in')->with(['message' => __('Signed out successfully')]);
+        return app(CustomerAuthController::class)->signOut();
     }
 
     public function signIn(Request $request)
     {
-        if ($request->filled('redirect')) {
-            session(['url.intended' => $request->input('redirect')]);
-        }
-
-        $title = __('sign in');
-        $subtitle = __('Sign in as customer');
-
-        return view('client.auth.login', compact('title', 'subtitle'));
+        return app(CustomerAuthController::class)->signIn($request);
     }
 
     public function signUp(Request $request)
     {
-        if (config('app.sms.sign')) {
-            return abort(403);
-        }
-
-        if ($request->filled('redirect')) {
-            session(['url.intended' => $request->input('redirect')]);
-        }
-
-        $title = __('sign up');
-        $subtitle = __('Sign up as customer');
-
-        return view('client.auth.register', compact('title', 'subtitle'));
+        return app(CustomerAuthController::class)->signUp($request);
     }
 
     public function signUpNow(Request $request)
     {
-        if (config('app.sms.sign')) {
-            return abort(403);
-        }
-
-        $request->validate([
-            'name' => ['required', 'string', 'min:2', 'max:255'],
-            'mobile' => ['required', 'string', 'regex:/^09\d{9}$/', 'unique:customers,mobile'],
-            'email' => ['required', 'email', 'unique:customers,email'],
-            'address' => ['required', 'string', 'min:10'],
-        ], [
-            'mobile.regex' => __('Mobile number format is invalid'),
-        ]);
-
-        $wantsJson = $this->wantsJsonResponse($request);
-
-        $passwd = generateUniqueID(12);
-        Mail::to($request->input('email'))->send(new AuthMail($passwd));
-
-        $customer = new Customer;
-        $customer->name = $request->input('name');
-        $customer->mobile = $request->input('mobile');
-        $customer->email = $request->input('email');
-        $customer->password = bcrypt($passwd);
-        $customer->save();
-
-        $address = new Address;
-        $address->customer_id = $customer->id;
-        $address->address = $request->input('address');
-        $address->save();
-
-        auth('customer')->login($customer);
-        $customer->load('addresses');
-
-        $msg = __('Your account has been created successfully.');
-        $emailHint = __("Please check your email to find password, Don't forget check spam/junk too, If you find our email in spam folder, Please mark it `Not spam`");
-
-        if ($wantsJson) {
-            return success([
-                'profile_complete' => $customer->isCheckoutReady(),
-                'addresses' => $customer->addresses,
-                'customer' => [
-                    'name' => $customer->name,
-                    'mobile' => $customer->mobile,
-                    'email' => $customer->email,
-                ],
-            ], $msg.' '.$emailHint);
-        }
-
-        return redirect()->intended(route('client.card'))
-            ->with(['message' => $msg.' '.$emailHint]);
+        return app(CustomerAuthController::class)->signUpNow($request);
     }
 
     public function singInDo(Request $request)
     {
-        $request->validate([
-            'email' => 'required|string|email|max:255',
-            'password' => 'required|string|min:6',
-        ]);
-
-        $wantsJson = $this->wantsJsonResponse($request);
-
-        $customer = Customer::where('email', $request->input('email'));
-        if ($customer->count() == 0) {
-            $msg = __('Email or password is incorrect');
-
-            return $wantsJson
-                ? errors([], 422, $msg)
-                : redirect()->back()->withErrors([$msg]);
-        }
-
-        $customer = $customer->first();
-
-        if (\Hash::check($request->input('password'), $customer->password)) {
-            auth('customer')->login($customer);
-            $customer->load('addresses');
-
-            if ($wantsJson) {
-                return success([
-                    'profile_complete' => $customer->isCheckoutReady(),
-                    'addresses' => $customer->addresses,
-                    'customer' => [
-                        'name' => $customer->name,
-                        'mobile' => $customer->mobile,
-                        'email' => $customer->email,
-                    ],
-                ], __('Signed in successfully'));
-            }
-
-            return redirect()->intended(route('client.card'))
-                ->with(['message' => __('Signed in successfully')]);
-        }
-
-        $msg = __('Email or password is incorrect');
-
-        return $wantsJson
-            ? errors([], 422, $msg)
-            : redirect()->back()->withErrors([$msg, __('If you forget your password call us')]);
+        return app(CustomerAuthController::class)->singInDo($request);
     }
 
     public function sendSms(Request $request)
     {
-        $customer = Customer::where('mobile', $request->input('tel'));
-        $code = rand(11111, 99999);
-
-        if (config('app.sms.driver') == 'Kavenegar') {
-            $args = [
-                'receptor' => $request->input('tel'),
-                'template' => trim(getSetting('sign')),
-                'token' => $code,
-            ];
-        } else {
-            $args = [
-                'code' => $code,
-            ];
-        }
-
-        sendingSMS(getSetting('sign'), $request->input('tel'), $args);
-
-        Log::info('auth code: '.$code);
-        if ($customer->count() == 0) {
-            $customer = new Customer;
-            $customer->mobile = $request->input('tel');
-            $customer->code = $code;
-            $customer->save();
-        } else {
-            $customer = $customer->first();
-            $customer->code = $code;
-            $customer->save();
-        }
-        // WIP send sms
-
-        return [
-            'OK' => true,
-            'message' => __('Auth code send successfully'),
-        ];
+        return app(CustomerAuthController::class)->sendSms($request);
     }
 
     public function checkAuth(Request $request)
     {
-        $request->validate([
-            'tel' => 'required|string|min:6',
-            'code' => 'required|string|min:5',
-        ]);
-
-        $customer = Customer::where('mobile', $request->input('tel'))
-            ->where('code', $request->input('code'))->first();
-
-        if ($customer == null) {
-            return [
-                'OK' => false,
-                'message' => __('Auth code is invalid'),
-                'error' => __('Auth code is invalid'),
-            ];
-        }
-        $customer->code = null;
-        $customer->save();
-
-        auth('customer')->login($customer);
-        $customer->load('addresses');
-        $profileComplete = $customer->isCheckoutReady();
-        $redirectUrl = $profileComplete
-            ? (session()->pull('url.intended') ?: route('client.card'))
-            : route('client.card');
-
-        return [
-            'OK' => true,
-            'message' => __('You are logged in successfully'),
-            'redirect' => $redirectUrl,
-            'profile_complete' => $profileComplete,
-            'addresses' => $customer->addresses,
-            'customer' => [
-                'name' => $customer->name,
-                'mobile' => $customer->mobile,
-                'email' => $customer->email,
-            ],
-        ];
-
+        return app(CustomerAuthController::class)->checkAuth($request);
     }
 
     public function sitemap()
     {
-
-        $latestGroup = Group::orderByDesc('updated_at')->first();
-        // Get the most recent Category
-        $latestCategory = Category::orderByDesc('updated_at')->first();
-
-        // Initialize a variable to hold the latest update time
-        $latestUpdate = null;
-
-        // Check if we have a latestGroup and latestCategory and compare their updated_at
-        if ($latestGroup) {
-            $latestUpdate = $latestGroup->updated_at;
-        }
-
-        if ($latestCategory) {
-            if (! $latestUpdate || $latestCategory->updated_at > $latestUpdate) {
-                $latestUpdate = $latestCategory->updated_at;
-            }
-        }
-        $xmlContent = '<?xml version="1.0" encoding="utf-8" ?>'.PHP_EOL;
-        $xmlContent .= view('website.sitemaps.sitemap', compact('latestUpdate'))->render(); // Render the view and append to XML content
-
-        // Return the XML response
-        return response($xmlContent, 200)
-            ->header('Content-Type', 'text/xml');
+        return app(SitemapController::class)->index();
     }
 
     public function sitemapGroupCategory()
     {
-
-        $xmlContent = '<?xml version="1.0" encoding="utf-8" ?>'.PHP_EOL;
-        $xmlContent .= view('website.sitemaps.sitemap-groups-category')->render(); // Render the view and append to XML content
-
-        // Return the XML response
-        return response($xmlContent, 200)
-            ->header('Content-Type', 'text/xml');
+        return app(SitemapController::class)->categories();
     }
 
     public function sitemapPosts()
     {
-        $xmlContent = '<?xml version="1.0" encoding="utf-8" ?>'.PHP_EOL;
-        $xmlContent .= view('website.sitemaps.sitemap-posts')->render(); // Render the view and append to XML content
-
-        // Return the XML response
-        return response($xmlContent, 200)
-            ->header('Content-Type', 'text/xml');
+        return app(SitemapController::class)->posts();
     }
 
     public function sitemapProducts()
     {
-        $xmlContent = '<?xml version="1.0" encoding="utf-8" ?>'.PHP_EOL;
-        $xmlContent .= view('website.sitemaps.sitemap-products')->render(); // Render the view and append to XML content
-
-        // Return the XML response
-        return response($xmlContent, 200)
-            ->header('Content-Type', 'text/xml');
+        return app(SitemapController::class)->products();
     }
 
     public function sitemapClips()
     {
-        $xmlContent = '<?xml version="1.0" encoding="utf-8" ?>'.PHP_EOL;
-        $xmlContent .= view('website.sitemaps.sitemap-clips')->render(); // Render the view and append to XML content
-
-        // Return the XML response
-        return response($xmlContent, 200)
-            ->header('Content-Type', 'text/xml');
+        return app(SitemapController::class)->clips();
     }
 
     public function sitemapGalleries()
     {
-        $xmlContent = '<?xml version="1.0" encoding="utf-8" ?>'.PHP_EOL;
-        $xmlContent .= view('website.sitemaps.sitemap-gallries')->render(); // Render the view and append to XML content
-
-        // Return the XML response
-        return response($xmlContent, 200)
-            ->header('Content-Type', 'text/xml');
+        return app(SitemapController::class)->galleries();
     }
 
     public function sitemapAttachments()
     {
-        $xmlContent = '<?xml version="1.0" encoding="utf-8" ?>'.PHP_EOL;
-        $xmlContent .= view('website.sitemaps.sitemap-attachments')->render(); // Render the view and append to XML content
-
-        // Return the XML response
-        return response($xmlContent, 200)
-            ->header('Content-Type', 'text/xml');
+        return app(SitemapController::class)->attachments();
     }
 
     public function lang(Request $request)
@@ -1108,28 +870,12 @@ class ClientController extends Controller
 
     public function postRss()
     {
-        // Fetch the latest posts from the database
-        $posts = Post::orderBy('created_at', 'desc')->take(10)->get(); // Adjust the number of posts as needed
-
-        $xmlContent = '<?xml version="1.0" encoding="UTF-8" ?>'.PHP_EOL;
-        $xmlContent .= view('website.rss.post', compact('posts'))->render(); // Render the view and append to XML content
-
-        // Return the XML response
-        return response($xmlContent, 200)
-            ->header('Content-Type', 'text/xml');
+        return app(RssFeedController::class)->posts();
     }
 
     public function productRss()
     {
-        // Fetch the latest products from the database
-        $products = Product::orderBy('created_at', 'desc')->take(10)->get(); // Adjust the number of posts as needed
-
-        $xmlContent = '<?xml version="1.0" encoding="UTF-8" ?>'.PHP_EOL;
-        $xmlContent .= view('website.rss.product', compact('products'))->render(); // Render the view and append to XML content
-
-        // Return the XML response
-        return response($xmlContent, 200)
-            ->header('Content-Type', 'text/xml');
+        return app(RssFeedController::class)->products();
     }
 
     public function underConstruction()

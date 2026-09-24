@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Helpers\TDate;
 use App\Models\Address;
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\Ticket;
 use App\Models\User;
+use App\Services\PersianDate;
 use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
 use Illuminate\Http\JsonResponse;
@@ -123,7 +123,7 @@ class CustomerController extends Controller
             $jy = (int) $request->input('dob_year');
             $jm = (int) $request->input('dob_month');
             $jd = (int) $request->input('dob_day');
-            $geDate = TDate::GetInstance()->Parsi2Ge($jy, $jm, $jd);
+            $geDate = PersianDate::toGregorian($jy, $jm, $jd);
             $customer->dob = sprintf('%04d-%02d-%02d', $geDate[0], $geDate[1], $geDate[2]);
         } elseif ($request->filled('dob')) {
             $dobVal = $request->input('dob');

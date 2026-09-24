@@ -27,7 +27,7 @@ class ProductCardCollection extends JsonResource
             'image' => $this->imgUrl(),
             'meta' => $this->fullMeta(),
             'max' => $this->stock_quantity,
-            'qz' => QunatityCollection::collection($this->availableQuantities),
+            'qz' => QuantityResource::collection($this->availableQuantities),
         ];
     }
 }

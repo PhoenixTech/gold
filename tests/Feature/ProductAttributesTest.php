@@ -3,12 +3,10 @@
 namespace Tests\Feature;
 
 use App\Http\Requests\ProductSaveRequest;
-use App\Http\Resources\ProductResource;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
@@ -216,32 +214,6 @@ class ProductAttributesTest extends TestCase
         $this->assertEquals(['diamond', 'pearl'], $product->stones);
         $this->assertEquals(['leather_bracelet'], $product->accessories);
         $this->assertEquals(['valentine', 'anniversary'], $product->occasions);
-    }
-
-    public function test_product_resource_includes_group_a_attributes_and_labels(): void
-    {
-        $product = Product::factory()->create([
-            'user_id' => $this->admin->id,
-            'category_id' => $this->category->id,
-            'plating_colors' => ['yellow_gold'],
-            'stones' => ['diamond'],
-            'accessories' => ['leather_bracelet'],
-            'occasions' => ['valentine'],
-        ]);
-
-        $resource = (new ProductResource($product))->toArray(new Request);
-
-        $this->assertArrayHasKey('plating_colors', $resource);
-        $this->assertArrayHasKey('plating_color_labels', $resource);
-        $this->assertArrayHasKey('stones', $resource);
-        $this->assertArrayHasKey('stone_labels', $resource);
-        $this->assertArrayHasKey('accessories', $resource);
-        $this->assertArrayHasKey('accessory_labels', $resource);
-        $this->assertArrayHasKey('occasions', $resource);
-        $this->assertArrayHasKey('occasion_labels', $resource);
-
-        $this->assertEquals(['yellow_gold'], $resource['plating_colors']);
-        $this->assertContains(__('Yellow Gold'), $resource['plating_color_labels']);
     }
 
     public function test_client_product_view_displays_group_a_attributes(): void

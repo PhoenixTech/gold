@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\Category;
 use App\Models\Item;
 use App\Models\Menu;
 use Illuminate\Database\Seeder;
