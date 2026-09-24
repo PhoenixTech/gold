@@ -157,7 +157,6 @@
 
 <script>
 
-import {mapState} from "vuex";
 import searchableMultiSelect from "./SearchableMultiSelect.vue";
 import CurrencyInput from "./CurrencyInput.vue";
 import VueDateTimePicker from "./vueDateTimePicker.vue";

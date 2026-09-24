@@ -1,25 +1,30 @@
-import Vuex from 'vuex';
+import { reactive } from 'vue';
 
-
-export default new Vuex.Store({
-    state: {
-        category: '',
-        quantities: [],
-    },
-    mutations: {
-        UPDATE_CATEGORY(state, payload) {
-            state.category = payload;
-        },
-        UPDATE_QUANTITIES(state, payload) {
-            state.quantities = payload;
-        },
-    },
-    actions:{
-        updateCategory(context,cat){
-            context.commit('UPDATE_CATEGORY',cat);
-        },
-        updateQuantities(context,idz){
-            context.commit('UPDATE_QUANTITIES',idz);
-        },
-    }
+const state = reactive({
+    category: '',
+    quantities: [],
 });
+
+const store = {
+    state,
+    commit(type, payload) {
+        if (type === 'UPDATE_CATEGORY') {
+            state.category = payload;
+        } else if (type === 'UPDATE_QUANTITIES') {
+            state.quantities = payload;
+        }
+    },
+    dispatch(action, payload) {
+        if (action === 'updateCategory') {
+            this.commit('UPDATE_CATEGORY', payload);
+        } else if (action === 'updateQuantities') {
+            this.commit('UPDATE_QUANTITIES', payload);
+        }
+    },
+    install(app) {
+        app.config.globalProperties.$store = this;
+        app.provide('store', this);
+    },
+};
+
+export default store;

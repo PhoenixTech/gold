@@ -10,15 +10,14 @@ import store from './components/libs/store.js';
 
 // Panel modular controllers
 import { initNavbar } from './panel/navbar.js';
-import { initBulkActions } from './panel/list-checkboxs.js';
+import { initBulkActions } from './panel/list-checkboxes.js';
 import { initGeneralEvents } from './panel/general-events.js';
 import { initQuillEditors } from './panel/editor-handle.js';
 import { initStepController } from './panel/step-controller.js';
 import { initProductUpload } from './panel/product-upload-controller.js';
 import { initSettingSections } from './panel/setting-section-controller.js';
-import { initSortableController } from './panel/sotable-controller.js';
+import { initSortableController } from './panel/sortable-controller.js';
 import { initPanelPreloader } from './panel/panel-window-loader.js';
-import './panel/responsive-control.js';
 import { initFastEdit } from './panel/fast-edit.js';
 import { initFastAttachment } from './panel/fast-attachment.js';
 

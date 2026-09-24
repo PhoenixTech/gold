@@ -22,7 +22,6 @@
         "quill": "^2.0.3",
         "remixicon": "^4.3.0",
         "sortablejs": "^1.15.2",
-        "tiny-slider": "^2.9.4",
-        "vuex": "^4.0.2"
+        "tiny-slider": "^2.9.4"
     }
 }
