@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\ResolvesAdminModel;
 use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PropSaveRequest;
@@ -17,6 +18,7 @@ use Illuminate\View\View;
 
 class PropController extends Controller
 {
+    use ResolvesAdminModel;
     use RespondsWithAdmin;
 
     public function index(Request $request, AdminTableService $tableService): View
@@ -129,11 +131,7 @@ class PropController extends Controller
 
     protected function resolveProp(Prop|string|int $item): Prop
     {
-        if ($item instanceof Prop) {
-            return $item;
-        }
-
-        return Prop::where('id', $item)->firstOrFail();
+        return $this->resolveModel(Prop::class, $item);
     }
 
     protected function savePropData(Prop $prop, Request $request): void

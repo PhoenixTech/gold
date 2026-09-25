@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\ResolvesAdminModel;
 use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\TransportSaveRequest;
@@ -15,6 +16,7 @@ use Illuminate\View\View;
 
 class TransportController extends Controller
 {
+    use ResolvesAdminModel;
     use RespondsWithAdmin;
 
     public function index(Request $request, AdminTableService $tableService): View
@@ -88,7 +90,7 @@ class TransportController extends Controller
 
     public function restore($item): RedirectResponse
     {
-        $target = Transport::withTrashed()->where('id', $item)->firstOrFail();
+        $target = $this->resolveTransport($item, true);
 
         logAdmin(__METHOD__, Transport::class, $target->id);
         $target->restore();
@@ -101,13 +103,9 @@ class TransportController extends Controller
         return $bulkService->handle(Transport::class, $request->input('action'), (array) $request->input('id', []));
     }
 
-    protected function resolveTransport(Transport|string|int $item): Transport
+    protected function resolveTransport(Transport|string|int $item, bool $withTrashed = false): Transport
     {
-        if ($item instanceof Transport) {
-            return $item;
-        }
-
-        return Transport::where('id', $item)->firstOrFail();
+        return $this->resolveModel(Transport::class, $item, $withTrashed);
     }
 
     protected function saveTransportData(Transport $transport, Request $request): void

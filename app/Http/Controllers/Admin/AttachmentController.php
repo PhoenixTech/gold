@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\ResolvesAdminModel;
 use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AttachmentSaveRequest;
@@ -17,6 +18,7 @@ use Illuminate\View\View;
 class AttachmentController extends Controller
 {
     use RespondsWithAdmin;
+    use ResolvesAdminModel;
 
     public function index(Request $request, AdminTableService $tableService): View
     {
@@ -118,12 +120,7 @@ class AttachmentController extends Controller
 
     protected function resolveAttachment(Attachment|string|int $item): Attachment
     {
-        if ($item instanceof Attachment) {
-            return $item;
-        }
-
-        return Attachment::where('slug', $item)->first()
-            ?? Attachment::where('id', $item)->firstOrFail();
+        return $this->resolveModel(Attachment::class, $item);
     }
 
     protected function saveAttachmentData(Attachment $attachment, Request $request, SlugService $slugService): void

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\ResolvesAdminModel;
 use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PostSaveRequest;
@@ -18,6 +19,7 @@ use Illuminate\View\View;
 class PostController extends Controller
 {
     use RespondsWithAdmin;
+    use ResolvesAdminModel;
 
     public function index(Request $request, AdminTableService $tableService): View
     {
@@ -162,12 +164,7 @@ class PostController extends Controller
 
     protected function resolvePost(Post|string|int $item): Post
     {
-        if ($item instanceof Post) {
-            return $item;
-        }
-
-        return Post::where('slug', $item)->first()
-            ?? Post::where('id', $item)->firstOrFail();
+        return $this->resolveModel(Post::class, $item);
     }
 
     protected function savePostData(Post $post, Request $request, SlugService $slugService): void

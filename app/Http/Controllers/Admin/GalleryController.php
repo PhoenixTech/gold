@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\ResolvesAdminModel;
 use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\GallerySaveRequest;
@@ -17,6 +18,7 @@ use Illuminate\View\View;
 
 class GalleryController extends Controller
 {
+    use ResolvesAdminModel;
     use RespondsWithAdmin;
 
     public function index(Request $request, AdminTableService $tableService): View
@@ -121,12 +123,7 @@ class GalleryController extends Controller
 
     protected function resolveGallery(Gallery|string|int $item): Gallery
     {
-        if ($item instanceof Gallery) {
-            return $item;
-        }
-
-        return Gallery::where('slug', $item)->first()
-            ?? Gallery::where('id', $item)->firstOrFail();
+        return $this->resolveModel(Gallery::class, $item);
     }
 
     protected function saveGalleryData(Gallery $gallery, Request $request, SlugService $slugService): void

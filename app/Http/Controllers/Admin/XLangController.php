@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\ResolvesAdminModel;
 use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\XLangSaveRequest;
@@ -34,6 +35,7 @@ use Spatie\Image\Image as SpatieImage;
 
 class XLangController extends Controller
 {
+    use ResolvesAdminModel;
     use RespondsWithAdmin;
 
     public array $allowedModels = [
@@ -246,12 +248,7 @@ class XLangController extends Controller
 
     protected function resolveLang(XLang|string|int $item): XLang
     {
-        if ($item instanceof XLang) {
-            return $item;
-        }
-
-        return XLang::where('tag', $item)->first()
-            ?? XLang::where('id', $item)->firstOrFail();
+        return $this->resolveModel(XLang::class, $item);
     }
 
     protected function saveLangData(XLang $xlang, Request $request): void

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\ResolvesAdminModel;
 use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\DiscountSaveRequest;
@@ -16,6 +17,7 @@ use Illuminate\View\View;
 class DiscountController extends Controller
 {
     use RespondsWithAdmin;
+    use ResolvesAdminModel;
 
     public function index(Request $request, AdminTableService $tableService): View
     {
@@ -103,11 +105,7 @@ class DiscountController extends Controller
 
     protected function resolveDiscount(Discount|string|int $item): Discount
     {
-        if ($item instanceof Discount) {
-            return $item;
-        }
-
-        return Discount::where('id', $item)->firstOrFail();
+        return $this->resolveModel(Discount::class, $item);
     }
 
     protected function saveDiscountData(Discount $discount, Request $request): void

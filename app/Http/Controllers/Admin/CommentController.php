@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\ResolvesAdminModel;
 use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CommentSaveRequest;
@@ -16,6 +17,7 @@ use Illuminate\View\View;
 
 class CommentController extends Controller
 {
+    use ResolvesAdminModel;
     use RespondsWithAdmin;
 
     public function index(Request $request, AdminTableService $tableService): View
@@ -135,10 +137,6 @@ class CommentController extends Controller
 
     protected function resolveComment(Comment|string|int $item): Comment
     {
-        if ($item instanceof Comment) {
-            return $item;
-        }
-
-        return Comment::where('id', $item)->firstOrFail();
+        return $this->resolveModel(Comment::class, $item);
     }
 }

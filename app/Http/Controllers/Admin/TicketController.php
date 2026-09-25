@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\ResolvesAdminModel;
 use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\TicketSaveRequest;
@@ -15,6 +16,7 @@ use Illuminate\View\View;
 
 class TicketController extends Controller
 {
+    use ResolvesAdminModel;
     use RespondsWithAdmin;
 
     public function index(Request $request, AdminTableService $tableService): View
@@ -115,10 +117,6 @@ class TicketController extends Controller
 
     protected function resolveTicket(Ticket|string|int $item): Ticket
     {
-        if ($item instanceof Ticket) {
-            return $item;
-        }
-
-        return Ticket::where('id', $item)->firstOrFail();
+        return $this->resolveModel(Ticket::class, $item);
     }
 }

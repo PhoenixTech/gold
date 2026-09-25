@@ -5,43 +5,19 @@ namespace App\Services;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Spatie\Image\Enums\AlignPosition;
-use Spatie\Image\Enums\Fit;
-use Spatie\Image\Enums\Unit;
-use Spatie\Image\Image;
 
 class CategoryService
 {
+    public function __construct(
+        protected AdminMediaService $mediaService
+    ) {}
+
     public function handleUploads(Category $category, Request $request): void
     {
         $imageFields = ['image', 'silver_image', 'bg'];
 
         foreach ($imageFields as $field) {
-            if ($request->hasFile($field)) {
-                $file = $request->file($field);
-                $name = time().'-'.$file->getClientOriginalName();
-                $file->storeAs('public/categories', $name);
-                $category->{$field} = $name;
-
-                $format = strtolower((string) $file->guessExtension()) === 'png' ? 'webp' : $file->guessExtension();
-
-                $img = Image::load($file->getPathname())
-                    ->optimize()
-                    ->format($format);
-
-                if (getSetting('watermark2') && file_exists(public_path('upload/images/logo.png'))) {
-                    $img->watermark(
-                        public_path('upload/images/logo.png'),
-                        AlignPosition::BottomLeft, 5, 5, Unit::Percent,
-                        config('app.media.watermark_size', 10), Unit::Percent,
-                        config('app.media.watermark_size', 10), Unit::Percent,
-                        Fit::Contain,
-                        config('app.media.watermark_opacity', 50)
-                    );
-                }
-
-                $img->save(storage_path('app/public/categories/optimized-'.$name));
-            }
+            $this->mediaService->handleOptimizedImage($request, $category, $field, 'categories');
         }
 
         if ($request->hasFile('svg')) {

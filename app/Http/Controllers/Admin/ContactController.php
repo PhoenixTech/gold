@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\ResolvesAdminModel;
 use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ContactSaveRequest;
@@ -16,6 +17,7 @@ use Illuminate\View\View;
 
 class ContactController extends Controller
 {
+    use ResolvesAdminModel;
     use RespondsWithAdmin;
 
     public function index(Request $request, AdminTableService $tableService): View
@@ -110,11 +112,6 @@ class ContactController extends Controller
 
     protected function resolveContact(Contact|string|int $item): Contact
     {
-        if ($item instanceof Contact) {
-            return $item;
-        }
-
-        return Contact::where('hash', $item)->first()
-            ?? Contact::where('id', $item)->firstOrFail();
+        return $this->resolveModel(Contact::class, $item);
     }
 }

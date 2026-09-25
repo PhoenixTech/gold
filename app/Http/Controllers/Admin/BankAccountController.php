@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\ResolvesAdminModel;
 use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BankAccountSaveRequest;
@@ -16,6 +17,7 @@ use Illuminate\View\View;
 class BankAccountController extends Controller
 {
     use RespondsWithAdmin;
+    use ResolvesAdminModel;
 
     public function index(Request $request, AdminTableService $tableService): View
     {
@@ -115,11 +117,7 @@ class BankAccountController extends Controller
 
     protected function resolveBankAccount(BankAccount|string|int $item): BankAccount
     {
-        if ($item instanceof BankAccount) {
-            return $item;
-        }
-
-        return BankAccount::where('id', $item)->firstOrFail();
+        return $this->resolveModel(BankAccount::class, $item);
     }
 
     protected function saveAccountData(BankAccount $bankAccount, Request $request): void

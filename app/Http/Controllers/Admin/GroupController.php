@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\ResolvesAdminModel;
 use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\GroupSaveRequest;
@@ -20,6 +21,7 @@ use Illuminate\View\View;
 class GroupController extends Controller
 {
     use RespondsWithAdmin;
+    use ResolvesAdminModel;
 
     public function index(Request $request, AdminTableService $tableService): View
     {
@@ -161,12 +163,7 @@ class GroupController extends Controller
 
     protected function resolveGroup(Group|string|int $item): Group
     {
-        if ($item instanceof Group) {
-            return $item;
-        }
-
-        return Group::where('slug', $item)->first()
-            ?? Group::where('id', $item)->firstOrFail();
+        return $this->resolveModel(Group::class, $item);
     }
 
     protected function fillGroup(Group $group, Request $request, SlugService $slugService): void

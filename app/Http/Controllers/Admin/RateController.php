@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\ResolvesAdminModel;
 use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RateSaveRequest;
@@ -15,6 +16,7 @@ use Illuminate\View\View;
 
 class RateController extends Controller
 {
+    use ResolvesAdminModel;
     use RespondsWithAdmin;
 
     public function index(Request $request, AdminTableService $tableService): View
@@ -79,10 +81,6 @@ class RateController extends Controller
 
     protected function resolveRate(Rate|string|int $item): Rate
     {
-        if ($item instanceof Rate) {
-            return $item;
-        }
-
-        return Rate::where('id', $item)->firstOrFail();
+        return $this->resolveModel(Rate::class, $item);
     }
 }

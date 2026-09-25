@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\ResolvesAdminModel;
 use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\MenuSaveRequest;
@@ -16,6 +17,7 @@ use Illuminate\View\View;
 
 class MenuController extends Controller
 {
+    use ResolvesAdminModel;
     use RespondsWithAdmin;
 
     public function index(Request $request, AdminTableService $tableService): View
@@ -122,11 +124,7 @@ class MenuController extends Controller
 
     protected function resolveMenu(Menu|string|int $item): Menu
     {
-        if ($item instanceof Menu) {
-            return $item;
-        }
-
-        return Menu::where('id', $item)->firstOrFail();
+        return $this->resolveModel(Menu::class, $item);
     }
 
     protected function saveMenuData(Menu $menu, Request $request): void

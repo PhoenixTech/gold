@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\ResolvesAdminModel;
 use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CustomerSaveRequest;
@@ -18,6 +19,7 @@ use Spatie\Image\Image;
 class CustomerController extends Controller
 {
     use RespondsWithAdmin;
+    use ResolvesAdminModel;
 
     public function index(Request $request, AdminTableService $tableService): View
     {
@@ -115,11 +117,7 @@ class CustomerController extends Controller
 
     protected function resolveCustomer(Customer|string|int $item): Customer
     {
-        if ($item instanceof Customer) {
-            return $item;
-        }
-
-        return Customer::where('id', $item)->firstOrFail();
+        return $this->resolveModel(Customer::class, $item);
     }
 
     protected function saveCustomerData(Customer $customer, Request $request): void

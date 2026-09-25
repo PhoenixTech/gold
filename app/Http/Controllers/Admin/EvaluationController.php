@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\ResolvesAdminModel;
 use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\EvaluationSaveRequest;
@@ -15,6 +16,7 @@ use Illuminate\View\View;
 
 class EvaluationController extends Controller
 {
+    use ResolvesAdminModel;
     use RespondsWithAdmin;
 
     public function index(Request $request, AdminTableService $tableService): View
@@ -88,7 +90,7 @@ class EvaluationController extends Controller
 
     public function restore($item): RedirectResponse
     {
-        $target = Evaluation::withTrashed()->where('id', $item)->firstOrFail();
+        $target = $this->resolveEvaluation($item, true);
 
         logAdmin(__METHOD__, Evaluation::class, $target->id);
         $target->restore();
@@ -101,13 +103,9 @@ class EvaluationController extends Controller
         return $bulkService->handle(Evaluation::class, $request->input('action'), (array) $request->input('id', []));
     }
 
-    protected function resolveEvaluation(Evaluation|string|int $item): Evaluation
+    protected function resolveEvaluation(Evaluation|string|int $item, bool $withTrashed = false): Evaluation
     {
-        if ($item instanceof Evaluation) {
-            return $item;
-        }
-
-        return Evaluation::where('id', $item)->firstOrFail();
+        return $this->resolveModel(Evaluation::class, $item, $withTrashed);
     }
 
     protected function saveEvaluationData(Evaluation $evaluation, Request $request): void

@@ -99,36 +99,6 @@ class ProductService
 
             if ($request->has('stock_items')) {
                 $this->syncStockItems($product, (string) $request->input('stock_items'), $this->calculator);
-            } else {
-                $toRemoveQ = $product->quantities()->pluck('id')->toArray();
-                if ($request->has('q')) {
-                    $qz = json_decode((string) $request->input('q'));
-                    if (is_array($qz)) {
-                        foreach ($qz as $qi) {
-                            if ($qi->id == null) {
-                                $q = new Quantity;
-                            } else {
-                                $q = Quantity::whereId($qi->id)->first();
-                                $searchKey = array_search($q?->id, $toRemoveQ, true);
-                                if ($searchKey !== false) {
-                                    unset($toRemoveQ[$searchKey]);
-                                }
-                            }
-                            if ($q) {
-                                $q->image = $qi->image ?? null;
-                                $q->count = $qi->count ?? 1;
-                                $q->price = $qi->price ?? 0;
-                                $q->product_id = $product->id;
-                                $q->data = json_encode($qi->data ?? []);
-                                if (isset($qi->data->weight)) {
-                                    $q->weight = $qi->data->weight;
-                                }
-                                $q->save();
-                            }
-                        }
-                    }
-                    $product->quantities()->whereIn('id', $toRemoveQ)->delete();
-                }
             }
 
             $this->calculator->repriceProduct($product->fresh(['quantities']));

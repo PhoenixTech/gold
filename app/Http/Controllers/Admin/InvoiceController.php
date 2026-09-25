@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\ResolvesAdminModel;
 use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\InvoiceSaveRequest;
@@ -34,6 +35,7 @@ if (! Builder::hasGlobalMacro('accesses')) {
 class InvoiceController extends Controller
 {
     use RespondsWithAdmin;
+    use ResolvesAdminModel;
 
     protected array $cols = ['created_at', 'customer_id', 'count', 'total_price', 'status'];
 
@@ -525,20 +527,6 @@ class InvoiceController extends Controller
 
     protected function resolveInvoice(Invoice|string|int $item, bool $withTrashed = false): Invoice
     {
-        if ($item instanceof Invoice) {
-            return $item;
-        }
-
-        $query = $withTrashed ? Invoice::withTrashed() : Invoice::query();
-
-        if (is_numeric($item)) {
-            $found = $query->find($item);
-            if ($found) {
-                return $found;
-            }
-        }
-
-        return $query->where('hash', $item)->first()
-            ?? $query->where('id', $item)->firstOrFail();
+        return $this->resolveModel(Invoice::class, $item, $withTrashed);
     }
 }

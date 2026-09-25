@@ -6,8 +6,10 @@ use App\Enums\QuantityPieceStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\Quantity;
+use App\Services\Admin\AdminTableService;
 use App\Services\AdminDashboardStats;
 use App\Services\ProductPriceCalculator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -37,54 +39,13 @@ class StockController extends Controller
         ],
     ];
 
-    public function index(Request $request): View
+    public function index(Request $request, AdminTableService $tableService): View
     {
         $lowStock = $request->input('filter.low_stock');
         $belowBuyPrice = $request->input('filter.below_buy_price');
         $stockCondition = $request->input('filter.stock_condition', 'in_stock');
-        $sort = $request->input('sort');
 
         $query = Product::query()->with(['quantities', 'category']);
-
-        $filters = (array) $request->input('filter', []);
-        $cleanFilters = $filters;
-        unset($cleanFilters['low_stock'], $cleanFilters['below_buy_price'], $cleanFilters['stock_condition']);
-
-        foreach ($cleanFilters as $col => $filter) {
-            if (is_array($filter)) {
-                $values = array_filter($filter, fn ($v) => $v !== null && $v !== '');
-                if (count($values) > 0) {
-                    $query->whereIn($col, $values);
-                }
-            } elseif (is_string($filter) && isJson($filter)) {
-                $values = json_decode($filter, true);
-                if (is_array($values)) {
-                    $cleanVals = array_filter($values, fn ($v) => $v !== null && $v !== '');
-                    if (count($cleanVals) > 0) {
-                        $query->whereIn($col, $cleanVals);
-                    }
-                } elseif ($values !== null && $values !== '') {
-                    $query->where($col, $values);
-                }
-            } else {
-                if ($filter !== null && $filter !== '') {
-                    $query->where($col, $filter);
-                }
-            }
-        }
-
-        $search = trim((string) $request->input('q', ''));
-        if (mb_strlen($search) > 0) {
-            $query->where(function ($q) use ($search) {
-                foreach ($this->searchable as $index => $col) {
-                    if ($index === 0) {
-                        $q->where($col, 'LIKE', '%'.$search.'%');
-                    } else {
-                        $q->orWhere($col, 'LIKE', '%'.$search.'%');
-                    }
-                }
-            });
-        }
 
         $query->withCount([
             'quantities as total_ordered_count',
@@ -97,27 +58,6 @@ class StockController extends Controller
                     });
             }),
         ]);
-
-        $customSorts = ['total_weight', 'total_price', 'most_sold', 'most_scrapped', 'total_ordered'];
-        $sortType = strtolower((string) $request->input('sortType', 'desc')) === 'asc' ? 'asc' : 'desc';
-
-        if (in_array($sort, $customSorts, true)) {
-            if ($sort === 'total_weight') {
-                $query->orderByRaw('(COALESCE(weight, 0) * stock_quantity) '.$sortType);
-            } elseif ($sort === 'total_price') {
-                $query->orderByRaw('(COALESCE(price, 0) * stock_quantity) '.$sortType);
-            } elseif ($sort === 'most_sold') {
-                $query->orderBy('sold_pieces_count', $sortType);
-            } elseif ($sort === 'most_scrapped') {
-                $query->orderBy('scrapped_pieces_count', $sortType);
-            } elseif ($sort === 'total_ordered') {
-                $query->orderBy('total_ordered_count', $sortType);
-            }
-        } elseif (! empty($sort) && in_array($sort, ['name', 'sku', 'stock_quantity'], true)) {
-            $query->orderBy($sort, strtolower((string) $request->input('sortType', 'asc')) === 'desc' ? 'desc' : 'asc');
-        } else {
-            $query->orderByDesc('id');
-        }
 
         if ($stockCondition === 'in_stock') {
             $query->where('stock_quantity', '>', 0);
@@ -161,33 +101,57 @@ class StockController extends Controller
             }
         }
 
-        $request->merge([
-            'filter' => array_merge($filters, ['stock_condition' => $stockCondition]),
-        ]);
+        $filters = (array) $request->input('filter', []);
+        $cleanFilters = $filters;
+        unset($cleanFilters['low_stock'], $cleanFilters['below_buy_price'], $cleanFilters['stock_condition']);
+        $request->merge(['filter' => $cleanFilters]);
 
-        $quickCounts = [
-            'in_stock' => Product::query()->where('stock_quantity', '>', 0)->count(),
-            'all' => Product::query()->count(),
-            'has_scrapped' => Product::query()->whereHas('quantities', fn ($q) => $q->where('status', QuantityPieceStatus::Scrapped->value))->count(),
-            'has_sold' => Product::query()->whereHas('quantities', fn ($q) => $q->where(function ($sq) {
-                $sq->where('status', QuantityPieceStatus::Sold->value)
-                    ->orWhere(function ($fq) {
-                        $fq->where('count', '<=', 0)
-                            ->where('status', '!=', QuantityPieceStatus::Scrapped->value);
-                    });
-            }))->count(),
-            'gold' => Product::query()->where('stock_quantity', '>', 0)->where('metal_type', 'gold')->count(),
-            'silver' => Product::query()->where('stock_quantity', '>', 0)->where('metal_type', 'silver')->count(),
-            'low_stock' => Product::query()->where('stock_quantity', '>', 0)->where('min_stock_level', '>', 0)->whereColumn('stock_quantity', '<', 'min_stock_level')->count(),
-            'below_buy_price' => Product::query()->where('stock_quantity', '>', 0)->where('buy_price', '>', 0)->whereColumn('price', '<', 'buy_price')->count(),
-        ];
+        $tableData = $tableService->for($query)
+            ->columns($this->cols)
+            ->selectColumns(['*'])
+            ->searchable($this->searchable)
+            ->buttons($this->buttons)
+            ->withCustomSort(function (Builder $q, ?string $sort, string $sortType) {
+                $customSorts = ['total_weight', 'total_price', 'most_sold', 'most_scrapped', 'total_ordered'];
+                if (in_array($sort, $customSorts, true)) {
+                    if ($sort === 'total_weight') {
+                        $q->orderByRaw('(COALESCE(weight, 0) * stock_quantity) '.$sortType);
+                    } elseif ($sort === 'total_price') {
+                        $q->orderByRaw('(COALESCE(price, 0) * stock_quantity) '.$sortType);
+                    } elseif ($sort === 'most_sold') {
+                        $q->orderBy('sold_pieces_count', $sortType);
+                    } elseif ($sort === 'most_scrapped') {
+                        $q->orderBy('scrapped_pieces_count', $sortType);
+                    } elseif ($sort === 'total_ordered') {
+                        $q->orderBy('total_ordered_count', $sortType);
+                    }
 
-        $stockStats = $this->stockInventoryStats();
-        $items = $query->paginate((int) config('app.panel.page_count', 15));
-        $cols = $this->cols;
-        $buttons = $this->buttons;
+                    return true;
+                }
 
-        return view('admin.stock.stock-list', compact('items', 'cols', 'buttons', 'quickCounts', 'stockStats'));
+                return false;
+            })
+            ->withQuickCounts([
+                'in_stock' => fn () => Product::query()->where('stock_quantity', '>', 0)->count(),
+                'has_scrapped' => fn () => Product::query()->whereHas('quantities', fn ($q) => $q->where('status', QuantityPieceStatus::Scrapped->value))->count(),
+                'has_sold' => fn () => Product::query()->whereHas('quantities', fn ($q) => $q->where(function ($sq) {
+                    $sq->where('status', QuantityPieceStatus::Sold->value)
+                        ->orWhere(function ($fq) {
+                            $fq->where('count', '<=', 0)
+                                ->where('status', '!=', QuantityPieceStatus::Scrapped->value);
+                        });
+                }))->count(),
+                'gold' => fn () => Product::query()->where('stock_quantity', '>', 0)->where('metal_type', 'gold')->count(),
+                'silver' => fn () => Product::query()->where('stock_quantity', '>', 0)->where('metal_type', 'silver')->count(),
+                'low_stock' => fn () => Product::query()->where('stock_quantity', '>', 0)->where('min_stock_level', '>', 0)->whereColumn('stock_quantity', '<', 'min_stock_level')->count(),
+                'below_buy_price' => fn () => Product::query()->where('stock_quantity', '>', 0)->where('buy_price', '>', 0)->whereColumn('price', '<', 'buy_price')->count(),
+            ])
+            ->build($request);
+
+        $request->merge(['filter' => array_merge($filters, ['stock_condition' => $stockCondition])]);
+        $tableData['stockStats'] = $this->stockInventoryStats();
+
+        return view('admin.stock.stock-list', $tableData);
     }
 
     public function stockInventoryStats(): array

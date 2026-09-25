@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\ResolvesAdminModel;
 use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CategorySaveRequest;
@@ -20,6 +21,7 @@ use Illuminate\View\View;
 class CategoryController extends Controller
 {
     use RespondsWithAdmin;
+    use ResolvesAdminModel;
 
     public function index(Request $request, AdminTableService $tableService): View
     {
@@ -175,12 +177,7 @@ class CategoryController extends Controller
 
     protected function resolveCategory(Category|string|int $item): Category
     {
-        if ($item instanceof Category) {
-            return $item;
-        }
-
-        return Category::where('slug', $item)->first()
-            ?? Category::where('id', $item)->firstOrFail();
+        return $this->resolveModel(Category::class, $item);
     }
 
     protected function fillCategory(Category $category, Request $request, SlugService $slugService): void

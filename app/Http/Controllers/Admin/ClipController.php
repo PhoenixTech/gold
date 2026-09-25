@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\ResolvesAdminModel;
 use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ClipSaveRequest;
@@ -18,6 +19,7 @@ use Illuminate\View\View;
 class ClipController extends Controller
 {
     use RespondsWithAdmin;
+    use ResolvesAdminModel;
 
     public function index(Request $request, AdminTableService $tableService): View
     {
@@ -136,12 +138,7 @@ class ClipController extends Controller
 
     protected function resolveClip(Clip|string|int $item): Clip
     {
-        if ($item instanceof Clip) {
-            return $item;
-        }
-
-        return Clip::where('slug', $item)->first()
-            ?? Clip::where('id', $item)->firstOrFail();
+        return $this->resolveModel(Clip::class, $item);
     }
 
     protected function saveClipData(Clip $clip, Request $request, SlugService $slugService, AdminMediaService $mediaService): void

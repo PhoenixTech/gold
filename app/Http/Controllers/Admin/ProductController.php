@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
+use App\Http\Controllers\Admin\Concerns\ResolvesAdminModel;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProductSaveRequest;
 use App\Models\Category;
@@ -18,6 +19,7 @@ use Illuminate\View\View;
 class ProductController extends Controller
 {
     use RespondsWithAdmin;
+    use ResolvesAdminModel;
 
     protected array $cols = ['name', 'sku', 'weight', 'category_id', 'stock_quantity', 'status'];
 
@@ -72,6 +74,12 @@ class ProductController extends Controller
                 'show' => ['title' => 'Detail', 'class' => 'btn-outline-secondary', 'icon' => 'ri-eye-line'],
                 'destroy' => ['title' => 'Remove', 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-close-line'],
                 'category' => ['title' => 'Edit category', 'class' => 'btn-outline-info edit-category-btn', 'icon' => 'ri-list-check-3'],
+            ])
+            ->withQuickCounts([
+                'gold' => fn () => Product::query()->where('metal_type', 'gold')->count(),
+                'silver' => fn () => Product::query()->where('metal_type', 'silver')->count(),
+                'low_stock' => fn () => Product::query()->where('min_stock_level', '>', 0)->whereColumn('stock_quantity', '<', 'min_stock_level')->count(),
+                'below_buy_price' => fn () => Product::query()->where('buy_price', '>', 0)->whereColumn('price', '<', 'buy_price')->count(),
             ])
             ->build($request);
 
@@ -129,6 +137,12 @@ class ProductController extends Controller
             ->searchable($this->searchable)
             ->buttons([
                 'restore' => ['title' => 'Restore', 'class' => 'btn-outline-success', 'icon' => 'ri-refresh-line'],
+            ])
+            ->withQuickCounts([
+                'gold' => fn () => Product::query()->where('metal_type', 'gold')->count(),
+                'silver' => fn () => Product::query()->where('metal_type', 'silver')->count(),
+                'low_stock' => fn () => Product::query()->where('min_stock_level', '>', 0)->whereColumn('stock_quantity', '<', 'min_stock_level')->count(),
+                'below_buy_price' => fn () => Product::query()->where('buy_price', '>', 0)->whereColumn('price', '<', 'buy_price')->count(),
             ])
             ->build($request);
 
@@ -248,20 +262,6 @@ class ProductController extends Controller
 
     protected function resolveProduct(Product|string|int $item, bool $withTrashed = false): Product
     {
-        if ($item instanceof Product) {
-            return $item;
-        }
-
-        $query = $withTrashed ? Product::withTrashed() : Product::query();
-
-        if (is_numeric($item)) {
-            $found = $query->find($item);
-            if ($found) {
-                return $found;
-            }
-        }
-
-        return $query->where('slug', $item)->first()
-            ?? $query->where('id', $item)->firstOrFail();
+        return $this->resolveModel(Product::class, $item, $withTrashed);
     }
 }

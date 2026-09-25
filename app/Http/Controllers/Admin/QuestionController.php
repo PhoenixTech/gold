@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\ResolvesAdminModel;
 use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\QuestionSaveRequest;
@@ -15,6 +16,7 @@ use Illuminate\View\View;
 
 class QuestionController extends Controller
 {
+    use ResolvesAdminModel;
     use RespondsWithAdmin;
 
     public function index(Request $request, AdminTableService $tableService): View
@@ -101,10 +103,6 @@ class QuestionController extends Controller
 
     protected function resolveQuestion(Question|string|int $item): Question
     {
-        if ($item instanceof Question) {
-            return $item;
-        }
-
-        return Question::where('id', $item)->firstOrFail();
+        return $this->resolveModel(Question::class, $item);
     }
 }

@@ -3,7 +3,6 @@
 namespace App\Services\Admin;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Http\Request;
 
@@ -12,9 +11,11 @@ class AdminTableService
     protected Builder $query;
     protected array $cols = [];
     protected array $extraCols = ['id'];
+    protected ?array $selectColumns = null;
     protected array $searchable = [];
     protected array $buttons = [];
     protected array $quickCountCallbacks = [];
+    protected $customSortCallback = null;
     protected ?string $modelClass = null;
 
     public function for(Builder|string $queryOrModel): self
@@ -38,6 +39,13 @@ class AdminTableService
         return $this;
     }
 
+    public function selectColumns(array $selectColumns): self
+    {
+        $this->selectColumns = $selectColumns;
+
+        return $this;
+    }
+
     public function searchable(array $searchable): self
     {
         $this->searchable = $searchable;
@@ -52,9 +60,25 @@ class AdminTableService
         return $this;
     }
 
+    public function withCustomSort(callable $sorter): self
+    {
+        $this->customSortCallback = $sorter;
+
+        return $this;
+    }
+
     public function withQuickCount(string $key, callable $counter): self
     {
         $this->quickCountCallbacks[$key] = $counter;
+
+        return $this;
+    }
+
+    public function withQuickCounts(array $callbacks): self
+    {
+        foreach ($callbacks as $key => $callback) {
+            $this->quickCountCallbacks[$key] = $callback;
+        }
 
         return $this;
     }
@@ -70,7 +94,7 @@ class AdminTableService
         }
 
         $perPage = (int) config('app.panel.page_count', 15);
-        $selectCols = array_values(array_unique(array_merge($this->extraCols, $this->cols)));
+        $selectCols = $this->selectColumns ?? array_values(array_unique(array_merge($this->extraCols, $this->cols)));
 
         $items = $this->query->paginate($perPage, $selectCols);
         $quickCounts = $this->computeQuickCounts($request);
@@ -88,9 +112,16 @@ class AdminTableService
         $sort = $request->input('sort');
         $sortType = strtolower((string) $request->input('sortType', 'asc')) === 'desc' ? 'desc' : 'asc';
 
+        if ($this->customSortCallback !== null) {
+            $handled = ($this->customSortCallback)($this->query, $sort, $sortType, $request);
+            if ($handled) {
+                return;
+            }
+        }
+
         if (! empty($sort) && in_array($sort, $this->cols, true)) {
             $this->query->orderBy($sort, $sortType);
-        } else {
+        } elseif (empty($this->query->getQuery()->orders)) {
             $this->query->orderByDesc('id');
         }
     }
@@ -159,23 +190,6 @@ class AdminTableService
 
             $quickCounts['all'] = $this->modelClass::count();
 
-            if (in_array('metal_type', $allCols, true)) {
-                $quickCounts['gold'] = $this->modelClass::where('metal_type', 'gold')->count();
-                $quickCounts['silver'] = $this->modelClass::where('metal_type', 'silver')->count();
-            }
-
-            if (in_array('min_stock_level', $allCols, true) && in_array('stock_quantity', $allCols, true)) {
-                $quickCounts['low_stock'] = $this->modelClass::where('min_stock_level', '>', 0)
-                    ->whereColumn('stock_quantity', '<', 'min_stock_level')
-                    ->count();
-            }
-
-            if (in_array('buy_price', $allCols, true) && in_array('price', $allCols, true)) {
-                $quickCounts['below_buy_price'] = $this->modelClass::where('buy_price', '>', 0)
-                    ->whereColumn('price', '<', 'buy_price')
-                    ->count();
-            }
-
             if (in_array('status', $allCols, true)) {
                 $quickCounts['published'] = $this->modelClass::whereIn('status', [1, '1', 'published'])->count();
                 $quickCounts['draft'] = $this->modelClass::whereIn('status', [0, '0', 'draft'])->count();
@@ -186,7 +200,7 @@ class AdminTableService
             }
 
             foreach ($this->quickCountCallbacks as $key => $callback) {
-                $quickCounts[$key] = $callback($this->modelClass);
+                $quickCounts[$key] = is_callable($callback) ? $callback($this->modelClass) : $callback;
             }
         } catch (\Throwable) {
             $quickCounts = [];

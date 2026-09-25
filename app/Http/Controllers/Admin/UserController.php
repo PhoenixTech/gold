@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\ResolvesAdminModel;
 use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UserSaveRequest;
@@ -16,6 +17,7 @@ use Illuminate\View\View;
 
 class UserController extends Controller
 {
+    use ResolvesAdminModel;
     use RespondsWithAdmin;
 
     public function index(Request $request, AdminTableService $tableService): View
@@ -92,8 +94,7 @@ class UserController extends Controller
 
     public function restore($item): RedirectResponse
     {
-        $target = User::withTrashed()->where('id', $item)->first()
-            ?? User::withTrashed()->where('email', $item)->firstOrFail();
+        $target = $this->resolveUser($item, true);
 
         logAdmin(__METHOD__, User::class, $target->id);
         $target->restore();
@@ -139,13 +140,8 @@ class UserController extends Controller
         return redirect()->route('admin.user.edit', $user->{$user->getRouteKeyName()});
     }
 
-    protected function resolveUser(User|string|int $item): User
+    protected function resolveUser(User|string|int $item, bool $withTrashed = false): User
     {
-        if ($item instanceof User) {
-            return $item;
-        }
-
-        return User::where('email', $item)->first()
-            ?? User::where('id', $item)->firstOrFail();
+        return $this->resolveModel(User::class, $item, $withTrashed);
     }
 }
