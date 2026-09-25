@@ -51,10 +51,12 @@
                 @else
                     <div class="dash-rate dash-rate--{{ $rate['key'] }}">
                 @endif
-                    <span class="dash-rate__metal">
-                        <i class="{{ $rate['icon'] }}"></i>
-                        {{ $rate['label'] }}
-                    </span>
+                    <div class="dash-rate__header">
+                        <span class="dash-rate__metal">
+                            <i class="{{ $rate['icon'] }}"></i>
+                            {{ $rate['label'] }}
+                        </span>
+                    </div>
                     <strong class="dash-rate__value">
                         {{ number_format($rate['value']) }}
                         <small>{{ config('app.currency.symbol') }}</small>
@@ -130,10 +132,10 @@
                             {{ \App\Services\AdminDashboardStats::formatWeight($stockStats['total_weight']) }}
                             <small class="text-muted">{{ __('g') }}</small>
                         </h5>
-                        <small class="stat-sub">
+                        <div class="stat-sub">
                             <span class="me-2"><i class="ri-coins-line text-warning me-1"></i>{{ __('Gold') }}: {{ number_format($stockStats['gold_count']) }} {{ __('items') }} ({{ \App\Services\AdminDashboardStats::formatWeight($stockStats['gold_weight']) }} {{ __('g') }})</span>
                             <span><i class="ri-vip-diamond-line text-secondary me-1"></i>{{ __('Silver') }}: {{ number_format($stockStats['silver_count']) }} {{ __('items') }} ({{ \App\Services\AdminDashboardStats::formatWeight($stockStats['silver_weight']) }} {{ __('g') }})</span>
-                        </small>
+                        </div>
                         @if(($lowStockCount ?? 0) > 0)
                             <div class="mt-2 pt-2 border-top d-flex align-items-center justify-content-between text-danger fs-12">
                                 <span><i class="ri-alarm-warning-line me-1"></i>{{ __('Low stock alert') }}: <b>{{ number_format($lowStockCount) }}</b> {{ __('products') }}</span>
@@ -168,10 +170,10 @@
                             {{ \App\Services\AdminDashboardStats::formatWeight($soldStats['total_weight']) }}
                             <small class="text-muted">{{ __('g') }}</small>
                         </h5>
-                        <small class="stat-sub">
+                        <div class="stat-sub">
                             <span class="me-2"><i class="ri-coins-line text-warning me-1"></i>{{ __('Gold') }}: {{ number_format($soldStats['gold_count']) }} {{ __('items') }} ({{ \App\Services\AdminDashboardStats::formatWeight($soldStats['gold_weight']) }} {{ __('g') }})</span>
                             <span><i class="ri-vip-diamond-line text-secondary me-1"></i>{{ __('Silver') }}: {{ number_format($soldStats['silver_count']) }} {{ __('items') }} ({{ \App\Services\AdminDashboardStats::formatWeight($soldStats['silver_weight']) }} {{ __('g') }})</span>
-                        </small>
+                        </div>
                     </div>
                 </a>
             </div>
@@ -185,8 +187,10 @@
                     </div>
                     <div class="stat-details">
                         <span class="stat-label">{{ __('This month sales') }}</span>
-                        <h5 class="stat-value">{{ number_format($monthlySales) }}</h5>
-                        <small class="stat-sub">{{ config('app.currency.symbol') }}</small>
+                        <h5 class="stat-value">
+                            {{ number_format($monthlySales) }}
+                            <small class="text-muted">{{ config('app.currency.symbol') }}</small>
+                        </h5>
                     </div>
                 </a>
             </div>
@@ -224,7 +228,7 @@
                             <p class="text-muted px-3 py-4 mb-0">{{ __('No invoices yet') }}</p>
                         @else
                             <div class="table-responsive">
-                                <table class="table avisa-summary-table mb-0">
+                                <table class="table table-hover avisa-summary-table mb-0">
                                     <thead>
                                     <tr>
                                         <th>{{ __('Customer') }}</th>
@@ -267,11 +271,11 @@
                             <li><a href="{{ route('admin.transport.index') }}"><i class="ri-truck-fill"></i>{{ __('Transports') }}</a></li>
                             <li><a href="{{ route('admin.customer.index') }}"><i class="ri-team-fill"></i>{{ __('Customers') }}</a></li>
                         </ul>
-                        <p class="dash-visitors mb-0">
+                        <div class="dash-visitors">
                             <i class="ri-eye-line"></i>
-                            {{ __('Monthly Visitors') }}:
+                            <span>{{ __('Monthly Visitors') }}:</span>
                             <strong>{{ number_format($monthlyVisitors) }}</strong>
-                        </p>
+                        </div>
                     </div>
                 </div>
             </div>
