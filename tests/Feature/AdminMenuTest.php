@@ -65,20 +65,29 @@ class AdminMenuTest extends TestCase
 
         $html = view('components.panel-side-navbar')->render();
 
-        $this->assertStringContainsString(__('View Website'), $html);
+        $this->assertStringContainsString('id="system"', $html);
+        $this->assertStringContainsString(__('System'), $html);
+        $this->assertStringContainsString(__('Staff'), $html);
+        $this->assertStringContainsString(__('Admin logs'), $html);
+        $this->assertStringContainsString(__('Languages'), $html);
+        $this->assertStringContainsString(__('Settings'), $html);
+        $this->assertStringContainsString(route('admin.user.index'), $html);
+        $this->assertStringContainsString(route('admin.adminlog.index'), $html);
+        $this->assertStringContainsString(route('admin.lang.index'), $html);
+        $this->assertStringContainsString(route('admin.setting.index'), $html);
+
         $this->assertStringContainsString(__('Website content'), $html);
         $this->assertStringContainsString(__('Appearance'), $html);
         $this->assertStringContainsString(__('Customer support'), $html);
         $this->assertStringContainsString(__('Shop visits'), $html);
         $this->assertStringContainsString(route('admin.shop-visit.index'), $html);
-        $this->assertStringContainsString(__('Staff and logs'), $html);
-        $this->assertStringContainsString(__('Settings'), $html);
         $this->assertStringContainsString(__('Help'), $html);
         $this->assertGreaterThan(
             strpos($html, route('admin.setting.index')),
             strpos($html, route('admin.help'))
         );
 
+        $this->assertStringNotContainsString(__('Staff and logs'), $html);
         $this->assertStringNotContainsString(__('Shopping card'), $html);
         $this->assertStringNotContainsString(__('Catalog'), $html);
         $this->assertStringNotContainsString('xShop', $html);
@@ -95,6 +104,12 @@ class AdminMenuTest extends TestCase
 
         $html = view('components.panel-side-navbar')->render();
 
+        $this->assertStringContainsString('سیستم', $html);
+        $this->assertStringContainsString('کارکنان', $html);
+        $this->assertStringContainsString('گزارش مدیران', $html);
+        $this->assertStringContainsString('زبان‌ها', $html);
+        $this->assertStringContainsString('تنظیمات', $html);
+
         $this->assertStringContainsString('فروشگاه', $html);
         $this->assertStringContainsString('تعاریف فروشگاه', $html);
         $this->assertStringContainsString('محصولات', $html);
@@ -105,7 +120,6 @@ class AdminMenuTest extends TestCase
         $this->assertStringContainsString('ویژگی‌های محصول', $html);
         $this->assertStringContainsString('امتیازها', $html);
         $this->assertStringContainsString('معیارهای امتیاز', $html);
-        $this->assertStringContainsString('مشاهده وب‌سایت', $html);
         $this->assertStringContainsString('محتوای سایت', $html);
         $this->assertStringContainsString('پشتیبانی', $html);
         $this->assertStringContainsString('ویزیت فروشگاه‌ها', $html);

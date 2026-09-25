@@ -30,7 +30,7 @@
             </a>
         </li>
 
-        @if(auth()->user()->hasAnyAccesses(['product', 'invoice', 'customer']))
+        @if(auth()->user()->hasAnyAccesses(['product', 'invoice', 'customer', 'shop-visit']))
             <li>
                 <a href="#shop" class="dsb-item">
                     <i class="ri-store-2-line"></i>
@@ -65,6 +65,14 @@
                             <a href="{{route('admin.customer.index')}}">
                                 <i class="ri-team-fill"></i>
                                 {{__('Customers')}}
+                            </a>
+                        </li>
+                    @endif
+                    @if(auth()->user()->hasAnyAccess('shop-visit'))
+                        <li>
+                            <a href="{{route('admin.shop-visit.index')}}">
+                                <i class="ri-walk-line"></i>
+                                {{__('Shop visits')}}
                             </a>
                         </li>
                     @endif
@@ -207,36 +215,27 @@
             </li>
         @endif
 
-        @if(auth()->user()->hasAnyAccesses(['user', 'adminlog', 'shop-visit']))
+        @if(auth()->user()->hasAnyAccesses(['user', 'adminlog', 'lang', 'setting']) || auth()->user()->hasRole('developer'))
             <li>
-                <a href="#staff" class="dsb-item">
-                    <i class="ri-shield-user-line"></i>
-                    <span class="nav-label">{{__("Staff and logs")}}</span>
+                <a href="#system" class="dsb-item">
+                    <i class="ri-settings-3-line"></i>
+                    <span class="nav-label">{{__("System")}}</span>
                     <i class="ri-arrow-down-s-line nav-chevron"></i>
                 </a>
-                <ul id="staff">
+                <ul id="system">
                     @if(auth()->user()->hasAnyAccess('user'))
                         <li><a href="{{route('admin.user.index')}}"><i class="ri-user-line"></i>{{__("Staff")}}</a></li>
-                    @endif
-                    @if(auth()->user()->hasAnyAccess('shop-visit'))
-                        <li><a href="{{route('admin.shop-visit.index')}}"><i class="ri-walk-line"></i>{{__('Shop visits')}}</a></li>
                     @endif
                     @if(auth()->user()->hasAnyAccess('adminlog'))
                         <li><a href="{{route('admin.adminlog.index')}}"><i class="ri-list-check-3"></i>{{__('Admin logs')}}</a></li>
                     @endif
-                    @if(auth()->user()->hasRole('developer') && config('app.xlang.active'))
+                    @if((auth()->user()->hasRole('developer') || auth()->user()->hasAnyAccess('lang')) && config('app.xlang.active'))
                         <li><a href="{{ route('admin.lang.index') }}"><i class="ri-global-fill"></i>{{__("Languages")}}</a></li>
                     @endif
+                    @if(auth()->user()->hasAnyAccess('setting'))
+                        <li><a href="{{route('admin.setting.index')}}"><i class="ri-settings-4-line"></i>{{__("Settings")}}</a></li>
+                    @endif
                 </ul>
-            </li>
-        @endif
-
-        @if(auth()->user()->hasAnyAccess('setting'))
-            <li>
-                <a href="{{route('admin.setting.index')}}" class="dsb-item">
-                    <i class="ri-settings-4-line"></i>
-                    <span class="nav-label">{{__("Settings")}}</span>
-                </a>
             </li>
         @endif
             <li>
