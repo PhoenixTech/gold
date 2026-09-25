@@ -20,9 +20,9 @@ class ProductController extends XController
     // protected  $_MODEL_ = Product::class;
     // protected  $SAVE_REQUEST = ProductSaveRequest::class;
 
-    protected $cols = ['name', 'sku', 'metal_type', 'target_group', 'weight', 'category_id', 'stock_quantity', 'status'];
+    protected $cols = ['name', 'sku', 'weight', 'category_id', 'stock_quantity', 'status'];
 
-    protected $extra_cols = ['id', 'slug', 'image_index', 'min_stock_level', 'price', 'buy_price', 'plating_colors', 'stones', 'accessories', 'occasions'];
+    protected $extra_cols = ['id', 'slug', 'image_index', 'min_stock_level', 'price', 'buy_price', 'plating_colors', 'stones', 'accessories', 'occasions', 'metal_type', 'target_group'];
 
     protected $searchable = ['name', 'slug', 'description', 'excerpt', 'sku', 'table'];
 
@@ -88,6 +88,8 @@ class ProductController extends XController
                 'filter' => array_merge(request()->input('filter', []), ['below_buy_price' => $belowBuyPrice]),
             ]);
         }
+
+        $query->with(['availableQuantities']);
 
         return $query;
     }

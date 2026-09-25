@@ -1,6 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
+    @php
+        $hideIdCol = View::hasSection('hide-id-col') || (isset($hideIdCol) && $hideIdCol);
+    @endphp
     <div class="mb-5 pb-5">
         @include('components.err')
         @hasSection('top-content')
@@ -254,9 +257,11 @@
                                         <div class="form-check m-0 d-inline-flex align-items-center gap-1">
                                             <input type="checkbox" id="chk-{{$item->id}}" class="form-check-input chkbox m-0"
                                                    name="id[{{$item->id}}]" value="{{$item->id}}">
-                                            <label class="form-check-label ms-1" for="chk-{{$item->id}}">
-                                                {{$item->id}}
-                                            </label>
+                                            @if(! $hideIdCol)
+                                                <label class="form-check-label ms-1" for="chk-{{$item->id}}">
+                                                    {{$item->id}}
+                                                </label>
+                                            @endif
                                         </div>
                                     </td>
                                     @if(isset($item) && method_exists($item,'imgUrl'))
@@ -394,7 +399,11 @@
                                                          </span>
                                                          @break
                                                       @case('weight')
-                                                          <span>{{ number_format($item->weight ?? 0, 3) }} {{__('g')}}</span>
+                                                          @php
+                                                              $firstAvailable = method_exists($item, 'firstAvailableQuantity') ? $item->firstAvailableQuantity() : null;
+                                                              $pieceWeight = $firstAvailable?->weight ?? ($item->weight ?? 0);
+                                                          @endphp
+                                                          <span>~ {{ number_format((float) $pieceWeight, 3) }} {{__('g')}}</span>
                                                           @break
                                                       @case('total_weight')
                                                           <span class="fw-semibold text-dark">{{ \App\Services\AdminDashboardStats::formatWeight($item->total_weight ?? ($item->weight ?? 0)) }}</span>

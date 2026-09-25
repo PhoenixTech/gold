@@ -1,5 +1,7 @@
 @extends('admin.templates.panel-list-template')
 
+@section('hide-id-col', true)
+
 @section('list-title')
     <i class="ri-vip-diamond-line"></i>
     {{__("Products list")}}

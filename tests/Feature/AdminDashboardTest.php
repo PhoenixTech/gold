@@ -237,7 +237,7 @@ class AdminDashboardTest extends TestCase
         $response->assertSee(__('WAITING_RECEIPT'), false);
         $response->assertSee(__('WAITING_CONFIRMATION'), false);
         $response->assertSee(__('Need process orders'), false);
-        $response->assertSee(__('Pending tickets'), false);
+        $response->assertDontSee(__('Pending tickets'), false);
         $response->assertSee(__('This month sales'), false);
         $response->assertSee(__('Active bank account'), false);
         $response->assertSee(__('Recent invoices'), false);
