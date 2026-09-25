@@ -15,12 +15,14 @@
                 </a>
             </li>
         @else
-        <li>
-            <a href="{{route('client.welcome')}}" target="_blank" class="dsb-item">
-                <i class="ri-external-link-line"></i>
-                <span class="nav-label">{{__("View Website")}}</span>
-            </a>
-        </li>
+        @if(auth()->user()->hasAnyAccess('invoice'))
+            <li>
+                <a href="{{ route('admin.order-board.index') }}" class="dsb-item">
+                    <i class="ri-dashboard-2-line"></i>
+                    {{__('Order board')}}
+                </a>
+            </li>
+        @endif
         <li>
             <a href="{{route('admin.summary.index')}}" class="dsb-item">
                 <i class="ri-pie-chart-2-line"></i>
@@ -51,12 +53,6 @@
                         </li>
                     @endif
                     @if(auth()->user()->hasAnyAccess('invoice'))
-                        <li>
-                            <a href="{{ route('admin.order-board.index') }}" class="{{ request()->routeIs('admin.order-board.*') ? 'active' : '' }}">
-                                <i class="ri-dashboard-2-line"></i>
-                                {{__('Order board')}}
-                            </a>
-                        </li>
                         <li>
                             <a href="{{ route('admin.invoice.index') }}" class="{{ request()->routeIs('admin.invoice.*') ? 'active' : '' }}">
                                 <i class="ri-file-list-3-fill"></i>
