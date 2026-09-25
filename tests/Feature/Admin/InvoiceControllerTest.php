@@ -87,4 +87,18 @@ class InvoiceControllerTest extends TestCase
         $this->assertNotSoftDeleted('invoices', ['id' => $i1->id]);
         $this->assertNotSoftDeleted('invoices', ['id' => $i2->id]);
     }
+
+    public function test_invoice_list_omits_published_and_draft_filters(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        $this->actingAsAdmin();
+
+        Invoice::factory()->create(['status' => Invoice::AWAITING_PAYMENT]);
+
+        $response = $this->get(route('admin.invoice.index'));
+        $response->assertOk();
+        $response->assertDontSee('filter[status]=1');
+        $response->assertDontSee('filter[status]=0');
+    }
 }

@@ -15,6 +15,7 @@ class AdminTableService
     protected array $searchable = [];
     protected array $buttons = [];
     protected array $quickCountCallbacks = [];
+    protected bool $withStatusCounts = true;
     protected $customSortCallback = null;
     protected ?string $modelClass = null;
 
@@ -27,6 +28,13 @@ class AdminTableService
             $this->query = $queryOrModel;
             $this->modelClass = get_class($queryOrModel->getModel());
         }
+
+        return $this;
+    }
+
+    public function withoutStatusCounts(): self
+    {
+        $this->withStatusCounts = false;
 
         return $this;
     }
@@ -190,7 +198,7 @@ class AdminTableService
 
             $quickCounts['all'] = $this->modelClass::count();
 
-            if (in_array('status', $allCols, true)) {
+            if ($this->withStatusCounts && in_array('status', $allCols, true)) {
                 $quickCounts['published'] = $this->modelClass::whereIn('status', [1, '1', 'published'])->count();
                 $quickCounts['draft'] = $this->modelClass::whereIn('status', [0, '0', 'draft'])->count();
             }

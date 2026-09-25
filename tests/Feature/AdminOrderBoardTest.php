@@ -65,6 +65,8 @@ class AdminOrderBoardTest extends TestCase
         $response->assertOk();
         $response->assertSee(__('Manager dashboard'));
         $response->assertSee(__('Active orders'));
+        $response->assertSee(__('Operational order board'));
+        $response->assertDontSee('<code');
     }
 
     public function test_order_board_shows_active_orders_by_default_and_moves_completed_to_history(): void
@@ -96,7 +98,7 @@ class AdminOrderBoardTest extends TestCase
         $completedResponse->assertDontSee('#'.$activeOrder->hash);
     }
 
-    public function test_order_board_displays_customer_code_province_and_expandable_address(): void
+    public function test_order_board_displays_customer_province_and_expandable_address(): void
     {
         $this->withoutVite();
         $this->seed(GfxSeeder::class);
@@ -127,7 +129,8 @@ class AdminOrderBoardTest extends TestCase
 
         $response = $this->get(route('admin.order-board.index'));
         $response->assertOk();
-        $response->assertSee('ZK-777');
+        $response->assertSee('Alireza Rad');
+        $response->assertDontSee('data-sort="customer_code"');
         $response->assertSee('تهران');
         $response->assertSee('09998887766');
         $response->assertSee('خیابان ولیعصر کوچه شقایق پلاک ۴');
@@ -270,5 +273,21 @@ class AdminOrderBoardTest extends TestCase
 
         // Delivery details: when delivered
         $response->assertSee(__('Delivered at'));
+    }
+
+    public function test_order_board_displays_customer_name_near_phone_button(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        App::setLocale('fa');
+        $this->actingAsAdmin();
+
+        $customer = Customer::factory()->create(['name' => 'Sara Mohammadi']);
+        $this->createOrder($customer, Invoice::PROCESSING);
+
+        $response = $this->get(route('admin.order-board.index'));
+        $response->assertOk();
+        $response->assertSee('Sara Mohammadi');
+        $response->assertSee('phone-toggle-btn');
     }
 }

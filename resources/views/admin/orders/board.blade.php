@@ -9,9 +9,9 @@
     {{-- Header --}}
     <header class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
         <div>
-            <code class="fw-bold text-primary font-monospace bg-primary-subtle px-2 py-0.5 rounded border border-primary-subtle fs-12 mb-2 d-inline-block">
+            <span class="fw-bold text-primary bg-primary-subtle px-2 py-0.5 rounded border border-primary-subtle fs-12 mb-2 d-inline-block">
                 {{ __('Operational order board') }}
-            </code>
+            </span>
             <h1 class="h3 fw-bold text-dark mb-1">{{ __('Manager dashboard') }}</h1>
             <p class="text-muted fs-13 mb-0">
                 {{ __('Clinic-style daily workflow table for tracking and processing active orders.') }}
@@ -86,11 +86,8 @@
                         <th style="width: 60px;" class="py-3 cursor-pointer sort-header" data-sort="row">
                             <span class="d-inline-flex align-items-center gap-1">{{ __('#') }}<i class="ri-arrow-up-down-line text-muted fs-11"></i></span>
                         </th>
-                        <th style="min-width: 110px;" class="py-3 cursor-pointer sort-header" data-sort="customer_code">
-                            <span class="d-inline-flex align-items-center gap-1">{{ __('Customer code') }}<i class="ri-arrow-up-down-line text-muted fs-11"></i></span>
-                        </th>
-                        <th style="width: 60px;" class="py-3 text-center" title="{{ __('Click phone icon in any row to expand details') }}">
-                            <i class="ri-phone-line text-muted fs-15"></i>
+                        <th style="min-width: 130px;" class="py-3 text-start" title="{{ __('Click phone icon in any row to expand details') }}">
+                            <span class="d-inline-flex align-items-center gap-1">{{ __('Customer') }}<i class="ri-phone-line text-muted fs-14"></i></span>
                         </th>
                         <th style="min-width: 100px;" class="py-3">{{ __('Province') }}</th>
                         <th style="min-width: 150px;" class="py-3 cursor-pointer sort-header" data-sort="date">
@@ -118,7 +115,6 @@
                         <tr class="order-main-row" 
                             id="order-row-{{ $order['id'] }}"
                             data-row="{{ $order['index'] }}"
-                            data-customer_code="{{ $order['customer_code'] }}"
                             data-date="{{ $order['id'] }}"
                             data-payment="{{ $order['stages']['payment']['done'] ? 1 : 0 }}"
                             data-confirm="{{ $order['stages']['confirm']['done'] ? 1 : 0 }}"
@@ -129,38 +125,36 @@
                             {{-- 1. Row # --}}
                             <td class="fw-bold font-monospace text-muted fs-13">{{ $order['index'] }}</td>
 
-                            {{-- 2. Customer Code --}}
-                            <td>
-                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle font-monospace fs-12 px-2 py-1">
-                                    {{ $order['customer_code'] }}
-                                </span>
+                            {{-- 2. Phone Toggle Button --}}
+                            <td class="text-start">
+                                <div class="d-inline-flex align-items-center gap-1.5">
+                                    <button type="button" class="btn btn-sm btn-light border border-secondary-subtle text-primary p-1 rounded phone-toggle-btn flex-shrink-0"
+                                            data-target="#subrow-{{ $order['id'] }}" data-stage="contact" title="{{ __('View phone and address') }}">
+                                        <i class="ri-phone-line fs-14"></i>
+                                    </button>
+                                    <span class="fs-13 fw-semibold text-dark text-truncate" style="max-width: 150px;" title="{{ $order['customer_name'] }}">
+                                        {{ $order['customer_name'] }}
+                                    </span>
+                                </div>
                             </td>
 
-                            {{-- 3. Phone Toggle Button --}}
-                            <td>
-                                <button type="button" class="btn btn-sm btn-light border border-secondary-subtle text-primary p-1 rounded phone-toggle-btn"
-                                        data-target="#subrow-{{ $order['id'] }}" data-stage="contact" title="{{ __('View phone and address') }}">
-                                    <i class="ri-phone-line fs-14"></i>
-                                </button>
-                            </td>
-
-                            {{-- 4. Province --}}
+                            {{-- 3. Province --}}
                             <td class="fs-13 fw-semibold text-dark">{{ $order['province'] }}</td>
 
-                            {{-- 5. Order Code & Date --}}
+                            {{-- 4. Order Code & Date --}}
                             <td class="text-start px-3">
                                 <div class="d-flex flex-column">
-                                    <a href="{{ route('admin.invoice.show', $order['hash']) }}" class="fw-bold font-monospace text-primary text-decoration-none fs-13" title="{{ __('View invoice') }}">
+                                    <a href="{{ route('admin.invoice.show', $order['hash']) }}" class="fw-bold text-primary text-decoration-none fs-13" title="{{ __('View invoice') }}">
                                         #{{ $order['hash'] }}
                                     </a>
-                                    <span class="text-muted font-monospace fs-11 mt-0.5">
+                                    <span class="text-muted fs-11 mt-0.5">
                                         <i class="ri-calendar-line me-0.5"></i>{{ $order['date_persian'] }}
                                         @if($order['time_persian'])<span class="ms-1 text-black-50">{{ $order['time_persian'] }}</span>@endif
                                     </span>
                                 </div>
                             </td>
 
-                            {{-- 6-10. Workflow Stages Loop (click to expand stage details) --}}
+                            {{-- 5-9. Workflow Stages Loop (click to expand stage details) --}}
                             @foreach(['payment', 'confirm', 'settle', 'courier', 'delivery'] as $key)
                                 @php $stage = $order['stages'][$key]; @endphp
                                 <td>
@@ -180,7 +174,7 @@
 
                         {{-- Sub-row: expandable detail cards (contact / payment / confirm / settle / courier / delivery) --}}
                         <tr class="order-subrow d-none bg-white border-top border-bottom" id="subrow-{{ $order['id'] }}">
-                            <td colspan="10" class="p-3 text-start bg-light bg-opacity-50">
+                            <td colspan="9" class="p-3 text-start bg-light bg-opacity-50">
 
                                 {{-- Contact card (phone icon) --}}
                                 <div class="subcard d-none" data-subcard="contact">
@@ -422,7 +416,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="10" class="py-5 text-center text-muted">
+                            <td colspan="9" class="py-5 text-center text-muted">
                                 <i class="ri-inbox-line fs-1 text-muted opacity-50 d-block mb-2"></i>
                                 <span class="fs-14 fw-semibold">{{ __('No orders found matching the criteria.') }}</span>
                             </td>

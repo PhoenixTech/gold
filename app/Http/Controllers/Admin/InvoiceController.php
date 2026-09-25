@@ -66,6 +66,7 @@ class InvoiceController extends Controller
         $tableData = $tableService->for($query)
             ->columns($this->cols, $this->extraCols)
             ->searchable($this->searchable)
+            ->withoutStatusCounts()
             ->buttons([
                 'edit' => ['title' => 'Edit', 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
                 'show' => ['title' => 'Detail', 'class' => 'btn-outline-secondary', 'icon' => 'ri-eye-line'],
@@ -95,6 +96,7 @@ class InvoiceController extends Controller
         $tableData = $tableService->for($query)
             ->columns($this->cols, $this->extraCols)
             ->searchable($this->searchable)
+            ->withoutStatusCounts()
             ->buttons([
                 'restore' => ['title' => 'Restore', 'class' => 'btn-outline-success', 'icon' => 'ri-refresh-line'],
             ])
