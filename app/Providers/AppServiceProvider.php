@@ -20,8 +20,6 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->commands([
             TranslatorCommand::class,
-            AssetsBuild::class,
-            GoldPriceUpdate::class,
             GoldFreePriceUpdate::class,
         ]);
         foreach (config('xshop.payment.gateways') as $gateway) {
