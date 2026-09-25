@@ -1,34 +1,41 @@
 # Repository Guidelines
 
-## Localization & Persian (`fa`)
-- **Primary Language**: Persian (`XLANG_MAIN=fa`).
-- **Translation Rule**: Every `__('English Key')` must exist verbatim in `resources/lang/fa.json` with a natural Persian translation, no ai smell.
-- **Verification**: Ensure valid JSON in `resources/lang/fa.json` and clear cache via `php artisan optimize:clear`.
+## 1. Localization & Persian (`fa`)
+- **Primary Language**: Persian (`XLANG_MAIN=fa`). RTL-first layout with `Yekan Bakh VF` font.
+- **Translation Keys**: Every `__('English Key')` in Blade or PHP must exist verbatim in `resources/lang/fa.json`. Use natural Persian terminology (no machine-translation tone).
+- **Date & Numbers**: Use `PersianDate` or Jalali helpers for displaying Persian dates; format currency and weights using Iranian standard separators.
+- **Cache**: Run `php artisan optimize:clear` after updating translation files.
 
-## Admin UI Patterns (Native Bootstrap 5)
-Always use native Bootstrap 5 utilities and components. Avoid custom CSS. Use RemixIcons (`ri-*-fill` / `ri-*-line`).
+## 2. Frontend & UI Standards
 
-- **Notice Banners**: `alert alert-{warning|danger} border border-*-subtle shadow-sm d-flex align-items-center justify-content-between flex-wrap gap-2 p-3 mb-4 rounded-3`
-  - Start side: Icon `ri-*-fill text-* fs-3`, Title `<strong class="d-block text-dark">`, Subtext `<span class="text-muted fs-13">`
-  - End side: Action button `<a class="btn btn-sm btn-{warning|danger} fw-bold px-3">`
-- **Stat Card Sub-Alerts**: `mt-2 pt-2 border-top d-flex align-items-center justify-content-between text-{danger|warning-emphasis} fs-12` with filter badge `.badge.bg-*-subtle`.
-- **Readonly / Auto-Calculated Fields**:
-  - Label: `<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle fs-11"><i class="ri-lock-line me-1"></i>{{ __('Auto-calculated') }}</span>`
-  - Input: `.form-control.bg-light.text-dark.fw-bold[readonly]` in input-group with unit badge.
-  - Helper: `<small class="text-muted d-flex align-items-center gap-1 mt-1"><i class="ri-information-line text-primary"></i>...</small>`
-- **Badges & Filters**: Use subtle badges (`.badge.bg-*-subtle.text-*.border.border-*-subtle`) with `title="..."`; WordPress-style quick filters with count badges.
-- **Dynamic Breadcrumbs**: `<code class="fw-bold text-primary font-monospace bg-primary-subtle px-2 py-0.5 rounded border border-primary-subtle fs-12" id="...">`
+### Client Storefront (Design Tokens)
+- Use design tokens defined in `resources/sass/client-custom/_tokens.scss`:
+  - **Brand Gold**: `--xshop-primary` (`#db9a00`), `--xshop-primary-hover` (`#c48900`), accessible text `--xshop-primary-text` (`#8a5f00`).
+  - **Surfaces & Text**: Slate warm grayscale (`--xshop-surface-0` through `--xshop-surface-300`, text: `--xshop-text-main`, `--xshop-text-body`, `--xshop-text-muted`).
+  - **Elevation**: Multi-layer shadows (`--xshop-shadow-xs` to `--xshop-shadow-xl`).
+- Never introduce hardcoded one-off hex colors when an existing `--xshop-*` token applies.
 
-## Admin Sidebar Menu (`panel-side-navbar.blade.php`)
-When adding items to `resources/views/components/panel-side-navbar.blade.php`:
-1. **Permissions**: Wrap item in `@if(auth()->user()->hasAnyAccess('permission_name'))` and update parent group's `hasAnyAccesses([...])`.
-2. **Active State**: Use `class="{{ request()->routeIs('admin.<name>.*') ? 'active' : '' }}"`.
-3. **Icons & Route**: Use RemixIcons and standard admin route names: `route('admin.<resource>.index')`.
-4. **Localization**: Wrap labels in `{{ __('...') }}` and add translations to `resources/lang/fa.json`.
+### Admin Panel (Native Bootstrap 5)
+- Use native Bootstrap 5 RTL utility classes. Do not write custom CSS for admin views.
+- **Icons**: Use RemixIcons (`ri-*-fill` / `ri-*-line`).
+- **Sidebar**: Dark charcoal sidebar (`#3d3846`). Follow permissions wrapping with `@if(auth()->user()->hasAnyAccess(...))` and standard route names `admin.<resource>.index`.
+- **Badges**: Use subtle classes (`badge bg-*-subtle text-*-emphasis border border-*-subtle`).
+- **Notice Banners**: `alert alert-{warning|danger} border border-*-subtle shadow-sm d-flex align-items-center justify-content-between flex-wrap gap-2 p-3 mb-4 rounded-3`.
+- **Readonly Inputs**: `.form-control.bg-light.text-dark.fw-bold[readonly]` with unit badge and helper tooltip.
 
-## Testing Guidelines
-- **Feature Tests are the default**: Test complete HTTP requests, validation, middleware, permissions, and database side-effects using Laravel's `$this->post()`, `$this->assertDatabaseHas()`, etc.
-- **Unit Tests for business logic**: Always write unit tests for financial math, gold price calculations, stock calculators, and pure service classes. Cover both normal inputs and extreme boundary/rounding cases.
-- **Regression testing**: Every bug fix must include a test that fails before the fix and passes after.
-- **Reserve E2E for critical flows**: Use browser tests only for complex UI interactions and primary user flows (e.g. checkout completion), not for testing backend edge cases.
--
+## 3. Backend & Architecture Rules
+
+### Controllers & Requests
+- Controllers must remain thin. Delegate business logic, gold fee calculations, cart quoting, and stock adjustments to dedicated services in `app/Services/`.
+- Always validate incoming user input via Form Request classes in `app/Http/Requests/`. Do not write large inline validator arrays in controller actions.
+
+### Domain Logic & Types
+- **Enums**: Always use backed Enums from `app/Enums/` (`InvoiceStatus`, `DeliveryStatus`, `MetalType`, `StockStatus`, etc.). Never compare or assign raw integer or string status values.
+- **Financial & Stock Integrity**: All multi-step mutations (e.g. invoice payment approval, stock deduction, order cancellation) must run inside `DB::transaction()`.
+- **Spatie Packages**: Adhere to Spatie conventions for Translatable model fields, Permission checks, and MediaLibrary collections.
+
+## 4. Testing Standards
+- **Feature Tests by Default**: Test full HTTP requests, Form Request validation, middleware, role permissions, and database assertions (`$this->assertDatabaseHas()`).
+- **Unit Tests for Math & Services**: Test pricing algorithms (`ProductPriceCalculator`), cart quotas (`CartQuoteService`), and SKU generators in isolation with high-coverage boundary cases.
+- **Regression Tests**: Every bug fix must include an automated test that fails before the fix and passes after.
+- **No Heavy E2E for Backend Logic**: Reserve browser-driven tests strictly for critical JavaScript-dependent UI journeys (e.g. checkout completion).
