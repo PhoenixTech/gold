@@ -216,4 +216,9 @@ RESULT;
                 ->where('evaluationable_id', $this->group_id);
         })->get();
     }
+
+    public function scopePublished($query)
+    {
+        return $query->where('status', 1);
+    }
 }

@@ -10,7 +10,7 @@ class RssFeedController extends Controller
 {
     public function posts(): Response
     {
-        $posts = Post::orderBy('created_at', 'desc')->take(10)->get();
+        $posts = Post::published()->orderBy('created_at', 'desc')->take(10)->get();
 
         $xmlContent = '<?xml version="1.0" encoding="UTF-8" ?>'.PHP_EOL;
         $xmlContent .= view('website.rss.post', compact('posts'))->render();
@@ -20,7 +20,7 @@ class RssFeedController extends Controller
 
     public function products(): Response
     {
-        $products = Product::orderBy('created_at', 'desc')->take(10)->get();
+        $products = Product::published()->orderBy('created_at', 'desc')->take(10)->get();
 
         $xmlContent = '<?xml version="1.0" encoding="UTF-8" ?>'.PHP_EOL;
         $xmlContent .= view('website.rss.product', compact('products'))->render();

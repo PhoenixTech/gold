@@ -802,6 +802,11 @@ RESULT;
         return $query->whereJsonContains('occasions', $occasion);
     }
 
+    public function scopePublished($query)
+    {
+        return $query->where('status', 1);
+    }
+
     public function scopeFilterCatalog($query, $request = null)
     {
         $req = $request instanceof Request ? $request : request();
