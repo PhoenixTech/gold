@@ -25,3 +25,10 @@ When adding items to `resources/views/components/panel-side-navbar.blade.php`:
 2. **Active State**: Use `class="{{ request()->routeIs('admin.<name>.*') ? 'active' : '' }}"`.
 3. **Icons & Route**: Use RemixIcons and standard admin route names: `route('admin.<resource>.index')`.
 4. **Localization**: Wrap labels in `{{ __('...') }}` and add translations to `resources/lang/fa.json`.
+
+## Testing Guidelines
+- **Feature Tests are the default**: Test complete HTTP requests, validation, middleware, permissions, and database side-effects using Laravel's `$this->post()`, `$this->assertDatabaseHas()`, etc.
+- **Unit Tests for business logic**: Always write unit tests for financial math, gold price calculations, stock calculators, and pure service classes. Cover both normal inputs and extreme boundary/rounding cases.
+- **Regression testing**: Every bug fix must include a test that fails before the fix and passes after.
+- **Reserve E2E for critical flows**: Use browser tests only for complex UI interactions and primary user flows (e.g. checkout completion), not for testing backend edge cases.
+-
