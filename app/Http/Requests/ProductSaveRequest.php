@@ -23,9 +23,16 @@ class ProductSaveRequest extends FormRequest
      */
     public function rules(): array
     {
-        $productId = $this->route('item') instanceof Product
-            ? $this->route('item')->id
-            : ($this->route('item') ?? $this->id);
+        $routeItem = $this->route('item');
+        if ($routeItem instanceof Product) {
+            $productId = $routeItem->id;
+        } elseif (is_numeric($routeItem)) {
+            $productId = (int) $routeItem;
+        } elseif (is_string($routeItem) && $routeItem !== '') {
+            $productId = Product::where('slug', $routeItem)->value('id') ?? $this->id;
+        } else {
+            $productId = $this->id;
+        }
 
         return [
             'name' => ['required', 'string', 'min:5', 'max:128', 'unique:products,name,'.$productId],

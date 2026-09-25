@@ -2,123 +2,119 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\XController;
+use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\EvaluationSaveRequest;
 use App\Models\Evaluation;
+use App\Services\Admin\AdminBulkService;
+use App\Services\Admin\AdminTableService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
-class EvaluationController extends XController
+class EvaluationController extends Controller
 {
-    // protected  $_MODEL_ = Evaluation::class;
-    // protected  $SAVE_REQUEST = EvaluationSaveRequest::class;
+    use RespondsWithAdmin;
 
-    protected $cols = ['title'];
-
-    protected $extra_cols = ['id'];
-
-    protected $searchable = ['title'];
-
-    protected $listView = 'admin.evaluations.evaluation-list';
-
-    protected $formView = 'admin.evaluations.evaluation-form';
-
-    protected $buttons = [
-        'edit' => ['title' => 'Edit', 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
-        //        'show' =>
-        //            ['title' => "Detail", 'class' => 'btn-outline-light', 'icon' => 'ri-eye-line'],
-        'destroy' => ['title' => 'Remove', 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-close-line'],
-    ];
-
-    public function __construct()
+    public function index(Request $request, AdminTableService $tableService): View
     {
-        parent::__construct(Evaluation::class, EvaluationSaveRequest::class);
+        $tableData = $tableService->for(Evaluation::class)
+            ->columns(['title'], ['id'])
+            ->searchable(['title'])
+            ->buttons([
+                'edit' => ['title' => 'Edit', 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
+                'destroy' => ['title' => 'Remove', 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-close-line'],
+            ])
+            ->build($request);
+
+        return view('admin.evaluations.evaluation-list', $tableData);
     }
 
-    /**
-     * @param  $evaluation  Evaluation
-     * @param  $request  EvaluationSaveRequest
-     * @return Evaluation
-     */
-    public function save($evaluation, $request)
+    public function create(): View
     {
+        return view('admin.evaluations.evaluation-form');
+    }
 
-        $evaluation->title = $request->title;
-        if ($request->evaluationable_type == null || $request->evaluationable_type == '') {
-            $evaluation->evaluationable_type = null;
-        } else {
-            $evaluation->evaluationable_type = $request->evaluationable_type;
-        }
-        if ($request->evaluationable_id == null || $request->evaluationable_id == '') {
-            $evaluation->evaluationable_id = null;
-        } else {
-            $evaluation->evaluationable_id = $request->evaluationable_id;
+    public function store(EvaluationSaveRequest $request): JsonResponse|RedirectResponse
+    {
+        $evaluation = new Evaluation;
+        $this->saveEvaluationData($evaluation, $request);
 
+        logAdmin(__METHOD__, Evaluation::class, $evaluation->id);
+
+        return $this->respondAfterSave($request, $evaluation, __('As you wished created successfully'), 'admin.evaluation.edit');
+    }
+
+    public function edit(Evaluation|string|int $item): View
+    {
+        $item = $this->resolveEvaluation($item);
+
+        return view('admin.evaluations.evaluation-form', compact('item'));
+    }
+
+    public function update(EvaluationSaveRequest $request, Evaluation|string|int $item): JsonResponse|RedirectResponse
+    {
+        $item = $this->resolveEvaluation($item);
+        $this->saveEvaluationData($item, $request);
+
+        logAdmin(__METHOD__, Evaluation::class, $item->id);
+
+        return $this->respondAfterSave($request, $item, __('As you wished updated successfully'), 'admin.evaluation.edit');
+    }
+
+    public function destroy(Evaluation|string|int $item): RedirectResponse
+    {
+        $item = $this->resolveEvaluation($item);
+
+        logAdmin(__METHOD__, Evaluation::class, $item->id);
+        $item->delete();
+
+        return redirect()->back()->with(['message' => __('As you wished removed successfully')]);
+    }
+
+    public function trashed(Request $request, AdminTableService $tableService): View
+    {
+        $tableData = $tableService->for(Evaluation::onlyTrashed())
+            ->columns(['title'], ['id', 'deleted_at'])
+            ->searchable(['title'])
+            ->buttons([
+                'restore' => ['title' => 'Restore', 'class' => 'btn-outline-success', 'icon' => 'ri-refresh-line'],
+            ])
+            ->build($request);
+
+        return view('admin.evaluations.evaluation-list', $tableData);
+    }
+
+    public function restore($item): RedirectResponse
+    {
+        $target = Evaluation::withTrashed()->where('id', $item)->firstOrFail();
+
+        logAdmin(__METHOD__, Evaluation::class, $target->id);
+        $target->restore();
+
+        return redirect()->back()->with(['message' => __('As you wished restored successfully')]);
+    }
+
+    public function bulk(Request $request, AdminBulkService $bulkService): RedirectResponse
+    {
+        return $bulkService->handle(Evaluation::class, $request->input('action'), (array) $request->input('id', []));
+    }
+
+    protected function resolveEvaluation(Evaluation|string|int $item): Evaluation
+    {
+        if ($item instanceof Evaluation) {
+            return $item;
         }
+
+        return Evaluation::where('id', $item)->firstOrFail();
+    }
+
+    protected function saveEvaluationData(Evaluation $evaluation, Request $request): void
+    {
+        $evaluation->title = $request->input('title');
+        $evaluation->evaluationable_type = $request->filled('evaluationable_type') ? $request->input('evaluationable_type') : null;
+        $evaluation->evaluationable_id = $request->filled('evaluationable_id') ? $request->input('evaluationable_id') : null;
         $evaluation->save();
-
-        return $evaluation;
-
     }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-        return view($this->formView);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Evaluation $item)
-    {
-        //
-        return view($this->formView, compact('item'));
-    }
-
-    public function bulk(Request $request)
-    {
-
-        //        dd($request->all());
-        $data = explode('.', $request->input('action'));
-        $action = $data[0];
-        $ids = $request->input('id');
-        switch ($action) {
-            case 'delete':
-                $msg = __(':COUNT items deleted successfully', ['COUNT' => count($ids)]);
-                $this->_MODEL_::destroy($ids);
-                break;
-                /**restore*/
-            case 'restore':
-                $msg = __(':COUNT items restored successfully', ['COUNT' => count($ids)]);
-                foreach ($ids as $id) {
-                    $this->_MODEL_::withTrashed()->find($id)->restore();
-                }
-                break;
-                /* restore* */
-            default:
-                $msg = __('Unknown bulk action : :ACTION', ['ACTION' => $action]);
-        }
-
-        return $this->do_bulk($msg, $action, $ids);
-    }
-
-    public function destroy(Evaluation $item)
-    {
-        return parent::delete($item);
-    }
-
-    public function update(Request $request, Evaluation $item)
-    {
-        return $this->bringUp($request, $item);
-    }
-
-    /**restore*/
-    public function restore($item)
-    {
-        return parent::restoreing(Evaluation::withTrashed()->where('id', $item)->first());
-    }
-    /* restore* */
 }

@@ -2,156 +2,161 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\XController;
+use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\MenuSaveRequest;
 use App\Models\Item;
 use App\Models\Menu;
+use App\Services\Admin\AdminBulkService;
+use App\Services\Admin\AdminTableService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
-class MenuController extends XController
+class MenuController extends Controller
 {
-    // protected  $_MODEL_ = Menu::class;
-    // protected  $SAVE_REQUEST = MenuSaveRequest::class;
+    use RespondsWithAdmin;
 
-    protected $cols = ['name'];
-
-    protected $extra_cols = ['id'];
-
-    protected $searchable = ['name'];
-
-    protected $listView = 'admin.menus.menu-list';
-
-    protected $formView = 'admin.menus.menu-form';
-
-    protected $buttons = [
-        'edit' => ['title' => 'Edit', 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
-        //        'show' =>
-        //            ['title' => "Detail", 'class' => 'btn-outline-light', 'icon' => 'ri-eye-line'],
-        'destroy' => ['title' => 'Remove', 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-close-line'],
-    ];
-
-    public function __construct()
+    public function index(Request $request, AdminTableService $tableService): View
     {
-        parent::__construct(Menu::class, MenuSaveRequest::class);
+        $tableData = $tableService->for(Menu::class)
+            ->columns(['name'], ['id'])
+            ->searchable(['name'])
+            ->buttons([
+                'edit' => ['title' => 'Edit', 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
+                'destroy' => ['title' => 'Remove', 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-close-line'],
+            ])
+            ->build($request);
+
+        return view('admin.menus.menu-list', $tableData);
     }
 
-    /**
-     * @param  $menu  Menu
-     * @param  $request  MenuSaveRequest
-     * @return Menu
-     */
-    public function save($menu, $request)
+    public function create(): View
     {
-
-        $menu->name = $request->input('name');
-        if ($menu->user_id == null) {
-            $menu->user_id = auth()->user()->id;
-        }
-        $menu->save();
-
-        $items = json_decode($request->input('items', '[]'));
-        foreach ($items as $item) {
-            if ($item->id == null) {
-                $i = new Item;
-            } else {
-                $i = Item::whereId($item->id)->first();
-            }
-            $i->user_id = auth()->user()->id;
-            $i->menu_id = $menu->id;
-            $i->meta = $item->meta ?? null;
-            $i->sort = $item->sort;
-            $i->parent = $item->parent;
-            $i->kind = $item->kind;
-            $i->title = $item->title;
-            $i->menuable_id = $item->menuable_id ?? null;
-            $i->menuable_type = $item->menuable_type ?? null;
-            $i->save();
-        }
-
-        Item::whereIn('id', json_decode($request->input('removed', '[]')))->delete();
-
-        return $menu;
-
+        return view('admin.menus.menu-form');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function store(MenuSaveRequest $request): JsonResponse|RedirectResponse
     {
-        //
-        return view($this->formView);
+        $menu = new Menu;
+        $this->saveMenuData($menu, $request);
+
+        logAdmin(__METHOD__, Menu::class, $menu->id);
+
+        return $this->respondAfterSave($request, $menu, __('As you wished created successfully'), 'admin.menu.edit');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Menu $item)
+    public function edit(Menu|string|int $item): View
     {
-        //
-        return view($this->formView, compact('item'));
+        $item = $this->resolveMenu($item);
+
+        return view('admin.menus.menu-form', compact('item'));
     }
 
-    public function bulk(Request $request)
+    public function update(MenuSaveRequest $request, Menu|string|int $item): JsonResponse|RedirectResponse
     {
+        $item = $this->resolveMenu($item);
+        $this->saveMenuData($item, $request);
 
-        //        dd($request->all());
-        $data = explode('.', $request->input('action'));
-        $action = $data[0];
-        $ids = $request->input('id');
-        switch ($action) {
-            case 'delete':
-                $msg = __(':COUNT items deleted successfully', ['COUNT' => count($ids)]);
-                $this->_MODEL_::destroy($ids);
-                break;
-                /**restore*/
-            case 'restore':
-                $msg = __(':COUNT items restored successfully', ['COUNT' => count($ids)]);
-                foreach ($ids as $id) {
-                    $this->_MODEL_::withTrashed()->find($id)->restore();
-                }
-                break;
-                /* restore* */
-            default:
-                $msg = __('Unknown bulk action : :ACTION', ['ACTION' => $action]);
-        }
+        logAdmin(__METHOD__, Menu::class, $item->id);
 
-        return $this->do_bulk($msg, $action, $ids);
+        return $this->respondAfterSave($request, $item, __('As you wished updated successfully'), 'admin.menu.edit');
     }
 
-    public function destroy(Menu $item)
+    public function destroy(Menu|string|int $item): RedirectResponse
     {
-        return parent::delete($item);
+        $item = $this->resolveMenu($item);
+
+        logAdmin(__METHOD__, Menu::class, $item->id);
+        $item->delete();
+
+        return redirect()->back()->with(['message' => __('As you wished removed successfully')]);
     }
 
-    public function update(Request $request, Menu $item)
+    public function trashed(Request $request, AdminTableService $tableService): View
     {
-        return $this->bringUp($request, $item);
+        $tableData = $tableService->for(Menu::onlyTrashed())
+            ->columns(['name'], ['id', 'deleted_at'])
+            ->searchable(['name'])
+            ->buttons([
+                'restore' => ['title' => 'Restore', 'class' => 'btn-outline-success', 'icon' => 'ri-refresh-line'],
+            ])
+            ->build($request);
+
+        return view('admin.menus.menu-list', $tableData);
     }
 
-    /**restore*/
-    public function restore($item)
+    public function restore($item): RedirectResponse
     {
-        return parent::restoreing(Menu::withTrashed()->where('id', $item)->first());
+        $target = Menu::withTrashed()->where('id', $item)->firstOrFail();
+
+        logAdmin(__METHOD__, Menu::class, $target->id);
+        $target->restore();
+
+        return redirect()->back()->with(['message' => __('As you wished restored successfully')]);
     }
 
-    public function sort(Menu $item)
+    public function bulk(Request $request, AdminBulkService $bulkService): RedirectResponse
     {
+        return $bulkService->handle(Menu::class, $request->input('action'), (array) $request->input('id', []));
+    }
+
+    public function sort(Menu|string|int $item): View
+    {
+        $item = $this->resolveMenu($item);
+
         return view('admin.menus.menu-sort', compact('item'));
     }
 
-    public function sortSave(Request $request)
+    public function sortSave(Request $request): array
     {
-        foreach ($request->input('items') as $key => $v) {
-
-            $p = Item::whereId($v['id'])->first();
-            $p->sort = $key;
-            $p->save();
+        foreach ($request->input('items', []) as $key => $v) {
+            Item::where('id', $v['id'])->update(['sort' => $key]);
         }
-        logAdmin(__METHOD__, __CLASS__, null);
+
+        logAdmin(__METHOD__, static::class, null);
 
         return ['OK' => true, 'message' => __('As you wished sort saved')];
     }
 
-    /* restore* */
+    protected function resolveMenu(Menu|string|int $item): Menu
+    {
+        if ($item instanceof Menu) {
+            return $item;
+        }
+
+        return Menu::where('id', $item)->firstOrFail();
+    }
+
+    protected function saveMenuData(Menu $menu, Request $request): void
+    {
+        $menu->name = $request->input('name');
+        if ($menu->user_id === null) {
+            $menu->user_id = auth()->id();
+        }
+        $menu->save();
+
+        $items = json_decode((string) $request->input('items', '[]'));
+        if (is_array($items)) {
+            foreach ($items as $item) {
+                $i = empty($item->id) ? new Item : Item::where('id', $item->id)->first() ?? new Item;
+                $i->user_id = auth()->id();
+                $i->menu_id = $menu->id;
+                $i->meta = $item->meta ?? null;
+                $i->sort = $item->sort ?? 0;
+                $i->parent = $item->parent ?? null;
+                $i->kind = $item->kind ?? null;
+                $i->title = $item->title ?? '';
+                $i->menuable_id = $item->menuable_id ?? null;
+                $i->menuable_type = $item->menuable_type ?? null;
+                $i->save();
+            }
+        }
+
+        $removed = json_decode((string) $request->input('removed', '[]'), true);
+        if (is_array($removed) && count($removed) > 0) {
+            Item::whereIn('id', $removed)->delete();
+        }
+    }
 }

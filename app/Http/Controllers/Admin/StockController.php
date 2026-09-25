@@ -3,17 +3,19 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\QuantityPieceStatus;
-use App\Http\Controllers\XController;
+use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\Quantity;
 use App\Services\AdminDashboardStats;
 use App\Services\ProductPriceCalculator;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\View\View;
 
-class StockController extends XController
+class StockController extends Controller
 {
-    protected $cols = [
+    protected array $cols = [
         'name',
         'sku',
         'stock_quantity',
@@ -24,13 +26,9 @@ class StockController extends XController
         'total_price',
     ];
 
-    protected $extra_cols = ['id', 'slug', 'image_index', 'min_stock_level', 'buy_price', 'weight', 'price', 'category_id'];
+    protected array $searchable = ['name', 'slug', 'sku'];
 
-    protected $searchable = ['name', 'slug', 'sku'];
-
-    protected $listView = 'admin.stock.stock-list';
-
-    protected $buttons = [
+    protected array $buttons = [
         'edit' => [
             'title' => 'Edit product',
             'class' => 'btn-outline-primary',
@@ -39,32 +37,54 @@ class StockController extends XController
         ],
     ];
 
-    public function __construct()
+    public function index(Request $request): View
     {
-        parent::__construct(Product::class, null);
-    }
+        $lowStock = $request->input('filter.low_stock');
+        $belowBuyPrice = $request->input('filter.below_buy_price');
+        $stockCondition = $request->input('filter.stock_condition', 'in_stock');
+        $sort = $request->input('sort');
 
-    protected function makeSortAndFilter()
-    {
-        $lowStock = request()->input('filter.low_stock');
-        $belowBuyPrice = request()->input('filter.below_buy_price');
-        $stockCondition = request()->input('filter.stock_condition', 'in_stock');
-        $categoryId = request()->input('filter.category_id');
+        $query = Product::query()->with(['quantities', 'category']);
 
-        if (($lowStock !== null && $lowStock !== '') || ($belowBuyPrice !== null && $belowBuyPrice !== '') || ($stockCondition !== null && $stockCondition !== '')) {
-            $filters = request()->input('filter', []);
-            unset($filters['low_stock'], $filters['below_buy_price'], $filters['stock_condition']);
-            request()->merge(['filter' => $filters]);
+        $filters = (array) $request->input('filter', []);
+        $cleanFilters = $filters;
+        unset($cleanFilters['low_stock'], $cleanFilters['below_buy_price'], $cleanFilters['stock_condition']);
+
+        foreach ($cleanFilters as $col => $filter) {
+            if (is_array($filter)) {
+                $values = array_filter($filter, fn ($v) => $v !== null && $v !== '');
+                if (count($values) > 0) {
+                    $query->whereIn($col, $values);
+                }
+            } elseif (is_string($filter) && isJson($filter)) {
+                $values = json_decode($filter, true);
+                if (is_array($values)) {
+                    $cleanVals = array_filter($values, fn ($v) => $v !== null && $v !== '');
+                    if (count($cleanVals) > 0) {
+                        $query->whereIn($col, $cleanVals);
+                    }
+                } elseif ($values !== null && $values !== '') {
+                    $query->where($col, $values);
+                }
+            } else {
+                if ($filter !== null && $filter !== '') {
+                    $query->where($col, $filter);
+                }
+            }
         }
 
-        $sort = request()->input('sort');
-        $customSort = null;
-        if (in_array($sort, ['total_weight', 'total_price', 'most_sold', 'most_scrapped', 'total_ordered'], true)) {
-            $customSort = $sort;
-            request()->request->remove('sort');
+        $search = trim((string) $request->input('q', ''));
+        if (mb_strlen($search) > 0) {
+            $query->where(function ($q) use ($search) {
+                foreach ($this->searchable as $index => $col) {
+                    if ($index === 0) {
+                        $q->where($col, 'LIKE', '%'.$search.'%');
+                    } else {
+                        $q->orWhere($col, 'LIKE', '%'.$search.'%');
+                    }
+                }
+            });
         }
-
-        $query = parent::makeSortAndFilter();
 
         $query->withCount([
             'quantities as total_ordered_count',
@@ -78,23 +98,27 @@ class StockController extends XController
             }),
         ]);
 
-        if ($customSort !== null) {
-            $sortType = strtolower(request()->input('sortType', 'desc')) === 'asc' ? 'asc' : 'desc';
-            if ($customSort === 'total_weight') {
-                $query->reorder()->orderByRaw('(COALESCE(weight, 0) * stock_quantity) '.$sortType);
-            } elseif ($customSort === 'total_price') {
-                $query->reorder()->orderByRaw('(COALESCE(price, 0) * stock_quantity) '.$sortType);
-            } elseif ($customSort === 'most_sold') {
-                $query->reorder()->orderBy('sold_pieces_count', $sortType);
-            } elseif ($customSort === 'most_scrapped') {
-                $query->reorder()->orderBy('scrapped_pieces_count', $sortType);
-            } elseif ($customSort === 'total_ordered') {
-                $query->reorder()->orderBy('total_ordered_count', $sortType);
+        $customSorts = ['total_weight', 'total_price', 'most_sold', 'most_scrapped', 'total_ordered'];
+        $sortType = strtolower((string) $request->input('sortType', 'desc')) === 'asc' ? 'asc' : 'desc';
+
+        if (in_array($sort, $customSorts, true)) {
+            if ($sort === 'total_weight') {
+                $query->orderByRaw('(COALESCE(weight, 0) * stock_quantity) '.$sortType);
+            } elseif ($sort === 'total_price') {
+                $query->orderByRaw('(COALESCE(price, 0) * stock_quantity) '.$sortType);
+            } elseif ($sort === 'most_sold') {
+                $query->orderBy('sold_pieces_count', $sortType);
+            } elseif ($sort === 'most_scrapped') {
+                $query->orderBy('scrapped_pieces_count', $sortType);
+            } elseif ($sort === 'total_ordered') {
+                $query->orderBy('total_ordered_count', $sortType);
             }
-            request()->merge(['sort' => $customSort]);
+        } elseif (! empty($sort) && in_array($sort, ['name', 'sku', 'stock_quantity'], true)) {
+            $query->orderBy($sort, strtolower((string) $request->input('sortType', 'asc')) === 'desc' ? 'desc' : 'asc');
+        } else {
+            $query->orderByDesc('id');
         }
 
-        // Apply stock condition filter
         if ($stockCondition === 'in_stock') {
             $query->where('stock_quantity', '>', 0);
         } elseif ($stockCondition === 'has_scrapped') {
@@ -111,10 +135,6 @@ class StockController extends XController
             $query->where('stock_quantity', '<=', 0);
         }
 
-        request()->merge([
-            'filter' => array_merge(request()->input('filter', []), ['stock_condition' => $stockCondition]),
-        ]);
-
         if ($lowStock !== null && $lowStock !== '') {
             if ((string) $lowStock === '1') {
                 $query->where('min_stock_level', '>', 0)
@@ -126,10 +146,6 @@ class StockController extends XController
                         ->orWhereColumn('stock_quantity', '>=', 'min_stock_level');
                 });
             }
-
-            request()->merge([
-                'filter' => array_merge(request()->input('filter', []), ['low_stock' => $lowStock]),
-            ]);
         }
 
         if ($belowBuyPrice !== null && $belowBuyPrice !== '') {
@@ -143,17 +159,12 @@ class StockController extends XController
                         ->orWhereColumn('price', '>=', 'buy_price');
                 });
             }
-
-            request()->merge([
-                'filter' => array_merge(request()->input('filter', []), ['below_buy_price' => $belowBuyPrice]),
-            ]);
         }
 
-        return $query;
-    }
+        $request->merge([
+            'filter' => array_merge($filters, ['stock_condition' => $stockCondition]),
+        ]);
 
-    protected function showList($query)
-    {
         $quickCounts = [
             'in_stock' => Product::query()->where('stock_quantity', '>', 0)->count(),
             'all' => Product::query()->count(),
@@ -172,12 +183,11 @@ class StockController extends XController
         ];
 
         $stockStats = $this->stockInventoryStats();
-
-        $items = $query->with(['quantities', 'category'])->paginate(config('app.panel.page_count'), ['*']);
+        $items = $query->paginate((int) config('app.panel.page_count', 15));
         $cols = $this->cols;
         $buttons = $this->buttons;
 
-        return view($this->listView, compact('items', 'cols', 'buttons', 'quickCounts', 'stockStats'));
+        return view('admin.stock.stock-list', compact('items', 'cols', 'buttons', 'quickCounts', 'stockStats'));
     }
 
     public function stockInventoryStats(): array

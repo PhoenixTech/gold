@@ -2,180 +2,150 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\XController;
+use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\UserSaveRequest;
-use App\Models\Access;
 use App\Models\User;
+use App\Services\Admin\AdminBulkService;
+use App\Services\Admin\AdminTableService;
+use App\Services\UserService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Spatie\Image\Image;
+use Illuminate\View\View;
 
-class UserController extends XController
+class UserController extends Controller
 {
-    protected $cols = ['name', 'email', 'role', 'mobile'];
+    use RespondsWithAdmin;
 
-    protected $searchable = ['name', 'mobile', 'email'];
-
-    protected const request = UserSaveRequest::class;
-
-    protected $buttons = [
-        'edit' => ['title' => 'Edit', 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
-        'show' => ['title' => 'Detail', 'class' => 'btn-outline-secondary', 'icon' => 'ri-eye-line'],
-        'log' => ['title' => 'Logs', 'class' => 'btn-outline-secondary', 'icon' => 'ri-file-list-2-line'],
-        'destroy' => ['title' => 'Remove', 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-delete-bin-line'],
-    ];
-
-    public function save($user, $request)
+    public function index(Request $request, AdminTableService $tableService): View
     {
+        $tableData = $tableService->for(User::class)
+            ->columns(['name', 'email', 'role', 'mobile'], ['id'])
+            ->searchable(['name', 'mobile', 'email'])
+            ->buttons([
+                'edit' => ['title' => 'Edit', 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
+                'show' => ['title' => 'Detail', 'class' => 'btn-outline-secondary', 'icon' => 'ri-eye-line'],
+                'log' => ['title' => 'Logs', 'class' => 'btn-outline-secondary', 'icon' => 'ri-file-list-2-line'],
+                'destroy' => ['title' => 'Remove', 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-delete-bin-line'],
+            ])
+            ->build($request);
 
-        //        dd($request->all());
-        $role = User::normalizeRole($request->input('role'));
-
-        if ($user->role == 'DEVELOPER' && ! auth()->user()->hasRole('developer')) {
-            abort(403);
-        }
-        if (! auth()->user()->hasRole('developer') && $role == 'DEVELOPER') {
-            abort(403);
-        }
-
-        $user->name = $request->input('name');
-        if (! config('app.demo')) {
-            $user->email = $request->input('email');
-            if (trim($request->input('password')) != '') {
-                $user->password = bcrypt($request->input('password'));
-            }
-        }
-        $user->mobile = $request->input('mobile');
-        $user->role = $role;
-        $user->syncRoles([strtolower((string) $role)]);
-        $user->save();
-        if ($request->has('acl')) {
-            $user->accesses()->delete();
-            foreach ($request->input('acl', []) as $route) {
-                $a = new Access;
-                $a->route = $route;
-                $a->user_id = $user->id;
-                $a->save();
-                $routes = explode('.', $route);
-                if ($routes[2] == 'store' || $routes[2] == 'update') {
-                    $routes[2] = $routes[2] == 'store' ? 'create' : 'edit';
-                    $a = new Access;
-                    $a->route = implode('.', $routes);
-                    $a->user_id = $user->id;
-                    $a->save();
-                }
-            }
-
-        }
-
-        if ($request->hasFile('avatar')) {
-            $name = time().'.'.request()->avatar->getClientOriginalExtension();
-            $user->avatar = $name;
-            $request->file('avatar')->storeAs('public/users', $name);
-            $format = $request->file('avatar')->guessExtension();
-            $format = 'webp';
-            $key = 'avatar';
-
-            $i = Image::load($request->file($key)->getPathname())
-                ->optimize()
-                ->width(500)
-                ->height(500)
-                ->crop(500, 500)
-//                ->nonQueued()
-                ->format($format);
-            $i->save(storage_path().'/app/public/users/'.$user->avatar);
-            $user->save();
-        }
-
-        return $user;
-
+        return view('admin.users.user-list', $tableData);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function create(): View
     {
-        //
-        return view($this->formView);
+        return view('admin.users.user-form');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(User $item)
+    public function store(UserSaveRequest $request, UserService $userService): JsonResponse|RedirectResponse
     {
-        $routes = [];
-        foreach (\Route::getRoutes()->getRoutes() as $route) {
-            $action = $route->getAction();
-            if (array_key_exists('as', $action)) {
-                $routeName = explode('.', $action['as']);
-                if (isset($routeName[2]) && $routeName[0] == 'admin') {
-                    if (! isset($routes[$routeName[1]])) {
-                        $routes[$routeName[1]] = [];
-                        if ($routeName[2] != 'edit' && $routeName[2] != 'create') {
-                            $routes[$routeName[1]][] = $routeName[2];
-                        }
+        $user = new User;
+        $savedUser = $userService->saveUser($user, $request);
 
-                    } else {
-                        if ($routeName[2] != 'edit' && $routeName[2] != 'create') {
-                            $routes[$routeName[1]][] = $routeName[2];
+        logAdmin(__METHOD__, User::class, $savedUser->id);
+
+        return $this->respondAfterSave($request, $savedUser, __('As you wished created successfully'), 'admin.user.edit');
+    }
+
+    public function edit(User|string|int $item, UserService $userService): View
+    {
+        $user = $this->resolveUser($item);
+        $routes = $userService->getAdminRoutesMatrix();
+
+        return view('admin.users.user-form', ['item' => $user, 'routes' => $routes]);
+    }
+
+    public function update(UserSaveRequest $request, User|string|int $item, UserService $userService): JsonResponse|RedirectResponse
+    {
+        $user = $this->resolveUser($item);
+        $savedUser = $userService->saveUser($user, $request);
+
+        logAdmin(__METHOD__, User::class, $savedUser->id);
+
+        return $this->respondAfterSave($request, $savedUser, __('As you wished updated successfully'), 'admin.user.edit');
+    }
+
+    public function destroy(User|string|int $item): RedirectResponse
+    {
+        $user = $this->resolveUser($item);
+
+        logAdmin(__METHOD__, User::class, $user->id);
+        $user->delete();
+
+        return redirect()->back()->with(['message' => __('As you wished removed successfully')]);
+    }
+
+    public function trashed(Request $request, AdminTableService $tableService): View
+    {
+        $tableData = $tableService->for(User::onlyTrashed())
+            ->columns(['name', 'email', 'role', 'mobile'], ['id', 'deleted_at'])
+            ->searchable(['name', 'mobile', 'email'])
+            ->buttons([
+                'restore' => ['title' => 'Restore', 'class' => 'btn-outline-success', 'icon' => 'ri-refresh-line'],
+            ])
+            ->build($request);
+
+        return view('admin.users.user-list', $tableData);
+    }
+
+    public function restore($item): RedirectResponse
+    {
+        $target = User::withTrashed()->where('id', $item)->first()
+            ?? User::withTrashed()->where('email', $item)->firstOrFail();
+
+        logAdmin(__METHOD__, User::class, $target->id);
+        $target->restore();
+
+        return redirect()->back()->with(['message' => __('As you wished restored successfully')]);
+    }
+
+    public function bulk(Request $request, AdminBulkService $bulkService): RedirectResponse
+    {
+        return $bulkService->handle(
+            User::class,
+            $request->input('action'),
+            (array) $request->input('id', []),
+            function (string $action, ?string $subAction, array $ids): ?string {
+                if ($action === 'role' && $subAction !== null) {
+                    foreach ($ids as $id) {
+                        $user = User::where('id', $id)->first();
+                        if ($user) {
+                            $user->role = $subAction;
+                            $user->syncRoles([strtolower($subAction)]);
+                            $user->save();
                         }
                     }
+
+                    return __(':COUNT users role changed to :NEWROLE successfully', [
+                        'COUNT' => count($ids),
+                        'NEWROLE' => __($subAction),
+                    ]);
                 }
+
+                return null;
             }
-        }
-        unset($routes['home'], $routes['user'], $routes['ckeditor'], $routes['area'], $routes['lang'], $routes['gfx']);
-
-        //
-        return view($this->formView, compact('item', 'routes'));
+        );
     }
 
-    public function bulk(Request $request)
+    public function show($item)
     {
-
-        //        dd($request->all());
-        $data = explode('.', $request->input('action'));
-        $action = $data[0];
-        $ids = $request->input('id');
-        switch ($action) {
-            case 'delete':
-                $msg = __(':COUNT items deleted successfully', ['COUNT' => count($ids)]);
-                $this->_MODEL_::destroy($ids);
-                break;
-            case 'restore':
-                $msg = __(':COUNT items restored successfully', ['COUNT' => count($ids)]);
-                foreach ($ids as $id) {
-                    $this->_MODEL_::withTrashed()->find($id)->restore();
-                }
-                break;
-            case 'role':
-                foreach ($ids as $id) {
-                    $user = User::where('id', $id)->first();
-                    $user->role = $data[1];
-                    $user->syncRoles([strtolower($data[1])]);
-                    $user->save();
-                }
-                $msg = __(':COUNT users role changed to :NEWROLE successfully', ['COUNT' => count($ids), 'NEWROLE' => __($data[1])]);
-                break;
-            default:
-                $msg = __('Unknown bulk action : :ACTION', ['ACTION' => $action]);
+        $user = $this->resolveUser($item);
+        if ($user && method_exists($user, 'webUrl')) {
+            return redirect($user->webUrl());
         }
 
-        return $this->do_bulk($msg, $action, $ids);
+        return redirect()->route('admin.user.edit', $user->{$user->getRouteKeyName()});
     }
 
-    public function destroy(User $item)
+    protected function resolveUser(User|string|int $item): User
     {
-        return parent::delete($item);
-    }
+        if ($item instanceof User) {
+            return $item;
+        }
 
-    public function update(Request $request, User $item)
-    {
-        return $this->bringUp($request, $item);
-    }
-
-    public function restore($item)
-    {
-        return parent::restoreing(User::withTrashed()->where('email', $item)->first());
+        return User::where('email', $item)->first()
+            ?? User::where('id', $item)->firstOrFail();
     }
 }

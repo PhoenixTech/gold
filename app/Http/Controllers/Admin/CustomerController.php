@@ -2,171 +2,186 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\XController;
+use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\CustomerSaveRequest;
 use App\Models\Credit;
 use App\Models\Customer;
+use App\Services\Admin\AdminBulkService;
+use App\Services\Admin\AdminTableService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 use Spatie\Image\Image;
 
-class CustomerController extends XController
+class CustomerController extends Controller
 {
-    // protected  $_MODEL_ = Customer::class;
-    // protected  $SAVE_REQUEST = CustomerSaveRequest::class;
+    use RespondsWithAdmin;
 
-    protected $cols = ['name', 'mobile', 'email'];
-
-    protected $extra_cols = ['id'];
-
-    protected $searchable = ['name', 'mobile', 'email'];
-
-    protected $listView = 'admin.customers.customer-list';
-
-    protected $formView = 'admin.customers.customer-form';
-
-    protected $buttons = [
-        'edit' => ['title' => 'Edit', 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
-        //        'show' =>
-        //            ['title' => "Detail", 'class' => 'btn-outline-light', 'icon' => 'ri-eye-line'],
-        'destroy' => ['title' => 'Remove', 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-close-line'],
-    ];
-
-    public function __construct()
+    public function index(Request $request, AdminTableService $tableService): View
     {
-        parent::__construct(Customer::class, CustomerSaveRequest::class);
+        $tableData = $tableService->for(Customer::class)
+            ->columns(['name', 'mobile', 'email'], ['id'])
+            ->searchable(['name', 'mobile', 'email'])
+            ->buttons([
+                'edit' => ['title' => 'Edit', 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
+                'destroy' => ['title' => 'Remove', 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-close-line'],
+            ])
+            ->build($request);
+
+        return view('admin.customers.customer-list', $tableData);
     }
 
-    /**
-     * @param  $customer  Customer
-     * @param  $request  CustomerSaveRequest
-     * @return Customer
-     */
-    public function save($customer, $request)
+    public function create(): View
     {
+        return view('admin.customers.customer-form');
+    }
 
-        //        dd($request->all());
+    public function store(CustomerSaveRequest $request): JsonResponse|RedirectResponse
+    {
+        $customer = new Customer;
+        $this->saveCustomerData($customer, $request);
 
+        logAdmin(__METHOD__, Customer::class, $customer->id);
+
+        return $this->respondAfterSave($request, $customer, __('As you wished created successfully'), 'admin.customer.edit');
+    }
+
+    public function edit(Customer|string|int $item): View
+    {
+        $item = $this->resolveCustomer($item);
+
+        return view('admin.customers.customer-form', compact('item'));
+    }
+
+    public function update(CustomerSaveRequest $request, Customer|string|int $item): JsonResponse|RedirectResponse
+    {
+        $item = $this->resolveCustomer($item);
+        $this->saveCustomerData($item, $request);
+
+        logAdmin(__METHOD__, Customer::class, $item->id);
+
+        return $this->respondAfterSave($request, $item, __('As you wished updated successfully'), 'admin.customer.edit');
+    }
+
+    public function destroy(Customer|string|int $item): RedirectResponse
+    {
+        $item = $this->resolveCustomer($item);
+
+        logAdmin(__METHOD__, Customer::class, $item->id);
+        $item->delete();
+
+        return redirect()->back()->with(['message' => __('As you wished removed successfully')]);
+    }
+
+    public function trashed(Request $request, AdminTableService $tableService): View
+    {
+        $tableData = $tableService->for(Customer::onlyTrashed())
+            ->columns(['name', 'mobile', 'email'], ['id', 'deleted_at'])
+            ->searchable(['name', 'mobile', 'email'])
+            ->buttons([
+                'restore' => ['title' => 'Restore', 'class' => 'btn-outline-success', 'icon' => 'ri-refresh-line'],
+            ])
+            ->build($request);
+
+        return view('admin.customers.customer-list', $tableData);
+    }
+
+    public function restore($item): RedirectResponse
+    {
+        $target = Customer::withTrashed()->where('id', $item)->firstOrFail();
+
+        logAdmin(__METHOD__, Customer::class, $target->id);
+        $target->restore();
+
+        return redirect()->back()->with(['message' => __('As you wished restored successfully')]);
+    }
+
+    public function bulk(Request $request, AdminBulkService $bulkService): RedirectResponse
+    {
+        return $bulkService->handle(Customer::class, $request->input('action'), (array) $request->input('id', []));
+    }
+
+    public function show($item)
+    {
+        $customer = $this->resolveCustomer($item);
+        if ($customer && method_exists($customer, 'webUrl')) {
+            return redirect($customer->webUrl());
+        }
+
+        return redirect()->route('admin.customer.edit', $customer->id);
+    }
+
+    protected function resolveCustomer(Customer|string|int $item): Customer
+    {
+        if ($item instanceof Customer) {
+            return $item;
+        }
+
+        return Customer::where('id', $item)->firstOrFail();
+    }
+
+    protected function saveCustomerData(Customer $customer, Request $request): void
+    {
         $customer->name = $request->input('name');
-        if ($customer->credit != $request->input('credit') && $customer->id != null) {
-            $diff = $request->input('credit') - $customer->credit;
+
+        if ($customer->id !== null && $request->has('credit') && (float) $customer->credit !== (float) $request->input('credit')) {
+            $diff = (float) $request->input('credit') - (float) $customer->credit;
             $customer->credit = $request->input('credit') ?? 0;
+
             $cr = new Credit;
             $cr->customer_id = $customer->id;
             $cr->amount = $diff;
             $cr->data = json_encode([
-                'user_id' => auth()->user()->id,
+                'user_id' => auth()->id(),
                 'message' => __('Increase / decrease by Admin'),
             ]);
             $cr->save();
         }
+
         if ($request->has('email')) {
             $customer->email = $request->input('email');
         }
+
         $customer->mobile = $request->input('mobile');
         $customer->sex = $request->input('sex');
-        if ($request->has('height') && trim($request->input('height')) != '') {
-            $customer->height = $request->input('height', null);
+
+        if ($request->filled('height')) {
+            $customer->height = $request->input('height');
         }
-        if ($request->has('weight') && trim($request->input('weight')) != '') {
-            $customer->weight = $request->input('weight', null);
+        if ($request->filled('weight')) {
+            $customer->weight = $request->input('weight');
         }
+
         $customer->description = $request->input('description');
 
-        if (trim($request->input('password')) != '') {
+        if (trim((string) $request->input('password')) !== '') {
             $customer->password = bcrypt($request->input('password'));
         }
 
-        if ($request->has('dob') && $request->dob != '') {
-            $customer->dob = date('Y-m-d', floor($request->dob));
+        if ($request->filled('dob')) {
+            $customer->dob = date('Y-m-d', floor((float) $request->dob));
         } else {
             $customer->dob = null;
         }
 
         if ($request->hasFile('avatar')) {
-            $name = time().'.'.request()->avatar->getClientOriginalExtension();
+            $avatar = $request->file('avatar');
+            $name = time().'.'.$avatar->getClientOriginalExtension();
             $customer->avatar = $name;
-            $request->file('avatar')->storeAs('public/customers', $name);
-            $format = $request->file('avatar')->guessExtension();
-            $format = 'webp';
-            $key = 'avatar';
+            $avatar->storeAs('public/customers', $name);
 
-            $i = Image::load($request->file($key)->getPathname())
+            Image::load($avatar->getPathname())
                 ->optimize()
                 ->width(500)
                 ->height(500)
                 ->crop(500, 500)
-//                ->nonQueued()
-                ->format($format);
-            $i->save(storage_path().'/app/public/customers/'.$customer->avatar);
+                ->format('webp')
+                ->save(storage_path('app/public/customers/'.$name));
         }
 
         $customer->colleague = $request->has('colleague');
         $customer->save();
-
-        return $customer;
-
     }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-        return view($this->formView);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Customer $item)
-    {
-        //
-        return view($this->formView, compact('item'));
-    }
-
-    public function bulk(Request $request)
-    {
-
-        //        dd($request->all());
-        $data = explode('.', $request->input('action'));
-        $action = $data[0];
-        $ids = $request->input('id');
-        switch ($action) {
-            case 'delete':
-                $msg = __(':COUNT items deleted successfully', ['COUNT' => count($ids)]);
-                $this->_MODEL_::destroy($ids);
-                break;
-                /**restore*/
-            case 'restore':
-                $msg = __(':COUNT items restored successfully', ['COUNT' => count($ids)]);
-                foreach ($ids as $id) {
-                    $this->_MODEL_::withTrashed()->find($id)->restore();
-                }
-                break;
-                /* restore* */
-            default:
-                $msg = __('Unknown bulk action : :ACTION', ['ACTION' => $action]);
-        }
-
-        return $this->do_bulk($msg, $action, $ids);
-    }
-
-    public function destroy(Customer $item)
-    {
-        return parent::delete($item);
-    }
-
-    public function update(Request $request, Customer $item)
-    {
-        return $this->bringUp($request, $item);
-    }
-
-    /**restore*/
-    public function restore($item)
-    {
-        return parent::restoreing(Customer::withTrashed()->where('id', $item)->first());
-    }
-    /* restore* */
-
 }

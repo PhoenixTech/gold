@@ -2,348 +2,204 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\XController;
+use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\CategorySaveRequest;
 use App\Models\Category;
 use App\Models\Item;
 use App\Models\Setting;
+use App\Services\Admin\AdminBulkService;
+use App\Services\Admin\AdminTableService;
+use App\Services\CategoryService;
+use App\Services\SlugService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Spatie\Image\Enums\AlignPosition;
-use Spatie\Image\Enums\Fit;
-use Spatie\Image\Enums\Unit;
-use Spatie\Image\Image;
+use Illuminate\View\View;
 
-class CategoryController extends XController
+class CategoryController extends Controller
 {
-    // protected  $_MODEL_ = Category::class;
-    // protected  $SAVE_REQUEST = CategorySaveRequest::class;
+    use RespondsWithAdmin;
 
-    protected $cols = ['name', 'code', 'subtitle', 'parent_id'];
-
-    protected $extra_cols = ['id', 'slug', 'image'];
-
-    protected $searchable = ['name', 'subtitle', 'description'];
-
-    protected $listView = 'admin.categories.category-list';
-
-    protected $formView = 'admin.categories.category-form';
-
-    protected $buttons = [
-        'edit' => ['title' => 'Edit', 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
-        'show' => ['title' => 'Detail', 'class' => 'btn-outline-secondary', 'icon' => 'ri-eye-line'],
-        'destroy' => ['title' => 'Remove', 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-delete-bin-line'],
-    ];
-
-    public function __construct()
+    public function index(Request $request, AdminTableService $tableService): View
     {
-        parent::__construct(Category::class, CategorySaveRequest::class);
+        $tableData = $tableService->for(Category::class)
+            ->columns(['name', 'code', 'subtitle', 'parent_id'], ['id', 'slug', 'image'])
+            ->searchable(['name', 'subtitle', 'description'])
+            ->buttons([
+                'edit' => ['title' => 'Edit', 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
+                'show' => ['title' => 'Detail', 'class' => 'btn-outline-secondary', 'icon' => 'ri-eye-line'],
+                'destroy' => ['title' => 'Remove', 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-delete-bin-line'],
+            ])
+            ->build($request);
+
+        return view('admin.categories.category-list', $tableData);
     }
 
-    /**
-     * @param  $category  Category
-     * @param  $request  CategorySaveRequest
-     * @return Category
-     */
-    public function save($category, $request)
+    public function create(): View
     {
+        $cats = Category::all();
 
-        $category->name = $request->input('name');
-        $category->code = $request->input('code') ?: null;
-        $category->subtitle = $request->input('subtitle');
-        $category->color = $request->input('color');
-        $category->bg_color = $request->input('bg_color');
-        $category->icon = $request->input('icon');
-        $category->description = $request->input('description');
-        $category->hide = $request->has('hide');
+        return view('admin.categories.category-form', compact('cats'));
+    }
 
-        if ($request->input('parent_id') == '') {
-            $category->parent_id = null;
-        } else {
-            $category->parent_id = $request->input('parent_id', null);
-        }
-        if ($request->has('canonical') && trim($request->input('canonical')) != '') {
-            $category->canonical = $request->input('canonical');
-        }
-        $category->slug = $this->getSlug($category);
-        if ($request->has('image')) {
-            $category->image = $this->storeFile('image', $category, 'categories');
-            $key = 'image';
-            $format = $request->file($key)->guessExtension();
-            if (strtolower($format) == 'png') {
-                $format = 'webp';
-            }
-            $i = Image::load($request->file($key)->getPathname())
-                ->optimize()
-//                ->nonQueued()
-                ->format($format);
-            if (getSetting('watermark2')) {
-                $i->watermark(public_path('upload/images/logo.png'),
-                    AlignPosition::BottomLeft, 5, 5, Unit::Percent,
-                    config('app.media.watermark_size'), Unit::Percent,
-                    config('app.media.watermark_size'), Unit::Percent, Fit::Contain,
-                    config('app.media.watermark_opacity'));
-            }
-            $i->save(storage_path().'/app/public/categories/optimized-'.$category->$key);
-
-        }
-        if ($request->has('silver_image')) {
-            $category->silver_image = $this->storeFile('silver_image', $category, 'categories');
-            $key = 'silver_image';
-            $format = $request->file($key)->guessExtension();
-            if (strtolower($format) == 'png') {
-                $format = 'webp';
-            }
-            $i = Image::load($request->file($key)->getPathname())
-                ->optimize()
-                ->format($format);
-            if (getSetting('watermark2')) {
-                $i->watermark(public_path('upload/images/logo.png'),
-                    AlignPosition::BottomLeft, 5, 5, Unit::Percent,
-                    config('app.media.watermark_size'), Unit::Percent,
-                    config('app.media.watermark_size'), Unit::Percent, Fit::Contain,
-                    config('app.media.watermark_opacity'));
-            }
-            $i->save(storage_path().'/app/public/categories/optimized-'.$category->$key);
-
-        }
-        if ($request->has('bg')) {
-            $category->bg = $this->storeFile('bg', $category, 'categories');
-            $key = 'bg';
-            $format = $request->file($key)->guessExtension();
-            if (strtolower($format) == 'png') {
-                $format = 'webp';
-            }
-            $i = Image::load($request->file($key)->getPathname())
-                ->optimize()
-//                ->nonQueued()
-                ->format($format);
-            if (getSetting('watermark2')) {
-                $i->watermark(public_path('upload/images/logo.png'),
-                    AlignPosition::BottomLeft, 5, 5, Unit::Percent,
-                    config('app.media.watermark_size'), Unit::Percent,
-                    config('app.media.watermark_size'), Unit::Percent, Fit::Contain,
-                    config('app.media.watermark_opacity'));
-            }
-            $i->save(storage_path().'/app/public/categories/optimized-'.$category->$key);
-        }
-
-        if ($request->has('svg')) {
-            $category->svg = $this->storeFile('svg', $category, 'categories');
-        }
+    public function store(CategorySaveRequest $request, CategoryService $categoryService, SlugService $slugService): JsonResponse|RedirectResponse
+    {
+        $category = new Category;
+        $this->fillCategory($category, $request, $slugService);
         $category->save();
 
-        return $category;
+        $categoryService->handleUploads($category, $request);
+        $category->save();
 
+        logAdmin(__METHOD__, Category::class, $category->id);
+
+        return $this->respondAfterSave($request, $category, __('As you wished created successfully'), 'admin.category.edit');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function edit(Category|string|int $item): View
     {
-        //
+        $item = $this->resolveCategory($item);
         $cats = Category::all();
 
-        return view($this->formView, compact('cats'));
+        return view('admin.categories.category-form', compact('item', 'cats'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Category $item)
+    public function update(CategorySaveRequest $request, Category|string|int $item, CategoryService $categoryService, SlugService $slugService): JsonResponse|RedirectResponse
     {
-        //
-        $cats = Category::all();
+        $item = $this->resolveCategory($item);
+        $this->fillCategory($item, $request, $slugService);
+        $item->save();
 
-        return view($this->formView, compact('item', 'cats'));
+        $categoryService->handleUploads($item, $request);
+        $item->save();
+
+        logAdmin(__METHOD__, Category::class, $item->id);
+
+        return $this->respondAfterSave($request, $item, __('As you wished updated successfully'), 'admin.category.edit');
     }
 
-    public function bulk(Request $request)
+    public function destroy(Category|string|int $item): RedirectResponse
     {
+        $item = $this->resolveCategory($item);
 
-        //        dd($request->all());
-        $data = explode('.', $request->input('action'));
-        $action = $data[0];
-        $ids = $request->input('id');
-        switch ($action) {
-            case 'delete':
-                $msg = __(':COUNT items deleted successfully', ['COUNT' => count($ids)]);
-                $this->_MODEL_::destroy($ids);
-                break;
-            case 'restore':
-                $msg = __(':COUNT items restored successfully', ['COUNT' => count($ids)]);
-                foreach ($ids as $id) {
-                    $this->_MODEL_::withTrashed()->find($id)->restore();
-                }
-                break;
-                /* restore* */
-            default:
-                $msg = __('Unknown bulk action : :ACTION', ['ACTION' => $action]);
+        if (Setting::where('type', 'CATEGORY')->where('raw', $item->id)->exists()) {
+            return redirect()->back()->withErrors(__("You can't delete this item while using it in setting."));
         }
 
-        return $this->do_bulk($msg, $action, $ids);
-    }
-
-    public function destroy(Category $item)
-    {
-        if (Setting::where('type', 'CATEGORY')->where('raw', $item->id)->count() > 0) {
-            $msg = __("You can't delete this item while using it in setting.");
-
-            return redirect()->back()->withErrors($msg);
-        }
-        if (Item::where('menuable_type', Category::class)->where('menuable_type', $item->id)->count() > 0) {
-            $msg = __("You can't delete this item while using it in menu.");
-
-            return redirect()->back()->withErrors($msg);
+        if (Item::where('menuable_type', Category::class)->where('menuable_id', $item->id)->exists()) {
+            return redirect()->back()->withErrors(__("You can't delete this item while using it in menu."));
         }
 
-        return parent::delete($item);
+        logAdmin(__METHOD__, Category::class, $item->id);
+        $item->delete();
+
+        return redirect()->back()->with(['message' => __('As you wished removed successfully')]);
     }
 
-    public function update(Request $request, Category $item)
+    public function trashed(Request $request, AdminTableService $tableService): View
     {
-        return $this->bringUp($request, $item);
+        $tableData = $tableService->for(Category::onlyTrashed())
+            ->columns(['name', 'code', 'subtitle', 'parent_id'], ['id', 'slug', 'image', 'deleted_at'])
+            ->searchable(['name', 'subtitle', 'description'])
+            ->buttons([
+                'restore' => ['title' => 'Restore', 'class' => 'btn-outline-success', 'icon' => 'ri-refresh-line'],
+            ])
+            ->build($request);
+
+        return view('admin.categories.category-list', $tableData);
     }
 
-    /**restore*/
-    public function restore($item)
+    public function restore($item): RedirectResponse
     {
-        return parent::restoreing(Category::withTrashed()->where('id', $item)->first());
-    }
-    /* restore* */
+        $target = Category::withTrashed()->where('id', $item)->first()
+            ?? Category::withTrashed()->where('slug', $item)->firstOrFail();
 
-    /**sort*/
-    public function sort()
+        logAdmin(__METHOD__, Category::class, $target->id);
+        $target->restore();
+
+        return redirect()->back()->with(['message' => __('As you wished restored successfully')]);
+    }
+
+    public function bulk(Request $request, AdminBulkService $bulkService): RedirectResponse
     {
-        $items = Category::orderBy('sort')
-            ->get(['id', 'name', 'parent_id']);
+        return $bulkService->handle(Category::class, $request->input('action'), (array) $request->input('id', []));
+    }
+
+    public function show($item)
+    {
+        $category = Category::where('id', $item)->orWhere('slug', $item)->first();
+        if ($category && method_exists($category, 'webUrl')) {
+            return redirect($category->webUrl());
+        }
+
+        return redirect()->route('admin.category.index');
+    }
+
+    public function sort(): View
+    {
+        $items = Category::orderBy('sort')->get(['id', 'name', 'parent_id']);
 
         return view('admin.commons.sort', compact('items'));
     }
 
-    public function sortSave(Request $request)
+    public function sortSave(Request $request): array
     {
-        //        return $request->items;
-        foreach ($request->items as $key => $item) {
-            $i = Category::whereId($item['id'])->first();
-            $i->sort = $key;
-            $i->parent_id = $item['parentId'] ?? null;
-            $i->save();
+        foreach ($request->input('items', []) as $key => $item) {
+            Category::where('id', $item['id'])->update([
+                'sort' => $key,
+                'parent_id' => $item['parentId'] ?? null,
+            ]);
         }
-        logAdmin(__METHOD__, __CLASS__, null);
+
+        logAdmin(__METHOD__, static::class, null);
 
         return ['OK' => true, 'message' => __('As you wished sort saved')];
     }
 
-    /* sort* */
-
-    public function omg()
+    public function omg(): View
     {
         return view('admin.categories.omg');
     }
 
-    public function omgSave(Request $request)
+    public function omgSave(Request $request, CategoryService $categoryService): string
     {
         $request->validate([
             'table' => ['required', 'string', 'min:10'],
         ]);
 
-        $list = $this->parseTableData($request->input('table'));
-
-        // Disable foreign key checks
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-
-        // Truncate the Category model
-        Category::truncate();
-
-        // Insert the nested categories
-        $this->insertCategories($list);
-
-        // Enable foreign key checks
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        $categoryService->importNestedFromHtml($request->input('table'));
 
         return __('It saved, now just God can help you :)');
     }
 
-    private function parseTableData($tableData)
+    protected function resolveCategory(Category|string|int $item): Category
     {
-        $list = [];
-
-        // Parse the HTML table data
-        $doc = new \DOMDocument;
-        @$doc->loadHTML($tableData); // Suppress warnings with @
-
-        // Find the top-level ul element
-        $topUl = $doc->getElementsByTagName('ul')->item(0);
-
-        if ($topUl) {
-            $list = $this->getCategories($topUl);
+        if ($item instanceof Category) {
+            return $item;
         }
 
-        return $list;
+        return Category::where('slug', $item)->first()
+            ?? Category::where('id', $item)->firstOrFail();
     }
 
-    private function getCategories($ul)
+    protected function fillCategory(Category $category, Request $request, SlugService $slugService): void
     {
-        $categories = [];
-        $lis = $ul->getElementsByTagName('li');
+        $category->name = $request->input('name');
+        $category->code = $request->input('code') ?: null;
+        $category->subtitle = $request->input('subtitle');
+        $category->color = $request->input('color') ?: '#000000';
+        $category->bg_color = $request->input('bg_color') ?: '#ffffff';
+        $category->icon = $request->input('icon');
+        $category->description = $request->input('description');
+        $category->hide = $request->has('hide');
+        $category->parent_id = $request->filled('parent_id') ? $request->input('parent_id') : null;
 
-        foreach ($lis as $li) {
-            // Get the category name, ensuring we only take the first child text node
-            $categoryName = trim($li->childNodes->item(0)->textContent);
-
-            // Check if there is a nested <ul> for subcategories
-            $subUl = $li->getElementsByTagName('ul')->item(0);
-            $subcategories = [];
-
-            if ($subUl) {
-                $subcategories = $this->getCategories($subUl); // Recursively get subcategories
-            }
-
-            // Only add the category if it is not already in the list
-            if (! empty($categoryName)) {
-                $categories[] = [
-                    'name' => $categoryName,
-                    'subcategories' => $subcategories,
-                ];
-            }
+        if ($request->filled('canonical')) {
+            $category->canonical = $request->input('canonical');
         }
 
-        return $categories;
-    }
-
-    private function getSubcategories(\DOMElement $element)
-    {
-        $subcategories = [];
-
-        $subLis = $element->getElementsByTagName('li');
-        foreach ($subLis as $subLi) {
-            $subcategory = $subLi->textContent;
-            $subSubcategories = $this->getSubcategories($subLi);
-
-            $subcategories[] = [
-                'name' => $subcategory,
-                'subcategories' => $subSubcategories,
-            ];
-        }
-
-        return $subcategories;
-    }
-
-    private function insertCategories($list, $parentId = null)
-    {
-        foreach ($list as $item) {
-            if (Category::where('slug', sluger($item['name']))->count() == 0) {
-
-                $category = Category::create([
-                    'name' => $item['name'],
-                    'slug' => sluger($item['name']),
-                    'parent_id' => $parentId,
-                ]);
-                $this->insertCategories($item['subcategories'], $category->id);
-            }
-
-        }
+        $titleForSlug = $request->filled('slug') ? $request->input('slug') : $category->name;
+        $category->slug = $slugService->makeUnique(Category::class, $titleForSlug, $category->id);
     }
 }

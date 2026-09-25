@@ -2,139 +2,143 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\XController;
+use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\CommentSaveRequest;
 use App\Models\Comment;
 use App\Models\User;
+use App\Services\Admin\AdminBulkService;
+use App\Services\Admin\AdminTableService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
-class CommentController extends XController
+class CommentController extends Controller
 {
-    // protected  $_MODEL_ = Comment::class;
-    // protected  $SAVE_REQUEST = CommentSaveRequest::class;
+    use RespondsWithAdmin;
 
-    protected $cols = ['*'];
-
-    protected $extra_cols = [];
-
-    protected $searchable = ['body', 'name', 'email', 'ip'];
-
-    protected $listView = 'admin.comments.comment-list';
-
-    protected $formView = 'admin.comments.comment-form';
-
-    protected $buttons = [
-        //        'edit' =>
-        //            ['title' => "Edit", 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
-        //        'show' =>
-        //            ['title' => "Detail", 'class' => 'btn-outline-light', 'icon' => 'ri-eye-line'],
-        //        'destroy' =>
-        //            ['title' => "Remove", 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-close-line'],
-    ];
-
-    public function __construct()
+    public function index(Request $request, AdminTableService $tableService): View
     {
-        parent::__construct(Comment::class, CommentSaveRequest::class);
+        $tableData = $tableService->for(Comment::class)
+            ->columns(['*'], ['id'])
+            ->searchable(['body', 'name', 'email', 'ip'])
+            ->buttons([])
+            ->build($request);
+
+        return view('admin.comments.comment-list', $tableData);
     }
 
-    /**
-     * @param  $comment  Comment
-     * @param  $request  CommentSaveRequest
-     * @return Comment
-     */
-    public function save($comment, $request)
+    public function create(): View
     {
+        return view('admin.comments.comment-form');
+    }
 
+    public function store(CommentSaveRequest $request): JsonResponse|RedirectResponse
+    {
+        $comment = new Comment;
+        $comment->fill($request->validated());
         $comment->save();
 
-        return $comment;
+        logAdmin(__METHOD__, Comment::class, $comment->id);
 
+        return $this->respondAfterSave($request, $comment, __('As you wished created successfully'), 'admin.comment.edit');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function edit(Comment|string|int $item): View
     {
-        //
-        return view($this->formView);
+        $item = $this->resolveComment($item);
+
+        return view('admin.comments.comment-form', compact('item'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Comment $item)
+    public function update(Request $request, Comment|string|int $item): JsonResponse|RedirectResponse
     {
-        //
-        return view($this->formView, compact('item'));
+        $item = $this->resolveComment($item);
+        $item->fill($request->all());
+        $item->save();
+
+        logAdmin(__METHOD__, Comment::class, $item->id);
+
+        return $this->respondAfterSave($request, $item, __('As you wished updated successfully'), 'admin.comment.edit');
     }
 
-    public function bulk(Request $request)
+    public function destroy(Comment|string|int $item): RedirectResponse
     {
+        $item = $this->resolveComment($item);
 
-        //        dd($request->all());
-        $data = explode('.', $request->input('action'));
-        $action = $data[0];
-        $ids = $request->input('id');
-        switch ($action) {
-            case 'delete':
-                $msg = __(':COUNT items deleted successfully', ['COUNT' => count($ids)]);
-                $this->_MODEL_::destroy($ids);
-                break;
-            case 'status':
-                $this->_MODEL_::whereIn('id', $request->input('id'))->update(['status' => $data[1]]);
-                $msg = __(':COUNT items changed status successfully', ['COUNT' => count($ids)]);
-                break;
-            default:
-                $msg = __('Unknown bulk action : :ACTION', ['ACTION' => $action]);
-        }
+        logAdmin(__METHOD__, Comment::class, $item->id);
+        $item->delete();
 
-        return $this->do_bulk($msg, $action, $ids);
+        return redirect()->back()->with(['message' => __('As you wished removed successfully')]);
     }
 
-    public function destroy(Comment $item)
+    public function status(Comment|string|int $item, $status): RedirectResponse
     {
-        return parent::delete($item);
-    }
-
-    public function update(Request $request, Comment $item)
-    {
-        return $this->bringUp($request, $item);
-    }
-
-    public function status(Comment $item, $status)
-    {
+        $item = $this->resolveComment($item);
         $item->status = $status;
         $item->save();
+
         $statuses = [
             -1 => __('rejected'),
             0 => __('pending'),
             1 => __('approved'),
         ];
 
-        return redirect()->back()->with(['message' => __('Comment :STATUS', ['STATUS' => $statuses[$status]])]);
+        return redirect()->back()->with(['message' => __('Comment :STATUS', ['STATUS' => $statuses[$status] ?? $status])]);
     }
 
-    public function reply(Comment $item)
+    public function reply(Comment|string|int $item): View
     {
+        $item = $this->resolveComment($item);
 
         return view('admin.comments.comment-reply', compact('item'));
     }
 
-    public function replying(Comment $item)
+    public function replying(Comment|string|int $item): RedirectResponse
     {
+        $item = $this->resolveComment($item);
 
-        $c = new Comment;
-        $c->ip = \request()->ip();
-        $c->commentator_type = User::class;
-        $c->commentator_id = auth()->id();
-        $c->commentable_type = $item->commentable_type;
-        $c->commentable_id = $item->commentable_id;
-        $c->parent_id = $item->id;
-        $c->status = 1;
-        $c->body = \request()->input('body');
-        $c->save();
+        $reply = new Comment;
+        $reply->ip = request()->ip();
+        $reply->commentator_type = User::class;
+        $reply->commentator_id = auth()->id();
+        $reply->commentable_type = $item->commentable_type;
+        $reply->commentable_id = $item->commentable_id;
+        $reply->parent_id = $item->id;
+        $reply->status = 1;
+        $reply->body = request()->input('body');
+        $reply->save();
+
+        logAdmin(__METHOD__, Comment::class, $reply->id);
 
         return redirect()->route('admin.comment.index')->with(['message' => __('Comment replay')]);
+    }
+
+    public function bulk(Request $request, AdminBulkService $bulkService): RedirectResponse
+    {
+        return $bulkService->handle(
+            Comment::class,
+            $request->input('action'),
+            (array) $request->input('id', []),
+            function (string $action, ?string $subAction, array $ids): ?string {
+                if ($action === 'status' && $subAction !== null) {
+                    Comment::whereIn('id', $ids)->update(['status' => $subAction]);
+
+                    return __(':COUNT items changed status successfully', ['COUNT' => count($ids)]);
+                }
+
+                return null;
+            }
+        );
+    }
+
+    protected function resolveComment(Comment|string|int $item): Comment
+    {
+        if ($item instanceof Comment) {
+            return $item;
+        }
+
+        return Comment::where('id', $item)->firstOrFail();
     }
 }

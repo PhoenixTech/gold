@@ -2,210 +2,186 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\XController;
+use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\GroupSaveRequest;
 use App\Models\Group;
 use App\Models\Item;
 use App\Models\Setting;
+use App\Services\Admin\AdminBulkService;
+use App\Services\Admin\AdminTableService;
+use App\Services\AdminMediaService;
+use App\Services\SlugService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Spatie\Image\Enums\AlignPosition;
-use Spatie\Image\Enums\Fit;
-use Spatie\Image\Enums\Unit;
-use Spatie\Image\Image;
+use Illuminate\View\View;
 
-class GroupController extends XController
+class GroupController extends Controller
 {
-    // protected  $_MODEL_ = Group::class;
-    // protected  $SAVE_REQUEST = GroupSaveRequest::class;
+    use RespondsWithAdmin;
 
-    protected $cols = ['name', 'subtitle', 'parent_id'];
-
-    protected $extra_cols = ['id', 'slug', 'image'];
-
-    protected $searchable = ['name', 'subtitle', 'description'];
-
-    protected $listView = 'admin.groups.group-list';
-
-    protected $formView = 'admin.groups.group-form';
-
-    protected $buttons = [
-        'edit' => ['title' => 'Edit', 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
-        'show' => ['title' => 'Detail', 'class' => 'btn-outline-secondary', 'icon' => 'ri-eye-line'],
-        'destroy' => ['title' => 'Remove', 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-delete-bin-line'],
-    ];
-
-    public function __construct()
+    public function index(Request $request, AdminTableService $tableService): View
     {
-        parent::__construct(Group::class, GroupSaveRequest::class);
+        $tableData = $tableService->for(Group::class)
+            ->columns(['name', 'subtitle', 'parent_id'], ['id', 'slug', 'image'])
+            ->searchable(['name', 'subtitle', 'description'])
+            ->buttons([
+                'edit' => ['title' => 'Edit', 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
+                'show' => ['title' => 'Detail', 'class' => 'btn-outline-secondary', 'icon' => 'ri-eye-line'],
+                'destroy' => ['title' => 'Remove', 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-delete-bin-line'],
+            ])
+            ->build($request);
+
+        return view('admin.groups.group-list', $tableData);
     }
 
-    /**
-     * @param  $group  Group
-     * @param  $request  GroupSaveRequest
-     * @return Group
-     */
-    public function save($group, $request)
+    public function create(): View
     {
+        $cats = Group::all();
 
-        $group->name = $request->input('name');
-        $group->subtitle = $request->input('subtitle');
-        $group->description = $request->input('description');
-        $group->hide = $request->has('hide');
+        return view('admin.groups.group-form', compact('cats'));
+    }
 
-        if ($request->input('parent_id') == '') {
-            $group->parent_id = null;
-        } else {
-            $group->parent_id = $request->input('parent_id', null);
-        }
-
-        if ($request->has('canonical') && trim($request->input('canonical')) != '') {
-            $group->canonical = $request->input('canonical');
-        }
-        $group->slug = $this->getSlug($group);
-        if ($request->has('image')) {
-            $group->image = $this->storeFile('image', $group, 'groups');
-            $key = 'image';
-            $format = $request->file($key)->guessExtension();
-            if (strtolower($format) == 'png') {
-                $format = 'webp';
-            }
-            $i = Image::load($request->file($key)->getPathname())
-                ->optimize()
-//                ->nonQueued()
-                ->format($format);
-            if (getSetting('watermark2')) {
-                $i->watermark(public_path('upload/images/logo.png'),
-                    AlignPosition::BottomLeft, 5, 5, Unit::Percent,
-                    config('app.media.watermark_size'), Unit::Percent,
-                    config('app.media.watermark_size'), Unit::Percent, Fit::Contain,
-                    config('app.media.watermark_opacity'));
-            }
-            $i->save(storage_path().'/app/public/groups/optimized-'.$group->$key);
-        }
-        if ($request->has('bg')) {
-            $group->bg = $this->storeFile('bg', $group, 'groups');
-            $key = 'bg';
-            $format = $request->file($key)->guessExtension();
-            if (strtolower($format) == 'png') {
-                $format = 'webp';
-            }
-            $i = Image::load($request->file($key)->getPathname())
-                ->optimize()
-//                ->nonQueued()
-                ->format($format);
-            if (getSetting('watermark2')) {
-                $i->watermark(public_path('upload/images/logo.png'),
-                    AlignPosition::BottomLeft, 5, 5, Unit::Percent,
-                    config('app.media.watermark_size'), Unit::Percent,
-                    config('app.media.watermark_size'), Unit::Percent, Fit::Contain,
-                    config('app.media.watermark_opacity'));
-            }
-            $i->save(storage_path().'/app/public/groups/optimized-'.$group->$key);
-        }
+    public function store(GroupSaveRequest $request, SlugService $slugService, AdminMediaService $mediaService): JsonResponse|RedirectResponse
+    {
+        $group = new Group;
+        $this->fillGroup($group, $request, $slugService);
         $group->save();
 
-        return $group;
+        $mediaService->handleOptimizedImage($request, $group, 'image', 'groups');
+        $mediaService->handleOptimizedImage($request, $group, 'bg', 'groups');
+        $group->save();
 
+        logAdmin(__METHOD__, Group::class, $group->id);
+
+        return $this->respondAfterSave($request, $group, __('As you wished created successfully'), 'admin.group.edit');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function edit(Group|string|int $item): View
     {
-        //
+        $item = $this->resolveGroup($item);
         $cats = Group::all();
 
-        return view($this->formView, compact('cats'));
+        return view('admin.groups.group-form', compact('item', 'cats'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Group $item)
+    public function update(GroupSaveRequest $request, Group|string|int $item, SlugService $slugService, AdminMediaService $mediaService): JsonResponse|RedirectResponse
     {
-        //
-        $cats = Group::all();
+        $item = $this->resolveGroup($item);
+        $this->fillGroup($item, $request, $slugService);
+        $item->save();
 
-        return view($this->formView, compact('item', 'cats'));
+        $mediaService->handleOptimizedImage($request, $item, 'image', 'groups');
+        $mediaService->handleOptimizedImage($request, $item, 'bg', 'groups');
+        $item->save();
+
+        logAdmin(__METHOD__, Group::class, $item->id);
+
+        return $this->respondAfterSave($request, $item, __('As you wished updated successfully'), 'admin.group.edit');
     }
 
-    public function bulk(Request $request)
+    public function destroy(Group|string|int $item): RedirectResponse
     {
+        $item = $this->resolveGroup($item);
 
-        //        dd($request->all());
-        $data = explode('.', $request->input('action'));
-        $action = $data[0];
-        $ids = $request->input('id');
-        switch ($action) {
-            case 'delete':
-                $msg = __(':COUNT items deleted successfully', ['COUNT' => count($ids)]);
-                $this->_MODEL_::destroy($ids);
-                break;
-                /**restore*/
-            case 'restore':
-                $msg = __(':COUNT items restored successfully', ['COUNT' => count($ids)]);
-                foreach ($ids as $id) {
-                    $this->_MODEL_::withTrashed()->find($id)->restore();
-                }
-                break;
-                /* restore* */
-            default:
-                $msg = __('Unknown bulk action : :ACTION', ['ACTION' => $action]);
+        if (Setting::where('type', 'GROUP')->where('raw', $item->id)->exists()) {
+            return redirect()->back()->withErrors(__("You can't delete this item while using it in setting."));
         }
 
-        return $this->do_bulk($msg, $action, $ids);
-    }
-
-    public function destroy(Group $item)
-    {
-        if (Setting::where('type', 'GROUP')->where('raw', $item->id)->count() > 0) {
-            $msg = __("You can't delete this item while using it in setting.");
-
-            return redirect()->back()->withErrors($msg);
-        }
-        if (Item::where('menuable_type', Group::class)->where('menuable_type', $item->id)->count() > 0) {
-            $msg = __("You can't delete this item while using it in menu.");
-
-            return redirect()->back()->withErrors($msg);
+        if (Item::where('menuable_type', Group::class)->where('menuable_id', $item->id)->exists()) {
+            return redirect()->back()->withErrors(__("You can't delete this item while using it in menu."));
         }
 
-        return parent::delete($item);
+        logAdmin(__METHOD__, Group::class, $item->id);
+        $item->delete();
+
+        return redirect()->back()->with(['message' => __('As you wished removed successfully')]);
     }
 
-    public function update(Request $request, Group $item)
+    public function trashed(Request $request, AdminTableService $tableService): View
     {
-        return $this->bringUp($request, $item);
+        $tableData = $tableService->for(Group::onlyTrashed())
+            ->columns(['name', 'subtitle', 'parent_id'], ['id', 'slug', 'image', 'deleted_at'])
+            ->searchable(['name', 'subtitle', 'description'])
+            ->buttons([
+                'restore' => ['title' => 'Restore', 'class' => 'btn-outline-success', 'icon' => 'ri-refresh-line'],
+            ])
+            ->build($request);
+
+        return view('admin.groups.group-list', $tableData);
     }
 
-    /**restore*/
-    public function restore($item)
+    public function restore($item): RedirectResponse
     {
-        return parent::restoreing(Group::withTrashed()->where('id', $item)->first());
-    }
-    /* restore* */
+        $target = Group::withTrashed()->where('id', $item)->first()
+            ?? Group::withTrashed()->where('slug', $item)->firstOrFail();
 
-    /**sort*/
-    public function sort()
+        logAdmin(__METHOD__, Group::class, $target->id);
+        $target->restore();
+
+        return redirect()->back()->with(['message' => __('As you wished restored successfully')]);
+    }
+
+    public function bulk(Request $request, AdminBulkService $bulkService): RedirectResponse
     {
-        $items = Group::orderBy('sort')
-            ->get(['id', 'name', 'parent_id']);
+        return $bulkService->handle(Group::class, $request->input('action'), (array) $request->input('id', []));
+    }
+
+    public function show($item)
+    {
+        $group = $this->resolveGroup($item);
+        if ($group && method_exists($group, 'webUrl')) {
+            return redirect($group->webUrl());
+        }
+
+        return redirect()->route('admin.group.index');
+    }
+
+    public function sort(): View
+    {
+        $items = Group::orderBy('sort')->get(['id', 'name', 'parent_id']);
 
         return view('admin.commons.sort', compact('items'));
     }
 
-    public function sortSave(Request $request)
+    public function sortSave(Request $request): array
     {
-        //        return $request->items;
-        foreach ($request->items as $key => $item) {
-            $i = Group::whereId($item['id'])->first();
-            $i->sort = $key;
-            $i->parent_id = $item['parentId'] ?? null;
-            $i->save();
+        foreach ($request->input('items', []) as $key => $item) {
+            Group::where('id', $item['id'])->update([
+                'sort' => $key,
+                'parent_id' => $item['parentId'] ?? null,
+            ]);
         }
-        logAdmin(__METHOD__, __CLASS__, null);
+
+        logAdmin(__METHOD__, static::class, null);
 
         return ['OK' => true, 'message' => __('As you wished sort saved')];
     }
-    /* sort* */
+
+    protected function resolveGroup(Group|string|int $item): Group
+    {
+        if ($item instanceof Group) {
+            return $item;
+        }
+
+        return Group::where('slug', $item)->first()
+            ?? Group::where('id', $item)->firstOrFail();
+    }
+
+    protected function fillGroup(Group $group, Request $request, SlugService $slugService): void
+    {
+        $group->name = $request->input('name');
+        $group->subtitle = $request->input('subtitle');
+        $group->description = $request->input('description');
+        $group->hide = $request->has('hide');
+        $group->parent_id = $request->filled('parent_id') ? $request->input('parent_id') : null;
+
+        if ($request->filled('canonical')) {
+            $group->canonical = $request->input('canonical');
+        }
+
+        $titleForSlug = $request->filled('slug') ? $request->input('slug') : $group->name;
+        $group->slug = $slugService->makeUnique(Group::class, $titleForSlug, $group->id);
+    }
 }

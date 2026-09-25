@@ -2,44 +2,35 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\XController;
-use App\Http\Requests\ShopVisitSaveRequest;
+use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
+use App\Http\Controllers\Controller;
 use App\Models\ShopVisit;
+use App\Services\Admin\AdminBulkService;
+use App\Services\Admin\AdminTableService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-class ShopVisitController extends XController
+class ShopVisitController extends Controller
 {
-    protected $cols = ['mobile', 'first_name', 'last_name', 'has_purchase', 'mall', 'user_id', 'submitted_at'];
+    use RespondsWithAdmin;
 
-    protected $extra_cols = ['id', 'created_at'];
-
-    protected $searchable = ['mobile', 'first_name', 'last_name', 'mall', 'address'];
-
-    protected $listView = 'admin.shop-visits.shop-visit-list';
-
-    protected $formView = 'admin.shop-visits.shop-visit-show';
-
-    protected $buttons = [
-        'show' => ['title' => 'Detail', 'class' => 'btn-outline-secondary', 'icon' => 'ri-eye-line'],
-        'destroy' => ['title' => 'Remove', 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-delete-bin-line'],
-    ];
-
-    public function __construct()
+    public function index(Request $request, AdminTableService $tableService): View
     {
-        parent::__construct(ShopVisit::class, ShopVisitSaveRequest::class);
+        $tableData = $tableService->for(ShopVisit::query()->with(['user', 'state', 'city'])->completed())
+            ->columns(['mobile', 'first_name', 'last_name', 'has_purchase', 'mall', 'user_id', 'submitted_at'], ['id', 'created_at'])
+            ->searchable(['mobile', 'first_name', 'last_name', 'mall', 'address'])
+            ->buttons([
+                'show' => ['title' => 'Detail', 'class' => 'btn-outline-secondary', 'icon' => 'ri-eye-line'],
+                'destroy' => ['title' => 'Remove', 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-delete-bin-line'],
+            ])
+            ->build($request);
+
+        return view('admin.shop-visits.shop-visit-list', $tableData);
     }
 
-    public function index()
-    {
-        $query = $this->makeSortAndFilter()
-            ->with(['user', 'state', 'city'])
-            ->completed();
-
-        return $this->showList($query);
-    }
-
-    public function show($item)
+    public function show($item): View
     {
         $visit = ShopVisit::query()
             ->with(['user', 'state', 'city'])
@@ -49,28 +40,26 @@ class ShopVisitController extends XController
         return view('admin.shop-visits.shop-visit-show', ['item' => $visit]);
     }
 
-    public function bulk(Request $request)
+    public function destroy(ShopVisit|string|int $item): RedirectResponse
     {
-        $data = explode('.', $request->input('action'));
-        $action = $data[0];
-        $ids = $request->input('id');
-        switch ($action) {
-            case 'delete':
-                $msg = __(':COUNT items deleted successfully', ['COUNT' => count($ids)]);
-                $this->_MODEL_::destroy($ids);
-                break;
-            case 'export':
-                return $this->export(is_array($ids) ? array_values($ids) : null);
-            default:
-                $msg = __('Unknown bulk action : :ACTION', ['ACTION' => $action]);
-        }
+        $visit = $item instanceof ShopVisit ? $item : ShopVisit::where('id', $item)->firstOrFail();
 
-        return $this->do_bulk($msg, $action, $ids);
+        logAdmin(__METHOD__, ShopVisit::class, $visit->id);
+        $visit->delete();
+
+        return redirect()->back()->with(['message' => __('As you wished removed successfully')]);
     }
 
-    public function destroy(ShopVisit $item)
+    public function bulk(Request $request, AdminBulkService $bulkService): RedirectResponse|StreamedResponse
     {
-        return parent::delete($item);
+        $action = (string) $request->input('action');
+        $ids = (array) $request->input('id', []);
+
+        if ($action === 'export') {
+            return $this->export(count($ids) > 0 ? array_values($ids) : null);
+        }
+
+        return $bulkService->handle(ShopVisit::class, $action, $ids);
     }
 
     public function export(?array $ids = null): StreamedResponse

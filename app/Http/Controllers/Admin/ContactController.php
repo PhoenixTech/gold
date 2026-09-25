@@ -2,123 +2,119 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\XController;
+use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\ContactSaveRequest;
 use App\Models\Contact;
+use App\Services\Admin\AdminBulkService;
+use App\Services\Admin\AdminTableService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\View\View;
 
-class ContactController extends XController
+class ContactController extends Controller
 {
-    // protected  $_MODEL_ = Contact::class;
-    // protected  $SAVE_REQUEST = ContactSaveRequest::class;
+    use RespondsWithAdmin;
 
-    protected $cols = ['name', 'subject', 'mobile', 'email', 'created_at', 'is_answered'];
-
-    protected $extra_cols = ['id', 'hash'];
-
-    protected $searchable = ['name', 'subject', 'mobile', 'email', 'body'];
-
-    protected $listView = 'admin.contacts.contact-list';
-
-    protected $formView = 'admin.contacts.contact-form';
-
-    protected $buttons = [
-        //        'edit' =>
-        //            ['title' => "Edit", 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
-        'show' => ['title' => 'Detail', 'class' => 'btn-outline-secondary', 'icon' => 'ri-eye-line'],
-        'destroy' => ['title' => 'Remove', 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-delete-bin-line'],
-    ];
-
-    public function __construct()
+    public function index(Request $request, AdminTableService $tableService): View
     {
-        parent::__construct(Contact::class, ContactSaveRequest::class);
+        $tableData = $tableService->for(Contact::class)
+            ->columns(['name', 'subject', 'mobile', 'email', 'created_at', 'is_answered'], ['id', 'hash'])
+            ->searchable(['name', 'subject', 'mobile', 'email', 'body'])
+            ->buttons([
+                'show' => ['title' => 'Detail', 'class' => 'btn-outline-secondary', 'icon' => 'ri-eye-line'],
+                'destroy' => ['title' => 'Remove', 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-delete-bin-line'],
+            ])
+            ->build($request);
+
+        return view('admin.contacts.contact-list', $tableData);
     }
 
-    /**
-     * @param  $contact  Contact
-     * @param  $request  ContactSaveRequest
-     * @return Contact
-     */
-    public function save($contact, $request)
+    public function show($hash): View
     {
-
-        $contact->save();
-
-        return $contact;
-
-    }
-
-    public function show($hash)
-    {
-        $item = Contact::whereHash($hash)->firstOrFail();
+        $item = Contact::where('hash', $hash)->orWhere('id', $hash)->firstOrFail();
 
         return view('admin.contacts.contact-show', compact('item'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function create(): View
     {
-        //
-        return view($this->formView);
+        return view('admin.contacts.contact-form');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Contact $item)
+    public function store(ContactSaveRequest $request): JsonResponse|RedirectResponse
     {
-        //
-        return view($this->formView, compact('item'));
+        $contact = new Contact;
+        $contact->fill($request->validated());
+        $contact->save();
+
+        logAdmin(__METHOD__, Contact::class, $contact->id);
+
+        return $this->respondAfterSave($request, $contact, __('As you wished created successfully'), 'admin.contact.show');
     }
 
-    public function bulk(Request $request)
+    public function edit(Contact|string|int $item): View
     {
+        $item = $this->resolveContact($item);
 
-        //        dd($request->all());
-        $data = explode('.', $request->input('action'));
-        $action = $data[0];
-        $ids = $request->input('id');
-        switch ($action) {
-            case 'delete':
-                $msg = __(':COUNT items deleted successfully', ['COUNT' => count($ids)]);
-                $this->_MODEL_::destroy($ids);
-                break;
-
-            default:
-                $msg = __('Unknown bulk action : :ACTION', ['ACTION' => $action]);
-        }
-
-        return $this->do_bulk($msg, $action, $ids);
+        return view('admin.contacts.contact-form', compact('item'));
     }
 
-    public function destroy(Contact $item)
+    public function update(Request $request, Contact|string|int $item): JsonResponse|RedirectResponse
     {
-        return parent::delete($item);
+        $item = $this->resolveContact($item);
+        $item->fill($request->all());
+        $item->save();
+
+        logAdmin(__METHOD__, Contact::class, $item->id);
+
+        return $this->respondAfterSave($request, $item, __('As you wished updated successfully'), 'admin.contact.show');
     }
 
-    public function update(Request $request, Contact $item)
+    public function destroy(Contact|string|int $item): RedirectResponse
     {
-        return $this->bringUp($request, $item);
+        $item = $this->resolveContact($item);
+
+        logAdmin(__METHOD__, Contact::class, $item->id);
+        $item->delete();
+
+        return redirect()->back()->with(['message' => __('As you wished removed successfully')]);
     }
 
-    public function reply(Request $request, Contact $item)
+    public function bulk(Request $request, AdminBulkService $bulkService): RedirectResponse
     {
-        $body = $request->bodya;
+        return $bulkService->handle(Contact::class, $request->input('action'), (array) $request->input('id', []));
+    }
+
+    public function reply(Request $request, Contact|string|int $item): RedirectResponse
+    {
+        $item = $this->resolveContact($item);
+        $body = (string) $request->input('bodya', $request->input('body'));
+
         $item->is_answered = true;
         $item->body .= '<hr>'.__('Answer: <br>').$body;
         $item->save();
 
         Mail::raw($body, function ($message) use ($item) {
-
-            $message->from(getSetting('email'), config('app.name'));
+            $message->from(getSetting('email', config('mail.from.address')), config('app.name'));
             $message->to($item->email);
-            $message->subject('reply:', config('app.name', 'xshop').' پاسخ تماس با ');
+            $message->subject('reply: '.config('app.name', 'xshop').' پاسخ تماس با ');
         });
+
         logAdmin(__METHOD__, Contact::class, $item->id);
 
         return redirect()->back()->with(['message' => __('Your Email sent')]);
+    }
+
+    protected function resolveContact(Contact|string|int $item): Contact
+    {
+        if ($item instanceof Contact) {
+            return $item;
+        }
+
+        return Contact::where('hash', $item)->first()
+            ?? Contact::where('id', $item)->firstOrFail();
     }
 }

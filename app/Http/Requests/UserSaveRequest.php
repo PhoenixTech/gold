@@ -9,12 +9,9 @@ use Illuminate\Validation\Rule;
 
 class UserSaveRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return auth()->check() and auth()->user()->hasRole('developer|admin');
+        return auth()->check() && auth()->user()->hasRole('developer|admin');
     }
 
     protected function prepareForValidation(): void
@@ -25,18 +22,19 @@ class UserSaveRequest extends FormRequest
         }
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
+        $userId = $this->input('id');
+        if (! $userId && $this->route('item')) {
+            $routeItem = $this->route('item');
+            $userId = $routeItem instanceof User ? $routeItem->id : (User::where('email', $routeItem)->value('id') ?? $routeItem);
+        }
+
         return [
             'name' => ['required', 'string', 'max:255'],
             'mobile' => ['required', 'string', 'min:10'],
             'role' => ['required', 'string', Rule::in(User::$roles)],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$this->id],
+            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($userId)],
             'password' => ['string', 'min:8', 'confirmed', 'nullable'],
         ];
     }

@@ -2,170 +2,175 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\XController;
+use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\ClipSaveRequest;
 use App\Models\Clip;
+use App\Services\Admin\AdminBulkService;
+use App\Services\Admin\AdminTableService;
+use App\Services\AdminMediaService;
+use App\Services\SlugService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Spatie\Image\Enums\AlignPosition;
-use Spatie\Image\Enums\Fit;
-use Spatie\Image\Enums\Unit;
-use Spatie\Image\Image;
+use Illuminate\View\View;
 
-class ClipController extends XController
+class ClipController extends Controller
 {
-    // protected  $_MODEL_ = Clip::class;
-    // protected  $SAVE_REQUEST = ClipSaveRequest::class;
+    use RespondsWithAdmin;
 
-    protected $cols = ['title', 'status'];
-
-    protected $extra_cols = ['id', 'slug', 'cover'];
-
-    protected $searchable = ['title', 'body'];
-
-    protected $listView = 'admin.clips.clip-list';
-
-    protected $formView = 'admin.clips.clip-form';
-
-    protected $buttons = [
-        'edit' => ['title' => 'Edit', 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
-        'show' => ['title' => 'Detail', 'class' => 'btn-outline-secondary', 'icon' => 'ri-eye-line'],
-        'destroy' => ['title' => 'Remove', 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-delete-bin-line'],
-    ];
-
-    public function __construct()
+    public function index(Request $request, AdminTableService $tableService): View
     {
-        parent::__construct(Clip::class, ClipSaveRequest::class);
+        $tableData = $tableService->for(Clip::class)
+            ->columns(['title', 'status'], ['id', 'slug', 'cover'])
+            ->searchable(['title', 'body'])
+            ->buttons([
+                'edit' => ['title' => 'Edit', 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
+                'show' => ['title' => 'Detail', 'class' => 'btn-outline-secondary', 'icon' => 'ri-eye-line'],
+                'destroy' => ['title' => 'Remove', 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-delete-bin-line'],
+            ])
+            ->build($request);
+
+        return view('admin.clips.clip-list', $tableData);
     }
 
-    /**
-     * @param  $clip  Clip
-     * @param  $request  ClipSaveRequest
-     * @return Clip
-     */
-    public function save($clip, $request)
+    public function create(): View
     {
+        return view('admin.clips.clip-form');
+    }
 
+    public function store(ClipSaveRequest $request, SlugService $slugService, AdminMediaService $mediaService): JsonResponse|RedirectResponse
+    {
+        $clip = new Clip;
+        $this->saveClipData($clip, $request, $slugService, $mediaService);
+
+        logAdmin(__METHOD__, Clip::class, $clip->id);
+
+        return $this->respondAfterSave($request, $clip, __('As you wished created successfully'), 'admin.clip.edit');
+    }
+
+    public function edit(Clip|string|int $item): View
+    {
+        $item = $this->resolveClip($item);
+
+        return view('admin.clips.clip-form', compact('item'));
+    }
+
+    public function update(ClipSaveRequest $request, Clip|string|int $item, SlugService $slugService, AdminMediaService $mediaService): JsonResponse|RedirectResponse
+    {
+        $item = $this->resolveClip($item);
+        $this->saveClipData($item, $request, $slugService, $mediaService);
+
+        logAdmin(__METHOD__, Clip::class, $item->id);
+
+        return $this->respondAfterSave($request, $item, __('As you wished updated successfully'), 'admin.clip.edit');
+    }
+
+    public function destroy(Clip|string|int $item): RedirectResponse
+    {
+        $item = $this->resolveClip($item);
+
+        logAdmin(__METHOD__, Clip::class, $item->id);
+        $item->delete();
+
+        return redirect()->back()->with(['message' => __('As you wished removed successfully')]);
+    }
+
+    public function trashed(Request $request, AdminTableService $tableService): View
+    {
+        $tableData = $tableService->for(Clip::onlyTrashed())
+            ->columns(['title', 'status'], ['id', 'slug', 'cover', 'deleted_at'])
+            ->searchable(['title', 'body'])
+            ->buttons([
+                'restore' => ['title' => 'Restore', 'class' => 'btn-outline-success', 'icon' => 'ri-refresh-line'],
+            ])
+            ->build($request);
+
+        return view('admin.clips.clip-list', $tableData);
+    }
+
+    public function restore($item): RedirectResponse
+    {
+        $target = Clip::withTrashed()->where('id', $item)->first()
+            ?? Clip::withTrashed()->where('slug', $item)->firstOrFail();
+
+        logAdmin(__METHOD__, Clip::class, $target->id);
+        $target->restore();
+
+        return redirect()->back()->with(['message' => __('As you wished restored successfully')]);
+    }
+
+    public function bulk(Request $request, AdminBulkService $bulkService): RedirectResponse
+    {
+        return $bulkService->handle(
+            Clip::class,
+            $request->input('action'),
+            (array) $request->input('id', []),
+            function (string $action, ?string $subAction, array $ids): ?string {
+                if ($action === 'publish') {
+                    Clip::whereIn('id', $ids)->update(['status' => 1]);
+
+                    return __(':COUNT items published successfully', ['COUNT' => count($ids)]);
+                }
+
+                if ($action === 'draft') {
+                    Clip::whereIn('id', $ids)->update(['status' => 0]);
+
+                    return __(':COUNT items drafted successfully', ['COUNT' => count($ids)]);
+                }
+
+                return null;
+            }
+        );
+    }
+
+    public function show($item)
+    {
+        $clip = $this->resolveClip($item);
+        if ($clip && method_exists($clip, 'webUrl')) {
+            return redirect($clip->webUrl());
+        }
+
+        return redirect()->route('admin.clip.index');
+    }
+
+    protected function resolveClip(Clip|string|int $item): Clip
+    {
+        if ($item instanceof Clip) {
+            return $item;
+        }
+
+        return Clip::where('slug', $item)->first()
+            ?? Clip::where('id', $item)->firstOrFail();
+    }
+
+    protected function saveClipData(Clip $clip, Request $request, SlugService $slugService, AdminMediaService $mediaService): void
+    {
         $clip->title = $request->input('title');
-        $clip->slug = $this->getSlug($clip, 'slug', 'title');
+        $titleForSlug = $request->filled('slug') ? $request->input('slug') : $clip->title;
+        $clip->slug = $slugService->makeUnique(Clip::class, $titleForSlug, $clip->id);
         $clip->body = $request->input('body');
         $clip->user_id = auth()->id();
         $clip->status = $request->input('status');
-        //        if ($request->hasFile('clip')) {
-        //            $name = $clip->slug . '.' . request()->clip->getClientOriginalExtension();
-        //            $clip->file = $name;
-        //            $request->file('clip')->storeAs('public/clips', $name);
-        //        }
-        //        if ($request->hasFile('cover')) {
-        //            $name = $clip->slug . '.' . request()->cover->getClientOriginalExtension();
-        //            $clip->cover = $name;
-        //            $request->file('cover')->storeAs('public/clips', $name);
-        //        }
-        if ($request->has('cover')) {
-            $clip->cover = $this->storeFile('cover', $clip, 'clips');
 
-            $key = 'cover';
-            $format = $request->file($key)->guessExtension();
-            if (strtolower($format) == 'png') {
-                $format = 'webp';
-            }
-            $i = Image::load($request->file($key)->getPathname())
-                ->optimize()
-//                ->nonQueued()
-                ->format($format);
-            if (getSetting('watermark2')) {
-                $i->watermark(public_path('upload/images/logo.png'),
-                    AlignPosition::BottomLeft, 5, 5, Unit::Percent,
-                    config('app.media.watermark_size'), Unit::Percent,
-                    config('app.media.watermark_size'), Unit::Percent, Fit::Contain,
-                    config('app.media.watermark_opacity'));
-            }
-            if (! file_exists(storage_path().'/app/public/cover')) {
-                mkdir(storage_path().'/app/public/cover/');
-            }
-            $i->save(storage_path().'/app/public/cover/optimized-'.$clip->$key);
+        if ($request->hasFile('cover')) {
+            $mediaService->handleOptimizedImage($request, $clip, 'cover', 'clips');
         }
 
-        if ($request->has('clip')) {
-            $clip->file = $this->storeFile('clip', $clip, 'clips');
+        if ($request->hasFile('clip')) {
+            $clipFile = $request->file('clip');
+            $name = time().'-'.$clipFile->getClientOriginalName();
+            $clipFile->storeAs('public/clips', $name);
+            $clip->file = $name;
         }
+
         $clip->save();
-        $tags = array_filter(explode(',,', $request->input('tags')));
 
-        if (count($tags) > 0) {
-            $clip->syncTags($tags);
+        if ($request->filled('tags')) {
+            $tags = array_filter(explode(',,', (string) $request->input('tags')));
+            if (count($tags) > 0) {
+                $clip->syncTags($tags);
+            }
         }
-
-        return $clip;
-
     }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-        return view($this->formView);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Clip $item)
-    {
-        //
-        return view($this->formView, compact('item'));
-    }
-
-    public function bulk(Request $request)
-    {
-
-        //        dd($request->all());
-        $data = explode('.', $request->input('action'));
-        $action = $data[0];
-        $ids = $request->input('id');
-        switch ($action) {
-            case 'delete':
-                $msg = __(':COUNT items deleted successfully', ['COUNT' => count($ids)]);
-                $this->_MODEL_::destroy($ids);
-                break;
-                /**restore*/
-            case 'restore':
-                $msg = __(':COUNT items restored successfully', ['COUNT' => count($ids)]);
-                foreach ($ids as $id) {
-                    $this->_MODEL_::withTrashed()->find($id)->restore();
-                }
-                break;
-                /* restore* */
-            case 'publish':
-                $this->_MODEL_::whereIn('id', $request->input('id'))->update(['status' => 1]);
-                $msg = __(':COUNT items published successfully', ['COUNT' => count($ids)]);
-                break;
-            case 'draft':
-                $this->_MODEL_::whereIn('id', $request->input('id'))->update(['status' => 0]);
-                $msg = __(':COUNT items drafted successfully', ['COUNT' => count($ids)]);
-                break;
-            default:
-                $msg = __('Unknown bulk action : :ACTION', ['ACTION' => $action]);
-        }
-
-        return $this->do_bulk($msg, $action, $ids);
-    }
-
-    public function destroy(Clip $item)
-    {
-        return parent::delete($item);
-    }
-
-    public function update(Request $request, Clip $item)
-    {
-        return $this->bringUp($request, $item);
-    }
-
-    /**restore*/
-    public function restore($item)
-    {
-        return parent::restoreing(Clip::withTrashed()->where('id', $item)->first());
-    }
-    /* restore* */
 }
