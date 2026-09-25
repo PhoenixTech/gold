@@ -1,4 +1,10 @@
 .shop-dashboard {
+    font-family: 'Yekan Bakh FaNum VF', 'Yekan Bakh VF', sans-serif !important;
+
+    *:not(i):not([class*="ri-"]) {
+        font-family: 'Yekan Bakh FaNum VF', 'Yekan Bakh VF', sans-serif;
+    }
+
     --dash-ink: #1e293b;
     --dash-muted: #64748b;
     --dash-line: rgba(0, 0, 0, 0.08);
@@ -363,6 +369,12 @@
 }
 
 .shop-summary {
+    font-family: 'Yekan Bakh FaNum VF', 'Yekan Bakh VF', sans-serif !important;
+
+    *:not(i):not([class*="ri-"]) {
+        font-family: 'Yekan Bakh FaNum VF', 'Yekan Bakh VF', sans-serif;
+    }
+
     --summary-ink: #1e293b;
     --summary-muted: #64748b;
     --summary-line: rgba(0, 0, 0, 0.08);

@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-    <section id="AvisaCustomer" class="shop-dashboard container-fluid px-0">
+    <section class="shop-dashboard container-fluid px-0">
         @if((($lowStockCount ?? 0) > 0) || (($belowBuyPriceCount ?? 0) > 0))
             <div class="row g-3 mb-4">
                 @if(($lowStockCount ?? 0) > 0)
