@@ -31,16 +31,31 @@ class AdminMenuTest extends TestCase
         $html = view('components.panel-side-navbar')->render();
 
         $this->assertStringContainsString('id="shop"', $html);
+        $this->assertStringContainsString('id="shop-definitions"', $html);
         $this->assertStringContainsString(__('Shop'), $html);
+        $this->assertStringContainsString(__('Shop definitions'), $html);
         $this->assertStringContainsString(__('Products'), $html);
         $this->assertStringContainsString(__('Categories'), $html);
         $this->assertStringContainsString(__('Invoices'), $html);
         $this->assertStringContainsString(__('Bank accounts'), $html);
         $this->assertStringContainsString(__('Transports'), $html);
+        $this->assertStringContainsString(__('Discounts'), $html);
+        $this->assertStringContainsString(__('Product attributes'), $html);
+        $this->assertStringContainsString(__('Reviews'), $html);
+        $this->assertStringContainsString(__('Rating criteria'), $html);
         $this->assertStringContainsString(route('admin.product.index'), $html);
         $this->assertStringContainsString(route('admin.invoice.index'), $html);
         $this->assertStringContainsString(route('admin.bank-account.index'), $html);
         $this->assertStringContainsString(route('admin.transport.index'), $html);
+        $this->assertStringContainsString(route('admin.discount.index'), $html);
+        $this->assertStringContainsString(route('admin.prop.index'), $html);
+        $this->assertStringContainsString(route('admin.rate.index'), $html);
+        $this->assertStringContainsString(route('admin.evaluation.index'), $html);
+
+        $this->assertGreaterThan(
+            strpos($html, 'id="shop"'),
+            strpos($html, 'id="shop-definitions"')
+        );
     }
 
     public function test_dashboard_sidebar_uses_clear_group_names(): void
@@ -81,10 +96,15 @@ class AdminMenuTest extends TestCase
         $html = view('components.panel-side-navbar')->render();
 
         $this->assertStringContainsString('فروشگاه', $html);
+        $this->assertStringContainsString('تعاریف فروشگاه', $html);
         $this->assertStringContainsString('محصولات', $html);
         $this->assertStringContainsString('صورت‌حساب‌ها', $html);
         $this->assertStringContainsString('حساب‌های بانکی', $html);
         $this->assertStringContainsString('روش‌های ارسال', $html);
+        $this->assertStringContainsString('تخفیف‌ها', $html);
+        $this->assertStringContainsString('ویژگی‌های محصول', $html);
+        $this->assertStringContainsString('امتیازها', $html);
+        $this->assertStringContainsString('معیارهای امتیاز', $html);
         $this->assertStringContainsString('مشاهده وب‌سایت', $html);
         $this->assertStringContainsString('محتوای سایت', $html);
         $this->assertStringContainsString('پشتیبانی', $html);

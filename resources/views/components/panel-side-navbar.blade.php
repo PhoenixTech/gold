@@ -28,7 +28,7 @@
             </a>
         </li>
 
-        @if(auth()->user()->hasAnyAccesses(['product', 'category', 'invoice', 'bank-account', 'transport', 'customer', 'discount', 'prop', 'rate', 'evaluation']))
+        @if(auth()->user()->hasAnyAccesses(['product', 'invoice', 'customer']))
             <li>
                 <a href="#shop" class="dsb-item">
                     <i class="ri-store-2-line"></i>
@@ -50,14 +50,6 @@
                             </a>
                         </li>
                     @endif
-                    @if(auth()->user()->hasAnyAccess('category'))
-                        <li>
-                            <a href="{{route('admin.category.index')}}">
-                                <i class="ri-box-3-fill"></i>
-                                {{__('Categories')}}
-                            </a>
-                        </li>
-                    @endif
                     @if(auth()->user()->hasAnyAccess('invoice'))
                         <li>
                             <a href="{{ route('admin.order-board.index') }}" class="{{ request()->routeIs('admin.order-board.*') ? 'active' : '' }}">
@@ -69,6 +61,34 @@
                             <a href="{{ route('admin.invoice.index') }}" class="{{ request()->routeIs('admin.invoice.*') ? 'active' : '' }}">
                                 <i class="ri-file-list-3-fill"></i>
                                 {{__('Invoices')}}
+                            </a>
+                        </li>
+                    @endif
+                    @if(auth()->user()->hasAnyAccess('customer'))
+                        <li>
+                            <a href="{{route('admin.customer.index')}}">
+                                <i class="ri-team-fill"></i>
+                                {{__('Customers')}}
+                            </a>
+                        </li>
+                    @endif
+                </ul>
+            </li>
+        @endif
+
+        @if(auth()->user()->hasAnyAccesses(['category', 'bank-account', 'transport', 'discount', 'prop', 'rate', 'evaluation']))
+            <li>
+                <a href="#shop-definitions" class="dsb-item">
+                    <i class="ri-equalizer-line"></i>
+                    <span class="nav-label">{{__("Shop definitions")}}</span>
+                    <i class="ri-arrow-down-s-line nav-chevron"></i>
+                </a>
+                <ul id="shop-definitions">
+                    @if(auth()->user()->hasAnyAccess('category'))
+                        <li>
+                            <a href="{{route('admin.category.index')}}">
+                                <i class="ri-box-3-fill"></i>
+                                {{__('Categories')}}
                             </a>
                         </li>
                     @endif
@@ -85,14 +105,6 @@
                             <a href="{{ route('admin.transport.index') }}">
                                 <i class="ri-truck-fill"></i>
                                 {{__('Transports')}}
-                            </a>
-                        </li>
-                    @endif
-                    @if(auth()->user()->hasAnyAccess('customer'))
-                        <li>
-                            <a href="{{route('admin.customer.index')}}">
-                                <i class="ri-team-fill"></i>
-                                {{__('Customers')}}
                             </a>
                         </li>
                     @endif
