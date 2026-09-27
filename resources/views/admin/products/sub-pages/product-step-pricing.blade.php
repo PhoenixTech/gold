@@ -22,7 +22,7 @@
                 {{__("Gold & Silver Specifications")}}
             </h6>
             <div class="row g-3">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="form-group">
                         <label for="weight" class="fw-semibold">{{__('Reference weight (grams)')}}</label>
                         <input name="weight" type="number" step="0.001" min="0" id="weight"
@@ -32,7 +32,34 @@
                         <small class="text-muted">{{__('Reference weight hint')}}</small>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3" id="karat_container">
+                    <div class="form-group">
+                        <label for="karat" class="fw-semibold d-flex align-items-center justify-content-between">
+                            <span>{{__('Gold Karat')}}</span>
+                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle fs-11" id="karat_badge">
+                                {{__('Formula coefficient')}}: <span id="karat_code_display">750</span>
+                            </span>
+                        </label>
+                        @php
+                            $selectedKarat = (int) old('karat', (isset($item) && $item) ? $item->getGoldKarat()->value : 18);
+                        @endphp
+                        <select name="karat" id="karat" class="form-select @error('karat') is-invalid @enderror">
+                            @foreach(\App\Enums\GoldKarat::cases() as $karatCase)
+                                <option value="{{ $karatCase->value }}"
+                                        data-coefficient="{{ $karatCase->coefficient() }}"
+                                        data-purity="{{ $karatCase->purityPercentage() }}"
+                                        data-ratio="{{ $karatCase->pureGoldRatio() }}"
+                                        @if($selectedKarat === $karatCase->value) selected @endif>
+                                    {{ $karatCase->optionLabel() }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <small class="text-muted d-block mt-1" id="karat_hint">
+                            {{__('Formula coefficient')}}: <strong id="karat_hint_code">750</strong> / 750 ({{__('Gold purity percentage')}}: <span id="karat_hint_purity">75%</span>)
+                        </small>
+                    </div>
+                </div>
+                <div class="col-md-3">
                     <div class="form-group">
                         <label for="profit" class="fw-semibold">{{__('Profit (%)')}}</label>
                         <input name="profit" type="number" step="0.01" min="0" max="100" id="profit"
@@ -41,7 +68,7 @@
                                value="{{old('profit', $item->profit ?? 7)}}"/>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="form-group">
                         <label for="tax" class="fw-semibold">{{__('Tax (%)')}}</label>
                         <input name="tax" type="number" step="0.01" min="0" max="100" id="tax"
@@ -116,12 +143,57 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function updateKaratInfo() {
+        const select = document.getElementById('karat');
+        if (!select) return;
+        const opt = select.options[select.selectedIndex];
+        if (!opt) return;
+
+        const code = opt.getAttribute('data-coefficient') || '750';
+        const purity = opt.getAttribute('data-purity') || '75%';
+
+        const codeDisplay = document.getElementById('karat_code_display');
+        const hintCode = document.getElementById('karat_hint_code');
+        const hintPurity = document.getElementById('karat_hint_purity');
+
+        if (codeDisplay) codeDisplay.textContent = code;
+        if (hintCode) hintCode.textContent = code;
+        if (hintPurity) hintPurity.textContent = purity;
+    }
+
+    function updateMetalKaratState() {
+        const metalSelect = document.getElementById('metal_type') || document.querySelector('[name="metal_type"]');
+        const karatContainer = document.getElementById('karat_container');
+        const karatSelect = document.getElementById('karat');
+        if (!metalSelect || !karatContainer) return;
+
+        const isSilver = String(metalSelect.value).toLowerCase() === 'silver';
+        if (isSilver) {
+            karatContainer.classList.add('opacity-50');
+            if (karatSelect) karatSelect.disabled = true;
+        } else {
+            karatContainer.classList.remove('opacity-50');
+            if (karatSelect) karatSelect.disabled = false;
+        }
+    }
+
     const form = document.querySelector('.product-form');
     if (form) {
         form.addEventListener('input', updateTotalLaborCharge);
-        form.addEventListener('change', updateTotalLaborCharge);
+        form.addEventListener('change', function (e) {
+            updateTotalLaborCharge();
+            if (e.target && (e.target.id === 'karat' || e.target.name === 'karat')) {
+                updateKaratInfo();
+            }
+            if (e.target && (e.target.id === 'metal_type' || e.target.name === 'metal_type')) {
+                updateMetalKaratState();
+            }
+        });
         form.addEventListener('keyup', updateTotalLaborCharge);
     }
+
     updateTotalLaborCharge();
+    updateKaratInfo();
+    updateMetalKaratState();
 });
 </script>

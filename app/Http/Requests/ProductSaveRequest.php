@@ -52,6 +52,7 @@ class ProductSaveRequest extends FormRequest
             'min_stock_level' => ['nullable', 'integer', 'min:0'],
             'target_group' => ['nullable', 'string', 'in:men,women,children,unisex'],
             'metal_type' => ['nullable', 'string', 'in:gold,silver'],
+            'karat' => ['nullable', 'integer', 'in:'.implode(',', \App\Enums\GoldKarat::values())],
             'stock_items' => ['nullable', 'string'],
             'image.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'canonical' => ['nullable', 'url', 'min:5', 'max:128'],

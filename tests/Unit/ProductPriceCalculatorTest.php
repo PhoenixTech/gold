@@ -278,6 +278,108 @@ class ProductPriceCalculatorTest extends TestCase
         $this->assertSame($expensive->price, $product->lowestAvailablePrice());
     }
 
+    public function test_gold_karat_coefficients_and_ratios_match_manager_specification(): void
+    {
+        $expected = [
+            6 => [250, '25%', '6/24'],
+            8 => [333, '33.3%', '8/24'],
+            9 => [375, '37.5%', '9/24'],
+            10 => [417, '41.7%', '10/24'],
+            12 => [500, '50%', '12/24'],
+            14 => [583, '58.3%', '7/12'],
+            15 => [625, '62.5%', '5/8'],
+            18 => [750, '75%', '3/4'],
+            20 => [833, '83.3%', '5/6'],
+            21 => [875, '87.5%', '7/8'],
+            22 => [916, '91.6%', '11/12'],
+            24 => [999, '99.9%', '24/24'],
+        ];
+
+        foreach ($expected as $karatValue => [$coeff, $purity, $ratio]) {
+            $karat = \App\Enums\GoldKarat::from($karatValue);
+            $this->assertSame($coeff, $karat->coefficient());
+            $this->assertSame($purity, $karat->purityPercentage());
+            $this->assertSame($ratio, $karat->pureGoldRatio());
+            $this->assertEqualsWithDelta($coeff / 750, $karat->ratio(), 0.00001);
+        }
+    }
+
+    public function test_base_metal_price_applies_karat_ratio_for_gold_products(): void
+    {
+        $product18 = $this->makeProduct(['metal_type' => 'gold', 'karat' => 18]);
+        $product24 = $this->makeProduct(['metal_type' => 'gold', 'karat' => 24]);
+        $product14 = $this->makeProduct(['metal_type' => 'gold', 'karat' => 14]);
+        $product12 = $this->makeProduct(['metal_type' => 'gold', 'karat' => 12]);
+        $product9 = $this->makeProduct(['metal_type' => 'gold', 'karat' => 9]);
+
+        $base18 = $this->calculator->baseMetalPrice($product18);
+        $base24 = $this->calculator->baseMetalPrice($product24);
+        $base14 = $this->calculator->baseMetalPrice($product14);
+        $base12 = $this->calculator->baseMetalPrice($product12);
+        $base9 = $this->calculator->baseMetalPrice($product9);
+
+        $this->assertSame(2_100_000, $base18);
+        $this->assertSame(2_797_200, $base24);
+        $this->assertSame(1_632_400, $base14);
+        $this->assertSame(1_400_000, $base12);
+        $this->assertSame(1_050_000, $base9);
+    }
+
+    public function test_reprice_product_calculates_piece_price_based_on_product_karat(): void
+    {
+        $product18 = $this->makeProduct([
+            'metal_type' => 'gold',
+            'karat' => 18,
+            'labor_charge_1' => 10,
+            'profit' => 7,
+            'tax' => 9,
+            'addon' => 0,
+            'status' => 1,
+        ]);
+        $product24 = $this->makeProduct([
+            'metal_type' => 'gold',
+            'karat' => 24,
+            'labor_charge_1' => 10,
+            'profit' => 7,
+            'tax' => 9,
+            'addon' => 0,
+            'status' => 1,
+        ]);
+
+        $q18 = Quantity::factory()->create([
+            'product_id' => $product18->id,
+            'weight' => 2,
+            'count' => 1,
+            'code' => 'K18-'.uniqid(),
+        ]);
+        $q24 = Quantity::factory()->create([
+            'product_id' => $product24->id,
+            'weight' => 2,
+            'count' => 1,
+            'code' => 'K24-'.uniqid(),
+        ]);
+
+        $this->calculator->repriceProduct($product18->fresh(['quantities']));
+        $this->calculator->repriceProduct($product24->fresh(['quantities']));
+
+        $q18->refresh();
+        $q24->refresh();
+
+        $this->assertTrue($q24->price > $q18->price);
+        $this->assertSame($this->calculator->calculate($product18, 2), $q18->price);
+        $this->assertSame($this->calculator->calculate($product24, 2), $q24->price);
+    }
+
+    public function test_silver_product_ignores_karat(): void
+    {
+        $silverDefault = $this->makeProduct(['metal_type' => 'silver', 'karat' => 18]);
+        $silverCustom = $this->makeProduct(['metal_type' => 'silver', 'karat' => 24]);
+
+        $this->assertSame(84_000, $this->calculator->baseMetalPrice($silverDefault));
+        $this->assertSame(84_000, $this->calculator->baseMetalPrice($silverCustom));
+    }
+
+
     protected function seedMetalSettings(): void
     {
         foreach ([

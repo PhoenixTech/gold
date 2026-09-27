@@ -11,9 +11,18 @@ class ProductPriceCalculator
 {
     public function baseMetalPrice(Product $product): int
     {
-        $key = $product->metal_type === 'silver' ? 'silver' : 'gold';
+        if ($product->metal_type === 'silver') {
+            return $this->applyMinimumPercent($this->settingValue('silver'));
+        }
 
-        return $this->applyMinimumPercent($this->settingValue($key));
+        return $this->goldPriceForKarat($product->getGoldKarat());
+    }
+
+    public function goldPriceForKarat(\App\Enums\GoldKarat $karat): int
+    {
+        $marketGold = (float) $this->settingValue('gold');
+
+        return $this->applyMinimumPercent($marketGold * $karat->ratio());
     }
 
     public function applyMinimumPercent(int|float $metalPrice): int

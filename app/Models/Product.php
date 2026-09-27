@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\GoldKarat;
 use App\Http\Resources\CommentMarkupCollection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -33,6 +34,7 @@ class Product extends Model implements HasMedia
         'stones' => 'array',
         'accessories' => 'array',
         'occasions' => 'array',
+        'karat' => GoldKarat::class,
     ];
 
     protected static function booted()
@@ -875,5 +877,16 @@ RESULT;
         };
 
         return $query;
+    }
+
+    public function getGoldKarat(): GoldKarat
+    {
+        if ($this->karat instanceof GoldKarat) {
+            return $this->karat;
+        }
+
+        return is_numeric($this->karat)
+            ? (GoldKarat::tryFrom((int) $this->karat) ?? GoldKarat::K18)
+            : GoldKarat::K18;
     }
 }

@@ -39,6 +39,7 @@ class ProductService
             $product->min_stock_level = $request->input('min_stock_level', 0);
             $product->target_group = $request->input('target_group', 'unisex');
             $product->metal_type = $request->input('metal_type', 'gold');
+            $product->karat = (int) $request->input('karat', 18);
             $product->plating_colors = array_values(array_filter((array) $request->input('plating_colors', [])));
             $product->stones = array_values(array_filter((array) $request->input('stones', [])));
             $product->accessories = array_values(array_filter((array) $request->input('accessories', [])));

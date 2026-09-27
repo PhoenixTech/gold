@@ -23,7 +23,7 @@ class ProductController extends Controller
 
     protected array $cols = ['name', 'sku', 'weight', 'category_id', 'stock_quantity', 'status'];
 
-    protected array $extraCols = ['id', 'slug', 'image_index', 'min_stock_level', 'price', 'buy_price', 'plating_colors', 'stones', 'accessories', 'occasions', 'metal_type', 'target_group'];
+    protected array $extraCols = ['id', 'slug', 'image_index', 'min_stock_level', 'price', 'buy_price', 'plating_colors', 'stones', 'accessories', 'occasions', 'metal_type', 'karat', 'target_group'];
 
     protected array $searchable = ['name', 'slug', 'description', 'excerpt', 'sku', 'table'];
 

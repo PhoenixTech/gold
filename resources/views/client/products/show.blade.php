@@ -313,7 +313,8 @@
                     $stoneLabels = $product->getStoneLabels();
                     $accessoryLabels = $product->getAccessoryLabels();
                     $occasionLabels = $product->getOccasionLabels();
-                    $hasAttributes = !empty($platingLabels) || !empty($stoneLabels) || !empty($accessoryLabels) || !empty($occasionLabels);
+                    $isGold = ($product->metal_type ?? 'gold') !== 'silver';
+                    $hasAttributes = $isGold || !empty($platingLabels) || !empty($stoneLabels) || !empty($accessoryLabels) || !empty($occasionLabels);
                     $fullMetaItems = $product->fullMeta();
                     $hasMeta = !empty($fullMetaItems) && count($fullMetaItems) > 0;
                 @endphp
@@ -335,6 +336,17 @@
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        @if($isGold)
+                                            <tr>
+                                                <td class="ps-3 fw-medium text-dark">
+                                                    <i class="ri-vip-diamond-line text-warning me-1.5"></i>
+                                                    {{__("Gold Karat")}}
+                                                </td>
+                                                <td class="text-center pe-3 text-body">
+                                                    {{ $product->getGoldKarat()->label() }} ({{ $product->getGoldKarat()->coefficient() }})
+                                                </td>
+                                            </tr>
+                                        @endif
                                         @if(!empty($platingLabels))
                                             <tr>
                                                 <td class="ps-3 fw-medium text-dark">

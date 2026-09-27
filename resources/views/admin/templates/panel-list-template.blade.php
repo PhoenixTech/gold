@@ -381,8 +381,21 @@
                                                         @break
                                                      @case('metal_type')
                                                          <span class="badge @if(($item->metal_type ?? 'gold') == 'silver') bg-secondary text-white @else bg-warning text-dark @endif">
-                                                             {{ $item->metal_type == 'silver' ? __('Silver') : __('Gold') }}
+                                                             @if(($item->metal_type ?? 'gold') == 'silver')
+                                                                 {{ __('Silver') }}
+                                                             @else
+                                                                 {{ __('Gold') }} ({{ $item->getGoldKarat()->label() }})
+                                                             @endif
                                                          </span>
+                                                         @break
+                                                     @case('karat')
+                                                         @if(($item->metal_type ?? 'gold') !== 'silver')
+                                                             <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">
+                                                                 {{ $item->getGoldKarat()->label() }}
+                                                             </span>
+                                                         @else
+                                                             <span class="text-muted">-</span>
+                                                         @endif
                                                          @break
                                                      @case('target_group')
                                                          @php

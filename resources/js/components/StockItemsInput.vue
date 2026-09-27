@@ -15,6 +15,9 @@
                             ({{ formatPercent(formula.fee1) }} + {{ formatPercent(formula.fee2) }} + {{ formatPercent(formula.fee3) }})
                         </span>
                     </span>
+                    <span v-if="formula.metalType !== 'silver'" class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle" :title="karatTooltip">
+                        <i class="ri-vip-diamond-line me-1"></i>{{ formula.karat }} عیار ({{ formula.karatCoefficient }})
+                    </span>
                 </div>
             </div>
             <div class="stock-toolbar-actions">
@@ -327,6 +330,9 @@ export default {
             items: this.normalize(this.xvalue),
             formula: {
                 metalType: 'gold',
+                karat: 18,
+                karatCoefficient: 750,
+                karatRatio: 1,
                 fee1: 15,
                 fee2: 0,
                 fee3: 0,
@@ -376,9 +382,16 @@ export default {
         },
         marketMetalUnitPrice() {
             this.formulaTick;
-            return this.formula.metalType === 'silver'
-                ? toNumber(this.silverPrice)
-                : toNumber(this.goldPrice);
+            if (this.formula.metalType === 'silver') {
+                return toNumber(this.silverPrice);
+            }
+            const goldBase = toNumber(this.goldPrice);
+            const ratio = Number(this.formula.karatRatio || 1);
+            return goldBase * ratio;
+        },
+        karatTooltip() {
+            this.formulaTick;
+            return `عیار ${this.formula.karat} (ضریب فرمول: ${this.formula.karatCoefficient} / 750)`;
         },
         minimumPercentValue() {
             this.formulaTick;
@@ -475,6 +488,15 @@ export default {
             }
 
             const metalType = this.readField('#metal_type') || this.readField('[name="metal_type"]') || 'gold';
+            const karatSelect = this.formEl?.querySelector('#karat') || this.formEl?.querySelector('[name="karat"]');
+            const selectedOpt = karatSelect?.options ? karatSelect.options[karatSelect.selectedIndex] : null;
+            const karatCoefficient = selectedOpt
+                ? toNumber(selectedOpt.dataset?.coefficient || selectedOpt.getAttribute('data-coefficient'), 750)
+                : 750;
+            const karat = selectedOpt
+                ? toNumber(selectedOpt.value, 18)
+                : toNumber(this.readField('#karat') ?? this.readField('[name="karat"]'), 18);
+            const karatRatio = karatCoefficient / 750;
             const fee1 = toNumber(
                 this.readField('input[name="labor_charge_1"]') ?? this.readField('#labor_charge_1') ?? this.readField('input[name="wage"]') ?? this.readField('#wage'),
                 15
@@ -497,6 +519,9 @@ export default {
 
             this.formula = {
                 metalType,
+                karat,
+                karatCoefficient,
+                karatRatio,
                 fee1,
                 fee2,
                 fee3,
@@ -540,8 +565,12 @@ export default {
                 final,
                 steps: [
                     {
-                        label: `نرخ روز ${this.metalName}`,
-                        math: `${this.metalName} / گرم`,
+                        label: `نرخ روز ${this.metalName}` + (this.formula.metalType !== 'silver' && this.formula.karat !== 18 ? ` (عیار ${this.formula.karat} - ضریب ${this.formula.karatCoefficient})` : ''),
+                        math: this.formula.metalType === 'silver'
+                            ? `${this.metalName} / گرم`
+                            : (this.formula.karat !== 18
+                                ? `${this.formatPlain(toNumber(this.goldPrice))} × (${this.formula.karatCoefficient} / 750)`
+                                : `${this.metalName} / گرم`),
                         value: this.formatPrice(marketMetalPrice),
                     },
                     {
