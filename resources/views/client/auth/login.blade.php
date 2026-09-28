@@ -139,8 +139,8 @@
                                 </label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light border-end-0 text-muted"><i class="ri-key-2-line"></i></span>
-                                    <input type="tel" maxlength="5" minlength="5" id="auth" class="form-control border-start-0 ps-2 text-center fs-18 fw-bold letter-spacing-2"
-                                           placeholder="xxxxx" dir="ltr">
+                                    <input type="tel" maxlength="6" minlength="5" id="auth" class="form-control border-start-0 ps-2 text-center fs-18 fw-bold letter-spacing-2"
+                                           placeholder="------" dir="ltr">
                                 </div>
 
                                 <button type="button" class="btn btn-primary w-100 py-2.5 rounded-pill fw-bold fs-15 shadow-sm mt-3"

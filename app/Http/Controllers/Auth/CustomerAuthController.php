@@ -157,23 +157,26 @@ class CustomerAuthController extends Controller
 
     public function sendSms(Request $request): array
     {
-        $tel = $request->input('tel');
+        $tel = (string) $request->input('tel');
         $customer = Customer::query()->where('mobile', $tel)->first();
-        $code = rand(11111, 99999);
+        $isLocalOrDev = ! app()->environment('production');
+        $code = $isLocalOrDev ? '111111' : (string) rand(100000, 999999);
 
-        if (config('app.sms.driver') === 'Kavenegar') {
-            $args = [
-                'receptor' => $tel,
-                'template' => trim(getSetting('sign')),
-                'token' => $code,
-            ];
-        } else {
-            $args = [
-                'code' => $code,
-            ];
+        if (! $isLocalOrDev) {
+            if (config('app.sms.driver') === 'Kavenegar') {
+                $args = [
+                    'receptor' => $tel,
+                    'template' => trim(getSetting('sign')),
+                    'token' => $code,
+                ];
+            } else {
+                $args = [
+                    'code' => $code,
+                ];
+            }
+
+            sendingSMS(getSetting('sign'), $tel, $args);
         }
-
-        sendingSMS(getSetting('sign'), $tel, $args);
 
         Log::info('auth code: '.$code);
 
@@ -204,6 +207,15 @@ class CustomerAuthController extends Controller
             ->where('mobile', $request->input('tel'))
             ->where('code', $request->input('code'))
             ->first();
+
+        if ($customer === null && ! app()->environment('production') && $request->input('code') === '111111') {
+            $customer = Customer::query()->where('mobile', $request->input('tel'))->first();
+            if ($customer === null) {
+                $customer = new Customer;
+                $customer->mobile = $request->input('tel');
+                $customer->save();
+            }
+        }
 
         if ($customer === null) {
             return [

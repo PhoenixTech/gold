@@ -22,7 +22,7 @@
                 </label>
                 <label v-if="smsSent">
                     {{ t('auth-code', 'کد تایید') }}
-                    <input v-model="auth.code" type="text" dir="ltr" maxlength="5" placeholder="-----">
+                    <input v-model="auth.code" type="text" dir="ltr" maxlength="6" placeholder="------">
                 </label>
                 <button v-if="!smsSent" type="button" class="btn-primary-cta" :disabled="authBusy" @click="sendSms">
                     {{ t('send-code', 'ارسال کد') }}

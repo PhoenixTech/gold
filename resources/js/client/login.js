@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 window.$toast?.error('Invalid mobile');
                 return;
             }
-            if (code.length !== 5) {
+            if (code.length < 5 || code.length > 6) {
                 window.$toast?.error('Invalid code');
                 return;
             }
