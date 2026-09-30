@@ -26,9 +26,7 @@
             <h1 class="fs-18 fw-bold text-dark mb-1">{{ __('Register Payment Receipt') }}</h1>
             <span class="text-muted fs-12 font-fanum">{{ __('Invoice ID:') }} {{ $invoice->hash }}</span>
         </div>
-        <a href="{{ route('client.invoice', $invoice) }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-            <i class="ri-arrow-right-line me-1"></i> {{ __('Back to invoice') }}
-        </a>
+
     </div>
 
     @if(session('message'))
@@ -59,52 +57,6 @@
     @endif
 
     <div class="row g-3 mb-4">
-        <div class="col-12 col-md-6">
-            <div class="card border-0 shadow-sm rounded-3 h-100">
-                <div class="card-header bg-white border-bottom py-3">
-                    <h5 class="card-title fs-15 fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                        <i class="ri-bank-card-line text-primary fs-18"></i>
-                        {{ __('Gallery Bank Details') }}
-                    </h5>
-                </div>
-                <div class="card-body">
-                    @if($bankAccount)
-                        <div class="mb-3 d-flex align-items-center justify-content-between">
-                            <span class="text-muted fs-13">{{ __('Bank Name') }}:</span>
-                            <span class="fw-bold text-dark fs-14">{{ $bankAccount->bank_name }}</span>
-                        </div>
-                        <div class="mb-3 d-flex align-items-center justify-content-between">
-                            <span class="text-muted fs-13">{{ __('Account Holder') }}:</span>
-                            <span class="fw-bold text-dark fs-14">{{ $bankAccount->account_holder_name }}</span>
-                        </div>
-                        @if($bankAccount->card_number)
-                            <div class="p-2 bg-light rounded-2 mb-2 d-flex align-items-center justify-content-between">
-                                <div>
-                                    <small class="text-muted d-block fs-11">{{ __('Card Number') }}</small>
-                                    <span class="fw-bold font-monospace fs-14 text-dark" dir="ltr">{{ $bankAccount->card_number }}</span>
-                                </div>
-                                <button type="button" class="btn btn-sm btn-link text-muted copy-btn p-1" data-copy="{{ str_replace(' ', '', $bankAccount->card_number) }}" title="{{ __('Copy') }}">
-                                    <i class="ri-file-copy-line fs-16"></i>
-                                </button>
-                            </div>
-                        @endif
-                        @if($bankAccount->iban)
-                            <div class="p-2 bg-light rounded-2 d-flex align-items-center justify-content-between">
-                                <div>
-                                    <small class="text-muted d-block fs-11">{{ __('SHEBA / IBAN') }}</small>
-                                    <span class="fw-bold font-monospace fs-13 text-dark" dir="ltr">{{ $bankAccount->iban }}</span>
-                                </div>
-                                <button type="button" class="btn btn-sm btn-link text-muted copy-btn p-1" data-copy="{{ str_replace(' ', '', $bankAccount->iban) }}" title="{{ __('Copy') }}">
-                                    <i class="ri-file-copy-line fs-16"></i>
-                                </button>
-                            </div>
-                        @endif
-                    @else
-                        <p class="text-muted mb-0 fs-13">{{ __('No bank account details available.') }}</p>
-                    @endif
-                </div>
-            </div>
-        </div>
 
         <div class="col-12 col-md-6">
             <div class="card border-0 shadow-sm rounded-3 h-100">
@@ -188,7 +140,7 @@
                     <i class="ri-upload-cloud-2-line text-primary fs-18"></i>
                     {{ __('Upload payment receipt(s)') }}
                 </h5>
-                <button type="button" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1 rounded-pill px-3" id="add-receipt-btn">
+                <button type="button" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 rounded-pill px-3" id="add-receipt-btn">
                     <i class="ri-add-line"></i>
                     <span>{{ __('Add Receipt') }}</span>
                 </button>
@@ -224,13 +176,13 @@
                                                 </option>
                                             @endfor
                                         </select>
-                                        <span class="input-group-text bg-light text-muted font-fanum fs-12 px-2" dir="ltr">/{{ $jalaliYearMonth }}</span>
+                                        <span class="input-group-text bg-light text-muted font-fanum fs-12 px-2">/{{ $jalaliYearMonth }}</span>
                                         <input type="hidden" name="receipts[0][payment_date]" class="receipt-payment-date" value="{{ $jalaliYearMonth . '/' . sprintf('%02d', $jalaliDay) }}">
                                     </div>
                                 </div>
                                 <div class="col-12 col-md-6 col-lg-3">
                                     <label class="form-label fs-12 text-muted mb-1">{{ __('Payment Time') }}</label>
-                                    <input type="text" name="receipts[0][payment_time]" class="form-control form-control-sm" placeholder="12:00" value="{{ date('H:i') }}">
+                                    <input type="time" name="receipts[0][payment_time]" class="form-control form-control-sm" placeholder="12:00" value="{{ date('H:i') }}">
                                 </div>
                                 <div class="col-12">
                                     <label class="form-label fs-12 text-muted mb-1">{{ __('Receipt Image / Slip') }}</label>
@@ -241,9 +193,7 @@
                     </div>
 
                     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-3 pt-3 border-top">
-                        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" id="add-receipt-btn-secondary">
-                            <i class="ri-add-line me-1"></i> {{ __('Add Receipt') }}
-                        </button>
+
                         <button type="submit" class="btn btn-primary px-4">
                             <i class="ri-check-line me-1"></i> {{ __('Submit Receipts') }}
                         </button>
