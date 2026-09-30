@@ -205,39 +205,37 @@ class CustomerInvoiceViewTest extends TestCase
         $responseBefore = $this->actingAs($customer, 'customer')->get(route('client.profile'));
         $responseBefore->assertOk();
         $responseBefore->assertSee(__('Please upload your payment receipt'));
-        $responseBefore->assertSee('data-receipt-modal-open', false);
+        $responseBefore->assertSee(route('client.invoice.receipt', $invoice), false);
+        $responseBefore->assertDontSee('data-receipt-modal-open', false);
         $responseBefore->assertDontSee(__('Payment receipt is under review'));
 
-        // 2. Upload receipt
         $this->actingAs($customer, 'customer')->post(route('client.invoice.receipts.store', $invoice), [
             'receipts' => [UploadedFile::fake()->image('receipt.jpg')],
         ])->assertRedirect();
 
-        // 3. After uploading receipt: should show review state and hide upload button
         $responseAfter = $this->actingAs($customer, 'customer')->get(route('client.profile'));
         $responseAfter->assertOk();
         $responseAfter->assertSee(__('Payment receipt is under review'));
         $responseAfter->assertDontSee(__('Please upload your payment receipt'));
+        $responseAfter->assertDontSee(route('client.invoice.receipt', $invoice), false);
         $responseAfter->assertDontSee('data-receipt-modal-open', false);
 
-        // In invoice view, payment panel is still visible while awaiting confirmation
         $responseInvoicePending = $this->actingAs($customer, 'customer')->get(route('client.invoice', $invoice->hash));
         $responseInvoicePending->assertOk();
         $responseInvoicePending->assertSee('id="payment-panel"', false);
 
-        // 4. When payment is accepted (marked PAID):
         $invoice->status = Invoice::PAID;
         $invoice->save();
 
         $this->assertTrue($invoice->isActive());
         $this->assertTrue(in_array(Invoice::PAID, Invoice::activeStatuses(), true));
 
-        // Invoice must still be present in active orders menu/tab in profile
         $responseAcceptedProfile = $this->actingAs($customer, 'customer')->get(route('client.profile'));
         $responseAcceptedProfile->assertOk();
         $responseAcceptedProfile->assertSee(route('client.invoice', $invoice->hash));
         $responseAcceptedProfile->assertDontSee(__('Payment receipt is under review'));
         $responseAcceptedProfile->assertDontSee(__('Please upload your payment receipt'));
+        $responseAcceptedProfile->assertDontSee(route('client.invoice.receipt', $invoice), false);
         $responseAcceptedProfile->assertDontSee('data-receipt-modal-open', false);
 
         // Invoice view should NOT show payment-panel once accepted
@@ -246,9 +244,35 @@ class CustomerInvoiceViewTest extends TestCase
         $responseAcceptedInvoice->assertDontSee('id="payment-panel"', false);
         $responseAcceptedInvoice->assertDontSee('liana-payment-panel', false);
 
-        // 5. When order is finally delivered/completed:
         $invoice->status = Invoice::COMPLETED;
         $invoice->save();
         $this->assertFalse($invoice->isActive());
+    }
+
+    public function test_receipt_page_renders_avisa_subnav_head_with_back_link(): void
+    {
+        [$customer, $invoice] = $this->createCustomerWithInvoice();
+
+        $payment = new Payment;
+        $payment->invoice_id = $invoice->id;
+        $payment->type = 'CARD';
+        $payment->status = Payment::PENDING;
+        $payment->amount = $invoice->total_price;
+        $payment->order_id = 'ORDER-'.uniqid();
+        $payment->save();
+
+        $invoice->status = Invoice::AWAITING_PAYMENT;
+        $invoice->save();
+
+        $response = $this->actingAs($customer, 'customer')
+            ->from(route('client.profile').'#invoices')
+            ->get(route('client.invoice.receipt', $invoice));
+
+        $response->assertOk();
+        $response->assertSee('avisa-subnav-head', false);
+        $response->assertSee('avisa-subnav-back', false);
+        $response->assertSee('ri-arrow-right-line', false);
+        $response->assertSee(route('client.profile').'#invoices', false);
+        $response->assertSee(__('Register Payment Receipt'), false);
     }
 }

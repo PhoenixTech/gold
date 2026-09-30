@@ -90,14 +90,11 @@
 
         <div class="d-flex align-items-center gap-2 ms-auto">
             @if($inv->needsReceiptUpload() && ! $inv->hasUploadedReceipt())
-                <button type="button"
-                        class="btn btn-sm btn-warning text-dark fw-bold rounded-pill px-3"
-                        data-receipt-modal-open
-                        data-upload-url="{{ route('client.invoice.receipts.store', $inv) }}"
-                        data-invoice-label="#{{ $inv->id }} — {{ number_format($inv->total_price) }} {{ config('app.currency.symbol') }}">
+                <a href="{{ route('client.invoice.receipt', $inv) }}"
+                   class="btn btn-sm btn-warning text-dark fw-bold rounded-pill px-3">
                     <i class="ri-upload-2-line me-1"></i>
                     {{ __('Upload receipt') }}
-                </button>
+                </a>
             @elseif(in_array($inv->status, ['PENDING', 'CANCELED', 'FAILED']) && $inv->created_at->timestamp > (time() - 3600))
                 <a href="{{ route('client.pay', $inv->hash) }}" class="btn btn-sm btn-primary rounded-pill px-3">
                     <i class="ri-secure-payment-line me-1"></i>

@@ -14,9 +14,6 @@
     if (empty(trim((string) $customer->name))) {
         $missingFields[] = __('Name');
     }
-    if (empty(trim((string) $customer->email))) {
-        $missingFields[] = __('Email');
-    }
     if ($customer->addresses()->count() === 0) {
         $missingFields[] = __('Addresses');
     }
@@ -98,34 +95,7 @@
                 </div>
             @endif
 
-            @if($needUploadInvoices->count() > 0)
-                <div class="alert alert-warning avisa-receipt-alert d-flex align-items-center justify-content-between flex-wrap gap-2 rounded-4 mb-3 shadow-xs">
-                    <div class="d-flex align-items-start gap-2">
-                        <i class="ri-upload-cloud-2-line fs-4 text-warning-emphasis"></i>
-                        <div>
-                            <h6 class="alert-heading mb-1 fw-bold">{{ __('Payment receipt required') }}</h6>
-                            <p class="mb-1 fs-13">
-                                {{ __('You have :count offline invoice(s) waiting for a payment receipt upload.', ['count' => $needUploadInvoices->count()]) }}
-                            </p>
-                        </div>
-                    </div>
-                    <div class="d-flex flex-wrap gap-2">
-                        @foreach($needUploadInvoices->take(1) as $pendingInv)
-                            <button type="button"
-                                    class="btn btn-sm btn-warning text-dark fw-bold rounded-pill px-3"
-                                    data-receipt-modal-open
-                                    data-upload-url="{{ route('client.invoice.receipts.store', $pendingInv) }}"
-                                    data-invoice-label="#{{ $pendingInv->id }} — {{ number_format($pendingInv->total_price) }} {{ config('app.currency.symbol') }}">
-                                <i class="ri-upload-2-line me-1"></i>
-                                {{ __('Upload receipt') }}
-                            </button>
-                        @endforeach
-                        <a href="#invoices" class="btn btn-sm btn-outline-warning rounded-pill px-3 avisa-alert-action">
-                            {{ __('View invoices') }}
-                        </a>
-                    </div>
-                </div>
-            @elseif($waitingConfirmInvoices->count() > 0)
+            @if($waitingConfirmInvoices->count() > 0)
                 <div class="alert alert-info avisa-receipt-alert d-flex align-items-center justify-content-between flex-wrap gap-2 rounded-4 mb-3 shadow-xs">
                     <div class="d-flex align-items-start gap-2">
                         <i class="ri-time-line fs-4 text-info-emphasis"></i>
@@ -333,7 +303,7 @@
                                         <input type="hidden" name="_tab_redirect" value="#profile">
                                         <div class="form-group mb-2">
                                             <label class="fs-12 text-muted mb-1">{{ __('Email') }}</label>
-                                            <input type="email" name="email" class="form-control" value="{{ old('email', $customer->email) }}" required>
+                                            <input type="email" name="email" class="form-control" value="{{ old('email', $customer->email) }}">
                                         </div>
                                         <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold">{{ __('Save') }}</button>
                                     </form>
@@ -829,38 +799,6 @@
         </div>
     </div>
 
-    {{-- Offline Payment Receipt Modal --}}
-    <div class="modal fade" id="avisa-receipt-modal" tabindex="-1" aria-labelledby="avisa-receipt-modal-label" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content avisa-receipt-modal rounded-4 border-0 shadow-lg">
-                <div class="modal-header border-bottom">
-                    <div>
-                        <h5 class="modal-title fw-bold" id="avisa-receipt-modal-label">{{ __('Upload payment receipt') }}</h5>
-                        <small class="text-muted" data-receipt-modal-title></small>
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" data-receipt-modal-close aria-label="{{ __('Close') }}"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <p class="avisa-receipt-modal__intro text-muted fs-13 mb-3">
-                        {{ __('This is an offline payment. After transferring the money, upload a clear receipt photo or PDF.') }}
-                    </p>
-                    @php
-                        $modalInvoice = $needUploadInvoices->first()
-                            ?? $awaitingReceiptInvoices->first()
-                            ?? $customer->invoices()->latest('id')->first()
-                            ?? (new \App\Models\Invoice())->forceFill(['id' => 0]);
-                    @endphp
-                    @include('components.payment-receipt-uploader', [
-                        'invoice' => $modalInvoice,
-                        'inputId' => 'avisa-modal-receipts',
-                        'formId' => 'avisa-modal-receipt-form',
-                    ])
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- Bottom Navigation Bar --}}
     @include('client.customer.partials.bottom-nav')
 </section>
 

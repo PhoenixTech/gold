@@ -20,15 +20,7 @@
     $daysInMonth = $jalaliMonthNum <= 6 ? 31 : ($jalaliMonthNum <= 11 ? 30 : 29);
 @endphp
 
-<div class="receipt-registration-container py-3">
-    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 pb-2 border-bottom">
-        <div>
-            <h1 class="fs-18 fw-bold text-dark mb-1">{{ __('Register Payment Receipt') }}</h1>
-            <span class="text-muted fs-12 font-fanum">{{ __('Invoice ID:') }} {{ $invoice->hash }}</span>
-        </div>
-
-    </div>
-
+<div class="receipt-registration-container">
     @if(session('message'))
         <div class="alert alert-success border border-success-subtle shadow-sm p-3 mb-3 rounded-3 d-flex align-items-center gap-2">
             <i class="ri-checkbox-circle-line fs-4 text-success"></i>
@@ -45,6 +37,16 @@
             </ul>
         </div>
     @endif
+
+    <div class="avisa-subnav-head mb-3">
+        <a href="{{ url()->previous() !== url()->current() && str_contains(url()->previous(), '/profile') ? route('client.profile').'#invoices' : route('client.invoice', $invoice) }}" class="avisa-subnav-back" aria-label="{{ __('Back') }}">
+            <i class="ri-arrow-right-line"></i>
+        </a>
+        <div class="d-flex align-items-center justify-content-between flex-grow-1">
+            <h4 class="fw-bold mb-0 text-dark">{{ __('Register Payment Receipt') }} <span class="font-fanum text-muted fs-13">#{{ $invoice->id }}</span></h4>
+            <span class="inv-badge inv-{{ $invoice->displayStatusKey() }}">{{ $invoice->statusLabel() }}</span>
+        </div>
+    </div>
 
     @if($hasReceipts)
         <div class="alert alert-info border border-info-subtle shadow-sm d-flex align-items-center gap-3 p-3 mb-4 rounded-3">

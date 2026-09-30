@@ -65,4 +65,55 @@ class CustomerTest extends TestCase
         $this->assertEquals('6037991122334455', $customer->bank_card);
         $this->assertEquals('IR1200000000000000000000', $customer->bank_sheba);
     }
+
+    public function test_profile_does_not_require_email_for_profile_completion(): void
+    {
+        $this->check();
+        $customer = Customer::factory()->create([
+            'name' => 'تست مشتری',
+            'email' => null,
+        ]);
+
+        $address = new \App\Models\Address();
+        $address->customer_id = $customer->id;
+        $address->address = 'تهران خیابان تست';
+        $address->save();
+
+        $response = $this->actingAs($customer, 'customer')->get(route('client.profile'));
+
+        $response->assertOk();
+        $response->assertDontSee(__('Your profile is incomplete. Required fields:'), false);
+        $response->assertDontSee('data-profile-incomplete="true"', false);
+    }
+
+    public function test_profile_does_not_show_payment_receipt_required_alert(): void
+    {
+        $this->check();
+        $customer = Customer::factory()->create([
+            'name' => 'تست مشتری',
+            'email' => null,
+        ]);
+
+        $invoice = new \App\Models\Invoice();
+        $invoice->customer_id = $customer->id;
+        $invoice->status = \App\Models\Invoice::AWAITING_PAYMENT;
+        $invoice->total_price = 100000;
+        $invoice->hash = 'test-hash-'.uniqid();
+        $invoice->created_at = now();
+        $invoice->save();
+
+        $payment = new \App\Models\Payment();
+        $payment->invoice_id = $invoice->id;
+        $payment->type = 'CARD';
+        $payment->status = \App\Models\Payment::PENDING;
+        $payment->amount = 100000;
+        $payment->order_id = 'ORD-'.uniqid();
+        $payment->save();
+
+        $response = $this->actingAs($customer, 'customer')->get(route('client.profile'));
+
+        $response->assertOk();
+        $response->assertDontSee(__('Payment receipt required'), false);
+        $response->assertDontSee('بارگذاری رسید پرداخت الزامی است.', false);
+    }
 }

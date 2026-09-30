@@ -1371,17 +1371,6 @@
         font-variant-numeric: tabular-nums;
     }
 
-    .avisa-receipt-modal {
-        border-radius: 1rem;
-        overflow: hidden;
-
-        &__intro {
-            font-size: 13.5px;
-            line-height: 1.7;
-            color: color-mix(in srgb, var(--xshop-text) 70%, transparent);
-            margin-bottom: 1rem;
-        }
-    }
 }
 
 // ---- Shared Payment Receipt Uploader ----
