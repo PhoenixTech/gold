@@ -1605,6 +1605,7 @@
     "Register": "ثبت نام",
     "Register or Reset password": "ثبت‌نام یا بازیابی رمز عبور",
     "Register order": "ثبت سفارش",
+    "Register a new address in Tehran": "ثبت آدرس جدید در تهران",
     "Register Payment Receipt": "ثبت فیش پرداخت",
     "Register shop": "ثبت فروشگاه",
     "Register today to enjoy personalized jewelry craftsmanship, insured delivery to your doorstep, and instant order tracking.": "با ثبت‌نام در گالری، از مشاوره طراحی اختصاصی، ارسال بیمه‌شده و پیگیری سفارشات بهره‌مند شوید.",
@@ -1932,6 +1933,7 @@
     "SUSPENDED": "تعلیق‌شده",
     "SVG image": "تصویر SVG",
     "Svg image": "تصویر SVG",
+    "Switch to gallery pickup": "تغییر به تحویل حضوری",
     "System": "سیستم",
     "System notification": "پیام سیستم",
     "Table of contents": "فهرست عناوین",
@@ -2295,5 +2297,14 @@
     "Your shopping cart is empty!": "سبد خرید شما خالی است!",
     "Youtube": "یوتیوب",
     "Zero Balance": "تسویه کامل فاکتور (مانده صفر)",
-    "Zirconium": "زیرکونیوم"
+    "Zirconium": "زیرکونیوم",
+    "Select state": "انتخاب استان",
+    "Select city": "انتخاب شهر",
+    "State is required.": "انتخاب استان الزامی است.",
+    "State is required": "انتخاب استان الزامی است",
+    "City is required": "انتخاب شهر الزامی است",
+    "Address is required": "نشانی الزامی است",
+    "Please enter your name": "نام و نام خانوادگی خود را وارد کنید",
+    "Postal code (optional)": "کد پستی ۱۰ رقمی (اختیاری)",
+    "Loading...": "در حال بارگذاری..."
 }

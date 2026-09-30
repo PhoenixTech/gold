@@ -18,6 +18,15 @@ class State extends Model
         return $this->hasMany(City::class);
     }
 
+    public function toArray(): array
+    {
+        $attributes = parent::toArray();
+        $attributes['name'] = $this->name;
+        $attributes['country'] = $this->country;
+
+        return $attributes;
+    }
+
     public function isTehran(): bool
     {
         if ((int) $this->id === 8) {

@@ -2,7 +2,7 @@
     <section class="checkout-panel">
         <header class="panel-head">
             <h5 v-if="deliveryType === 'pickup'">{{ t('gallery-pickup-details', 'مشخصات تحویل حضوری') }}</h5>
-            <h5 v-else>{{ t('address-and-transport', 'آدرس و شیوه ارسال') }}</h5>
+            <h5 v-else>{{ t('delivery-details', 'مشخصات تحویل گیرنده') }}</h5>
         </header>
 
         <div v-if="deliveryType === 'pickup'" class="gallery-pickup-box mb-4">
@@ -42,20 +42,19 @@
 
         <div v-else class="address-delivery-box">
             <h4>{{ t('sent-to', 'ارسال به') }}</h4>
-            <div v-if="!localAddresses.length" class="inline-address auth-form">
-                <p class="hint">{{ t('no-address', 'آدرسی ثبت نشده است.') }}</p>
-                <label>
-                    {{ t('address', 'آدرس') }}
-                    <textarea :value="profileAddress" @input="$emit('update:profileAddress', $event.target.value)" rows="3"></textarea>
-                </label>
-                <button type="button" class="btn-secondary-cta" :disabled="authBusy" @click="$emit('add-address-quick')">
+            <div v-if="!localAddresses.length" class="inline-address auth-form text-center p-4">
+                <p class="hint mb-3">{{ t('no-address', 'آدرسی ثبت نشده است.') }}</p>
+                <button type="button" class="btn-secondary-cta" @click="$emit('edit-step', 'account')">
                     {{ t('add-address', 'افزودن آدرس') }}
                 </button>
             </div>
             <div v-for="adr in localAddresses" :key="adr.id" class="choice" :class="{ selected: selectedAddressId == adr.id }">
                 <label>
                     <input type="radio" name="address_id" :value="adr.id" :checked="selectedAddressId == adr.id" @change="$emit('update:selectedAddressId', adr.id)">
-                    <span>{{ adr.address }}</span>
+                    <span>
+                        <span v-if="formatStateName(adr.state)" class="badge bg-secondary-subtle text-secondary me-1">{{ formatStateName(adr.state) }}</span>
+                        {{ adr.address }}
+                    </span>
                 </label>
             </div>
 
@@ -66,54 +65,68 @@
                         <strong>{{ t('tehran-delivery-notice', 'سفارش شما ظرف ۴۸ ساعت کاری ارسال خواهد شد.') }}</strong>
                     </div>
                 </div>
-                <div v-else class="alert alert-danger border border-danger-subtle shadow-sm d-flex align-items-start gap-2 p-3 rounded-3 mb-0">
-                    <i class="ri-error-warning-fill text-danger fs-4 flex-shrink-0"></i>
-                    <div class="fs-13 text-danger-emphasis">
-                        <strong>{{ t('province-restriction-notice', 'ارسال مستقیم به این استان در حال حاضر مقدور نمی‌باشد. جهت ثبت سفارش می‌توانید تحویل حضوری در گالری را انتخاب کرده یا آدرس تحویل دیگری در تهران ثبت نمایید.') }}</strong>
+                <div v-else class="alert alert-danger border border-danger-subtle shadow-sm p-3 rounded-3 mb-0">
+                    <div class="d-flex align-items-start gap-2 mb-2">
+                        <i class="ri-error-warning-fill text-danger fs-4 flex-shrink-0"></i>
+                        <div class="fs-13 text-danger-emphasis">
+                            <strong>{{ t('province-restriction-notice', 'ارسال مستقیم به این استان در حال حاضر مقدور نمی‌باشد. جهت ثبت سفارش می‌توانید تحویل حضوری در گالری را انتخاب کرده یا آدرس تحویل دیگری در تهران ثبت نمایید.') }}</strong>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2 pt-2 border-top border-danger-subtle">
+                        <button type="button" class="btn btn-sm btn-outline-danger" @click="$emit('switch-to-pickup')">
+                            <i class="ri-store-3-line me-1"></i>
+                            {{ t('switch-to-pickup', 'تغییر به تحویل حضوری') }}
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" @click="$emit('add-tehran-address')">
+                            <i class="ri-map-pin-add-line me-1"></i>
+                            {{ t('add-tehran-address', 'ثبت آدرس جدید در تهران') }}
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <h4 class="mt-4">{{ t('transport', 'ارسال') }}</h4>
-            <div v-for="trs in transports" :key="trs.id" class="choice choice-transport" :class="{ selected: transportIndex == trs.id }">
-                <label>
-                    <input type="radio" name="transport_id" :value="trs.id" :checked="transportIndex == trs.id" @change="$emit('update:transportIndex', trs.id)">
-                    <span>
-                        <strong>{{ trs.title }}</strong>
-                        <small v-if="trs.description">{{ trs.description }}</small>
-                    </span>
-                    <em>{{ priceing(trs.price) }}</em>
-                </label>
-            </div>
+            <template v-if="canDeliver">
+                <h4 class="mt-4">{{ t('transport', 'ارسال') }}</h4>
+                <div v-for="trs in transports" :key="trs.id" class="choice choice-transport" :class="{ selected: transportIndex == trs.id }">
+                    <label>
+                        <input type="radio" name="transport_id" :value="trs.id" :checked="transportIndex == trs.id" @change="$emit('update:transportIndex', trs.id)">
+                        <span>
+                            <strong>{{ trs.title }}</strong>
+                            <small v-if="trs.description">{{ trs.description }}</small>
+                        </span>
+                        <em>{{ priceing(trs.price) }}</em>
+                    </label>
+                </div>
 
-            <div class="third-party-box mt-4 p-3 rounded-3 border bg-light">
-                <label class="d-flex align-items-center gap-2 cursor-pointer mb-0">
-                    <input type="checkbox" :checked="isThirdParty" @change="$emit('update:isThirdParty', $event.target.checked)" class="form-check-input mt-0">
-                    <span class="fw-bold fs-14 text-dark">{{ t('third-party-recipient', 'سفارش به شخص دیگری تحویل داده شود') }}</span>
-                </label>
-                <input type="hidden" name="is_third_party" :value="isThirdParty ? '1' : '0'">
+                <div class="third-party-box mt-4 p-3 rounded-3 border bg-light">
+                    <label class="d-flex align-items-center gap-2 cursor-pointer mb-0">
+                        <input type="checkbox" :checked="isThirdParty" @change="$emit('update:isThirdParty', $event.target.checked)" class="form-check-input mt-0">
+                        <span class="fw-bold fs-14 text-dark">{{ t('third-party-recipient', 'سفارش به شخص دیگری تحویل داده شود') }}</span>
+                    </label>
+                    <input type="hidden" name="is_third_party" :value="isThirdParty ? '1' : '0'">
 
-                <div v-if="isThirdParty" class="third-party-form mt-3 pt-3 border-top">
-                    <div class="alert alert-info border border-info-subtle p-2 mb-3 rounded-2 fs-12 d-flex align-items-start gap-2">
-                        <i class="ri-shield-user-line text-info fs-5 flex-shrink-0"></i>
-                        <span>{{ t('recipient-privacy-notice', 'اطلاعات گیرنده صرفاً جهت امنیت و احراز هویت تحویل سفارش دریافت می‌شود و به عنوان اطلاعات حساب ذخیره نخواهد شد.') }}</span>
-                    </div>
-                    <div class="row g-2">
-                        <div class="col-12 col-md-4">
-                            <label class="form-label fs-12 fw-medium mb-1 text-muted">{{ t('recipient-name', 'نام و نام خانوادگی گیرنده') }}</label>
-                            <input type="text" name="recipient_name" :value="recipientName" @input="$emit('update:recipientName', $event.target.value)" class="form-control form-control-sm" :placeholder="t('recipient-name-ph', 'نام کامل گیرنده')">
+                    <div v-if="isThirdParty" class="third-party-form mt-3 pt-3 border-top">
+                        <div class="alert alert-info border border-info-subtle p-2 mb-3 rounded-2 fs-12 d-flex align-items-start gap-2">
+                            <i class="ri-shield-user-line text-info fs-5 flex-shrink-0"></i>
+                            <span>{{ t('recipient-privacy-notice', 'اطلاعات گیرنده صرفاً جهت امنیت و احراز هویت تحویل سفارش دریافت می‌شود و به عنوان اطلاعات حساب ذخیره نخواهد شد.') }}</span>
                         </div>
-                        <div class="col-12 col-md-4">
-                            <label class="form-label fs-12 fw-medium mb-1 text-muted">{{ t('recipient-mobile', 'شماره موبایل گیرنده') }}</label>
-                            <input type="tel" name="recipient_mobile" :value="recipientMobile" @input="$emit('update:recipientMobile', $event.target.value)" class="form-control form-control-sm" dir="ltr" maxlength="11" placeholder="09xxxxxxxxx">
-                        </div>
-                        <div class="col-12 col-md-4">
-                            <label class="form-label fs-12 fw-medium mb-1 text-muted">{{ t('recipient-national-id', 'کد ملی گیرنده') }}</label>
-                            <input type="text" name="recipient_national_id" :value="recipientNationalId" @input="$emit('update:recipientNationalId', $event.target.value)" class="form-control form-control-sm" dir="ltr" maxlength="10" placeholder="۱۰ رقمی">
+                        <div class="row g-2">
+                            <div class="col-12 col-md-4">
+                                <label class="form-label fs-12 fw-medium mb-1 text-muted">{{ t('recipient-name', 'نام و نام خانوادگی گیرنده') }}</label>
+                                <input type="text" name="recipient_name" :value="recipientName" @input="$emit('update:recipientName', $event.target.value)" class="form-control form-control-sm" :placeholder="t('recipient-name-ph', 'نام کامل گیرنده')">
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label fs-12 fw-medium mb-1 text-muted">{{ t('recipient-mobile', 'شماره موبایل گیرنده') }}</label>
+                                <input type="tel" name="recipient_mobile" :value="recipientMobile" @input="$emit('update:recipientMobile', $event.target.value)" class="form-control form-control-sm" dir="ltr" maxlength="11" placeholder="09xxxxxxxxx">
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label fs-12 fw-medium mb-1 text-muted">{{ t('recipient-national-id', 'کد ملی گیرنده') }}</label>
+                                <input type="text" name="recipient_national_id" :value="recipientNationalId" @input="$emit('update:recipientNationalId', $event.target.value)" class="form-control form-control-sm" dir="ltr" maxlength="10" placeholder="۱۰ رقمی">
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </template>
         </div>
 
         <button type="button" class="btn-ghost mt panel-back" @click="$emit('prev')">{{ t('back', 'بازگشت') }}</button>
@@ -137,8 +150,6 @@ export default {
         recipientName: { type: String, default: '' },
         recipientMobile: { type: String, default: '' },
         recipientNationalId: { type: String, default: '' },
-        profileAddress: { type: String, default: '' },
-        authBusy: { type: Boolean, default: false },
         priceing: { type: Function, required: true },
         t: { type: Function, required: true },
     },
@@ -149,9 +160,25 @@ export default {
         'update:recipientName',
         'update:recipientMobile',
         'update:recipientNationalId',
-        'update:profileAddress',
-        'add-address-quick',
+        'switch-to-pickup',
+        'add-tehran-address',
+        'edit-step',
         'prev',
     ],
+    computed: {
+        canDeliver() {
+            return Boolean(this.selectedAddress && this.selectedAddress.is_tehran);
+        },
+    },
+    methods: {
+        formatStateName(state) {
+            if (!state) return '';
+            if (typeof state.name === 'string') return state.name;
+            if (state.name && typeof state.name === 'object') {
+                return state.name.fa || Object.values(state.name)[0] || '';
+            }
+            return '';
+        },
+    },
 }
 </script>

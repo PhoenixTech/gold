@@ -81,10 +81,12 @@ class CustomerAuthController extends Controller
         $address = new Address;
         $address->customer_id = $customer->id;
         $address->address = $request->input('address');
+        $address->state_id = $request->input('state_id') ?: null;
+        $address->city_id = $request->input('city_id') ?: null;
         $address->save();
 
         auth('customer')->login($customer);
-        $customer->load('addresses');
+        $customer->load('addresses.state');
 
         $msg = __('Your account has been created successfully.');
         $emailHint = __("Please check your email to find password, Don't forget check spam/junk too, If you find our email in spam folder, Please mark it `Not spam`");

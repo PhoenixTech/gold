@@ -16,4 +16,12 @@ class City extends Model
     {
         return $this->belongsTo(State::class);
     }
+
+    public function toArray(): array
+    {
+        $attributes = parent::toArray();
+        $attributes['name'] = $this->name;
+
+        return $attributes;
+    }
 }

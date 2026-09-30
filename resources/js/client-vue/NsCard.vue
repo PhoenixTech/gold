@@ -75,6 +75,9 @@
                     :profile-form="profileForm"
                     :local-addresses="localAddresses"
                     :delivery-type="deliveryType"
+                    :states="states"
+                    :state-link="stateLink"
+                    :cities-link="citiesLink"
                     :send-sms-url="sendSmsUrl"
                     :check-auth-url="checkAuthUrl"
                     :sign-in-do-url="signInDoUrl"
@@ -107,11 +110,11 @@
                     v-model:recipient-name="recipientName"
                     v-model:recipient-mobile="recipientMobile"
                     v-model:recipient-national-id="recipientNationalId"
-                    v-model:profile-address="profileForm.address"
-                    :auth-busy="authBusy"
                     :priceing="priceing"
                     :t="t"
-                    @add-address-quick="addAddressQuick"
+                    @switch-to-pickup="deliveryType = 'pickup'"
+                    @add-tehran-address="addTehranAddress"
+                    @edit-step="goToStep"
                     @prev="prev"
                 />
 
@@ -249,7 +252,8 @@ export default {
         lines: [],
         countz: [],
         pricez: [],
-        index: 0,
+        currentKey: 'cart',
+        hasAccountStep: false,
         transport_index: null,
         selectedAddressId: null,
         discount: null,
@@ -269,10 +273,16 @@ export default {
         recipientMobile: '',
         recipientNationalId: '',
         authBusy: false,
+        states: [],
+        stateLink: '',
+        citiesLink: '',
         profileForm: {
             name: '',
             mobile: '',
+            state_id: null,
+            city_id: null,
             address: '',
+            zip: '',
         },
         productLink: '',
         cardLink: '',
@@ -326,11 +336,15 @@ export default {
         }
     },
     computed: {
+        index() {
+            const idx = this.steps.findIndex(s => s.key === this.currentKey);
+            return idx >= 0 ? idx : 0;
+        },
         userName() {
-            return this.profileForm.name || this.customer?.name || '';
+            return this.customer?.name || this.profileForm.name || '';
         },
         userMobile() {
-            return this.profileForm.mobile || this.customer?.mobile || '';
+            return this.customer?.mobile || this.profileForm.mobile || '';
         },
         isRecipientValid() {
             if (!this.isThirdParty) return true;
@@ -341,9 +355,12 @@ export default {
         },
         needsAccount() {
             if (!this.loggedIn) return true;
-            if (!this.userName || !this.userMobile) return true;
+            const hasName = Boolean(this.customer?.name && this.customer.name.trim());
+            const hasMobile = Boolean(this.customer?.mobile && this.customer.mobile.trim());
+            const hasAddress = Boolean(this.localAddresses && this.localAddresses.length > 0);
+            if (!hasName || !hasMobile) return true;
             if (this.deliveryType === 'pickup') return false;
-            return !this.localAddresses.length;
+            return !hasAddress;
         },
         steps() {
             const list = [
@@ -354,7 +371,7 @@ export default {
                     icon: 'ri-shopping-bag-3-line',
                 },
             ];
-            if (this.needsAccount) {
+            if (this.hasAccountStep || this.needsAccount) {
                 list.push({
                     key: 'account',
                     label: this.t('account', 'حساب کاربری'),
@@ -368,11 +385,16 @@ export default {
                 shortLabel: this.t('delivery-type-short', 'روش'),
                 icon: 'ri-truck-line',
             });
+            const isPickup = this.deliveryType === 'pickup';
             list.push({
                 key: 'delivery-details',
-                label: this.t('delivery-details', 'مشخصات تحویل'),
-                shortLabel: this.t('delivery-details-short', 'مشخصات'),
-                icon: 'ri-map-pin-line',
+                label: isPickup
+                    ? this.t('gallery-pickup-details', 'مشخصات تحویل حضوری')
+                    : this.t('delivery-details', 'مشخصات تحویل گیرنده'),
+                shortLabel: isPickup
+                    ? this.t('gallery-pickup', 'تحویل حضوری')
+                    : this.t('delivery-details-short', 'مشخصات'),
+                icon: isPickup ? 'ri-store-3-line' : 'ri-map-pin-line',
             });
             list.push({
                 key: 'review',
@@ -387,9 +409,6 @@ export default {
                 icon: 'ri-bank-card-line',
             });
             return list;
-        },
-        currentKey() {
-            return this.steps[this.index]?.key || 'cart';
         },
         quoteRemaining() {
             if (!this.quoteExpiresAt) {
@@ -415,6 +434,9 @@ export default {
         },
         transportPrice() {
             if (this.deliveryType === 'pickup') {
+                return 0;
+            }
+            if (this.selectedAddress && !this.selectedAddress.is_tehran) {
                 return 0;
             }
             for (const trs of (this.transports || [])) {
@@ -503,6 +525,9 @@ export default {
             this.transports = Array.isArray(data.transports) ? data.transports : (data.transports?.data || []);
             this.customer = data.customer || {};
             this.translate = data.translate || {};
+            this.states = Array.isArray(data.states) ? data.states : [];
+            this.stateLink = data.stateLink || '';
+            this.citiesLink = data.citiesLink || '';
             if (data.quoteRemaining !== undefined && data.quoteRemaining !== null) {
                 const rem = Number(data.quoteRemaining);
                 this.quoteExpiresAt = rem > 0 ? this.nowTs + rem : (this.nowTs - 1);
@@ -513,10 +538,15 @@ export default {
             this.offlinePaymentHours = Number(data.offlinePaymentHours) || 3;
         },
         bootCartLines() {
-            this.deliveryType = (this.localAddresses && this.localAddresses.length > 0) ? 'address' : 'pickup';
+            this.deliveryType = 'address';
+            this.hasAccountStep = this.needsAccount;
             this.selectedAddressId = this.localAddresses?.[0]?.id ?? null;
             this.profileForm.name = this.customer?.name || '';
             this.profileForm.mobile = this.customer?.mobile || '';
+            this.profileForm.state_id = this.localAddresses?.[0]?.state_id ?? null;
+            this.profileForm.city_id = this.localAddresses?.[0]?.city_id ?? null;
+            this.profileForm.address = this.localAddresses?.[0]?.address ?? '';
+            this.profileForm.zip = this.localAddresses?.[0]?.zip ?? '';
 
             const selectedIds = Array.isArray(this.qs) ? this.qs : [];
             const sourceItems = Array.isArray(this.items)
@@ -549,7 +579,10 @@ export default {
         goTo(i) {
             if (i === this.index) return;
             if (i < this.index) {
-                this.index = i;
+                const target = this.steps[i];
+                if (target) {
+                    this.currentKey = target.key;
+                }
                 return;
             }
             if (i === this.index + 1) {
@@ -566,12 +599,15 @@ export default {
                     window.$toast?.error?.(this.t('piece-missing', 'قطعه انتخاب نشده'));
                     return;
                 }
-                const nextKey = this.needsAccount ? 'account' : 'delivery-type';
-                this.index = this.steps.findIndex(s => s.key === nextKey);
+                this.currentKey = this.needsAccount ? 'account' : 'delivery-type';
                 return;
             }
             if (this.currentKey === 'account') {
-                if (!this.loggedIn || !this.userName || !this.userMobile) {
+                if (!this.loggedIn) {
+                    window.$toast?.warning?.(this.t('plz', 'لطفا برای ادامه وارد شوید'));
+                    return;
+                }
+                if (!this.customer?.name || !this.customer?.mobile) {
                     window.$toast?.warning?.(this.t('complete-profile', 'لطفا نام و شماره موبایل را تکمیل کنید'));
                     return;
                 }
@@ -579,19 +615,19 @@ export default {
                     window.$toast?.warning?.(this.t('complete-profile', 'لطفا آدرس را تکمیل کنید'));
                     return;
                 }
-                this.index = this.steps.findIndex(s => s.key === 'delivery-type');
+                this.currentKey = 'delivery-type';
                 return;
             }
             if (this.currentKey === 'delivery-type') {
                 if (!['address', 'pickup'].includes(this.deliveryType)) {
                     this.deliveryType = 'address';
                 }
-                this.index = this.steps.findIndex(s => s.key === 'delivery-details');
+                this.currentKey = 'delivery-details';
                 return;
             }
             if (this.currentKey === 'delivery-details') {
                 if (this.deliveryType === 'pickup') {
-                    this.index = this.steps.findIndex(s => s.key === 'review');
+                    this.currentKey = 'review';
                     return;
                 }
                 if (!this.selectedAddressId) {
@@ -616,67 +652,69 @@ export default {
                     }
                     return;
                 }
-                this.index = this.steps.findIndex(s => s.key === 'review');
+                this.currentKey = 'review';
                 return;
             }
             if (this.currentKey === 'review') {
-                this.index = this.steps.findIndex(s => s.key === 'payment');
+                this.currentKey = 'payment';
                 return;
             }
         },
         prev() {
             if (this.index > 0) {
-                this.index -= 1;
+                const prevStep = this.steps[this.index - 1];
+                if (prevStep) {
+                    this.currentKey = prevStep.key;
+                }
             }
         },
         applyAuthSuccess(data) {
             this.loggedIn = true;
-            this.localAddresses = data.addresses || [];
-            if (this.localAddresses.length > 0 && !this.selectedAddressId) {
+            this.customer = data.customer || this.customer || {};
+            const prevIds = new Set((this.localAddresses || []).map((a) => a.id));
+            this.localAddresses = Array.isArray(data.addresses) ? [...data.addresses] : [];
+            const newAddress = this.localAddresses.find((a) => !prevIds.has(a.id));
+            if (newAddress) {
+                this.selectedAddressId = newAddress.id;
+                this.deliveryType = 'address';
+            } else if (this.profileForm.address) {
+                const matched = this.localAddresses.find((a) => a.address === this.profileForm.address);
+                if (matched) {
+                    this.selectedAddressId = matched.id;
+                    this.deliveryType = 'address';
+                }
+            } else if (!this.selectedAddressId && this.localAddresses.length > 0) {
                 this.selectedAddressId = this.localAddresses[0].id;
                 this.deliveryType = 'address';
             }
-            this.profileForm.name = data.customer?.name || this.profileForm.name;
-            this.profileForm.mobile = data.customer?.mobile || this.profileForm.mobile;
-            const profileComplete = !!data.profile_complete;
-            if (profileComplete || (this.deliveryType === 'pickup' && this.userName && (data.customer?.mobile || this.profileForm.mobile))) {
-                this.index = this.steps.findIndex(s => s.key === 'delivery-type');
+            this.profileForm.name = this.customer?.name || this.profileForm.name;
+            this.profileForm.mobile = this.customer?.mobile || this.profileForm.mobile;
+            const profileComplete = !!data.profile_complete || (!this.needsAccount);
+            if (profileComplete) {
+                this.currentKey = 'delivery-type';
             } else {
-                this.index = this.steps.findIndex(s => s.key === 'account');
-            }
-        },
-        async addAddressQuick() {
-            if (!this.profileForm.address) return;
-            this.authBusy = true;
-            try {
-                const resp = await axios.post(this.completeProfileUrl, {
-                    name: this.userName || 'مشتری',
-                    mobile: this.userMobile || '',
-                    address: this.profileForm.address,
-                    for_pickup: 0,
-                }, {
-                    headers: {'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
-                });
-                if (resp.data.OK) {
-                    window.$toast?.success?.(resp.data.message);
-                    this.applyAuthSuccess(resp.data.data || resp.data);
-                } else {
-                    window.$toast?.error?.(resp.data.message);
-                }
-            } catch (e) {
-                const msg = e.response?.data?.message
-                    || Object.values(e.response?.data?.errors || {})?.[0]?.[0]
-                    || e.message;
-                window.$toast?.error?.(msg);
-            } finally {
-                this.authBusy = false;
+                this.currentKey = 'account';
             }
         },
         goToStep(key) {
-            const idx = this.steps.findIndex(s => s.key === key);
-            if (idx !== -1) {
-                this.index = idx;
+            if (key === 'account') {
+                this.hasAccountStep = true;
             }
+            if (this.steps.some(s => s.key === key)) {
+                this.currentKey = key;
+            }
+        },
+        addTehranAddress() {
+            this.hasAccountStep = true;
+            const tehranState = (this.states || []).find((s) => {
+                const name = typeof s.name === 'string' ? s.name : (s.name?.fa || '');
+                return s.id === 8 || name.includes('تهران');
+            });
+            this.profileForm.state_id = tehranState ? tehranState.id : null;
+            this.profileForm.city_id = null;
+            this.profileForm.address = '';
+            this.profileForm.zip = '';
+            this.currentKey = 'account';
         },
         priceing(p) {
             if (p == null || p === undefined) {

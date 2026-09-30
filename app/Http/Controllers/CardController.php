@@ -257,10 +257,13 @@ class CardController extends Controller
         $rules = [
             'name' => ['required', 'string', 'min:2', 'max:255'],
             'mobile' => ['required', 'string', 'regex:/^09\d{9}$/', 'unique:customers,mobile,'.$customer->id],
+            'state_id' => ['nullable', 'exists:states,id'],
+            'city_id' => ['nullable', 'exists:cities,id'],
+            'zip' => ['nullable', 'string', 'max:20'],
         ];
 
         if (! $customer->addresses()->exists() && ! $forPickup) {
-            $rules['address'] = ['required', 'string', 'min:10'];
+            $rules['address'] = ['required', 'string', 'min:5'];
         }
 
         $request->validate($rules, [
@@ -271,11 +274,22 @@ class CardController extends Controller
         $customer->mobile = $request->input('mobile');
         $customer->save();
 
-        if ($request->filled('address') && ! $customer->addresses()->exists()) {
-            $address = new Address;
-            $address->customer_id = $customer->id;
-            $address->address = $request->input('address');
-            $address->save();
+        if ($request->filled('address')) {
+            $existingAddress = $customer->addresses()->where('address', $request->input('address'))->first();
+            if (! $existingAddress) {
+                $address = new Address;
+                $address->customer_id = $customer->id;
+                $address->address = $request->input('address');
+                $address->state_id = $request->input('state_id') ?: null;
+                $address->city_id = $request->input('city_id') ?: null;
+                $address->zip = $request->input('zip') ?: null;
+                $address->save();
+            } else {
+                $existingAddress->state_id = $request->input('state_id') ?: $existingAddress->state_id;
+                $existingAddress->city_id = $request->input('city_id') ?: $existingAddress->city_id;
+                $existingAddress->zip = $request->input('zip') ?: $existingAddress->zip;
+                $existingAddress->save();
+            }
         }
 
         $customer->load('addresses.state');

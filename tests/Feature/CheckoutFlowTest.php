@@ -6,11 +6,13 @@ use App\Mail\AuthMail;
 use App\Models\Address;
 use App\Models\BankAccount;
 use App\Models\Category;
+use App\Models\City;
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\Product;
 use App\Models\Quantity;
+use App\Models\State;
 use App\Models\Transport;
 use App\Models\User;
 use App\Services\ProductPriceCalculator;
@@ -442,5 +444,130 @@ class CheckoutFlowTest extends TestCase
         $this->assertSame('جزئیات فاکتور', $translations['invoice-details']);
         $this->assertSame('اطلاعات پرداخت', $translations['payment-details']);
         $this->assertSame('ادامه به پرداخت', $translations['continue-to-payment']);
+        $this->assertArrayHasKey('state', $translations);
+        $this->assertArrayHasKey('city', $translations);
+        $this->assertArrayHasKey('select-state', $translations);
+        $this->assertArrayHasKey('select-city', $translations);
+        $this->assertArrayHasKey('states', $payload);
+        $this->assertArrayHasKey('stateLink', $payload);
+        $this->assertArrayHasKey('citiesLink', $payload);
+    }
+
+    public function test_complete_checkout_profile_saves_state_and_city_and_zip(): void
+    {
+        $customer = Customer::factory()->create([
+            'name' => null,
+            'mobile' => null,
+            'email' => 'withaddress'.uniqid().'@example.com',
+        ]);
+
+        $state = new State;
+        $state->setTranslation('name', 'fa', 'تهران');
+        $state->setTranslation('country', 'fa', 'ایران');
+        $state->lat = '35.6892';
+        $state->lng = '51.3890';
+        $state->save();
+
+        $city = new City;
+        $city->state_id = $state->id;
+        $city->setTranslation('name', 'fa', 'تهران');
+        $city->save();
+
+        $response = $this->actingAs($customer, 'customer')->postJson(route('client.card.complete-profile'), [
+            'name' => 'رضا علوی',
+            'mobile' => '09121112233',
+            'state_id' => $state->id,
+            'city_id' => $city->id,
+            'zip' => '1234567890',
+            'address' => 'خیابان انقلاب، پلاک ۲۰',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('OK', true)
+            ->assertJsonPath('data.profile_complete', true)
+            ->assertJsonPath('data.customer.name', 'رضا علوی')
+            ->assertJsonPath('data.customer.mobile', '09121112233');
+
+        $this->assertDatabaseHas('addresses', [
+            'customer_id' => $customer->id,
+            'state_id' => $state->id,
+            'city_id' => $city->id,
+            'zip' => '1234567890',
+            'address' => 'خیابان انقلاب، پلاک ۲۰',
+        ]);
+
+        $customer->refresh();
+        $this->assertSame('رضا علوی', $customer->name);
+        $this->assertSame('09121112233', $customer->mobile);
+        $this->assertTrue($customer->addresses()->exists());
+        $savedAddress = $customer->addresses()->first();
+        $this->assertTrue($savedAddress->is_tehran);
+    }
+
+    public function test_state_and_city_serialize_name_as_translated_string(): void
+    {
+        $state = new State;
+        $state->setTranslation('name', 'fa', 'اصفهان');
+        $state->setTranslation('country', 'fa', 'ایران');
+        $state->lat = '32.6546';
+        $state->lng = '51.6680';
+        $state->save();
+
+        $city = new City;
+        $city->state_id = $state->id;
+        $city->setTranslation('name', 'fa', 'کاشان');
+        $city->lat = '33.9850';
+        $city->lng = '51.4100';
+        $city->save();
+
+        $stateArray = $state->toArray();
+        $this->assertIsString($stateArray['name']);
+        $this->assertSame('اصفهان', $stateArray['name']);
+
+        $cityArray = $city->toArray();
+        $this->assertIsString($cityArray['name']);
+        $this->assertSame('کاشان', $cityArray['name']);
+    }
+
+    public function test_complete_checkout_profile_adds_second_address_when_address_is_new(): void
+    {
+        $customer = Customer::factory()->create([
+            'name' => 'علی تهرانی',
+            'mobile' => '09129998877',
+            'email' => 'multiaddr'.uniqid().'@example.com',
+        ]);
+
+        $state1 = new State;
+        $state1->setTranslation('name', 'fa', 'اصفهان');
+        $state1->setTranslation('country', 'fa', 'ایران');
+        $state1->lat = '32.6546';
+        $state1->lng = '51.6680';
+        $state1->save();
+
+        $existingAddress = new Address;
+        $existingAddress->customer_id = $customer->id;
+        $existingAddress->state_id = $state1->id;
+        $existingAddress->address = 'اصفهان، میدان نقش جهان';
+        $existingAddress->save();
+
+        $state2 = new State;
+        $state2->setTranslation('name', 'fa', 'تهران');
+        $state2->setTranslation('country', 'fa', 'ایران');
+        $state2->lat = '35.6892';
+        $state2->lng = '51.3890';
+        $state2->save();
+
+        $response = $this->actingAs($customer, 'customer')->postJson(route('client.card.complete-profile'), [
+            'name' => 'علی تهرانی',
+            'mobile' => '09129998877',
+            'state_id' => $state2->id,
+            'address' => 'تهران، سعادت‌آباد، خیابان یکم',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('OK', true)
+            ->assertJsonCount(2, 'data.addresses');
+
+        $this->assertSame(2, $customer->addresses()->count());
     }
 }
