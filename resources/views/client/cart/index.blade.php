@@ -188,6 +188,7 @@
             'loading' => __('Loading...'),
             'switch-to-pickup' => __('Switch to gallery pickup'),
             'add-tehran-address' => __('Register a new address in Tehran'),
+            'verified' => __('Verified'),
         ],
     ];
 @endphp

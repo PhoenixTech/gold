@@ -89,10 +89,6 @@
                                 {{ __('Pay and upload your receipt within :hours hours.', ['hours' => $offlineHours]) }}
                                 {{ __('Deadline:') }}
                                 <b>{{ $offlineDeadline->jdate('Y/m/d H:i') }}</b>
-                                (<span data-deadline-countdown
-                                       data-deadline="{{ $offlineRemaining }}"
-                                       data-expired-text="{{ __('Expired') }}"
-                                       dir="ltr">…</span>)
                             </span>
                         </div>
                         <div class="mt-2 pt-2 border-top">

@@ -99,10 +99,22 @@
                     </label>
                 </div>
                 <div class="col-12 col-md-6">
-                    <label>
-                        {{ t('mobile', 'موبایل') }}
-                        <input v-model="profileForm.mobile" type="tel" dir="ltr" placeholder="09xxxxxxxxx" maxlength="11">
+                    <label class="d-flex align-items-center justify-content-between mb-1">
+                        <span>{{ t('mobile', 'موبایل') }}</span>
+                        <span v-if="profileForm.mobile" class="badge bg-success-subtle text-success border border-success-subtle fs-12 fw-normal">
+                            <i class="ri-checkbox-circle-line me-1"></i>
+                            {{ t('verified', 'تایید شده') }}
+                        </span>
                     </label>
+                    <input
+                        v-model="profileForm.mobile"
+                        type="tel"
+                        dir="ltr"
+                        placeholder="09xxxxxxxxx"
+                        maxlength="11"
+                        :readonly="Boolean(profileForm.mobile)"
+                        :tabindex="profileForm.mobile ? -1 : 0"
+                    >
                 </div>
             </div>
 

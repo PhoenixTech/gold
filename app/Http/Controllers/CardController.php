@@ -132,7 +132,7 @@ class CardController extends Controller
             $invoice = $checkoutService->processCheckout($customer, $validated);
 
             return redirect()
-                ->route('client.invoice', $invoice->hash)
+                ->route('client.invoice.receipt', $invoice->hash)
                 ->with('message', __('Order registered. Please pay by card-to-card and wait for confirmation.'));
         } catch (ValidationException $exception) {
             throw $exception;
@@ -256,7 +256,7 @@ class CardController extends Controller
 
         $rules = [
             'name' => ['required', 'string', 'min:2', 'max:255'],
-            'mobile' => ['required', 'string', 'regex:/^09\d{9}$/', 'unique:customers,mobile,'.$customer->id],
+            'mobile' => [$customer->mobile ? 'nullable' : 'required', 'string', 'regex:/^09\d{9}$/', 'unique:customers,mobile,'.$customer->id],
             'state_id' => ['nullable', 'exists:states,id'],
             'city_id' => ['nullable', 'exists:cities,id'],
             'zip' => ['nullable', 'string', 'max:20'],
@@ -271,7 +271,9 @@ class CardController extends Controller
         ]);
 
         $customer->name = $request->input('name');
-        $customer->mobile = $request->input('mobile');
+        if (! $customer->mobile && $request->filled('mobile')) {
+            $customer->mobile = $request->input('mobile');
+        }
         $customer->save();
 
         if ($request->filled('address')) {

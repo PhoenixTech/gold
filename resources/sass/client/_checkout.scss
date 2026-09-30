@@ -454,6 +454,14 @@ textarea.full {
     background: #fff;
 }
 
+.auth-form input[readonly],
+.auth-form input:disabled {
+    background-color: var(--xshop-surface-100, #f8f9fa);
+    color: var(--xshop-text-muted, #6c757d);
+    cursor: not-allowed;
+    border-color: var(--ck-line);
+}
+
 .hint {
     margin: 0;
     color: var(--ck-muted);

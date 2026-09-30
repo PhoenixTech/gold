@@ -12,6 +12,12 @@
     $totalUploaded = (int) $invoice->receiptsTotalAmount();
     $remaining = (int) $invoice->remainingReceiptBalance();
     $hasReceipts = $invoice->hasUploadedReceipt();
+    $jalaliYear = now()->jdate('Y', 'en');
+    $jalaliMonth = now()->jdate('m', 'en');
+    $jalaliDay = (int) now()->jdate('d', 'en');
+    $jalaliYearMonth = $jalaliYear . '/' . $jalaliMonth;
+    $jalaliMonthNum = (int) $jalaliMonth;
+    $daysInMonth = $jalaliMonthNum <= 6 ? 31 : ($jalaliMonthNum <= 11 ? 30 : 29);
 @endphp
 
 <div class="receipt-registration-container py-3">
@@ -122,9 +128,9 @@
                         </span>
                     </div>
                     <div class="d-flex align-items-center justify-content-between py-2">
-                        <span class="text-muted fs-13">{{ __('Remaining Balance') }}</span>
-                        <span class="fw-bold text-danger fs-15 font-fanum">
-                            <span id="tally-remaining">{{ number_format($remaining) }}</span> {{ $currency }}
+                        <span class="text-muted fs-13" id="tally-balance-label">{{ $totalUploaded > $totalOrder ? __('Overpayment Amount') : __('Remaining Balance') }}</span>
+                        <span class="fw-bold fs-15 font-fanum {{ $totalUploaded > $totalOrder ? 'text-primary' : ($remaining === 0 ? 'text-success' : 'text-danger') }}" id="tally-balance-wrap">
+                            <span id="tally-remaining">{{ ($totalUploaded > $totalOrder ? '+ ' : '') . number_format(abs($remaining)) }}</span> {{ $currency }}
                         </span>
                     </div>
                 </div>
@@ -210,7 +216,17 @@
                                 </div>
                                 <div class="col-12 col-md-6 col-lg-3">
                                     <label class="form-label fs-12 text-muted mb-1">{{ __('Payment Date') }}</label>
-                                    <input type="text" name="receipts[0][payment_date]" class="form-control form-control-sm" placeholder="1405/06/31" value="{{ now()->jdate('Y/m/d') }}">
+                                    <div class="input-group input-group-sm">
+                                        <select class="form-select form-select-sm receipt-day-select font-fanum">
+                                            @for($d = 1; $d <= $daysInMonth; $d++)
+                                                <option value="{{ sprintf('%02d', $d) }}" {{ $d === $jalaliDay ? 'selected' : '' }}>
+                                                    {{ sprintf('%02d', $d) }}
+                                                </option>
+                                            @endfor
+                                        </select>
+                                        <span class="input-group-text bg-light text-muted font-fanum fs-12 px-2" dir="ltr">/{{ $jalaliYearMonth }}</span>
+                                        <input type="hidden" name="receipts[0][payment_date]" class="receipt-payment-date" value="{{ $jalaliYearMonth . '/' . sprintf('%02d', $jalaliDay) }}">
+                                    </div>
                                 </div>
                                 <div class="col-12 col-md-6 col-lg-3">
                                     <label class="form-label fs-12 text-muted mb-1">{{ __('Payment Time') }}</label>
@@ -246,6 +262,9 @@ document.addEventListener('DOMContentLoaded', function () {
     var addBtn = document.getElementById('add-receipt-btn');
     var addBtnSecondary = document.getElementById('add-receipt-btn-secondary');
     var rowIndex = 1;
+    var yearMonthPrefix = '{{ $jalaliYearMonth }}';
+    var daysInMonth = {{ $daysInMonth }};
+    var currentDay = {{ $jalaliDay }};
 
     function formatNumber(num) {
         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -262,7 +281,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         var uploadedTotal = initialUploaded + formSum;
-        var remaining = Math.max(0, totalOrder - uploadedTotal);
+        var diff = totalOrder - uploadedTotal;
 
         var upEl = document.getElementById('tally-uploaded');
         if (upEl) {
@@ -270,8 +289,38 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         var remEl = document.getElementById('tally-remaining');
-        if (remEl) {
-            remEl.textContent = formatNumber(remaining);
+        var labelEl = document.getElementById('tally-balance-label');
+        var wrapEl = document.getElementById('tally-balance-wrap');
+
+        if (diff < 0) {
+            var overpayment = Math.abs(diff);
+            if (labelEl) {
+                labelEl.textContent = '{{ __("Overpayment Amount") }}';
+            }
+            if (remEl) {
+                remEl.textContent = '+ ' + formatNumber(overpayment);
+            }
+            if (wrapEl) {
+                wrapEl.classList.remove('text-danger', 'text-success');
+                wrapEl.classList.add('text-primary');
+            }
+        } else {
+            if (labelEl) {
+                labelEl.textContent = '{{ __("Remaining Balance") }}';
+            }
+            if (remEl) {
+                remEl.textContent = formatNumber(diff);
+            }
+            if (wrapEl) {
+                wrapEl.classList.remove('text-primary');
+                if (diff === 0) {
+                    wrapEl.classList.remove('text-danger');
+                    wrapEl.classList.add('text-success');
+                } else {
+                    wrapEl.classList.remove('text-success');
+                    wrapEl.classList.add('text-danger');
+                }
+            }
         }
     }
 
@@ -296,6 +345,12 @@ document.addEventListener('DOMContentLoaded', function () {
     function addRow() {
         if (!container) return;
         var idx = rowIndex++;
+        var daysOptions = '';
+        for (var d = 1; d <= daysInMonth; d++) {
+            var val = (d < 10 ? '0' : '') + d;
+            daysOptions += '<option value="' + val + '"' + (d === currentDay ? ' selected' : '') + '>' + val + '</option>';
+        }
+        var currentDayFormatted = (currentDay < 10 ? '0' : '') + currentDay;
         var row = document.createElement('div');
         row.className = 'receipt-row border rounded-3 p-3 mb-3 bg-light';
         row.setAttribute('data-row-index', idx);
@@ -316,7 +371,11 @@ document.addEventListener('DOMContentLoaded', function () {
             '</div>' +
             '<div class="col-12 col-md-6 col-lg-3">' +
             '<label class="form-label fs-12 text-muted mb-1">{{ __("Payment Date") }}</label>' +
-            '<input type="text" name="receipts[' + idx + '][payment_date]" class="form-control form-control-sm" placeholder="1405/06/31" value="{{ now()->jdate("Y/m/d") }}">' +
+            '<div class="input-group input-group-sm">' +
+            '<select class="form-select form-select-sm receipt-day-select font-fanum">' + daysOptions + '</select>' +
+            '<span class="input-group-text bg-light text-muted font-fanum fs-12 px-2" dir="ltr">/' + yearMonthPrefix + '</span>' +
+            '<input type="hidden" name="receipts[' + idx + '][payment_date]" class="receipt-payment-date" value="' + yearMonthPrefix + '/' + currentDayFormatted + '">' +
+            '</div>' +
             '</div>' +
             '<div class="col-12 col-md-6 col-lg-3">' +
             '<label class="form-label fs-12 text-muted mb-1">{{ __("Payment Time") }}</label>' +
@@ -337,6 +396,17 @@ document.addEventListener('DOMContentLoaded', function () {
         var inputs = scope.querySelectorAll('.receipt-amount-input');
         inputs.forEach(function (inp) {
             inp.addEventListener('input', recalculateTally);
+        });
+
+        var daySelects = scope.querySelectorAll('.receipt-day-select');
+        daySelects.forEach(function (sel) {
+            sel.addEventListener('change', function () {
+                var group = sel.closest('.input-group');
+                var hidden = group ? group.querySelector('.receipt-payment-date') : null;
+                if (hidden) {
+                    hidden.value = yearMonthPrefix + '/' + sel.value;
+                }
+            });
         });
 
         var removeBtns = scope.querySelectorAll('.remove-row-btn');

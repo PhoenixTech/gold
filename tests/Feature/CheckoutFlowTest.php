@@ -300,7 +300,9 @@ class CheckoutFlowTest extends TestCase
             'payment_method' => 'card',
         ]);
 
-        $response->assertRedirect();
+        $invoice = Invoice::query()->where('customer_id', $customer->id)->latest('id')->first();
+        $this->assertNotNull($invoice);
+        $response->assertRedirect(route('client.invoice.receipt', $invoice->hash));
         $this->assertDatabaseHas('invoices', [
             'customer_id' => $customer->id,
             'address_id' => $address->id,
@@ -569,5 +571,28 @@ class CheckoutFlowTest extends TestCase
             ->assertJsonCount(2, 'data.addresses');
 
         $this->assertSame(2, $customer->addresses()->count());
+    }
+
+    public function test_complete_checkout_profile_preserves_existing_verified_mobile(): void
+    {
+        $customer = Customer::factory()->create([
+            'name' => 'سعید رضایی',
+            'mobile' => '09121112233',
+            'email' => 'lockedmobile'.uniqid().'@example.com',
+        ]);
+
+        $response = $this->actingAs($customer, 'customer')->postJson(route('client.card.complete-profile'), [
+            'name' => 'سعید رضایی جدید',
+            'mobile' => '09129990000',
+            'for_pickup' => 1,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('OK', true)
+            ->assertJsonPath('data.customer.mobile', '09121112233');
+
+        $customer->refresh();
+        $this->assertSame('09121112233', $customer->mobile);
+        $this->assertSame('سعید رضایی جدید', $customer->name);
     }
 }
