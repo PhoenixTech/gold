@@ -63,7 +63,7 @@ class GoldFreePriceUpdate extends Command
             $s->save();
         }
 
-        GoldPriceUpdate::reprice();
+        app(\App\Services\ProductPriceCalculator::class)->repriceProducts();
 
         $this->info('Gold and Silver prices updated from free providers: '.json_encode($prices));
 
