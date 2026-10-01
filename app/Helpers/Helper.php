@@ -828,25 +828,25 @@ function getWtfFooterCategories()
         (object) [
             'name' => __('Women\'s Gold'),
             'url' => route('client.products', ['metal' => 'gold', 'target_group' => 'women']),
-            'img' => Storage::url('categories/1741185465-زنانه.svg'),
+            'img' => Storage::url('categories/1741185185-women.svg'),
             'has_balloon' => false,
         ],
         (object) [
             'name' => __('Men\'s Gold'),
             'url' => route('client.products', ['metal' => 'gold', 'target_group' => 'men']),
-            'img' => Storage::url('categories/1741185578-مردانه.svg'),
+            'img' => Storage::url('categories/1746560098-manx.svg'),
             'has_balloon' => false,
         ],
         (object) [
             'name' => __('Children\'s Gold'),
             'url' => route('client.products', ['metal' => 'gold', 'target_group' => 'children']),
-            'img' => Storage::url('categories/1741185704-بچگانه.svg'),
+            'img' => Storage::url('categories/1746560094-babyx.svg'),
             'has_balloon' => false,
         ],
         (object) [
             'name' => __('Gift Gold'),
             'url' => route('client.products', ['metal' => 'gold']),
-            'img' => Storage::url('categories/1741370193-هدیه طلا.jpg'),
+            'img' => Storage::url('categories/1746560175-gift.svg'),
             'has_balloon' => true,
         ],
     ]);
