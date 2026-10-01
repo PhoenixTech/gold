@@ -221,7 +221,6 @@ class InvoiceController extends Controller
             ['key' => Invoice::PROCESSING, 'label' => __('Processing'), 'count' => (int) ($counts['processing'] ?? 0), 'icon' => 'ri-package-line'],
             ['key' => Invoice::OUT_FOR_DELIVERY, 'label' => __('Out for delivery'), 'count' => (int) ($counts['out_for_delivery'] ?? 0), 'icon' => 'ri-motorbike-line'],
             ['key' => Invoice::COMPLETED, 'label' => __('Completed'), 'count' => (int) ($counts['completed'] ?? 0), 'icon' => 'ri-check-double-line'],
-            ['key' => 'closed', 'label' => __('Closed'), 'count' => (int) ($counts['closed'] ?? 0), 'icon' => 'ri-close-circle-line'],
         ];
     }
 
