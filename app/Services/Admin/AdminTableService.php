@@ -4,20 +4,40 @@ namespace App\Services\Admin;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Grammar;
+use Illuminate\Database\Query\Expression;
 use Illuminate\Http\Request;
 
 class AdminTableService
 {
     protected Builder $query;
+
     protected array $cols = [];
+
     protected array $extraCols = ['id'];
+
     protected ?array $selectColumns = null;
+
     protected array $searchable = [];
+
+    protected array $searchableRelations = [];
+
+    protected array $colLabels = [];
+
+    /** @var array<string, bool>|null Lazily resolved cache of real table columns. */
+    private ?array $realColumns = null;
+
     protected array $buttons = [];
+
     protected array $quickCountCallbacks = [];
+
     protected bool $withStatusCounts = true;
+
     protected $customSortCallback = null;
+
     protected ?string $modelClass = null;
+
+    protected ?int $perPage = null;
 
     public function for(Builder|string $queryOrModel): self
     {
@@ -61,6 +81,29 @@ class AdminTableService
         return $this;
     }
 
+    /**
+     * Extend the search box across related tables.
+     *
+     * ['customer' => ['name', 'mobile', 'code']] turns into OR-ed whereHas
+     * clauses. Without this an admin list can only search its own columns,
+     * while another screen in the same app searches the customer's name.
+     *
+     * @param  array<string, array<int, string>>  $relations
+     */
+    public function searchableRelations(array $relations): self
+    {
+        $this->searchableRelations = $relations;
+
+        return $this;
+    }
+
+    public function perPage(?int $perPage): self
+    {
+        $this->perPage = $perPage;
+
+        return $this;
+    }
+
     public function buttons(array $buttons): self
     {
         $this->buttons = $buttons;
@@ -71,6 +114,23 @@ class AdminTableService
     public function withCustomSort(callable $sorter): self
     {
         $this->customSortCallback = $sorter;
+
+        return $this;
+    }
+
+    /**
+     * Human-readable (and translatable) header labels for columns whose name is
+     * not itself presentable.
+     *
+     * A list column may be a computed/virtual name like "payment_progress"; the
+     * table header falls back to __($col), which would render the raw key.
+     * Provide the label here instead.
+     *
+     * @param  array<string, string>  $labels  column => label
+     */
+    public function columnLabels(array $labels): self
+    {
+        $this->colLabels = $labels;
 
         return $this;
     }
@@ -101,7 +161,7 @@ class AdminTableService
             $this->extraCols[] = 'deleted_at';
         }
 
-        $perPage = (int) config('app.panel.page_count', 15);
+        $perPage = $this->perPage ?? (int) config('app.panel.page_count', 15);
         $selectCols = $this->selectColumns ?? array_values(array_unique(array_merge($this->extraCols, $this->cols)));
 
         $items = $this->query->paginate($perPage, $selectCols);
@@ -110,6 +170,7 @@ class AdminTableService
         return [
             'items' => $items,
             'cols' => $this->cols,
+            'colLabels' => $this->colLabels,
             'buttons' => $this->buttons,
             'quickCounts' => $quickCounts,
         ];
@@ -127,11 +188,99 @@ class AdminTableService
             }
         }
 
-        if (! empty($sort) && in_array($sort, $this->cols, true)) {
+        if (! empty($sort) && $this->isRealColumn($sort)) {
             $this->query->orderBy($sort, $sortType);
         } elseif (empty($this->query->getQuery()->orders)) {
             $this->query->orderByDesc('id');
         }
+    }
+
+    /**
+     * Whether a column name maps to a real column on the model's table.
+     *
+     * $cols may legitimately contain computed or virtual column names (a
+     * withSum alias, a rendered cell such as "payment_progress"). Those are not
+     * valid SQL, so ordering by them throws
+     * "Unknown column ... in 'order clause'". Such columns have to be handled
+     * explicitly through withCustomSort(); anything else is ignored and the
+     * default ordering applies.
+     */
+    protected function isRealColumn(string $name): bool
+    {
+        if (! in_array($name, $this->cols, true)) {
+            return false;
+        }
+
+        if ($this->realColumns === null) {
+            $this->realColumns = $this->resolveRealColumns();
+        }
+
+        return $this->realColumns[$name] ?? false;
+    }
+
+    /**
+     * @return array<string, bool>
+     */
+    private function resolveRealColumns(): array
+    {
+        if ($this->modelClass === null) {
+            // Without a model we cannot introspect; fall back to trusting $cols.
+            return array_fill_keys($this->cols, true);
+        }
+
+        try {
+            $model = new $this->modelClass;
+            $connection = $model->getConnection();
+            $table = $model->getTable();
+
+            // A column produced by a subquery alias (withCount/withSum/selectRaw)
+            // is orderable but is not in the schema.
+            //
+            // withAggregate()/selectSub() store these as Expression objects
+            // ("(<subquery>) as <alias>"), so the alias has to be read off the
+            // expression rather than off a plain string. The match must not be
+            // anchored to the end and must tolerate MySQL backticks, otherwise
+            // computed sorts silently degrade to a no-op on that driver.
+            $grammar = $connection->getQueryGrammar();
+            $aliases = [];
+            foreach ((array) ($this->query->getQuery()->columns ?? []) as $column) {
+                $sql = is_string($column) ? $column : $this->expressionValue($column, $grammar);
+
+                if ($sql !== null && preg_match('/\bas\s+[`"]?([^`"\s,)]+)[`"]?/i', $sql, $matches)) {
+                    $aliases[$matches[1]] = true;
+                }
+            }
+
+            $existing = array_fill_keys(
+                $connection->getSchemaBuilder()->getColumnListing($table),
+                true
+            );
+
+            return array_merge($existing, $aliases);
+        } catch (\Throwable) {
+            // Never let a schema lookup break the list; degrade to trusting $cols.
+            return array_fill_keys($this->cols, true);
+        }
+    }
+
+    /**
+     * The raw SQL of a query Expression, or null when it cannot be read.
+     */
+    private function expressionValue(mixed $column, Grammar $grammar): ?string
+    {
+        try {
+            if ($column instanceof Expression) {
+                return (string) $column->getValue($grammar);
+            }
+
+            if (is_object($column) && method_exists($column, 'getValue')) {
+                return (string) $column->getValue($grammar);
+            }
+        } catch (\Throwable) {
+            return null;
+        }
+
+        return null;
     }
 
     protected function applyFilters(Request $request): void
@@ -168,18 +317,32 @@ class AdminTableService
     protected function applySearch(Request $request): void
     {
         $search = trim((string) $request->input('q', ''));
-        if (mb_strlen($search) === 0 || empty($this->searchable)) {
+        if (mb_strlen($search) === 0 || (empty($this->searchable) && empty($this->searchableRelations))) {
             return;
         }
 
         $searchable = $this->searchable;
-        $this->query->where(function (Builder $sub) use ($search, $searchable) {
+        $relations = $this->searchableRelations;
+
+        $this->query->where(function (Builder $sub) use ($search, $searchable, $relations) {
             foreach ($searchable as $index => $col) {
                 if ($index === 0) {
                     $sub->where($col, 'LIKE', '%'.$search.'%');
                 } else {
                     $sub->orWhere($col, 'LIKE', '%'.$search.'%');
                 }
+            }
+
+            foreach ($relations as $relation => $columns) {
+                $sub->orWhereHas($relation, function (Builder $relQuery) use ($columns, $search) {
+                    foreach ($columns as $index => $col) {
+                        if ($index === 0) {
+                            $relQuery->where($col, 'LIKE', '%'.$search.'%');
+                        } else {
+                            $relQuery->orWhere($col, 'LIKE', '%'.$search.'%');
+                        }
+                    }
+                });
             }
         });
     }

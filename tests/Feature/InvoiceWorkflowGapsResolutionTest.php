@@ -146,7 +146,12 @@ class InvoiceWorkflowGapsResolutionTest extends TestCase
 
         $this->assertSame(Invoice::AWAITING_PAYMENT, $invoice->status);
         $this->assertSame(Invoice::WAITING_RECEIPT, $invoice->displayStatusKey());
-        $this->assertSame('Image too blurry to read transaction reference', $invoice->declinedReceiptReason());
+        // A re-upload request is not a decline: it lives under its own key so
+        // the customer view can word it correctly and so a terminal decline
+        // stays distinguishable from "send a clearer slip".
+        $this->assertSame('Image too blurry to read transaction reference', $invoice->reuploadRequestedReason());
+        $this->assertNull($invoice->declinedReceiptReason());
+        $this->assertNotNull($invoice->reuploadRequestedAt());
         $this->assertCount(0, $invoice->paymentReceipts);
         $this->assertTrue($invoice->offlinePaymentDeadline()->gt($initialDeadline));
 
@@ -157,7 +162,6 @@ class InvoiceWorkflowGapsResolutionTest extends TestCase
             ->get(route('client.invoice', $invoice->hash));
 
         $customerResponse->assertOk();
-        $customerResponse->assertSee(__('Previous receipt was declined'));
         $customerResponse->assertSee('Image too blurry to read transaction reference');
         $customerResponse->assertSee(__('Register Payment Receipt'));
     }

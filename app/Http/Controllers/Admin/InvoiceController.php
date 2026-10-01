@@ -5,7 +5,10 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Admin\Concerns\ResolvesAdminModel;
 use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ConfirmInvoicePaymentRequest;
+use App\Http\Requests\DeclineInvoicePaymentRequest;
 use App\Http\Requests\InvoiceSaveRequest;
+use App\Http\Requests\RequestReceiptReuploadRequest;
 use App\Models\BankAccount;
 use App\Models\Credit;
 use App\Models\Invoice;
@@ -21,8 +24,10 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 if (! Builder::hasGlobalMacro('hasAccess')) {
@@ -34,21 +39,58 @@ if (! Builder::hasGlobalMacro('accesses')) {
 
 class InvoiceController extends Controller
 {
-    use RespondsWithAdmin;
     use ResolvesAdminModel;
+    use RespondsWithAdmin;
 
-    protected array $cols = ['created_at', 'customer_id', 'count', 'total_price', 'status'];
+    /**
+     * Traditional فاکتور columns: invoice number, date, customer, phone,
+     * items/weight, amount, payment, delivery, status.
+     *
+     * Several of these are computed rather than real columns, so the query
+     * carries withCount/withSum/selectSub aliases and the table service selects
+     * '*' instead of the column list.
+     *
+     * @var list<string>
+     */
+    protected array $cols = [
+        'hash',
+        'created_at',
+        'customer_id',
+        'customer_mobile',
+        'items_summary',
+        'total_price',
+        'payment_progress',
+        'delivery_method',
+        'status',
+    ];
 
     protected array $extraCols = ['id', 'hash'];
 
-    protected array $searchable = ['desc'];
+    protected array $searchable = ['hash', 'desc'];
 
     public function index(Request $request, AdminTableService $tableService): View
     {
         $displayStatus = $request->input('filter.status');
         $isReceiptFilter = in_array($displayStatus, [Invoice::WAITING_RECEIPT, Invoice::WAITING_CONFIRMATION], true);
+        $deliveryFilter = $request->input('filter.delivery_type');
 
-        $query = Invoice::query()->with(['customer', 'paymentReceipts']);
+        // withCount (rather than with) keeps hasUploadedReceipt() off the N+1
+        // path while avoiding loading every receipt row for every listed order.
+        //
+        // NOTE: addSelect(), never select(). Eloquent's select() resets the
+        // column list, which silently drops the withCount/withSum subqueries
+        // that were registered before it.
+        $query = Invoice::query()
+            ->with(['customer', 'transport', 'activeDelivery.courier'])
+            ->withCount('paymentReceipts')
+            ->withSum('paymentReceipts as receipts_amount', 'amount')
+            ->addSelect('invoices.*')
+            ->addSelect([
+                'total_weight' => Order::query()
+                    ->selectRaw('COALESCE(SUM(quantities.weight), 0)')
+                    ->join('quantities', 'quantities.id', '=', 'orders.quantity_id')
+                    ->whereColumn('orders.invoice_id', 'invoices.id'),
+            ]);
 
         if ($isReceiptFilter) {
             $filters = (array) $request->input('filter', []);
@@ -63,10 +105,34 @@ class InvoiceController extends Controller
             }
         }
 
+        if (in_array($deliveryFilter, ['address', 'pickup'], true)) {
+            $query->where('delivery_type', $deliveryFilter);
+        } else {
+            // Not a real column: strip it so applyFilters() never sees it.
+            $filters = (array) $request->input('filter', []);
+            unset($filters['delivery_type']);
+            $request->merge(['filter' => $filters]);
+        }
+
         $tableData = $tableService->for($query)
             ->columns($this->cols, $this->extraCols)
+            ->selectColumns(['*'])
             ->searchable($this->searchable)
-            ->withoutStatusCounts()
+            ->searchableRelations([
+                'customer' => ['name', 'mobile', 'code'],
+            ])
+            ->perPage($this->perPage($request))
+            ->columnLabels($this->columnLabels())
+            ->withCustomSort(fn (Builder $q, ?string $sort, string $sortType) => $this->sortInvoices($q, $sort, $sortType))
+            ->withQuickCounts([
+                'waiting_receipt' => fn () => Invoice::waitingReceipt()->count(),
+                'waiting_confirmation' => fn () => Invoice::waitingConfirmation()->count(),
+                'paid' => fn () => Invoice::query()->where('status', Invoice::PAID)->count(),
+                'processing' => fn () => Invoice::query()->whereIn('status', [Invoice::PROCESSING, Invoice::READY_FOR_PICKUP])->count(),
+                'out_for_delivery' => fn () => Invoice::query()->where('status', Invoice::OUT_FOR_DELIVERY)->count(),
+                'completed' => fn () => Invoice::query()->where('status', Invoice::COMPLETED)->count(),
+                'closed' => fn () => Invoice::query()->whereIn('status', [Invoice::CANCELED, Invoice::FAILED])->count(),
+            ])
             ->buttons([
                 'edit' => ['title' => 'Edit', 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
                 'show' => ['title' => 'Detail', 'class' => 'btn-outline-secondary', 'icon' => 'ri-eye-line'],
@@ -86,7 +152,99 @@ class InvoiceController extends Controller
             ]);
         }
 
+        $tableData['perPageOptions'] = [15, 30, 50, 100];
+        $tableData['listTotals'] = $this->listTotals($tableData['items']);
+        $tableData['statusChips'] = $this->statusChips($tableData['quickCounts']);
+
         return view('admin.invoices.invoice-list', $tableData);
+    }
+
+    private function joinCustomersAndOrder(Builder $query, string $column, string $sortType): bool
+    {
+        $query->join('customers', 'customers.id', '=', 'invoices.customer_id')
+            ->orderBy($column, $sortType);
+
+        return true;
+    }
+
+    /**
+     * Header labels for columns whose names are internal identifiers rather than
+     * something worth showing an admin.
+     *
+     * @return array<string, string>
+     */
+    private function columnLabels(): array
+    {
+        return [
+            'hash' => __('Invoice number'),
+            'customer_id' => __('Customer'),
+            'customer_mobile' => __('Phone number'),
+            'items_summary' => __('Items / weight'),
+            'payment_progress' => __('Payment'),
+            'delivery_method' => __('Fulfillment'),
+        ];
+    }
+
+    /**
+     * Sorting a rendered cell means ordering by whatever it actually
+     * represents. `receipts_amount`, `total_weight` and `payment_receipts_count`
+     * are subquery aliases in the select list, so ORDER BY <alias> is valid SQL;
+     * the customer columns need a join.
+     */
+    private function sortInvoices(Builder $query, ?string $sort, string $sortType): bool
+    {
+        return match ($sort) {
+            'customer_id' => $this->joinCustomersAndOrder($query, 'customers.name', $sortType),
+            'customer_mobile' => $this->joinCustomersAndOrder($query, 'customers.mobile', $sortType),
+            'customer_code' => $this->joinCustomersAndOrder($query, 'customers.code', $sortType),
+            'payment_progress' => (bool) $query->orderBy('receipts_amount', $sortType),
+            'items_summary' => (bool) $query->orderBy('invoices.count', $sortType)
+                ->orderBy('total_weight', $sortType),
+            'delivery_method' => (bool) $query->orderBy('invoices.delivery_type', $sortType),
+            'total_weight' => (bool) $query->orderBy('total_weight', $sortType),
+            default => false,
+        };
+    }
+
+    /**
+     * Status quick-filter chips with their live counts.
+     *
+     * @param  array<string, int>  $counts
+     * @return list<array{key: string, label: string, count: int, icon: string}>
+     */
+    private function statusChips(array $counts): array
+    {
+        return [
+            ['key' => Invoice::WAITING_RECEIPT, 'label' => __('Waiting receipt'), 'count' => (int) ($counts['waiting_receipt'] ?? 0), 'icon' => 'ri-timer-line'],
+            ['key' => Invoice::WAITING_CONFIRMATION, 'label' => __('Review receipt'), 'count' => (int) ($counts['waiting_confirmation'] ?? 0), 'icon' => 'ri-file-list-3-line'],
+            ['key' => Invoice::PAID, 'label' => __('Paid'), 'count' => (int) ($counts['paid'] ?? 0), 'icon' => 'ri-checkbox-circle-line'],
+            ['key' => Invoice::PROCESSING, 'label' => __('Processing'), 'count' => (int) ($counts['processing'] ?? 0), 'icon' => 'ri-package-line'],
+            ['key' => Invoice::OUT_FOR_DELIVERY, 'label' => __('Out for delivery'), 'count' => (int) ($counts['out_for_delivery'] ?? 0), 'icon' => 'ri-motorbike-line'],
+            ['key' => Invoice::COMPLETED, 'label' => __('Completed'), 'count' => (int) ($counts['completed'] ?? 0), 'icon' => 'ri-check-double-line'],
+            ['key' => 'closed', 'label' => __('Closed'), 'count' => (int) ($counts['closed'] ?? 0), 'icon' => 'ri-close-circle-line'],
+        ];
+    }
+
+    /**
+     * Summary of the rows on the current page, plus the filtered page total.
+     */
+    private function listTotals(LengthAwarePaginator $items): array
+    {
+        return [
+            'rows' => $items->count(),
+            'total_count' => $items->total(),
+            'page_total' => (int) $items->getCollection()->sum('total_price'),
+            'page_weight' => (float) $items->getCollection()->sum('total_weight'),
+            'currency' => config('app.currency.symbol') ?: __('Toman'),
+        ];
+    }
+
+    private function perPage(Request $request): int
+    {
+        $requested = (int) $request->input('per_page', 0);
+        $default = (int) config('app.panel.page_count', 15);
+
+        return $requested > 0 ? min(200, $requested) : $default;
     }
 
     public function trashed(Request $request, AdminTableService $tableService): View
@@ -95,12 +253,23 @@ class InvoiceController extends Controller
 
         $tableData = $tableService->for($query)
             ->columns($this->cols, $this->extraCols)
+            ->selectColumns(['*'])
             ->searchable($this->searchable)
+            ->searchableRelations([
+                'customer' => ['name', 'mobile', 'code'],
+            ])
+            ->perPage($this->perPage($request))
+            ->columnLabels($this->columnLabels())
+            ->withCustomSort(fn (Builder $q, ?string $sort, string $sortType) => $this->sortInvoices($q, $sort, $sortType))
             ->withoutStatusCounts()
             ->buttons([
                 'restore' => ['title' => 'Restore', 'class' => 'btn-outline-success', 'icon' => 'ri-refresh-line'],
             ])
             ->build($request);
+
+        $tableData['perPageOptions'] = [15, 30, 50, 100];
+        $tableData['listTotals'] = null;
+        $tableData['statusChips'] = [];
 
         return view('admin.invoices.invoice-list', $tableData);
     }
@@ -132,42 +301,48 @@ class InvoiceController extends Controller
     {
         $invoice = $this->resolveInvoice($item);
 
-        if ($invoice->tracking_code != $request->get('tracking_code') && strlen(trim((string) $request->tracking_code)) == 24) {
-            if (config('app.sms.driver') == 'Kavenegar') {
-                $args = [
-                    'receptor' => $invoice->customer->mobile,
-                    'template' => trim(getSetting('sent')),
-                    'token' => trim((string) $request->tracking_code),
-                ];
-            } else {
-                $args = [
-                    'code' => trim((string) $request->tracking_code),
-                ];
-            }
-
-            sendingSMS(getSetting('sent'), $invoice->customer->mobile, $args);
-        }
-
-        if ($request->has('address_id')) {
-            $invoice->address_id = $request->input('address_id');
-        }
-
-        if ($request->has('tracking_code')) {
-            $invoice->tracking_code = $request->tracking_code;
-        }
-
-        $invoice->save();
-        $invoice->load('transport');
+        $newTrackingCode = trim((string) $request->input('tracking_code'));
 
         $courier = $request->filled('courier_id')
             ? User::query()->couriers()->find($request->input('courier_id'))
             : null;
 
-        $deliveryService->applyAdminStatus(
-            $invoice,
-            (string) $request->status,
-            $courier
-        );
+        // Persist the shipment fields and apply the status transition together:
+        // applyAdminStatus() throws on an illegal transition, and previously that
+        // left the address/tracking code already written with the status untouched.
+        DB::transaction(function () use ($invoice, $request, $courier, $deliveryService): void {
+            if ($request->has('address_id')) {
+                $invoice->address_id = $request->input('address_id');
+            }
+
+            if ($request->has('tracking_code')) {
+                $invoice->tracking_code = $request->input('tracking_code');
+            }
+
+            $invoice->save();
+            $invoice->load('transport');
+
+            $deliveryService->applyAdminStatus(
+                $invoice,
+                (string) $request->status,
+                $courier
+            );
+        });
+
+        $mobile = $invoice->customer?->mobile;
+        if ($invoice->tracking_code != $request->get('tracking_code') && strlen($newTrackingCode) == 24 && $mobile) {
+            if (config('app.sms.driver') == 'Kavenegar') {
+                $args = [
+                    'receptor' => $mobile,
+                    'template' => trim(getSetting('sent')),
+                    'token' => $newTrackingCode,
+                ];
+            } else {
+                $args = ['code' => $newTrackingCode];
+            }
+
+            sendingSMS(getSetting('sent'), $mobile, $args);
+        }
 
         logAdmin(__METHOD__, Invoice::class, $invoice->id);
 
@@ -263,7 +438,7 @@ class InvoiceController extends Controller
 
         $autoPrint = true;
 
-        return view('admin.invoices.invoice-show', compact('invoice', 'qr', 'title', 'subtitle', 'autoPrint'));
+        return view('admin.invoices.invoice-print', compact('invoice', 'qr', 'title', 'subtitle', 'autoPrint'));
     }
 
     public function shippingLabel(Invoice|string|int $item): View
@@ -288,6 +463,8 @@ class InvoiceController extends Controller
 
     public function resendDeliveryCode(Invoice|string|int $item, DeliveryService $deliveries): RedirectResponse
     {
+        abort_unless(auth()->user()?->hasAnyAccess('invoice'), 403);
+
         $invoice = $this->resolveInvoice($item);
         $delivery = $invoice->activeDelivery;
         if ($delivery === null) {
@@ -296,21 +473,24 @@ class InvoiceController extends Controller
                 ->withErrors(__('This invoice has no active motorcycle delivery.'));
         }
 
-        $deliveries->resendCode($delivery);
+        try {
+            $deliveries->resendCode($delivery);
+        } catch (ValidationException $exception) {
+            // A locked or already-closed delivery used to bubble a raw
+            // ValidationException straight to the error page.
+            return redirect()
+                ->back()
+                ->withErrors($exception->errors());
+        }
 
         return redirect()
             ->back()
             ->with(['message' => __('A new delivery code was sent to the customer.')]);
     }
 
-    public function confirmPayment(Request $request, Invoice|string|int $item): RedirectResponse
+    public function confirmPayment(ConfirmInvoicePaymentRequest $request, Invoice|string|int $item): RedirectResponse
     {
         $invoice = $this->resolveInvoice($item);
-        $user = auth('web')->user() ?? (auth()->user() instanceof User ? auth()->user() : null);
-
-        if (! $user instanceof User || ! ($user->role === 'ADMIN' || $user->role === 'DEVELOPER' || $user->hasRole('admin') || $user->hasRole('developer') || $user->hasAccess('admin.invoice.confirm-payment'))) {
-            return redirect()->route('admin.logout');
-        }
 
         if ($invoice->status !== Invoice::AWAITING_PAYMENT) {
             return redirect()
@@ -330,65 +510,42 @@ class InvoiceController extends Controller
                 ->withErrors(__('No pending card payment found for this invoice.'));
         }
 
-        $isLegacyCall = app()->environment('testing')
-            && ! $request->hasAny(['receipt_info_checked', 'account_selected', 'bank_verified', 'zero_balance', 'bank_account_id']);
+        if ($invoice->remainingReceiptBalance() > 0) {
+            return redirect()
+                ->back()
+                ->withErrors(['zero_balance' => __('The total verified receipt amount does not cover the invoice total.')]);
+        }
 
-        if (! $isLegacyCall) {
-            $request->validate([
-                'receipt_info_checked' => ['accepted'],
-                'account_selected' => ['accepted'],
-                'bank_verified' => ['accepted'],
-                'zero_balance' => ['accepted'],
-                'bank_account_id' => ['required', 'exists:bank_accounts,id'],
-            ]);
+        $bankAccount = BankAccount::find($request->input('bank_account_id'));
 
-            if ($invoice->remainingReceiptBalance() > 0) {
-                return redirect()
-                    ->back()
-                    ->withErrors(['zero_balance' => __('The total verified receipt amount does not cover the invoice total.')]);
+        DB::transaction(function () use ($invoice, $payment, $bankAccount): void {
+            $invoice->storeSuccessPayment(
+                $payment->id,
+                'CARD-CONFIRM-'.$payment->id.'-'.time()
+            );
+
+            $payment->refresh();
+            $meta = $payment->meta ?? [];
+            $meta['confirmed_by'] = auth()->id();
+            $meta['confirmed_at'] = now()->toDateTimeString();
+            if ($bankAccount) {
+                $meta['bank_account_id'] = $bankAccount->id;
+                $meta['bank_account_name'] = $bankAccount->bank_name;
             }
-        }
+            $payment->meta = $meta;
+            $payment->save();
+        });
 
-        $bankAccount = $request->filled('bank_account_id')
-            ? BankAccount::find($request->input('bank_account_id'))
-            : null;
+        logAdmin(__METHOD__, Invoice::class, $invoice->id);
 
-        $invoice->storeSuccessPayment(
-            $payment->id,
-            'CARD-CONFIRM-'.$payment->id.'-'.time()
-        );
-
-        $payment->refresh();
-        $meta = $payment->meta ?? [];
-        $meta['confirmed_by'] = auth()->id();
-        $meta['confirmed_at'] = now()->toDateTimeString();
-        if ($bankAccount) {
-            $meta['bank_account_id'] = $bankAccount->id;
-            $meta['bank_account_name'] = $bankAccount->bank_name;
-        }
-        $payment->meta = $meta;
-        $payment->save();
-
-        $mobile = $invoice->customer?->mobile;
-        if ($mobile) {
-            $smsText = 'پرداخت شما تایید شد. سفارش شما تا ۴۸ ساعت آینده ارسال خواهد شد.';
-            $template = trim((string) getSetting('payment_approved'));
-            $args = [
-                'receptor' => $mobile,
-                'template' => $template !== '' ? $template : 'payment_approved',
-                'token' => $invoice->customer?->name ?? '',
-                'token2' => (string) $invoice->hash,
-                'text' => $smsText,
-            ];
-            sendingSMS($template !== '' ? $template : $smsText, $mobile, $args);
-        }
+        $this->notifyPaymentApproved($invoice);
 
         return redirect()
             ->route('admin.invoice.edit', $invoice)
             ->with(['message' => __('Payment confirmed. The invoice is now paid.')]);
     }
 
-    public function declinePayment(Request $request, Invoice|string|int $item): RedirectResponse
+    public function declinePayment(DeclineInvoicePaymentRequest $request, Invoice|string|int $item, DeliveryService $deliveryService): RedirectResponse
     {
         $invoice = $this->resolveInvoice($item);
 
@@ -412,25 +569,32 @@ class InvoiceController extends Controller
 
         $reason = trim((string) $request->input('reason', ''));
 
-        $meta = $invoice->meta ?? [];
-        $meta['decline_reason'] = $reason !== '' ? $reason : null;
-        $meta['declined_at'] = now()->toDateTimeString();
-        $invoice->meta = $meta;
+        DB::transaction(function () use ($invoice, $payment, $reason, $deliveryService): void {
+            $meta = $invoice->meta ?? [];
+            $meta['decline_reason'] = $reason !== '' ? $reason : null;
+            $meta['declined_at'] = now()->toDateTimeString();
+            $invoice->meta = $meta;
+            $invoice->save();
 
-        app(DeliveryService::class)->applyAdminStatus($invoice, Invoice::CANCELED, null);
+            $deliveryService->applyAdminStatus($invoice, Invoice::CANCELED, null);
 
-        $payment->status = Payment::CANCEL;
-        $payment->comment = $reason !== ''
-            ? $reason
-            : 'Payment receipt declined by admin.';
-        $payment->save();
+            $payment->status = Payment::CANCEL;
+            $payment->comment = $reason !== ''
+                ? $reason
+                : 'Payment receipt declined by admin.';
+            $payment->save();
+        });
+
+        logAdmin(__METHOD__, Invoice::class, $invoice->id);
+
+        $this->notifyPaymentDeclined($invoice, $reason);
 
         return redirect()
             ->route('admin.invoice.edit', $invoice)
             ->with(['message' => __('Payment declined. The invoice has been canceled.')]);
     }
 
-    public function requestReceiptReupload(Request $request, Invoice|string|int $item): RedirectResponse
+    public function requestReceiptReupload(RequestReceiptReuploadRequest $request, Invoice|string|int $item): RedirectResponse
     {
         $invoice = $this->resolveInvoice($item);
 
@@ -453,29 +617,87 @@ class InvoiceController extends Controller
         }
 
         $reason = trim((string) $request->input('reason', ''));
-        if ($reason === '') {
-            return redirect()
-                ->back()
-                ->withErrors(__('Please provide a reason for requesting a receipt re-upload.'));
+
+        // Collect the paths inside the transaction, but only unlink once the
+        // database write has committed -- otherwise a mid-transaction failure
+        // destroys the customer's evidence with nothing to show for it.
+        $receiptPaths = DB::transaction(function () use ($invoice, $reason): array {
+            $meta = $invoice->meta ?? [];
+            $meta['reupload_reason'] = $reason;
+            $meta['reupload_requested_at'] = now()->toDateTimeString();
+            $invoice->meta = $meta;
+            $invoice->extendOfflinePaymentDeadline(3);
+            $invoice->save();
+
+            $paths = $invoice->paymentReceipts->pluck('path')->filter()->all();
+
+            $invoice->paymentReceipts()->delete();
+
+            return $paths;
+        });
+
+        if ($receiptPaths !== []) {
+            Storage::disk('public')->delete($receiptPaths);
         }
 
-        $meta = $invoice->meta ?? [];
-        $meta['decline_reason'] = $reason;
-        $meta['reupload_requested_at'] = now()->toDateTimeString();
-        $invoice->meta = $meta;
-        $invoice->extendOfflinePaymentDeadline(3);
-        $invoice->save();
+        logAdmin(__METHOD__, Invoice::class, $invoice->id);
 
-        foreach ($invoice->paymentReceipts as $receipt) {
-            if ($receipt->path) {
-                Storage::disk('public')->delete($receipt->path);
-            }
-            $receipt->delete();
-        }
+        $this->notifyPaymentDeclined($invoice, $reason);
 
         return redirect()
             ->route('admin.invoice.edit', $invoice)
             ->with(['message' => __('Receipt re-upload requested. The customer was notified to upload a new receipt.')]);
+    }
+
+    private function notifyPaymentApproved(Invoice $invoice): void
+    {
+        $mobile = $invoice->customer?->mobile;
+        if (! $mobile) {
+            return;
+        }
+
+        $smsText = 'پرداخت شما تایید شد. سفارش شما تا ۴۸ ساعت آینده ارسال خواهد شد.';
+        $template = trim((string) getSetting('payment_approved'));
+        $args = [
+            'receptor' => $mobile,
+            'template' => $template !== '' ? $template : 'payment_approved',
+            'token' => $invoice->customer?->name ?? '',
+            'token2' => (string) $invoice->hash,
+            'text' => $smsText,
+        ];
+
+        sendingSMS($template !== '' ? $template : $smsText, $mobile, $args);
+    }
+
+    private function notifyPaymentDeclined(Invoice $invoice, string $reason): void
+    {
+        $mobile = $invoice->customer?->mobile;
+        if (! $mobile) {
+            return;
+        }
+
+        $template = trim((string) getSetting('receipt_declined'));
+
+        if ($template !== '') {
+            sendingSMS($template, $mobile, [
+                'receptor' => $mobile,
+                'template' => $template,
+                'token' => $invoice->customer?->name ?? '',
+                'token2' => (string) $invoice->hash,
+                'reason' => $reason,
+                'text' => $reason,
+            ]);
+
+            return;
+        }
+
+        sendingSMS($reason, $mobile, [
+            'receptor' => $mobile,
+            'token' => $invoice->customer?->name ?? '',
+            'token2' => (string) $invoice->hash,
+            'reason' => $reason,
+            'text' => $reason,
+        ]);
     }
 
     public function removeOrder(Order $order): RedirectResponse

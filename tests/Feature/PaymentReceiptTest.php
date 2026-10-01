@@ -142,18 +142,63 @@ class PaymentReceiptTest extends TestCase
         [$customer, $invoice, $payment] = $this->createAwaitingCardInvoice();
 
         $this->actingAs($customer, 'customer')->post(route('client.invoice.receipts.store', $invoice), [
-            'receipts' => [UploadedFile::fake()->image('receipt.jpg')],
+            'receipts' => [[
+                'slip' => UploadedFile::fake()->image('receipt.jpg'),
+                'amount' => $invoice->total_price,
+            ]],
         ])->assertRedirect();
 
         Role::findOrCreate('admin', 'web');
         $admin = User::factory()->create(['role' => 'ADMIN']);
         $admin->assignRole('admin');
 
-        $response = $this->actingAs($admin, 'web')->post(route('admin.invoice.confirm-payment', $invoice));
+        $bankAccount = BankAccount::query()->where('is_active', true)->firstOrFail();
+
+        // The four-point safeguard is enforced server-side, so a real approval
+        // has to satisfy it. There is no test-environment bypass.
+        $response = $this->actingAs($admin, 'web')->post(route('admin.invoice.confirm-payment', $invoice), [
+            'bank_account_id' => $bankAccount->id,
+            'receipt_info_checked' => 1,
+            'account_selected' => 1,
+            'bank_verified' => 1,
+            'zero_balance' => 1,
+        ]);
 
         $response->assertRedirect(route('admin.invoice.edit', $invoice));
         $this->assertSame(Invoice::PAID, $invoice->fresh()->status);
         $this->assertSame(Payment::SUCCESS, $payment->fresh()->status);
+    }
+
+    public function test_admin_cannot_confirm_payment_without_the_four_point_checklist(): void
+    {
+        Storage::fake('public');
+        [$customer, $invoice] = $this->createAwaitingCardInvoice();
+
+        $this->actingAs($customer, 'customer')->post(route('client.invoice.receipts.store', $invoice), [
+            'receipts' => [[
+                'slip' => UploadedFile::fake()->image('receipt.jpg'),
+                'amount' => $invoice->total_price,
+            ]],
+        ])->assertRedirect();
+
+        Role::findOrCreate('admin', 'web');
+        $admin = User::factory()->create(['role' => 'ADMIN']);
+        $admin->assignRole('admin');
+
+        $bankAccount = BankAccount::query()->where('is_active', true)->firstOrFail();
+
+        // Only the destination account is chosen; the four safeguards are absent.
+        $response = $this->actingAs($admin, 'web')->post(route('admin.invoice.confirm-payment', $invoice), [
+            'bank_account_id' => $bankAccount->id,
+        ]);
+
+        $response->assertSessionHasErrors([
+            'receipt_info_checked',
+            'account_selected',
+            'bank_verified',
+            'zero_balance',
+        ]);
+        $this->assertSame(Invoice::AWAITING_PAYMENT, $invoice->fresh()->status);
     }
 
     public function test_receipt_upload_is_blocked_after_deadline(): void
@@ -403,7 +448,7 @@ class PaymentReceiptTest extends TestCase
         $response->assertDontSee('Waiting Receipt Buyer', false);
     }
 
-    public function test_admin_invoice_list_shows_jalali_created_at_instead_of_hash(): void
+    public function test_admin_invoice_list_shows_traditional_columns_with_jalali_date(): void
     {
         $this->withoutVite();
         $this->seed(GfxSeeder::class);
@@ -420,9 +465,21 @@ class PaymentReceiptTest extends TestCase
         $response = $this->actingAs($admin)->get(route('admin.invoice.index'));
 
         $response->assertOk();
+
+        // The traditional فاکتور column set, each present and sortable, with a
+        // translated header rather than the raw column name.
+        foreach (['hash', 'created_at', 'customer_id', 'customer_mobile', 'items_summary', 'total_price', 'payment_progress', 'delivery_method', 'status'] as $column) {
+            $response->assertSee('sort='.$column, false);
+        }
+
+        foreach ([__('Invoice number'), __('Items / weight'), __('Fulfillment'), __('Phone number')] as $label) {
+            $response->assertSee($label, false);
+        }
+
         $response->assertSee('List Date Customer', false);
-        $response->assertSee(__('created_at'), false);
-        $response->assertDontSee('<th>'.__('hash').'</th>', false);
+        $response->assertSee('#'.$invoice->hash, false);
+
+        // Dates are still rendered in Jalali, not the Gregorian ISO string.
         $response->assertSee(Invoice::formatPersianDateTime($invoice->created_at), false);
         $response->assertDontSee($invoice->created_at->format('Y-m-d H:i'), false);
     }
@@ -486,24 +543,44 @@ class PaymentReceiptTest extends TestCase
         $response->assertSee(__('Register Payment Receipt'), false);
     }
 
-    public function test_receipt_screen_presents_dynamic_gallery_bank_account_payload(): void
+    public function test_receipt_screen_links_to_bank_details_on_the_invoice_page(): void
     {
+        // createAwaitingCardInvoice() activates the "Melli" destination account.
         [$customer, $invoice] = $this->createAwaitingCardInvoice();
-
-        BankAccount::factory()->active()->create([
-            'bank_name' => 'بانک تجارت',
-            'account_holder_name' => 'گالری ژونلا',
-            'card_number' => '5859831012345678',
-            'iban' => 'IR980180000000001234567890',
-        ]);
 
         $response = $this->actingAs($customer, 'customer')->get(route('client.invoice.receipt', $invoice));
 
         $response->assertOk();
-        $response->assertSee('بانک تجارت', false);
-        $response->assertSee('گالری ژونلا', false);
-        $response->assertSee('5859831012345678', false);
-        $response->assertSee('IR980180000000001234567890', false);
+
+        // The receipt screen deliberately does not duplicate the bank box; it
+        // links to the invoice page, which is where the deposit details live.
+        $response->assertSee(route('client.invoice', $invoice), false);
+        $response->assertDontSee('6037991111222233', false);
+        $response->assertDontSee('IR120170000000123456789001', false);
+
+        // ...and the destination account is still reachable from the invoice.
+        $this->actingAs($customer, 'customer')
+            ->get(route('client.invoice', $invoice))
+            ->assertSee('6037991111222233', false)
+            ->assertSee('IR120170000000123456789001', false);
+    }
+
+    public function test_receipt_screen_shows_the_offline_payment_deadline_and_live_countdown(): void
+    {
+        [$customer, $invoice] = $this->createAwaitingCardInvoice();
+
+        $response = $this->actingAs($customer, 'customer')->get(route('client.invoice.receipt', $invoice));
+
+        $response->assertOk();
+        $response->assertSee('data-deadline-at', false);
+
+        preg_match('/data-deadline-at="(\d+)"/', $response->getContent(), $matches);
+        $this->assertNotEmpty($matches, 'Receipt screen should render the countdown');
+        $this->assertSame(
+            $invoice->fresh()->offlinePaymentDeadline()->timestamp,
+            (int) $matches[1],
+            'Receipt screen countdown should carry the absolute deadline'
+        );
     }
 
     public function test_split_payment_submission_accepts_multiple_receipts_with_metadata(): void

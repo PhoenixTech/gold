@@ -201,6 +201,13 @@ class Invoice extends Model
 
     public function receiptsTotalAmount(): int
     {
+        // Reuse the eager-loaded relation when it is there; the admin order
+        // board and the printable invoice both load it, and querying per row
+        // turned into an N+1 across the whole page.
+        if ($this->relationLoaded('paymentReceipts')) {
+            return (int) $this->paymentReceipts->sum('amount');
+        }
+
         return (int) $this->paymentReceipts()->sum('amount');
     }
 
@@ -273,6 +280,35 @@ class Invoice extends Model
         $reason = $meta['decline_reason'] ?? null;
 
         return is_string($reason) && trim($reason) !== '' ? $reason : null;
+    }
+
+    /**
+     * Reason from an admin asking for a clearer receipt. This is NOT a decline:
+     * the invoice stays active and the reserved stock is untouched, so the
+     * customer view has to word it differently from declinedReceiptReason().
+     */
+    public function reuploadRequestedReason(): ?string
+    {
+        $meta = $this->meta ?? [];
+        $reason = $meta['reupload_reason'] ?? null;
+
+        return is_string($reason) && trim($reason) !== '' ? $reason : null;
+    }
+
+    public function reuploadRequestedAt(): ?Carbon
+    {
+        $meta = $this->meta ?? [];
+        $at = $meta['reupload_requested_at'] ?? null;
+
+        if (! is_string($at) || trim($at) === '') {
+            return null;
+        }
+
+        try {
+            return Carbon::parse($at);
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     /**

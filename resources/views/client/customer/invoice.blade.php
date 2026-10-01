@@ -14,7 +14,6 @@
     $offlineHours = \App\Models\Invoice::offlinePaymentHours();
     $offlineDeadline = $invoice->offlinePaymentDeadline();
     $offlineIsExpired = $invoice->isOfflinePaymentExpired();
-    $offlineRemaining = ($offlineDeadline && ! $offlineIsExpired) ? max(0, $offlineDeadline->timestamp - now()->timestamp) : 0;
     $showOfflinePaymentHint = $isOfflinePayment
         && ! in_array($invoice->status, [\App\Models\Invoice::FAILED, \App\Models\Invoice::CANCELED])
         && ! $offlineIsExpired;
@@ -73,7 +72,15 @@
                     </p>
                 @else
                     <div>{{ __('This invoice needs a payment receipt') }}</div>
-                    @if($invoice->declinedReceiptReason())
+                    @if($invoice->reuploadRequestedReason())
+                        <div class="alert alert-warning border border-warning-subtle rounded-3 p-2.5 my-2 fs-13 d-flex align-items-center gap-2">
+                            <i class="ri-refresh-line text-warning fs-5 flex-shrink-0"></i>
+                            <div>
+                                <div class="d-block text-dark">{{ __('We need a clearer receipt') }}</div>
+                                <span class="text-dark">{{ __('Reason:') }} {{ $invoice->reuploadRequestedReason() }}</span>
+                            </div>
+                        </div>
+                    @elseif($invoice->declinedReceiptReason())
                         <div class="alert alert-warning border border-warning-subtle rounded-3 p-2.5 my-2 fs-13 d-flex align-items-center gap-2">
                             <i class="ri-alert-line text-warning fs-5 flex-shrink-0"></i>
                             <div>
@@ -374,10 +381,7 @@
                     </strong>
                 </div>
                 @if($canUploadReceipts && $offlineDeadline && ! $offlineIsExpired)
-                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle font-fanum fs-11 d-inline-flex align-items-center gap-1">
-                        <i class="ri-timer-line"></i>
-                        <span data-deadline-countdown data-deadline="{{ $offlineRemaining }}" data-expired-text="{{ __('Expired') }}" dir="ltr">…</span>
-                    </span>
+                    @include('components.offline-countdown', ['invoice' => $invoice])
                 @endif
             </div>
 
@@ -522,31 +526,6 @@
 @once
     <script>
         (function () {
-            var els = document.querySelectorAll('[data-deadline-countdown]');
-            if (els.length) {
-                var pad = function (n) { return (n < 10 ? '0' : '') + n; };
-                var render = function (el, s) {
-                    var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
-                    el.textContent = (h > 0 ? pad(h) + ':' : '') + pad(m) + ':' + pad(sec);
-                };
-                els.forEach(function (el) {
-                    var total = parseInt(el.getAttribute('data-deadline'), 10) || 0;
-                    if (total <= 0) {
-                        el.textContent = el.getAttribute('data-expired-text') || '00:00';
-                        return;
-                    }
-                    render(el, total);
-                    var timer = setInterval(function () {
-                        total = Math.max(0, total - 1);
-                        render(el, total);
-                        if (total <= 0) {
-                            clearInterval(timer);
-                            el.textContent = el.getAttribute('data-expired-text') || '00:00';
-                        }
-                    }, 1000);
-                });
-            }
-
             document.querySelectorAll('[data-copy]').forEach(function (btn) {
                 btn.addEventListener('click', function () {
                     var val = btn.getAttribute('data-copy');

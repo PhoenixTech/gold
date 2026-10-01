@@ -159,9 +159,137 @@ class AdminInvoiceShowTest extends TestCase
         $response = $this->get(route('admin.invoice.print', $invoice->hash));
 
         $response->assertOk();
-        $response->assertViewIs('admin.invoices.invoice-show');
+        $response->assertViewIs('admin.invoices.invoice-print');
         $response->assertSee('window.print()', false);
         $response->assertSee($invoice->hash);
+    }
+
+    public function test_print_layout_is_a_standalone_document_without_the_admin_chrome(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        $this->actingAsAdmin();
+
+        $invoice = $this->createSampleInvoice();
+
+        $response = $this->get(route('admin.invoice.print', $invoice->hash));
+
+        $response->assertOk();
+        // A standalone document declares its own DOCTYPE and never renders the
+        // admin shell, so printing cannot depend on an ID-based @media print
+        // hide-list staying in sync with the panel markup.
+        $this->assertStringStartsWith('<!DOCTYPE html>', $response->getContent());
+        $response->assertDontSee('id="panel-top-navbar"', false);
+        $response->assertDontSee('id="sidebar-panel"', false);
+        $response->assertDontSee('<aside', false);
+
+        // Print sizing must be declared on the document itself.
+        $response->assertSee('@page', false);
+        $response->assertSee('size: A4 portrait', false);
+
+        // The 4-point approval modal belongs on the screen view, not the paper.
+        $response->assertDontSee('id="confirmPaymentModal"', false);
+    }
+
+    public function test_print_layout_waits_for_assets_before_automatically_printing(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        $this->actingAsAdmin();
+
+        $invoice = $this->createSampleInvoice();
+
+        $content = $this->get(route('admin.invoice.print', $invoice->hash))->getContent();
+
+        // A fixed setTimeout printed before the logo, QR and product
+        // thumbnails had painted, producing truncated printouts.
+        $this->assertStringNotContainsString('setTimeout(window.print()', $content);
+        $this->assertStringContainsString("window.addEventListener('load'", $content);
+        $this->assertStringContainsString('document.fonts.ready', $content);
+    }
+
+    public function test_print_layout_names_the_third_party_recipient_for_gift_orders(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        $this->actingAsAdmin();
+
+        $invoice = $this->createSampleInvoice();
+        $invoice->is_third_party = true;
+        $invoice->recipient_name = 'Maryam Gift';
+        $invoice->recipient_mobile = '09121234567';
+        $invoice->recipient_national_id = '0012345678';
+        $invoice->save();
+
+        $response = $this->get(route('admin.invoice.print', $invoice->fresh()->hash));
+
+        $response->assertOk();
+        $response->assertSee(__('Recipient (gift order)'));
+        $response->assertSee('Maryam Gift');
+        $response->assertSee('09121234567');
+        $response->assertSee('0012345678');
+    }
+
+    public function test_print_layout_shows_offline_payment_evidence(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        $this->actingAsAdmin();
+
+        $invoice = $this->createSampleInvoice();
+
+        $payment = new Payment;
+        $payment->invoice_id = $invoice->id;
+        $payment->type = 'CARD';
+        $payment->status = Payment::SUCCESS;
+        $payment->amount = $invoice->total_price;
+        $payment->order_id = 'CARD-'.$invoice->hash;
+        $payment->reference_id = 'REF-PRINT-1';
+        $payment->meta = [
+            'confirmed_at' => now()->toDateTimeString(),
+            'confirmed_by_name' => 'Manager',
+            'bank_account_name' => 'Melli Destination',
+        ];
+        $payment->save();
+
+        PaymentReceipt::create([
+            'payment_id' => $payment->id,
+            'invoice_id' => $invoice->id,
+            'path' => 'receipts/print.png',
+            'original_name' => 'print.png',
+            'mime' => 'image/png',
+            'size' => 100,
+            'amount' => $invoice->total_price,
+        ]);
+
+        $response = $this->get(route('admin.invoice.print', $invoice->fresh()->hash));
+
+        $response->assertOk();
+        $response->assertSee(__('Card to card'));
+        $response->assertSee(__('Paid in full'));
+        $response->assertSee(__('Receipts uploaded'));
+        $response->assertSee(__('Received via receipts'));
+        $response->assertSee(__('Remaining balance'));
+        $response->assertSee('Melli Destination');
+        $response->assertSee('Manager');
+        $response->assertSee('REF-PRINT-1');
+    }
+
+    public function test_print_layout_labels_customer_credit_as_credit_not_discount(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        $this->actingAsAdmin();
+
+        $invoice = $this->createSampleInvoice();
+        $invoice->credit_price = 250000;
+        $invoice->save();
+
+        $response = $this->get(route('admin.invoice.print', $invoice->fresh()->hash));
+
+        $response->assertOk();
+        $response->assertSee(__('Customer credit used'));
+        $response->assertDontSee(__('Discount amount'));
     }
 
     public function test_invoice_show_displays_confirm_payment_button_when_waiting_confirmation(): void

@@ -193,6 +193,20 @@
         white-space: nowrap;
     }
 
+    // Steps 1 and 2 both wait on the customer paying, so the current step can
+    // be "nothing for the admin to do yet". That needs to read differently
+    // from an actionable current step.
+    &__hint {
+        font-size: .68rem;
+        font-weight: 500;
+        color: #b08900;
+        background: #fdf6e3;
+        border: 1px solid rgba(219, 154, 0, .28);
+        border-radius: 999px;
+        padding: .1rem .45rem;
+        white-space: nowrap;
+    }
+
     &__item.is-done {
         color: var(--invoice-gold);
 
@@ -211,6 +225,17 @@
             border-color: var(--invoice-gold);
             color: var(--invoice-gold);
             box-shadow: 0 0 0 3px rgba(219, 154, 0, .15);
+        }
+    }
+
+    &__item.is-waiting:not(.is-done) {
+        color: #8a6d1a;
+
+        .invoice-stepper__dot {
+            background: #fdf6e3;
+            border-color: rgba(219, 154, 0, .45);
+            color: #8a6d1a;
+            box-shadow: none;
         }
     }
 }

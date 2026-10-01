@@ -5,7 +5,7 @@
 @endsection
 
 @section('content')
-<div class="container-fluid px-0 mb-5">
+<div class="container-fluid px-2 px-md-0 mb-5">
     {{-- Header --}}
     <header class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
         <div>
@@ -34,20 +34,20 @@
         <div class="card-body p-3">
             <form method="GET" action="{{ route('admin.order-board.index') }}" class="row g-2 align-items-center">
                 <div class="col-12 col-md-auto">
-                    <div class="d-flex align-items-center gap-3 fs-14">
-                        <a href="{{ route('admin.order-board.index', array_merge(request()->except('scope'), ['scope' => 'active'])) }}" 
+                    <div class="d-flex align-items-center flex-wrap gap-3 fs-14">
+                        <a href="{{ route('admin.order-board.index', array_merge(request()->except('scope'), ['scope' => 'active'])) }}"
                            class="text-decoration-none fw-semibold {{ $scope === 'active' ? 'text-primary' : 'text-muted' }}">
                             <i class="ri-fire-line me-1"></i>{{ __('Active orders') }}
                             <span class="badge {{ $scope === 'active' ? 'bg-primary-subtle text-primary border border-primary-subtle' : 'bg-secondary-subtle text-secondary border border-secondary-subtle' }} ms-1 rounded-pill" title="{{ __('Active orders count') }}">{{ number_format($activeCount) }}</span>
                         </a>
-                        <span class="text-muted opacity-25">|</span>
-                        <a href="{{ route('admin.order-board.index', array_merge(request()->except('scope'), ['scope' => 'completed'])) }}" 
+                        <span class="text-muted opacity-25 d-none d-sm-inline">|</span>
+                        <a href="{{ route('admin.order-board.index', array_merge(request()->except('scope'), ['scope' => 'completed'])) }}"
                            class="text-decoration-none fw-semibold {{ $scope === 'completed' ? 'text-primary' : 'text-muted' }}">
                             <i class="ri-check-double-line me-1"></i>{{ __('Completed orders') }}
                             <span class="badge {{ $scope === 'completed' ? 'bg-primary-subtle text-primary border border-primary-subtle' : 'bg-secondary-subtle text-secondary border border-secondary-subtle' }} ms-1 rounded-pill" title="{{ __('Completed orders count') }}">{{ number_format($completedCount) }}</span>
                         </a>
-                        <span class="text-muted opacity-25">|</span>
-                        <a href="{{ route('admin.order-board.index', array_merge(request()->except('scope'), ['scope' => 'all'])) }}" 
+                        <span class="text-muted opacity-25 d-none d-sm-inline">|</span>
+                        <a href="{{ route('admin.order-board.index', array_merge(request()->except('scope'), ['scope' => 'all'])) }}"
                            class="text-decoration-none fw-semibold {{ $scope === 'all' ? 'text-primary' : 'text-muted' }}">
                             {{ __('All orders') }}
                             <span class="badge {{ $scope === 'all' ? 'bg-primary-subtle text-primary border border-primary-subtle' : 'bg-secondary-subtle text-secondary border border-secondary-subtle' }} ms-1 rounded-pill" title="{{ __('All orders count') }}">{{ number_format($allCount) }}</span>
@@ -64,11 +64,16 @@
                 </div>
 
                 <div class="col-auto d-flex align-items-center gap-1">
+                    <select name="per_page" class="form-select form-select-sm w-auto" title="{{ __('Rows per page') }}" aria-label="{{ __('Rows per page') }}">
+                        @foreach([25, 50, 100, 200] as $size)
+                            <option value="{{ $size }}" @selected($perPage === $size)>{{ $size }}</option>
+                        @endforeach
+                    </select>
                     <button type="submit" class="btn btn-sm btn-primary">
                         <i class="ri-filter-3-line me-1"></i>{{ __('Filter') }}
                     </button>
                     @if($search)
-                        <a href="{{ route('admin.order-board.index', ['scope' => $scope]) }}" class="btn btn-sm btn-outline-secondary" title="{{ __('Clear filters') }}">
+                        <a href="{{ route('admin.order-board.index', ['scope' => $scope, 'per_page' => $perPage]) }}" class="btn btn-sm btn-outline-secondary" title="{{ __('Clear filters') }}">
                             <i class="ri-refresh-line"></i>
                         </a>
                     @endif
@@ -80,42 +85,42 @@
     {{-- Order Board Table --}}
     <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0 text-center" id="orderBoardTable">
+            <table class="table table-hover align-middle mb-0 text-center order-board-table" id="orderBoardTable">
+                <caption class="visually-hidden">{{ __('Order board') }}</caption>
                 <thead class="table-light border-bottom">
                     <tr class="fs-13 text-dark align-middle">
-                        <th style="width: 60px;" class="py-3 cursor-pointer sort-header" data-sort="row">
-                            <span class="d-inline-flex align-items-center gap-1">{{ __('#') }}<i class="ri-arrow-up-down-line text-muted fs-11"></i></span>
+                        <th style="width: 60px;" class="py-3">
+                            <span class="d-inline-flex align-items-center gap-1">{{ __('#') }}</span>
                         </th>
                         <th style="min-width: 130px;" class="py-3 text-start" title="{{ __('Click phone icon in any row to expand details') }}">
                             <span class="d-inline-flex align-items-center gap-1">{{ __('Customer') }}<i class="ri-phone-line text-muted fs-14"></i></span>
                         </th>
-                        <th style="min-width: 120px;" class="py-3">{{ __('Area / fulfillment') }}</th>
-                        <th style="min-width: 150px;" class="py-3 cursor-pointer sort-header" data-sort="date">
+                        <th class="py-3 d-none d-xl-table-cell">{{ __('Area / fulfillment') }}</th>
+                        <th style="min-width: 150px;" class="py-3 cursor-pointer sort-header" data-sort="date" aria-sort="none">
                             <span class="d-inline-flex align-items-center gap-1">{{ __('Order & Date') }}<i class="ri-arrow-up-down-line text-muted fs-11"></i></span>
                         </th>
-                        <th style="min-width: 120px;" class="py-3 cursor-pointer sort-header" data-sort="payment" title="{{ __('Click to prioritize unpaid orders') }}">
+                        <th style="min-width: 120px;" class="py-3 cursor-pointer sort-header" data-sort="payment" aria-sort="none" title="{{ __('Click to prioritize unpaid orders') }}">
                             <span class="d-inline-flex align-items-center gap-1">{{ __('Payment') }}<i class="ri-arrow-up-down-line text-muted fs-11"></i></span>
                         </th>
-                        <th style="min-width: 130px;" class="py-3 cursor-pointer sort-header" data-sort="confirm" title="{{ __('Click to prioritize pending confirmation') }}">
+                        <th style="min-width: 130px;" class="py-3 cursor-pointer sort-header" data-sort="confirm" aria-sort="none" title="{{ __('Click to prioritize pending confirmation') }}">
                             <span class="d-inline-flex align-items-center gap-1">{{ __('Payment confirmation') }}<i class="ri-arrow-up-down-line text-muted fs-11"></i></span>
                         </th>
-                        <th style="min-width: 120px;" class="py-3 cursor-pointer sort-header" data-sort="settle" title="{{ __('Click to prioritize unsettled orders') }}">
+                        <th style="min-width: 120px;" class="py-3 cursor-pointer sort-header" data-sort="settle" aria-sort="none" title="{{ __('Click to prioritize unsettled orders') }}">
                             <span class="d-inline-flex align-items-center gap-1">{{ __('Settlement') }}<i class="ri-arrow-up-down-line text-muted fs-11"></i></span>
                         </th>
-                        <th style="min-width: 130px;" class="py-3 cursor-pointer sort-header" data-sort="courier" title="{{ __('Click to prioritize fulfillment') }}">
+                        <th style="min-width: 130px;" class="py-3 cursor-pointer sort-header" data-sort="courier" aria-sort="none" title="{{ __('Click to prioritize fulfillment') }}">
                             <span class="d-inline-flex align-items-center gap-1">{{ __('Fulfillment') }}<i class="ri-arrow-up-down-line text-muted fs-11"></i></span>
                         </th>
-                        <th style="min-width: 145px;" class="py-3 cursor-pointer sort-header" data-sort="delivery" title="{{ __('Click to prioritize pending handover') }}">
+                        <th style="min-width: 145px;" class="py-3 cursor-pointer sort-header" data-sort="delivery" aria-sort="none" title="{{ __('Click to prioritize pending handover') }}">
                             <span class="d-inline-flex align-items-center gap-1">{{ __('Delivery / collection') }}<i class="ri-arrow-up-down-line text-muted fs-11"></i></span>
                         </th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($orders as $order)
-                        <tr class="order-main-row" 
+                        <tr class="order-main-row"
                             id="order-row-{{ $order['id'] }}"
-                            data-row="{{ $order['index'] }}"
-                            data-date="{{ $order['id'] }}"
+                            data-date="{{ $order['sortable_date'] }}"
                             data-payment="{{ $order['stages']['payment']['done'] ? 1 : 0 }}"
                             data-confirm="{{ $order['stages']['confirm']['done'] ? 1 : 0 }}"
                             data-settle="{{ $order['stages']['settle']['done'] ? 1 : 0 }}"
@@ -123,23 +128,28 @@
                             data-delivery="{{ $order['stages']['delivery']['done'] ? 1 : 0 }}"
                         >
                             {{-- 1. Row # --}}
-                            <td class="fw-bold font-monospace text-muted fs-13">{{ $order['index'] }}</td>
+                            <td class="fw-bold font-monospace text-muted fs-13">{{ $loop->iteration }}</td>
 
                             {{-- 2. Phone Toggle Button --}}
                             <td class="text-start">
                                 <div class="d-inline-flex align-items-center gap-1.5">
                                     <button type="button" class="btn btn-sm btn-light border border-secondary-subtle text-primary p-1 rounded phone-toggle-btn flex-shrink-0"
-                                            data-target="#subrow-{{ $order['id'] }}" data-stage="contact" title="{{ __('View phone and address') }}">
+                                            data-target="#subrow-{{ $order['id'] }}" data-stage="contact"
+                                            aria-expanded="false" aria-controls="subrow-{{ $order['id'] }}"
+                                            title="{{ __('View phone and address') }}">
                                         <i class="ri-phone-line fs-14"></i>
                                     </button>
-                                    <span class="fs-13 fw-semibold text-dark text-truncate" style="max-width: 150px;" title="{{ $order['customer_name'] }}">
-                                        {{ $order['customer_name'] }}
+                                    <span class="fs-13 fw-semibold text-dark text-truncate" style="max-width: 150px;" title="{{ $order['contact_name'] }}">
+                                        {{ $order['contact_name'] }}
+                                        @if($order['is_third_party'])
+                                            <i class="ri-gift-line text-primary fs-11" title="{{ __('Gift order — shipped to a third party') }}"></i>
+                                        @endif
                                     </span>
                                 </div>
                             </td>
 
-                            {{-- 3. Province --}}
-                            <td class="fs-13 fw-semibold text-dark">{{ $order['province'] }}</td>
+                            {{-- 3. Province (wide screens only) --}}
+                            <td class="fs-13 fw-semibold text-dark d-none d-xl-table-cell">{{ $order['province'] }}</td>
 
                             {{-- 4. Order Code & Date --}}
                             <td class="text-start px-3">
@@ -156,34 +166,46 @@
 
                             {{-- 5-9. Workflow Stages Loop (click to expand stage details) --}}
                             @foreach(['payment', 'confirm', 'settle', 'courier', 'delivery'] as $key)
-                                @php $stage = $order['stages'][$key]; @endphp
+                                @php
+                                    $stage = $order['stages'][$key];
+                                    $stageState = $stage['state'] ?? ($stage['done'] ? 'done' : 'pending');
+                                    $stageBadge = match ($stageState) {
+                                        'done' => 'bg-success-subtle text-success border border-success-subtle',
+                                        'awaiting' => 'bg-primary-subtle text-primary border border-primary-subtle',
+                                        'short' => 'bg-warning-subtle text-warning-emphasis border border-warning-subtle',
+                                        'closed' => 'bg-secondary-subtle text-secondary border border-secondary-subtle',
+                                        default => 'bg-warning-subtle text-warning-emphasis border border-warning-subtle',
+                                    };
+                                @endphp
                                 <td>
                                     <button type="button"
                                             class="stage-toggle-btn w-100 border-0 p-0 bg-transparent"
                                             data-target="#subrow-{{ $order['id'] }}"
                                             data-stage="{{ $key }}"
+                                            aria-expanded="false" aria-controls="subrow-{{ $order['id'] }}"
                                             title="{{ $stage['title'] }}">
-                                        <span class="badge {{ $stage['done'] ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-warning-subtle text-warning-emphasis border border-warning-subtle' }} p-2 fs-12 w-100 d-inline-flex align-items-center justify-content-center gap-1">
+                                        <span class="badge {{ $stageBadge }} p-2 fs-12 w-100 d-inline-flex align-items-center justify-content-center gap-1">
                                             @php
-                                                $stageIcon = 'ri-time-fill';
-                                                if ($stage['done']) {
-                                                    if ($key === 'delivery') {
-                                                        $stageIcon = 'ri-check-double-fill';
-                                                    } elseif ($key === 'courier') {
-                                                        if ($order['is_pickup']) {
-                                                            $stageIcon = 'ri-store-2-fill';
-                                                        } elseif ($order['is_motorcycle']) {
-                                                            $stageIcon = 'ri-motorbike-fill';
-                                                        } else {
-                                                            $stageIcon = 'ri-truck-fill';
-                                                        }
+                                                $stageIcon = match ($stageState) {
+                                                    'done' => 'ri-checkbox-circle-fill',
+                                                    'awaiting' => 'ri-file-list-3-fill',
+                                                    'short' => 'ri-error-warning-line',
+                                                    'closed' => 'ri-close-circle-fill',
+                                                    default => 'ri-time-fill',
+                                                };
+                                                if ($stage['done'] && $key === 'delivery') {
+                                                    $stageIcon = 'ri-check-double-fill';
+                                                }
+                                                if ($stage['done'] && $key === 'courier') {
+                                                    if ($order['is_pickup']) {
+                                                        $stageIcon = 'ri-store-2-fill';
+                                                    } elseif ($order['is_motorcycle']) {
+                                                        $stageIcon = 'ri-motorbike-fill';
+                                                    } elseif ($order['is_postal']) {
+                                                        $stageIcon = 'ri-mail-box-fill';
                                                     } else {
-                                                        $stageIcon = 'ri-checkbox-circle-fill';
+                                                        $stageIcon = 'ri-truck-fill';
                                                     }
-                                                } elseif ($key === 'courier' && $order['is_pickup']) {
-                                                    $stageIcon = 'ri-store-2-line';
-                                                } elseif ($key === 'courier' && $order['is_motorcycle']) {
-                                                    $stageIcon = 'ri-motorbike-line';
                                                 }
                                             @endphp
                                             <i class="{{ $stageIcon }}"></i>
@@ -205,11 +227,19 @@
                                             <div>
                                                 <span class="text-muted fs-12 d-block">{{ __('Customer name') }}</span>
                                                 <strong class="text-dark fs-14">{{ $order['customer_name'] }}</strong>
+                                                <small class="text-muted font-monospace fs-11 d-block">{{ $order['customer_code'] }}</small>
                                             </div>
+                                            @if($order['is_third_party'])
+                                                <div>
+                                                    <span class="text-muted fs-12 d-block">{{ __('Recipient (gift order)') }}</span>
+                                                    <strong class="text-dark fs-13">{{ $order['recipient_name'] ?: '—' }}</strong>
+                                                    <a href="tel:{{ $order['recipient_mobile'] }}" class="font-monospace fs-12 text-primary text-decoration-none d-block" dir="ltr">{{ $order['recipient_mobile'] ?: '—' }}</a>
+                                                </div>
+                                            @endif
                                             <div>
                                                 <span class="text-muted fs-12 d-block">{{ __('Phone number') }}</span>
-                                                <a href="tel:{{ $order['customer_mobile'] }}" class="fw-bold font-monospace text-primary text-decoration-none fs-14 d-inline-flex align-items-center gap-1">
-                                                    <i class="ri-phone-fill"></i>{{ $order['customer_mobile'] }}
+                                                <a href="tel:{{ $order['contact_mobile'] }}" class="fw-bold font-monospace text-primary text-decoration-none fs-14 d-inline-flex align-items-center gap-1" dir="ltr">
+                                                    <i class="ri-phone-fill"></i>{{ $order['contact_mobile'] }}
                                                 </a>
                                             </div>
                                             <div>
@@ -225,16 +255,21 @@
                                                 <strong class="text-dark font-monospace fs-14">{{ number_format($order['total_price']) }} <small class="text-muted">{{ config('app.currency.symbol') }}</small></strong>
                                             </div>
                                         </div>
-                                        <div class="d-flex align-items-center gap-1">
+                                        <div class="d-flex align-items-center gap-1 flex-wrap">
                                             <a href="{{ route('admin.invoice.show', $order['hash']) }}" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
                                                 <i class="ri-eye-line"></i>{{ __('View invoice') }}
                                             </a>
                                             <a href="{{ route('admin.invoice.edit', $order['hash']) }}" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
                                                 <i class="ri-edit-2-line"></i>{{ __('Edit') }}
                                             </a>
+                                            @if(! $order['is_pickup'])
+                                                <a href="{{ route('admin.invoice.shipping-label', $order['hash']) }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
+                                                    <i class="ri-printer-line"></i>{{ __('Shipping label') }}
+                                                </a>
+                                            @endif
                                             @if($order['invoice']->canPrint())
-                                                <a href="{{ route('admin.invoice.print', $order['hash']) }}" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" target="_blank">
-                                                    <i class="ri-printer-line"></i>{{ __('Print') }}
+                                                <a href="{{ route('admin.invoice.print', $order['hash']) }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
+                                                    <i class="ri-file-text-line"></i>{{ __('Print') }}
                                                 </a>
                                             @endif
                                         </div>
@@ -256,7 +291,7 @@
                                         @if($d['receipts']->isNotEmpty())
                                             <div class="d-flex flex-wrap gap-3">
                                                 @foreach($d['receipts'] as $r)
-                                                    <a href="{{ $r['url'] }}" target="_blank" class="d-flex align-items-center gap-2 text-decoration-none p-2 rounded-3 border border-secondary-subtle bg-light" title="{{ __('Open receipt') }}">
+                                                    <a href="{{ $r['url'] }}" target="_blank" rel="noopener noreferrer" class="d-flex align-items-center gap-2 text-decoration-none p-2 rounded-3 border border-secondary-subtle bg-light" title="{{ __('Open receipt') }}">
                                                         @if($r['is_image'])
                                                             <img src="{{ $r['url'] }}" alt="{{ $r['name'] }}" class="rounded border bg-white" style="width: 56px; height: 56px; object-fit: cover;">
                                                         @else
@@ -317,7 +352,7 @@
                                                 </div>
                                             @endif
                                             @if($d['receipt'])
-                                                <a href="{{ $d['receipt']['url'] }}" target="_blank" class="d-flex align-items-center gap-2 text-decoration-none p-2 rounded-3 border border-secondary-subtle bg-light" title="{{ __('Open receipt') }}">
+                                                <a href="{{ $d['receipt']['url'] }}" target="_blank" rel="noopener noreferrer" class="d-flex align-items-center gap-2 text-decoration-none p-2 rounded-3 border border-secondary-subtle bg-light" title="{{ __('Open receipt') }}">
                                                     @if($d['receipt']['is_image'])
                                                         <img src="{{ $d['receipt']['url'] }}" alt="{{ $d['receipt']['name'] }}" class="rounded border bg-white" style="width: 48px; height: 48px; object-fit: cover;">
                                                     @else
@@ -340,7 +375,7 @@
                                     </div>
                                 </div>
 
-                                {{-- Settle card --}}
+                                {{-- Settle card: the money check --}}
                                 @php $d = $order['details']['settle']; @endphp
                                 <div class="subcard d-none" data-subcard="settle">
                                     <div class="bg-white p-3 rounded-3 border border-secondary-subtle shadow-sm">
@@ -348,18 +383,33 @@
                                             <i class="ri-scales-3-line text-primary fs-5"></i>
                                             <strong class="text-dark fs-14">{{ __('Settlement') }}</strong>
                                         </div>
-                                        <div class="d-flex align-items-start gap-4 flex-wrap">
-                                            <div>
-                                                <span class="text-muted fs-12 d-block">{{ __('Settled at') }}</span>
-                                                <strong class="text-dark fs-13 font-monospace">{{ $d['settled_at'] ?? '—' }}</strong>
+                                        <div class="row g-3 text-center">
+                                            <div class="col-md-4">
+                                                <span class="text-muted fs-12 d-block">{{ __('Invoice total') }}</span>
+                                                <strong class="text-dark fs-14 font-fanum">{{ number_format($d['invoice_total']) }} {{ config('app.currency.symbol') }}</strong>
                                             </div>
-                                            <div>
-                                                <span class="text-muted fs-12 d-block">{{ __('Confirmed by') }}</span>
-                                                <strong class="text-dark fs-13">{{ $d['confirmed_by'] ?? '—' }}</strong>
+                                            <div class="col-md-4">
+                                                <span class="text-muted fs-12 d-block">{{ __('Received via receipts') }}</span>
+                                                <strong class="text-success fs-14 font-fanum">{{ number_format($d['received']) }} {{ config('app.currency.symbol') }}</strong>
                                             </div>
-                                            @if(!$d['done'])
-                                                <div class="text-muted fs-13 d-flex align-items-center gap-2">
-                                                    <i class="ri-time-line"></i>{{ __('Unsettled balance') }}
+                                            <div class="col-md-4">
+                                                <span class="text-muted fs-12 d-block">{{ __('Remaining balance') }}</span>
+                                                <strong class="fs-14 font-fanum {{ $d['remaining'] === 0 ? 'text-success' : 'text-danger' }}">{{ number_format($d['remaining']) }} {{ config('app.currency.symbol') }}</strong>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-start gap-4 flex-wrap mt-3 pt-3 border-top">
+                                            @if($d['settled_at'])
+                                                <div>
+                                                    <span class="text-muted fs-12 d-block">{{ __('Settled at') }}</span>
+                                                    <strong class="text-dark fs-13 font-monospace">{{ $d['settled_at'] }}</strong>
+                                                </div>
+                                                <div>
+                                                    <span class="text-muted fs-12 d-block">{{ __('Confirmed by') }}</span>
+                                                    <strong class="text-dark fs-13">{{ $d['confirmed_by'] ?? '—' }}</strong>
+                                                </div>
+                                            @else
+                                                <div class="text-{{ $d['remaining'] > 0 ? 'danger' : 'muted' }} fs-13 d-flex align-items-center gap-2">
+                                                    <i class="ri-{{ $d['remaining'] > 0 ? 'error-warning-line' : 'time-line' }}"></i>{{ $d['remaining'] > 0 ? __('The uploaded receipts do not cover the invoice total.') : __('No payment receipt has been uploaded yet.') }}
                                                 </div>
                                             @endif
                                         </div>
@@ -367,17 +417,24 @@
                                 </div>
 
                                 {{-- Courier card --}}
-                                @php $d = $order['details']['courier']; $isPickup = $order['invoice']->isPickup(); @endphp
+                                @php $d = $order['details']['courier']; @endphp
                                 <div class="subcard d-none" data-subcard="courier">
                                     <div class="bg-white p-3 rounded-3 border border-secondary-subtle shadow-sm">
                                         <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
-                                            <i class="{{ $isPickup ? 'ri-store-2-line' : 'ri-truck-line' }} text-primary fs-5"></i>
-                                            <strong class="text-dark fs-14">{{ $isPickup ? __('In-person gallery pickup') : __('Courier') }}</strong>
+                                            <i class="{{ $order['is_pickup'] ? 'ri-store-2-line' : ($order['is_postal'] ? 'ri-mail-box-line' : 'ri-truck-line') }} text-primary fs-5"></i>
+                                            <strong class="text-dark fs-14">
+                                                {{ $order['is_pickup'] ? __('In-person gallery pickup') : ($order['is_postal'] ? __('Postal service') : __('Courier')) }}
+                                            </strong>
                                         </div>
-                                        @if($isPickup)
+                                        @if($order['is_pickup'])
                                             <div class="alert alert-info border border-info-subtle rounded-3 p-2.5 mb-0 d-flex align-items-center gap-2 fs-13">
                                                 <i class="ri-information-line fs-5 text-primary"></i>
                                                 <span>{{ __('This is a store pickup order. No courier assignment is required.') }} <span class="fw-semibold">{{ $order['pickup_location'] }}</span></span>
+                                            </div>
+                                        @elseif($order['is_postal'])
+                                            <div class="alert alert-secondary border rounded-3 p-2.5 mb-0 d-flex align-items-center gap-2 fs-13">
+                                                <i class="ri-mail-box-line fs-5 text-secondary"></i>
+                                                <span>{{ __('This order ships via the postal service and needs no courier or delivery PIN.') }}</span>
                                             </div>
                                         @elseif($d)
                                             <div class="d-flex align-items-start gap-4 flex-wrap">
@@ -417,11 +474,11 @@
                                 <div class="subcard d-none" data-subcard="delivery">
                                     <div class="bg-white p-3 rounded-3 border border-secondary-subtle shadow-sm">
                                         <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
-                                            <i class="{{ $isPickup ? 'ri-store-2-line' : 'ri-home-smile-line' }} text-primary fs-5"></i>
-                                            <strong class="text-dark fs-14">{{ $isPickup ? __('Customer collection') : __('Delivered to customer') }}</strong>
+                                            <i class="{{ $order['is_pickup'] ? 'ri-store-2-line' : 'ri-home-smile-line' }} text-primary fs-5"></i>
+                                            <strong class="text-dark fs-14">{{ $order['is_pickup'] ? __('Customer collection') : __('Delivered to customer') }}</strong>
                                         </div>
                                         <div class="d-flex align-items-start gap-4 flex-wrap">
-                                            @if(!$isPickup)
+                                            @if(!$order['is_pickup'])
                                                 <div>
                                                     <span class="text-muted fs-12 d-block">{{ __('Delivered at') }}</span>
                                                     <strong class="text-dark fs-13 font-monospace">{{ $d['delivered_at'] ?? '—' }}</strong>
@@ -429,9 +486,9 @@
                                             @endif
                                             @if(!$d['done'])
                                                 <div class="text-muted fs-13 d-flex align-items-center gap-2">
-                                                    <i class="ri-time-line"></i>{{ $isPickup ? ($order['stages']['courier']['done'] ? __('Waiting for the customer to collect the order.') : __('The order is still being prepared for pickup.')) : __('Not delivered yet.') }}
+                                                    <i class="ri-time-line"></i>{{ $order['is_pickup'] ? ($order['stages']['courier']['done'] ? __('Waiting for the customer to collect the order.') : __('The order is still being prepared for pickup.')) : __('Not delivered yet.') }}
                                                 </div>
-                                            @elseif($isPickup)
+                                            @elseif($order['is_pickup'])
                                                 <div class="text-success fs-13 d-flex align-items-center gap-2">
                                                     <i class="ri-checkbox-circle-line"></i>{{ __('The customer collected the order from the store.') }}
                                                 </div>
@@ -446,17 +503,41 @@
                         <tr>
                             <td colspan="9" class="py-5 text-center text-muted">
                                 <i class="ri-inbox-line fs-1 text-muted opacity-50 d-block mb-2"></i>
-                                <span class="fs-14 fw-semibold">{{ __('No orders found matching the criteria.') }}</span>
+                                <span class="fs-14 fw-semibold d-block">{{ $search ? __('No orders match your search.') : __('No orders found in this scope.') }}</span>
+                                @if($search)
+                                    <a href="{{ route('admin.order-board.index', ['scope' => $scope, 'per_page' => $perPage]) }}" class="btn btn-sm btn-outline-secondary mt-3">
+                                        <i class="ri-refresh-line me-1"></i>{{ __('Clear search') }}
+                                    </a>
+                                @endif
                             </td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
+
+        @if($orders->hasPages())
+            <div class="card-footer bg-white border-top-0 d-flex align-items-center justify-content-between flex-wrap gap-2 px-3 py-3">
+                <span class="text-muted fs-12">
+                    {{ __('Showing :from to :to of :total', [
+                        'from' => number_format($orders->firstItem() ?? 0),
+                        'to' => number_format($orders->lastItem() ?? 0),
+                        'total' => number_format($orders->total()),
+                    ]) }}
+                </span>
+                {{ $orders->links() }}
+            </div>
+        @endif
     </div>
 </div>
 
 <style>
+    .order-board-table thead th {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        background-color: var(--bs-table-bg, #f8f9fa);
+    }
     .stage-toggle-btn { cursor: pointer; }
     .stage-toggle-btn .badge { transition: box-shadow .15s ease; }
     .stage-toggle-btn.stage-active .badge { box-shadow: 0 0 0 2px var(--bs-primary-bg-subtle); }
@@ -468,11 +549,11 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.phone-toggle-btn, .stage-toggle-btn').forEach(function (btn) {
         btn.addEventListener('click', function (e) {
             e.preventDefault();
-            const subrow = document.querySelector(this.getAttribute('data-target'));
+            var subrow = document.querySelector(this.getAttribute('data-target'));
             if (!subrow) return;
-            const stage = this.getAttribute('data-stage') || 'contact';
-            const activeCard = subrow.querySelector('.subcard[data-subcard="' + stage + '"]');
-            const activeIsVisible = activeCard && !activeCard.classList.contains('d-none') && !subrow.classList.contains('d-none');
+            var stage = this.getAttribute('data-stage') || 'contact';
+            var activeCard = subrow.querySelector('.subcard[data-subcard="' + stage + '"]');
+            var activeIsVisible = activeCard && !activeCard.classList.contains('d-none') && !subrow.classList.contains('d-none');
 
             // hide row + all cards first
             subrow.classList.add('d-none');
@@ -483,6 +564,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // reset active styling on all triggers of this row
             document.querySelectorAll('[data-target="#' + subrow.id + '"]').forEach(function (b) {
                 b.classList.remove('stage-active');
+                b.setAttribute('aria-expanded', 'false');
                 if (b.classList.contains('phone-toggle-btn')) {
                     b.classList.add('btn-light', 'text-primary');
                     b.classList.remove('btn-primary', 'text-white');
@@ -497,6 +579,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // highlight active trigger
             this.classList.add('stage-active');
+            this.setAttribute('aria-expanded', 'true');
             if (this.classList.contains('phone-toggle-btn')) {
                 this.classList.remove('btn-light', 'text-primary');
                 this.classList.add('btn-primary', 'text-white');
@@ -504,7 +587,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // 2. Urgent-first client sort (orange/0 first)
+    // 2. Urgent-first client sort. Operates on the current page only; server
+    //    side pagination handles cross-page ordering.
     let currentKey = '';
     let currentDir = 'asc';
 
@@ -515,13 +599,18 @@ document.addEventListener('DOMContentLoaded', function () {
             currentDir = (currentKey === key && currentDir === 'asc') ? 'desc' : 'asc';
             currentKey = key;
 
+            document.querySelectorAll('.sort-header').forEach(function (other) {
+                other.setAttribute('aria-sort', 'none');
+            });
+            this.setAttribute('aria-sort', currentDir === 'asc' ? 'ascending' : 'descending');
+
             const tbody = document.querySelector('#orderBoardTable tbody');
             const rows = Array.from(tbody.querySelectorAll('tr.order-main-row'));
 
             rows.sort(function (a, b) {
                 let vA = a.getAttribute('data-' + key) ?? '';
                 let vB = b.getAttribute('data-' + key) ?? '';
-                return !isNaN(vA) && !isNaN(vB) 
+                return !isNaN(vA) && !isNaN(vB)
                     ? (currentDir === 'asc' ? vA - vB : vB - vA)
                     : (currentDir === 'asc' ? vA.localeCompare(vB) : vB.localeCompare(vA));
             });

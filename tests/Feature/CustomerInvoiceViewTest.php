@@ -162,7 +162,7 @@ class CustomerInvoiceViewTest extends TestCase
         $this->assertEmpty($missing, 'The following translation keys are missing or empty in resources/lang/fa.json: '.implode(', ', $missing));
     }
 
-    public function test_offline_invoice_shows_positive_remaining_seconds_in_countdown(): void
+    public function test_offline_invoice_shows_future_deadline_timestamp_in_countdown(): void
     {
         [$customer, $invoice] = $this->createCustomerWithInvoice();
 
@@ -180,9 +180,14 @@ class CustomerInvoiceViewTest extends TestCase
         $response = $this->actingAs($customer, 'customer')->get(route('client.invoice', $invoice->hash));
         $response->assertOk();
 
-        preg_match('/data-deadline="(\d+)"/', $response->getContent(), $matches);
-        $this->assertNotEmpty($matches, 'Could not find data-deadline in invoice response');
-        $this->assertGreaterThan(0, (int) $matches[1], 'Countdown data-deadline should be greater than 0');
+        preg_match('/data-deadline-at="(\d+)"/', $response->getContent(), $matches);
+        $this->assertNotEmpty($matches, 'Could not find data-deadline-at in invoice response');
+        $this->assertSame(
+            $invoice->fresh()->offlinePaymentDeadline()->timestamp,
+            (int) $matches[1],
+            'Countdown should carry the absolute deadline so the browser can re-derive the remaining time'
+        );
+        $this->assertGreaterThan(now()->timestamp, (int) $matches[1], 'Deadline should still be in the future');
     }
 
     public function test_invoice_card_updates_alert_and_hides_upload_button_after_receipt_upload(): void

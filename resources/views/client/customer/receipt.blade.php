@@ -60,6 +60,26 @@
 
     <div class="row g-3 mb-4">
 
+        @if($invoice->isOfflineCardPayment() && ! $invoice->isOfflinePaymentExpired() && ! $hasReceipts)
+            <div class="col-12">
+                <div class="alert alert-warning border border-warning-subtle shadow-sm d-flex align-items-center justify-content-between flex-wrap gap-2 p-3 rounded-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="ri-timer-line text-warning fs-3"></i>
+                        <div>
+                            <strong class="d-block text-dark">
+                                {{ __('Transfer the amount and upload your receipt within :hours hours.', ['hours' => \App\Models\Invoice::offlinePaymentHours()]) }}
+                            </strong>
+                            <span class="text-muted fs-13">
+                                {{ __('Deadline:') }}
+                                <b class="font-fanum">{{ $invoice->formattedDeadline() }}</b>
+                            </span>
+                        </div>
+                    </div>
+                    @include('components.offline-countdown', ['invoice' => $invoice])
+                </div>
+            </div>
+        @endif
+
         <div class="col-12 col-md-6">
             <div class="card border-0 shadow-sm rounded-3 h-100">
                 <div class="card-header bg-white border-bottom py-3">
@@ -142,7 +162,7 @@
                     <i class="ri-upload-cloud-2-line text-primary fs-18"></i>
                     {{ __('Upload payment receipt(s)') }}
                 </h5>
-                <button type="button" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 rounded-pill px-3" id="add-receipt-btn">
+                <button type="button" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 rounded-pill px-3" id="add-receipt-btn" data-deadline-expired-hide>
                     <i class="ri-add-line"></i>
                     <span>{{ __('Add Receipt') }}</span>
                 </button>
@@ -196,9 +216,12 @@
 
                     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-3 pt-3 border-top">
 
-                        <button type="submit" class="btn btn-primary px-4">
+                        <button type="submit" class="btn btn-primary px-4" data-deadline-expired-hide>
                             <i class="ri-check-line me-1"></i> {{ __('Submit Receipts') }}
                         </button>
+                        <a href="{{ route('client.invoice', $invoice) }}" class="btn btn-link text-muted fs-13 text-decoration-none">
+                            <i class="ri-bank-card-line me-1"></i>{{ __('Where should I transfer the amount?') }}
+                        </a>
                     </div>
                 </form>
             </div>
@@ -212,7 +235,6 @@ document.addEventListener('DOMContentLoaded', function () {
     var initialUploaded = parseInt(document.getElementById('tally-uploaded')?.getAttribute('data-initial') || '0', 10);
     var container = document.getElementById('receipt-rows-container');
     var addBtn = document.getElementById('add-receipt-btn');
-    var addBtnSecondary = document.getElementById('add-receipt-btn-secondary');
     var rowIndex = 1;
     var yearMonthPrefix = '{{ $jalaliYearMonth }}';
     var daysInMonth = {{ $daysInMonth }};
@@ -381,26 +403,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (addBtn) {
         addBtn.addEventListener('click', addRow);
     }
-    if (addBtnSecondary) {
-        addBtnSecondary.addEventListener('click', addRow);
-    }
-
-    document.querySelectorAll('.copy-btn').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            var text = btn.getAttribute('data-copy');
-            if (text && navigator.clipboard) {
-                navigator.clipboard.writeText(text);
-                var icon = btn.querySelector('i');
-                if (icon) {
-                    var prev = icon.className;
-                    icon.className = 'ri-check-line text-success fs-16';
-                    setTimeout(function () {
-                        icon.className = prev;
-                    }, 1500);
-                }
-            }
-        });
-    });
 });
 </script>
 @endsection

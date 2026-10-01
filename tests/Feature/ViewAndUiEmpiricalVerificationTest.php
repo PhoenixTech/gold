@@ -382,17 +382,33 @@ class ViewAndUiEmpiricalVerificationTest extends TestCase
         $fa = json_decode(file_get_contents(resource_path('lang/fa.json')), true);
         $this->assertIsArray($fa);
 
+        // Every view in the invoice workflow, not just the three that were
+        // audited originally. The order board, invoice edit form and invoice
+        // list were previously unguarded, which is how two keys referenced by
+        // the edit form shipped without a Persian translation.
         $viewFiles = [
             resource_path('views/admin/invoices/invoice-show.blade.php'),
+            resource_path('views/admin/invoices/invoice-print.blade.php'),
+            resource_path('views/admin/invoices/invoice-form.blade.php'),
+            resource_path('views/admin/invoices/invoice-list.blade.php'),
             resource_path('views/admin/invoices/shipping-label.blade.php'),
+            resource_path('views/admin/orders/board.blade.php'),
+            resource_path('views/admin/templates/partials/table-cell.blade.php'),
+            resource_path('views/admin/templates/panel-list-template.blade.php'),
             resource_path('views/client/customer/invoice.blade.php'),
+            resource_path('views/client/customer/receipt.blade.php'),
+            resource_path('views/components/offline-countdown.blade.php'),
         ];
 
         $missingKeys = [];
         foreach ($viewFiles as $filePath) {
+            $this->assertFileExists($filePath);
+
             $content = file_get_contents($filePath);
             preg_match_all("/(?:__|@lang)\(\s*[\x27\x22]([^\x27\x22]+)[\x27\x22]\s*[\),]/", $content, $matches);
+
             foreach (array_unique($matches[1]) as $key) {
+                // Placeholder keys such as "$role" are intentionally empty.
                 if (! array_key_exists($key, $fa)) {
                     $missingKeys[$filePath][] = $key;
                 }

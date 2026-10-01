@@ -6,24 +6,28 @@
         {{__("Add new invoice")}}
     @endif -
 @endsection
-@section('form')
-@endsection
 @section('out-of-form')
     @php
         $cardPayment = $item->cardPayment();
-        $canConfirmPayment = $item->status === \App\Models\Invoice::AWAITING_PAYMENT
+        // One precondition drives every receipt-review panel. Previously only the
+        // approval form was gated, so an admin could be shown decline and
+        // re-upload buttons that were guaranteed to fail server-side.
+        $canReviewReceipt = $item->status === \App\Models\Invoice::AWAITING_PAYMENT
             && $cardPayment
             && $cardPayment->status === \App\Models\Payment::PENDING
             && $item->hasUploadedReceipt();
+        $canConfirmPayment = $canReviewReceipt;
         $offlineHours = \App\Models\Invoice::offlinePaymentHours();
         $offlineIsExpired = $item->isOfflinePaymentExpired();
         $persianDeadline = $item->formattedDeadline();
         $displayStatus = $item->displayStatusKey();
         $declinedReason = $item->declinedReceiptReason();
+        $reuploadReason = $item->reuploadRequestedReason();
 
-        $successfulCount = $item->customer->invoices()->whereIn('status', \App\Models\Invoice::successfulStatuses())->count();
-        $waitingCount = $item->customer->invoices()->whereIn('status', ['AWAITING_PAYMENT', 'PENDING'])->count();
-        $failedCount = $item->customer->invoices()->whereIn('status', ['CANCELED', 'FAILED'])->count();
+        $customer = $item->customer;
+        $successfulCount = $customer?->invoices()->whereIn('status', \App\Models\Invoice::successfulStatuses())->count() ?? 0;
+        $waitingCount = $customer?->invoices()->whereIn('status', ['AWAITING_PAYMENT', 'PENDING'])->count() ?? 0;
+        $failedCount = $customer?->invoices()->whereIn('status', ['CANCELED', 'FAILED'])->count() ?? 0;
 
         $isWaitingReceipt = $displayStatus === \App\Models\Invoice::WAITING_RECEIPT;
         $isWaitingConfirmation = $displayStatus === \App\Models\Invoice::WAITING_CONFIRMATION;
@@ -36,15 +40,11 @@
         $isClosed = in_array($displayStatus, [\App\Models\Invoice::FAILED, \App\Models\Invoice::CANCELED], true);
 
         $currentStep = 0;
-        if ($isWaitingReceipt) {
-            $currentStep = 1;
-        } elseif ($isWaitingConfirmation) {
+        if ($isWaitingReceipt || $isWaitingConfirmation) {
             $currentStep = 2;
         } elseif ($isShipping) {
             $currentStep = 3;
-        } elseif ($isReadyForPickup) {
-            $currentStep = 4;
-        } elseif ($isOutForDelivery) {
+        } elseif ($isReadyForPickup || $isOutForDelivery) {
             $currentStep = 4;
         } elseif ($isCompleted) {
             $currentStep = 5;
@@ -83,17 +83,29 @@
                 </h5>
                 <ul class="invoice-manage__customer">
                     <li>
-                        <a href="{{route('admin.customer.show',$item->customer->id)}}">
+                        <a href="{{route('admin.customer.show',$customer->id)}}">
                             <span>{{__("Name")}}</span>
-                            <b>{{$item->customer->name}}</b>
+                            <b>{{$customer->name}}</b>
                         </a>
                     </li>
                     <li>
-                        <a href="{{route('admin.customer.show',$item->customer->id)}}">
+                        <a href="tel:{{$customer->mobile}}" dir="ltr" title="{{ __('Call customer') }}">
                             <span>{{__("Mobile")}}</span>
-                            <b dir="ltr">{{$item->customer->mobile}}</b>
+                            <b>{{$customer->mobile}}</b>
                         </a>
                     </li>
+                    @if($item->is_third_party)
+                        <li>
+                            <span>{{ __('Recipient (gift order)') }}</span>
+                            <b>{{ $item->recipient_name ?: '—' }}</b>
+                        </li>
+                        <li>
+                            <a href="tel:{{$item->recipient_mobile}}" dir="ltr" title="{{ __('Call recipient') }}">
+                                <span>{{ __('Recipient mobile') }}</span>
+                                <b>{{ $item->recipient_mobile ?: '—' }}</b>
+                            </a>
+                        </li>
+                    @endif
                     <li>
                         <span>{{__("Paid invoices")}}</span>
                         <b>{{number_format($successfulCount)}}</b>
@@ -140,7 +152,7 @@
                 </ul>
             </div>
 
-            @if($item->desc != null && trim($item->desc) != '')
+            @if(trim((string) $item->desc) !== '')
                 <div class="item-list mb-3">
                     <h5 class="p-3">
                         <i class="ri-message-line"></i>
@@ -207,6 +219,21 @@
                     </div>
                     <div class="invoice-manage__now-actions">
                         <span class="{{ $item->statusBadgeClass() }}">{{ $item->statusLabel() }}</span>
+                        <div class="d-flex align-items-center gap-1 flex-wrap justify-content-end mb-2">
+                            <a href="{{ route('admin.order-board.index') }}" class="btn btn-sm btn-outline-secondary px-2 py-1" title="{{ __('Open the order board') }}">
+                                <i class="ri-dashboard-2-line"></i>
+                            </a>
+                            @if(! $isPickup)
+                                <a href="{{ route('admin.invoice.shipping-label', $item->hash) }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary px-2 py-1" title="{{ __('Shipping label') }}">
+                                    <i class="ri-printer-line"></i>
+                                </a>
+                            @endif
+                            @if($item->canPrint())
+                                <a href="{{ route('admin.invoice.print', $item->hash) }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary px-2 py-1" title="{{ __('Print invoice') }}">
+                                    <i class="ri-file-text-line"></i>
+                                </a>
+                            @endif
+                        </div>
                         <div class="invoice-manage__total text-end">
                             <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle fs-11 mb-2"><i class="ri-lock-line me-1"></i>{{ __('Auto-calculated') }}</span>
                             <div class="input-group input-group-sm">
@@ -222,15 +249,38 @@
             @unless($isClosed)
                 <ol class="invoice-stepper list-unstyled mb-3">
                     @foreach($steps as $number => $label)
-                        <li class="invoice-stepper__item {{ $number < $currentStep ? 'is-done' : '' }} {{ $number === $currentStep ? 'is-current' : '' }}">
+                        @php
+                            // Steps 1 and 2 share one trigger: the customer paying.
+                            // Before any money moves, nothing is complete -- and the
+                            // current step is a "waiting on the customer" state rather
+                            // than work for the admin. Once a receipt is on file,
+                            // payment is done and the review step is current.
+                            $isDone = match (true) {
+                                $isWaitingReceipt => false,
+                                $isWaitingConfirmation => $number < 2,
+                                default => $number < $currentStep,
+                            };
+                            $isCurrent = $number === $currentStep;
+                            $isWaiting = $isCurrent && ($isWaitingReceipt || $isWaitingConfirmation);
+                            $stepClasses = array_filter([
+                                'is-done' => $isDone,
+                                'is-current' => $isCurrent,
+                                'is-waiting' => $isWaiting,
+                            ]);
+                        @endphp
+                        <li class="invoice-stepper__item {{ implode(' ', array_keys($stepClasses)) }}"
+                            @if($isCurrent) aria-current="step" @endif>
                             <span class="invoice-stepper__dot">
-                                @if($number < $currentStep)
+                                @if($isDone)
                                     <i class="ri-check-line"></i>
                                 @else
                                     {{ $number }}
                                 @endif
                             </span>
                             <span class="invoice-stepper__label">{{ $label }}</span>
+                            @if($isWaiting)
+                                <span class="invoice-stepper__hint">{{ __('Waiting on customer') }}</span>
+                            @endif
                         </li>
                     @endforeach
                 </ol>
@@ -247,13 +297,28 @@
                             {{ __('Customer currently sees a countdown timer on their invoice page and a request to upload receipt. A background task (offline:expire) will automatically fail this order if the deadline passes.') }}
                         </small>
 
-                        @if($declinedReason)
+                        @if($reuploadReason)
                             <div class="alert alert-warning border border-warning-subtle shadow-sm d-flex align-items-center justify-content-between flex-wrap gap-2 p-3 mb-4 rounded-3">
                                 <div class="d-flex align-items-center gap-2">
-                                    <i class="ri-arrow-go-back-line text-warning fs-3"></i>
+                                    <i class="ri-refresh-line text-warning fs-3"></i>
+                                    <div>
+                                        <strong class="d-block text-dark">{{ __('A clearer receipt was requested from the customer.') }}</strong>
+                                        <span class="text-muted fs-13">{{ __('Reason:') }} {{ $reuploadReason }}</span>
+                                        @if($item->reuploadRequestedAt())
+                                            <small class="text-muted fs-12 d-block">
+                                                <i class="ri-time-line me-0.5"></i>{{ $item->reuploadRequestedAt()->jdate('Y/m/d H:i') }}
+                                            </small>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        @elseif($declinedReason)
+                            <div class="alert alert-danger border border-danger-subtle shadow-sm d-flex align-items-center justify-content-between flex-wrap gap-2 p-3 mb-4 rounded-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="ri-close-circle-line text-danger fs-3"></i>
                                     <div>
                                         <strong class="d-block text-dark">{{ __('A receipt was declined and needs to be uploaded again.') }}</strong>
-                                        <span class="text-muted fs-13">{{ $declinedReason }}</span>
+                                        <span class="text-muted fs-13">{{ __('Reason:') }} {{ $declinedReason }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -296,6 +361,7 @@
                                     <tr>
                                         <th style="width: 60px;">{{ __('Preview') }}</th>
                                         <th>{{ __('Amount') }}</th>
+                                        <th>{{ __('Destination account') }}</th>
                                         <th>{{ __('Payment Date & Time') }}</th>
                                         <th>{{ __('Tracking Number') }}</th>
                                         <th>{{ __('File') }}</th>
@@ -303,10 +369,16 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach($item->paymentReceipts as $receipt)
+                                    @forelse($item->paymentReceipts as $receipt)
+                                        @php $declaredAccount = $receipt->bankAccount; @endphp
                                         <tr>
                                             <td class="text-center p-1">
-                                                <a href="{{ $receipt->url() }}" target="_blank" rel="noopener" class="d-inline-block">
+                                                <button type="button" class="btn btn-link p-0 border-0 receipt-zoom-btn"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#receipt-preview-modal"
+                                                        data-receipt-preview="{{ $receipt->url() }}"
+                                                        data-receipt-name="{{ $receipt->original_name }}"
+                                                        aria-label="{{ __('Preview receipt') }}">
                                                     @if($receipt->isImage())
                                                         <img src="{{ $receipt->url() }}" alt="{{ $receipt->original_name }}" class="rounded border" style="width: 48px; height: 48px; object-fit: cover;">
                                                     @else
@@ -314,13 +386,23 @@
                                                             <i class="ri-file-pdf-2-line fs-4 text-danger"></i>
                                                         </div>
                                                     @endif
-                                                </a>
+                                                </button>
                                             </td>
                                             <td>
                                                 @if($receipt->amount)
                                                     <span class="badge bg-success-subtle text-success border border-success-subtle fs-13 font-fanum fw-bold">
                                                         {{ number_format($receipt->amount) }} {{ __('Toman') }}
                                                     </span>
+                                                @else
+                                                    <span class="text-muted">-</span>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                @if($declaredAccount)
+                                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle font-fanum fs-12" title="{{ $declaredAccount->card_number }}">
+                                                        {{ $declaredAccount->bank_name }}
+                                                    </span>
+                                                    <small class="text-muted font-monospace fs-11 d-block" dir="ltr">{{ $declaredAccount->card_number }}</small>
                                                 @else
                                                     <span class="text-muted">-</span>
                                                 @endif
@@ -355,13 +437,20 @@
                                                 @endif
                                             </td>
                                             <td class="text-center">
-                                                <a href="{{ $receipt->url() }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary py-1 px-2 d-inline-flex align-items-center gap-1 fs-12">
+                                                <a href="{{ $receipt->url() }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary py-1 px-2 d-inline-flex align-items-center gap-1 fs-12">
                                                     <i class="ri-external-link-line"></i>
                                                     <span>{{ __('View') }}</span>
                                                 </a>
                                             </td>
                                         </tr>
-                                    @endforeach
+                                    @empty
+                                        <tr>
+                                            <td colspan="7" class="text-center text-muted py-4">
+                                                <i class="ri-inbox-line fs-4 d-block mb-2 opacity-50"></i>
+                                                {{ __('No receipt uploaded yet.') }}
+                                            </td>
+                                        </tr>
+                                    @endforelse
                                 </tbody>
                             </table>
                         </div>
@@ -462,53 +551,69 @@
                             </div>
 
                             <div class="col-lg-5">
-                                <div class="card border border-warning-subtle shadow-sm rounded-3 p-3 mb-3">
-                                    <h6 class="fw-bold mb-2 d-flex align-items-center gap-2 text-warning-emphasis">
-                                        <i class="ri-refresh-line fs-5"></i>
-                                        {{ __('Request Receipt Re-upload') }}
-                                    </h6>
-                                    <p class="fs-12 text-muted mb-3">
-                                        {{ __('Keep invoice active, extend deadline by 3 hours, and ask customer for a new slip.') }}
-                                    </p>
-                                    <form action="{{ route('admin.invoice.request-receipt-reupload', $item) }}" method="post"
-                                          onsubmit="return confirm('{{__("Request receipt re-upload from customer?")}}');">
-                                        @csrf
-                                        <div class="mb-3">
-                                            <label for="reupload_reason" class="form-label fs-13 text-muted">
-                                                {{ __('Reason for re-upload') }}
-                                            </label>
-                                            <input type="text" id="reupload_reason" name="reason" class="form-control"
-                                                   placeholder="{{ __('e.g. Unreadable receipt image or incorrect amount') }}" required maxlength="255">
-                                        </div>
-                                        <button type="submit" class="btn btn-warning w-100 fw-bold">
-                                            <i class="ri-refresh-line me-1"></i> {{ __('Request Re-upload') }}
-                                        </button>
-                                    </form>
-                                </div>
+                                @if($canReviewReceipt)
+                                    <div class="card border border-warning-subtle shadow-sm rounded-3 p-3 mb-3">
+                                        <h6 class="fw-bold mb-2 d-flex align-items-center gap-2 text-warning-emphasis">
+                                            <i class="ri-refresh-line fs-5"></i>
+                                            {{ __('Request Receipt Re-upload') }}
+                                        </h6>
+                                        <p class="fs-12 text-muted mb-3">
+                                            {{ __('Keep invoice active, extend deadline by :hours hours, and ask customer for a new slip.', ['hours' => 3]) }}
+                                        </p>
+                                        <form action="{{ route('admin.invoice.request-receipt-reupload', $item) }}" method="post"
+                                              data-confirm="{{ __('Request receipt re-upload from customer?') }}">
+                                            @csrf
+                                            <div class="mb-3">
+                                                <label for="reupload_reason" class="form-label fs-13 text-muted">
+                                                    {{ __('Reason for re-upload') }}
+                                                </label>
+                                                <input type="text" id="reupload_reason" name="reason" class="form-control"
+                                                       placeholder="{{ __('e.g. Unreadable receipt image or incorrect amount') }}" required maxlength="255">
+                                            </div>
+                                            <button type="submit" class="btn btn-warning w-100 fw-bold">
+                                                <i class="ri-refresh-line me-1"></i> {{ __('Request Re-upload') }}
+                                            </button>
+                                        </form>
+                                    </div>
 
-                                <div class="card border border-danger-subtle shadow-sm rounded-3 p-3">
-                                    <h6 class="fw-bold mb-2 d-flex align-items-center gap-2 text-danger">
-                                        <i class="ri-close-circle-line fs-5"></i>
-                                        {{ __('Decline and Cancel') }}
-                                    </h6>
-                                    <p class="fs-12 text-muted mb-3">
-                                        {{ __('Permanently cancel the invoice and release reserved gold stock.') }}
-                                    </p>
-                                    <form action="{{ route('admin.invoice.decline-payment', $item) }}" method="post"
-                                          onsubmit="return confirm('{{__("Are you sure you want to decline this payment and cancel the invoice?")}}');">
-                                        @csrf
-                                        <div class="mb-3">
-                                            <label for="decline_reason" class="form-label fs-13 text-muted">
-                                                {{ __('Decline reason (optional)') }}
-                                            </label>
-                                            <input type="text" id="decline_reason" name="reason" class="form-control"
-                                                   placeholder="{{ __('Decline reason (optional)') }}" maxlength="255">
+                                    <div class="card border border-danger-subtle shadow-sm rounded-3 p-3">
+                                        <h6 class="fw-bold mb-2 d-flex align-items-center gap-2 text-danger">
+                                            <i class="ri-close-circle-line fs-5"></i>
+                                            {{ __('Decline and Cancel') }}
+                                        </h6>
+                                        <p class="fs-12 text-muted mb-3">
+                                            {{ __('Permanently cancel the invoice and release reserved gold stock.') }}
+                                        </p>
+                                        <form action="{{ route('admin.invoice.decline-payment', $item) }}" method="post"
+                                              data-confirm="{{ __('Are you sure you want to decline this payment and cancel the invoice?') }}">
+                                            @csrf
+                                            <div class="mb-3">
+                                                <label for="decline_reason" class="form-label fs-13 text-muted">
+                                                    {{ __('Decline reason (optional)') }}
+                                                </label>
+                                                <input type="text" id="decline_reason" name="reason" class="form-control"
+                                                       placeholder="{{ __('Decline reason (optional)') }}" maxlength="255">
+                                            </div>
+                                            <button type="submit" class="btn btn-outline-danger w-100">
+                                                <i class="ri-close-line me-1"></i> {{ __('Decline and cancel invoice') }}
+                                            </button>
+                                        </form>
+                                    </div>
+                                @else
+                                    {{-- The invoice says a receipt is waiting but the payment is no
+                                         longer pending, so every review action would be rejected. --}}
+                                    <div class="alert alert-warning border border-warning-subtle shadow-sm rounded-3 p-3 mb-3">
+                                        <div class="d-flex align-items-start gap-2">
+                                            <i class="ri-information-line fs-5 text-warning flex-shrink-0"></i>
+                                            <div>
+                                                <strong class="d-block text-dark mb-1">{{ __('This receipt can no longer be reviewed here.') }}</strong>
+                                                <span class="text-muted fs-13">
+                                                    {{ __('The pending card payment for this invoice is no longer awaiting review, so approving, declining, or requesting a re-upload is disabled.') }}
+                                                </span>
+                                            </div>
                                         </div>
-                                        <button type="submit" class="btn btn-outline-danger w-100">
-                                            <i class="ri-close-line me-1"></i> {{ __('Decline and cancel invoice') }}
-                                        </button>
-                                    </form>
-                                </div>
+                                    </div>
+                                @endif
                             </div>
                         </div>
 
@@ -521,38 +626,80 @@
                                 const check4 = document.getElementById('zero_balance');
                                 const approveBtn = document.getElementById('approve-payment-btn');
 
-                                if (!approveBtn) {
-                                    return;
-                                }
+                                if (approveBtn) {
+                                    function updateApprovalButton() {
+                                        const hasBank = Boolean(bankSelect && bankSelect.value !== '');
+                                        const c1 = Boolean(check1 && check1.checked);
+                                        const c2 = Boolean(check2 && check2.checked);
+                                        const c3 = Boolean(check3 && check3.checked);
+                                        const c4 = Boolean(check4 && check4.checked && !check4.disabled);
 
-                                function updateApprovalButton() {
-                                    const hasBank = Boolean(bankSelect && bankSelect.value !== '');
-                                    const c1 = Boolean(check1 && check1.checked);
-                                    const c2 = Boolean(check2 && check2.checked);
-                                    const c3 = Boolean(check3 && check3.checked);
-                                    const c4 = Boolean(check4 && check4.checked && !check4.disabled);
+                                        approveBtn.disabled = !(hasBank && c1 && c2 && c3 && c4);
+                                    }
 
-                                    approveBtn.disabled = !(hasBank && c1 && c2 && c3 && c4);
-                                }
+                                    if (bankSelect) {
+                                        bankSelect.addEventListener('change', function () {
+                                            if (check2 && bankSelect.value !== '') {
+                                                check2.checked = true;
+                                            }
+                                            updateApprovalButton();
+                                        });
+                                    }
 
-                                if (bankSelect) {
-                                    bankSelect.addEventListener('change', function () {
-                                        if (check2 && bankSelect.value !== '') {
-                                            check2.checked = true;
+                                    [check1, check2, check3, check4].forEach(function (checkbox) {
+                                        if (checkbox) {
+                                            checkbox.addEventListener('change', updateApprovalButton);
                                         }
-                                        updateApprovalButton();
+                                    });
+
+                                    updateApprovalButton();
+                                }
+
+                                // Receipt lightbox: the 48px thumbnail was the only
+                                // way to inspect the evidence the four-point check
+                                // asks the admin to verify.
+                                const preview = document.getElementById('receipt-preview-modal');
+                                if (preview) {
+                                    const img = document.getElementById('receipt-preview-image');
+                                    const caption = document.getElementById('receipt-preview-caption');
+                                    const openLink = document.getElementById('receipt-preview-open');
+
+                                    document.querySelectorAll('.receipt-zoom-btn').forEach(function (btn) {
+                                        btn.addEventListener('click', function () {
+                                            const url = btn.getAttribute('data-receipt-preview');
+                                            const name = btn.getAttribute('data-receipt-name') || '';
+                                            const isImage = /\.(jpe?g|png|webp|gif|svg)(\?.*)?$/i.test(url);
+                                            if (isImage && img) {
+                                                img.src = url;
+                                                img.classList.remove('d-none');
+                                            } else if (img) {
+                                                img.removeAttribute('src');
+                                                img.classList.add('d-none');
+                                            }
+                                            if (caption) caption.textContent = name;
+                                            if (openLink) openLink.href = url;
+                                        });
                                     });
                                 }
-
-                                [check1, check2, check3, check4].forEach(function (checkbox) {
-                                    if (checkbox) {
-                                        checkbox.addEventListener('change', updateApprovalButton);
-                                    }
-                                });
-
-                                updateApprovalButton();
                             });
                         </script>
+
+                        <div class="modal fade" id="receipt-preview-modal" tabindex="-1" aria-hidden="true" aria-labelledby="receipt-preview-caption">
+                            <div class="modal-dialog modal-lg modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header py-2">
+                                        <h6 class="modal-title fs-13 fw-bold" id="receipt-preview-caption"></h6>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('Close') }}"></button>
+                                    </div>
+                                    <div class="modal-body text-center bg-light">
+                                        <img id="receipt-preview-image" src="" alt="" class="img-fluid rounded" style="max-height: 70vh;">
+                                        <p class="text-muted fs-12 mt-2 mb-0">
+                                            <a id="receipt-preview-open" href="#" target="_blank" rel="noopener noreferrer">{{ __('Open original file') }}</a>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             @endif
@@ -626,9 +773,9 @@
                                     </div>
                                 </div>
                                 <div class="col-md-6 mt-3">
-                                    <h5>{{__("Delivery address")}}</h5>
-                                    <ul class="list-group">
-                                        @forelse($item->customer->addresses as $adr)
+<h5>{{__("Delivery address")}}</h5>
+                                     <ul class="list-group">
+                                         @forelse(($customer?->addresses ?? collect()) as $adr)
                                             <li class="list-group-item">
                                                 <label class="mb-0 d-flex gap-2 align-items-start">
                                                     <input type="radio" name="address_id" value="{{$adr->id}}"
@@ -641,20 +788,31 @@
                                         @endforelse
                                     </ul>
                                 </div>
-                                <div class="col-md-6 mt-3">
-                                    <h5>{{ __('Shipping method') }}</h5>
-                                    <div class="border rounded-3 bg-light p-3" data-fulfillment-method="delivery">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <i class="{{ $requiresCourier ? 'ri-motorbike-line' : 'ri-truck-line' }} text-primary fs-5"></i>
-                                            <strong>{{ $selectedTransport?->title ?? __('Delivery method unavailable') }}</strong>
-                                        </div>
-                                        @if($requiresCourier)
-                                            <small class="text-muted d-block mt-1">{{ __('Needs delivery confirmation code') }}</small>
-                                        @endif
-                                        <small class="text-muted d-block mt-2">{{ __('The fulfillment method selected at checkout cannot be changed here.') }}</small>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 mt-3 {{ $showCourier ? '' : 'd-none' }}" id="courier-assign">
+<div class="col-md-6 mt-3">
+                                     <h5>{{ __('Shipping method') }}</h5>
+                                     <div class="border rounded-3 bg-light p-3" data-fulfillment-method="delivery">
+                                         <div class="d-flex align-items-center gap-2">
+                                             <i class="{{ $requiresCourier ? 'ri-motorbike-line' : 'ri-truck-line' }} text-primary fs-5"></i>
+                                             <strong>{{ $selectedTransport?->title ?? __('Delivery method unavailable') }}</strong>
+                                         </div>
+                                         @if($requiresCourier)
+                                             <small class="text-muted d-block mt-1">{{ __('Needs delivery confirmation code') }}</small>
+                                         @else
+                                             {{-- Postal shipments are completed by the
+                                                  post office, but an admin can still
+                                                  hand the parcel to a courier. --}}
+                                             <div class="form-check mt-2">
+                                                 <input class="form-check-input" type="checkbox" id="use-courier-toggle"
+                                                        @checked($requiresCourier) @disabled($requiresCourier)>
+                                                 <label class="form-check-label fs-13" for="use-courier-toggle">
+                                                     {{ __('Send with a motorcycle courier instead') }}
+                                                 </label>
+                                             </div>
+                                         @endif
+                                         <small class="text-muted d-block mt-2">{{ __('The fulfillment method selected at checkout cannot be changed here.') }}</small>
+                                     </div>
+                                 </div>
+                                 <div class="col-md-6 mt-3 {{ $showCourier ? '' : 'd-none' }}" id="courier-assign">
                                     <div class="form-group">
                                         <label for="courier_id">{{ __('Courier') }}</label>
                                         <select name="courier_id" id="courier_id" class="form-select @error('courier_id') is-invalid @enderror">
@@ -679,16 +837,39 @@
                                 </button>
                                 <button type="submit" name="status" value="{{ \App\Models\Invoice::OUT_FOR_DELIVERY }}"
                                         id="send-for-delivery-btn"
-                                        class="btn btn-warning fw-bold {{ $requiresCourier ? '' : 'd-none' }}">
+                                        class="btn btn-warning fw-bold {{ $requiresCourier ? '' : 'd-none' }}"
+                                        {{ $requiresCourier ? '' : 'data-needs-courier-toggle' }}>
                                     <i class="ri-motorbike-line"></i> {{ __('Send for delivery') }}
                                 </button>
                                 <button type="submit" name="status" value="{{ \App\Models\Invoice::COMPLETED }}"
                                         id="mark-completed-btn"
-                                        class="btn btn-success {{ $requiresCourier ? 'd-none' : '' }}">
+                                        class="btn btn-success {{ $requiresCourier ? 'd-none' : '' }}"
+                                        {{ $requiresCourier ? 'data-needs-courier-toggle' : '' }}>
                                     <i class="ri-check-double-line"></i> {{ __('Mark as completed') }}
                                 </button>
                             </div>
                         </form>
+
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function () {
+                                var toggle = document.getElementById('use-courier-toggle');
+                                if (!toggle) return;
+
+                                var courierField = document.getElementById('courier-assign');
+                                var sendBtn = document.getElementById('send-for-delivery-btn');
+                                var completeBtn = document.getElementById('mark-completed-btn');
+
+                                function apply() {
+                                    var useCourier = toggle.checked;
+                                    if (courierField) courierField.classList.toggle('d-none', !useCourier);
+                                    if (sendBtn) sendBtn.classList.toggle('d-none', !useCourier);
+                                    if (completeBtn) completeBtn.classList.toggle('d-none', useCourier);
+                                }
+
+                                toggle.addEventListener('change', apply);
+                                apply();
+                            });
+                        </script>
                     </div>
                 </div>
             @endif

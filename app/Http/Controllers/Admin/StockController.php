@@ -112,24 +112,17 @@ class StockController extends Controller
             ->searchable($this->searchable)
             ->buttons($this->buttons)
             ->withCustomSort(function (Builder $q, ?string $sort, string $sortType) {
-                $customSorts = ['total_weight', 'total_price', 'most_sold', 'most_scrapped', 'total_ordered'];
-                if (in_array($sort, $customSorts, true)) {
-                    if ($sort === 'total_weight') {
-                        $q->orderByRaw('(COALESCE(weight, 0) * stock_quantity) '.$sortType);
-                    } elseif ($sort === 'total_price') {
-                        $q->orderByRaw('(COALESCE(price, 0) * stock_quantity) '.$sortType);
-                    } elseif ($sort === 'most_sold') {
-                        $q->orderBy('sold_pieces_count', $sortType);
-                    } elseif ($sort === 'most_scrapped') {
-                        $q->orderBy('scrapped_pieces_count', $sortType);
-                    } elseif ($sort === 'total_ordered') {
-                        $q->orderBy('total_ordered_count', $sortType);
-                    }
-
-                    return true;
-                }
-
-                return false;
+                // Every one of these is a withCount alias or an expression, not a
+                // products column, so they must be mapped explicitly or the
+                // generated ORDER BY references a non-existent column.
+                return match ($sort) {
+                    'total_weight' => (bool) $q->orderByRaw('(COALESCE(weight, 0) * stock_quantity) '.$sortType),
+                    'total_price' => (bool) $q->orderByRaw('(COALESCE(price, 0) * stock_quantity) '.$sortType),
+                    'most_sold', 'sold_pieces' => (bool) $q->orderBy('sold_pieces_count', $sortType),
+                    'most_scrapped', 'scrapped_pieces' => (bool) $q->orderBy('scrapped_pieces_count', $sortType),
+                    'total_ordered' => (bool) $q->orderBy('total_ordered_count', $sortType),
+                    default => false,
+                };
             })
             ->withQuickCounts([
                 'in_stock' => fn () => Product::query()->where('stock_quantity', '>', 0)->count(),
