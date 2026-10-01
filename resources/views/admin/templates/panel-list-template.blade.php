@@ -108,7 +108,7 @@
                             </a>
                         </li>
                     @endif
-                    @if(isset($quickCounts['published']))
+                    <!--@if(isset($quickCounts['published']))
                         @php
                             $pubUrl = $baseUrl . '?' . http_build_query(array_merge($preservedParams, ['filter' => ['status' => 1]]));
                             $isPubActive = ($currentStatus === '1' || $currentStatus === 1);
@@ -131,7 +131,7 @@
                                 {{__("Draft")}} <span class="text-muted">({{number_format($quickCounts['draft'])}})</span>
                             </a>
                         </li>
-                    @endif
+                    @endif-->
                     @if(isset($quickCounts['trashed']) && hasRoute('trashed'))
                         @php
                             $trashedUrl = getRoute('trashed') . (count($preservedParams) ? '?' . http_build_query($preservedParams) : '');
