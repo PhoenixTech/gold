@@ -6,33 +6,19 @@
 @endsection
 
 @section('top-content')
-    <div class="alert alert-info border border-info-subtle shadow-sm d-flex align-items-center justify-content-between flex-wrap gap-2 p-3 mb-3 rounded-3">
-        <div class="d-flex align-items-center gap-2.5">
-            <i class="ri-dashboard-2-line text-info fs-3"></i>
-            <div>
-                <strong class="d-block text-dark">{{ __('Manager dashboard') }}</strong>
-                <span class="text-muted fs-13">
-                    {{ __('Clinic-style daily workflow table for tracking and processing active orders.') }}
-                </span>
-            </div>
-        </div>
-        <a href="{{ route('admin.order-board.index') }}" class="btn btn-sm btn-info text-dark fw-bold px-3">
-            <i class="ri-dashboard-2-line me-1"></i>{{ __('Order board') }}
-        </a>
-    </div>
 
     {{-- Status quick filters with live counts --}}
     @if(!empty($statusChips))
         @php $currentStatus = request()->input('filter.status'); @endphp
         <div class="d-flex align-items-center flex-wrap gap-2 mb-3 px-1">
             <a href="{{ getRoute('index', request()->except(['filter.status', 'filter'])) }}"
-               class="btn btn-sm {{ $currentStatus === null ? 'btn-dark' : 'btn-outline-secondary' }} rounded-pill px-3">
+               class="btn btn-sm {{ $currentStatus === null ? 'btn-light' : 'btn-outline-secondary' }} rounded-pill px-3">
                 {{ __('All') }}
                 <span class="ms-1 opacity-75">{{ number_format($quickCounts['all'] ?? 0) }}</span>
             </a>
             @foreach($statusChips as $chip)
                 <a href="{{ getRoute('index', array_merge(request()->except(['filter.status','filter']), ['filter' => ['status' => $chip['key']]])) }}"
-                   class="btn btn-sm {{ $currentStatus === $chip['key'] ? 'btn-dark' : 'btn-outline-secondary' }} rounded-pill px-3"
+                   class="btn btn-sm {{ $currentStatus === $chip['key'] ? 'btn-light' : 'btn-outline-secondary' }} rounded-pill px-3"
                    title="{{ $chip['label'] }}">
                     <i class="{{ $chip['icon'] }} me-1"></i>{{ $chip['label'] }}
                     <span class="ms-1 opacity-75">{{ number_format($chip['count']) }}</span>
