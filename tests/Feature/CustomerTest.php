@@ -87,6 +87,7 @@ class CustomerTest extends TestCase
         $response->assertOk();
         $response->assertDontSee(__('Your profile is incomplete. Required fields:'), false);
         $response->assertDontSee('data-profile-incomplete="true"', false);
+        $response->assertDontSee('data-attention=', false);
     }
 
     public function test_profile_does_not_show_payment_receipt_required_alert(): void

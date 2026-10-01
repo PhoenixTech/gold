@@ -4,19 +4,28 @@ document.addEventListener('DOMContentLoaded', function () {
     const customerRoot = document.getElementById('AvisaCustomer');
     if (!customerRoot) return;
 
-    const profileAlert = document.getElementById('avisa-alert-profile');
-    const receiptAlerts = document.querySelectorAll('.avisa-receipt-alert');
+    window.addEventListener('customer:addresses-updated', function (event) {
+        const addressCount = Number(event.detail?.count ?? 0);
+        const addressAlert = document.getElementById('avisa-alert-address');
+        const addressMarker = customerRoot.querySelector('[data-attention="addresses"]');
 
-    function updateAlertVisibility(targetHash) {
-        const hash = targetHash || window.location.hash || '#summary';
-        if (profileAlert) {
-            const isEditing = (hash === '#profile' || hash === '#profile-edit' || hash === '#addresses');
-            profileAlert.style.setProperty('display', isEditing ? 'none' : 'flex', 'important');
+        if (addressCount === 0 && !addressAlert) {
+            window.location.reload();
+            return;
         }
-        receiptAlerts.forEach(function (alert) {
-            alert.style.setProperty('display', hash === '#card-payment' ? 'none' : 'flex', 'important');
-        });
-    }
+
+        if (addressCount > 0) {
+            addressAlert?.remove();
+            addressMarker?.remove();
+        }
+
+        const addressCountBadge = customerRoot.querySelector('[data-profile-address-count]');
+        if (addressCountBadge) {
+            addressCountBadge.textContent = new Intl.NumberFormat(document.documentElement.lang || 'fa-IR').format(addressCount);
+        }
+
+        customerRoot.dataset.profileIncomplete = customerRoot.dataset.profileNameMissing === 'true' || addressCount === 0 ? 'true' : 'false';
+    });
 
     function updateBottomNav(targetHash) {
         const hash = targetHash || window.location.hash || '#summary';
@@ -38,7 +47,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         targetPane.classList.add('active');
-        updateAlertVisibility(hash);
         updateBottomNav(hash);
 
         if (pushHistory) {

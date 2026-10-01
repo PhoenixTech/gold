@@ -202,7 +202,7 @@ export default {
                 try {
                     let r = await axios.post(this.addLink, data);
                     if (r.data.OK) {
-                        this.addresses = r.data.list;
+                        this.setAddresses(r.data.list);
                         $toast.success(r.data.message);
                         this.modal = false;
                     }
@@ -250,7 +250,7 @@ export default {
                 let r = await axios.get(url);
                 if (r.data.OK) {
                     $toast.success(r.data.message);
-                    this.updateList();
+                    await this.updateList();
                 }
             } catch (e) {
                 $toast.error('err!' + e.message);
@@ -335,10 +335,16 @@ export default {
         async updateList() {
             try {
                 let res = await axios.get(this.listLink);
-                this.addresses = res.data;
+                this.setAddresses(res.data);
             } catch (e) {
                 $toast.error('err!' + e.message);
             }
+        },
+        setAddresses(addresses) {
+            this.addresses = addresses;
+            window.dispatchEvent(new CustomEvent('customer:addresses-updated', {
+                detail: { count: addresses.length },
+            }));
         },
         async updateState() {
             if (!this.state_id) {

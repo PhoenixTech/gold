@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Customer;
+use App\Models\Invoice;
 use App\Models\Product;
 use Database\Seeders\GfxSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -102,6 +103,66 @@ class CustomerProfileRedesignTest extends TestCase
         $response->assertSee(__('National code'));
         $response->assertSee(__('Emergency contact number'));
         $response->assertSee(__('Emergency contact note'));
+    }
+
+    public function test_missing_profile_fields_show_alerts_in_their_tabs_and_mark_menu_links(): void
+    {
+        $customer = Customer::factory()->create(['name' => null]);
+
+        $response = $this->actingAs($customer, 'customer')->get(route('client.profile'));
+
+        $response->assertOk();
+        $response->assertSee('data-attention="addresses"', false);
+        $response->assertSee('data-attention="personal-info"', false);
+        $response->assertSee('id="avisa-alert-address"', false);
+        $response->assertSee('id="avisa-alert-name"', false);
+        $response->assertDontSee('id="avisa-alert-profile"', false);
+
+        $html = $response->getContent();
+        $addressesTabPosition = strpos($html, '<div class="tab" id="addresses">');
+        $supportTabPosition = strpos($html, '<div class="tab" id="support">');
+        $addressAlertPosition = strpos($html, 'id="avisa-alert-address"');
+        $profileTabPosition = strpos($html, '<div class="tab" id="profile">');
+        $profileEditTabPosition = strpos($html, '<div class="tab" id="profile-edit">');
+        $nameAlertPosition = strpos($html, 'id="avisa-alert-name"');
+
+        $this->assertNotFalse($addressesTabPosition);
+        $this->assertNotFalse($supportTabPosition);
+        $this->assertNotFalse($addressAlertPosition);
+        $this->assertGreaterThan($addressesTabPosition, $addressAlertPosition);
+        $this->assertLessThan($supportTabPosition, $addressAlertPosition);
+
+        $this->assertNotFalse($profileTabPosition);
+        $this->assertNotFalse($profileEditTabPosition);
+        $this->assertNotFalse($nameAlertPosition);
+        $this->assertGreaterThan($profileTabPosition, $nameAlertPosition);
+        $this->assertLessThan($profileEditTabPosition, $nameAlertPosition);
+    }
+
+    public function test_payment_confirmation_notice_is_shown_in_active_orders_with_attention_marker(): void
+    {
+        $customer = Customer::factory()->create(['name' => 'تست مشتری']);
+        Invoice::factory()
+            ->waitingConfirmation()
+            ->create(['customer_id' => $customer->id]);
+
+        $response = $this->actingAs($customer, 'customer')->get(route('client.profile'));
+
+        $response->assertOk();
+        $response->assertSee(__('Waiting for payment confirmation'));
+        $response->assertSee('data-attention="active-orders"', false);
+        $response->assertSee('id="avisa-alert-receipt-confirmation"', false);
+
+        $html = $response->getContent();
+        $activeOrdersTabPosition = strpos($html, '<div class="tab" id="active-orders">');
+        $invoicesTabPosition = strpos($html, '<div class="tab" id="invoices">');
+        $confirmationAlertPosition = strpos($html, 'id="avisa-alert-receipt-confirmation"');
+
+        $this->assertNotFalse($activeOrdersTabPosition);
+        $this->assertNotFalse($invoicesTabPosition);
+        $this->assertNotFalse($confirmationAlertPosition);
+        $this->assertGreaterThan($activeOrdersTabPosition, $confirmationAlertPosition);
+        $this->assertLessThan($invoicesTabPosition, $confirmationAlertPosition);
     }
 
     public function test_support_faq_step_and_ticket_action(): void

@@ -10,19 +10,14 @@
 @section('content')
 @php
     $customer = auth('customer')->user();
-    $missingFields = [];
-    if (empty(trim((string) $customer->name))) {
-        $missingFields[] = __('Name');
-    }
-    if ($customer->addresses()->count() === 0) {
-        $missingFields[] = __('Addresses');
-    }
-    $isProfileIncomplete = count($missingFields) > 0;
+    $addressesCount = $customer->addresses()->count();
+    $isNameMissing = empty(trim((string) $customer->name));
+    $isAddressMissing = $addressesCount === 0;
+    $isProfileIncomplete = $isNameMissing || $isAddressMissing;
 
     $invoicesCount = $customer->invoices()->count();
     $favoritesCount = $customer->favorites()->count();
     $bookmarksCount = $customer->bookmarks()->count();
-    $addressesCount = $customer->addresses()->count();
     $ticketsCount = $customer->tickets()->count();
 
     $allInvoices = $customer->invoices()->with(['payments', 'paymentReceipts', 'orders.product', 'orders.quantity'])->orderByDesc('id')->get();
@@ -44,6 +39,13 @@
         ->where('payment_receipts_count', 0)
         ->filter(fn ($inv) => ! $inv->isOfflinePaymentExpired());
     $waitingConfirmInvoices = $awaitingReceiptInvoices->where('payment_receipts_count', '>', 0);
+    $activeOrdersAttentionMessages = [];
+    if ($needUploadInvoices->isNotEmpty()) {
+        $activeOrdersAttentionMessages[] = __('Please upload your payment receipt');
+    }
+    if ($waitingConfirmInvoices->isNotEmpty()) {
+        $activeOrdersAttentionMessages[] = __('Waiting for payment confirmation');
+    }
     $activeBankAccount = \App\Models\BankAccount::activeAccount();
     $activeBank = \App\Http\Controllers\CardController::activeBankDisplay();
 
@@ -72,7 +74,7 @@
     ];
 @endphp
 
-<section id="AvisaCustomer" data-profile-incomplete="{{ $isProfileIncomplete ? 'true' : 'false' }}">
+<section id="AvisaCustomer" data-profile-incomplete="{{ $isProfileIncomplete ? 'true' : 'false' }}" data-profile-name-missing="{{ $isNameMissing ? 'true' : 'false' }}">
     <div class="{{ gfx()['container'] ?? 'container' }}">
         <div class="avisa-container-mobile">
 
@@ -92,23 +94,6 @@
                 @endforeach
             @endif
 
-            @if($waitingConfirmInvoices->count() > 0)
-                <div class="alert alert-info avisa-receipt-alert d-flex align-items-center justify-content-between flex-wrap gap-2 rounded-4 mb-3 shadow-xs">
-                    <div class="d-flex align-items-start gap-2">
-                        <i class="ri-time-line fs-4 text-info-emphasis"></i>
-                        <div>
-                            <h6 class="alert-heading mb-1 fw-bold">{{ __('Waiting for payment confirmation') }}</h6>
-                            <p class="mb-0 fs-13">
-                                {{ __('Your receipt was received. We are reviewing your offline payment.') }}
-                            </p>
-                        </div>
-                    </div>
-                    <a href="{{ route('client.invoice', $waitingConfirmInvoices->first()) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                        {{ __('View invoice') }}
-                    </a>
-                </div>
-            @endif
-
             @if(cardCount() > 0)
                 <div class="alert alert-warning border border-warning-subtle rounded-4 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2 shadow-xs p-3">
                     <div class="d-flex align-items-center gap-2">
@@ -119,21 +104,6 @@
                     </div>
                     <a href="{{ route('client.card') }}" class="btn btn-sm btn-warning text-dark fw-bold rounded-pill px-3">
                         {{ __('Continue') }}
-                    </a>
-                </div>
-            @endif
-
-            @if($isProfileIncomplete)
-                <div id="avisa-alert-profile" class="alert alert-danger border border-danger-subtle rounded-4 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2 shadow-xs p-3">
-                    <div class="d-flex align-items-center gap-2">
-                        <i class="ri-error-warning-line fs-4 text-danger"></i>
-                        <div>
-                            <span class="fw-bold fs-14 text-danger">{{ __('Your profile is incomplete. Required fields:') }}</span>
-                            <span class="badge bg-danger text-white ms-1 fs-12 fw-normal">{{ implode('، ', $missingFields) }}</span>
-                        </div>
-                    </div>
-                    <a href="#profile-edit" class="btn btn-sm btn-danger rounded-pill px-3 text-white avisa-alert-action">
-                        {{ __('Complete profile') }}
                     </a>
                 </div>
             @endif
@@ -197,6 +167,9 @@
                             <a href="#active-orders" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between avisa-tab-trigger">
                                 <div class="d-flex align-items-center gap-3">
                                     <i class="ri-time-line avisa-menu-icon"></i>
+                                    @if($activeOrdersAttentionMessages !== [])
+                                        <span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle rounded-pill px-2 py-1 fs-12" role="img" aria-label="{{ implode('، ', $activeOrdersAttentionMessages) }}" data-attention="active-orders">!</span>
+                                    @endif
                                     <span class="avisa-menu-text">{{ __('Active orders') }}</span>
                                 </div>
                                 @if($activeOrdersCount > 0)
@@ -208,15 +181,21 @@
                             <a href="#addresses" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between avisa-tab-trigger">
                                 <div class="d-flex align-items-center gap-3">
                                     <i class="ri-map-pin-2-line avisa-menu-icon"></i>
+                                    @if($isAddressMissing)
+                                        <span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle rounded-pill px-2 py-1 fs-12" role="img" aria-label="{{ __('Your profile is incomplete. Required fields:') }} {{ __('Addresses') }}" data-attention="addresses">!</span>
+                                    @endif
                                     <span class="avisa-menu-text">{{ __('Addresses') }}</span>
                                 </div>
-                                <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2.5 py-0.5 fs-12 font-fanum fw-semibold">{{ number_format($addressesCount) }}</span>
+                                <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2.5 py-0.5 fs-12 font-fanum fw-semibold" data-profile-address-count>{{ number_format($addressesCount) }}</span>
                             </a>
 
                             {{-- 3. Personal info / account details (opens edit details view) --}}
                             <a href="#profile" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between avisa-tab-trigger">
                                 <div class="d-flex align-items-center gap-3">
                                     <i class="ri-user-3-line avisa-menu-icon"></i>
+                                    @if($isNameMissing)
+                                        <span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle rounded-pill px-2 py-1 fs-12" role="img" aria-label="{{ __('Your profile is incomplete. Required fields:') }} {{ __('Name') }}" data-attention="personal-info">!</span>
+                                    @endif
                                     <span class="avisa-menu-text">{{ __('Personal info / account details') }}</span>
                                 </div>
                             </a>
@@ -257,6 +236,21 @@
                         </a>
                         <h4 class="fw-bold mb-0 text-dark">{{ __('Account details') }}</h4>
                     </div>
+
+                    @if($isNameMissing)
+                        <div id="avisa-alert-name" class="alert alert-danger border border-danger-subtle rounded-4 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2 shadow-xs p-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="ri-error-warning-line fs-4 text-danger" aria-hidden="true"></i>
+                                <div>
+                                    <span class="fw-bold fs-14 text-danger">{{ __('Your profile is incomplete. Required fields:') }}</span>
+                                    <span class="badge bg-danger text-white ms-1 fs-12 fw-normal">{{ __('Name') }}</span>
+                                </div>
+                            </div>
+                            <a href="#profile-edit" class="btn btn-sm btn-danger rounded-pill px-3 text-white avisa-alert-action">
+                                {{ __('Complete profile') }}
+                            </a>
+                        </div>
+                    @endif
 
                     <div class="card avisa-card-ref overflow-hidden mb-4">
                         <div class="list-group list-group-flush avisa-details-list">
@@ -497,6 +491,23 @@
                         <h4 class="fw-bold mb-0 text-dark">{{ __('Active orders') }}</h4>
                     </div>
 
+                    @if($waitingConfirmInvoices->isNotEmpty())
+                        <div id="avisa-alert-receipt-confirmation" class="alert alert-info d-flex align-items-center justify-content-between flex-wrap gap-2 rounded-4 mb-3 shadow-xs">
+                            <div class="d-flex align-items-start gap-2">
+                                <i class="ri-time-line fs-4 text-info-emphasis" aria-hidden="true"></i>
+                                <div>
+                                    <h6 class="alert-heading mb-1 fw-bold">{{ __('Waiting for payment confirmation') }}</h6>
+                                    <p class="mb-0 fs-13">
+                                        {{ __('Your receipt was received. We are reviewing your offline payment.') }}
+                                    </p>
+                                </div>
+                            </div>
+                            <a href="{{ route('client.invoice', $waitingConfirmInvoices->first()) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                {{ __('View invoice') }}
+                            </a>
+                        </div>
+                    @endif
+
                     @if($activeInvoices->count() > 0)
                         <div class="d-flex flex-column gap-3 mb-4">
                             @foreach($activeInvoices as $inv)
@@ -557,6 +568,16 @@
                         </a>
                         <h4 class="fw-bold mb-0 text-dark">{{ __('Addresses') }}</h4>
                     </div>
+
+                    @if($isAddressMissing)
+                        <div id="avisa-alert-address" class="alert alert-danger border border-danger-subtle rounded-4 mb-3 d-flex align-items-center gap-2 shadow-xs p-3">
+                            <i class="ri-error-warning-line fs-4 text-danger" aria-hidden="true"></i>
+                            <div>
+                                <span class="fw-bold fs-14 text-danger">{{ __('Your profile is incomplete. Required fields:') }}</span>
+                                <span class="badge bg-danger text-white ms-1 fs-12 fw-normal">{{ __('Addresses') }}</span>
+                            </div>
+                        </div>
+                    @endif
 
                     <div class="card avisa-card-ref p-3 mb-4">
                         <address-input
