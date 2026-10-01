@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\DeliveryStatus;
+use App\Enums\InvoiceStatus;
 use App\Events\InvoiceFailed;
 use App\Events\InvoiceSucceed;
 use App\Services\ProductPriceCalculator;
@@ -35,6 +36,8 @@ class Invoice extends Model
 
     const PAID = 'PAID';
 
+    const READY_FOR_PICKUP = InvoiceStatus::ReadyForPickup->value;
+
     const WAITING_RECEIPT = 'WAITING_RECEIPT';
 
     const WAITING_CONFIRMATION = 'WAITING_CONFIRMATION';
@@ -43,7 +46,7 @@ class Invoice extends Model
         'meta' => 'array',
     ];
 
-    public static $invoiceStatus = ['PENDING', 'AWAITING_PAYMENT', 'CANCELED', 'FAILED', 'PAID', 'PROCESSING', 'OUT_FOR_DELIVERY', 'COMPLETED'];
+    public static $invoiceStatus = ['PENDING', 'AWAITING_PAYMENT', 'CANCELED', 'FAILED', 'PAID', 'PROCESSING', self::READY_FOR_PICKUP, 'OUT_FOR_DELIVERY', 'COMPLETED'];
 
     /**
      * Statuses shown in the admin filter. PENDING is a leftover online-payment
@@ -58,6 +61,7 @@ class Invoice extends Model
             self::WAITING_CONFIRMATION,
             self::PAID,
             self::PROCESSING,
+            self::READY_FOR_PICKUP,
             self::OUT_FOR_DELIVERY,
             self::COMPLETED,
             self::FAILED,
@@ -76,6 +80,7 @@ class Invoice extends Model
             self::AWAITING_PAYMENT,
             self::PAID,
             self::PROCESSING,
+            self::READY_FOR_PICKUP,
             self::OUT_FOR_DELIVERY,
             self::COMPLETED,
             self::FAILED,
@@ -95,6 +100,7 @@ class Invoice extends Model
             self::AWAITING_PAYMENT,
             self::PAID,
             self::PROCESSING,
+            self::READY_FOR_PICKUP,
             self::OUT_FOR_DELIVERY,
         ];
     }
@@ -114,6 +120,7 @@ class Invoice extends Model
         return [
             self::PAID,
             self::PROCESSING,
+            self::READY_FOR_PICKUP,
             self::OUT_FOR_DELIVERY,
             self::COMPLETED,
         ];
@@ -480,6 +487,7 @@ class Invoice extends Model
             self::WAITING_CONFIRMATION => 'badge bg-primary-subtle text-primary border border-primary-subtle',
             self::PAID => 'badge bg-success-subtle text-success border border-success-subtle',
             self::PROCESSING => 'badge bg-info-subtle text-info border border-info-subtle',
+            self::READY_FOR_PICKUP => 'badge bg-success-subtle text-success border border-success-subtle',
             self::OUT_FOR_DELIVERY => 'badge bg-warning-subtle text-warning border border-warning-subtle',
             self::COMPLETED => 'badge bg-success text-white',
             self::FAILED => 'badge bg-danger-subtle text-danger border border-danger-subtle',
@@ -528,7 +536,7 @@ class Invoice extends Model
 
     public function isCompleted()
     {
-        return $this->status == 'COMPLETED' or $this->status == 'PROCESSING';
+        return in_array($this->status, [self::COMPLETED, self::PROCESSING, self::READY_FOR_PICKUP], true);
     }
 
     public function orders()
@@ -660,7 +668,7 @@ class Invoice extends Model
 
     public function requiresDeliveryCode(): bool
     {
-        return (bool) $this->transport?->requires_delivery_code;
+        return ! $this->isPickup() && (bool) $this->transport?->requires_delivery_code;
     }
 
     public function hasSuccessfulDelivery(): bool

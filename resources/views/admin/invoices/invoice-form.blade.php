@@ -27,7 +27,10 @@
 
         $isWaitingReceipt = $displayStatus === \App\Models\Invoice::WAITING_RECEIPT;
         $isWaitingConfirmation = $displayStatus === \App\Models\Invoice::WAITING_CONFIRMATION;
+        $isPickup = $item->isPickup();
+        $isReadyForPickup = $displayStatus === \App\Models\Invoice::READY_FOR_PICKUP;
         $isShipping = in_array($displayStatus, [\App\Models\Invoice::PAID, \App\Models\Invoice::PROCESSING], true);
+        $isPickupWorkflow = $isPickup && in_array($displayStatus, [\App\Models\Invoice::PAID, \App\Models\Invoice::PROCESSING, \App\Models\Invoice::OUT_FOR_DELIVERY, \App\Models\Invoice::READY_FOR_PICKUP], true);
         $isOutForDelivery = $displayStatus === \App\Models\Invoice::OUT_FOR_DELIVERY;
         $isCompleted = $displayStatus === \App\Models\Invoice::COMPLETED;
         $isClosed = in_array($displayStatus, [\App\Models\Invoice::FAILED, \App\Models\Invoice::CANCELED], true);
@@ -39,24 +42,34 @@
             $currentStep = 2;
         } elseif ($isShipping) {
             $currentStep = 3;
+        } elseif ($isReadyForPickup) {
+            $currentStep = 4;
         } elseif ($isOutForDelivery) {
             $currentStep = 4;
         } elseif ($isCompleted) {
             $currentStep = 5;
         }
-        $steps = [
-            1 => __('Payment'),
-            2 => __('Payment review'),
-            3 => __('Shipping'),
-            4 => __('Order delivery'),
-            5 => __('Completed'),
+        $steps = $isPickup
+            ? [
+                1 => __('Payment'),
+                2 => __('Payment review'),
+                3 => __('Preparing order'),
+                4 => __('Ready for pickup'),
+                5 => __('Collected'),
+            ]
+            : [
+                1 => __('Payment'),
+                2 => __('Payment review'),
+                3 => __('Shipping'),
+                4 => __('Order delivery'),
+                5 => __('Completed'),
         ];
 
-        $selectedTransportId = old('transport_id', $item->transport_id);
-        $selectedTransport = \App\Models\Transport::query()->find($selectedTransportId);
-        $requiresCourier = (bool) ($selectedTransport?->requires_delivery_code);
+        $selectedTransport = $item->transport;
+        $requiresCourier = $item->requiresDeliveryCode();
         $forceCourier = old('status') === \App\Models\Invoice::OUT_FOR_DELIVERY || $errors->has('courier_id');
         $showCourier = $requiresCourier || $forceCourier;
+        $pickupLocation = (string) getSetting('address');
     @endphp
 
     <div class="invoice-manage row">
@@ -106,6 +119,12 @@
                         <li>{{__("The customer still needs to pay by card-to-card and upload a receipt.")}}</li>
                     @elseif($isWaitingConfirmation)
                         <li>{{__("A receipt is waiting. Confirm or decline the payment.")}}</li>
+                    @elseif($isReadyForPickup)
+                        <li>{{ __('The order is ready for customer pickup. Mark it collected after the customer receives it.') }}</li>
+                    @elseif($isPickup && in_array($displayStatus, [\App\Models\Invoice::PAID, \App\Models\Invoice::PROCESSING], true))
+                        <li>{{ __('Prepare the order and mark it ready when the customer can collect it from the store.') }}</li>
+                    @elseif($isOutForDelivery && $isPickup)
+                        <li>{{ __('This pickup order must be marked ready before it can be collected.') }}</li>
                     @elseif($displayStatus === \App\Models\Invoice::PAID)
                         <li>{{__("Payment is confirmed. Choose shipping and send the order out for delivery.")}}</li>
                     @elseif($displayStatus === \App\Models\Invoice::PROCESSING)
@@ -113,7 +132,7 @@
                     @elseif($isOutForDelivery)
                         <li>{{__("The courier will ask the customer for the 4-digit code before handing over the gold.")}}</li>
                     @elseif($isCompleted)
-                        <li>{{__("This invoice was delivered and confirmed.")}}</li>
+                        <li>{{ $isPickup ? __('The customer collected this order from the store.') : __('This invoice was delivered and confirmed.') }}</li>
                     @elseif($isClosed)
                         <li>{{__("This invoice is closed and no further action is needed.")}}</li>
                     @endif
@@ -149,20 +168,31 @@
                                 {{__("Offline payment deadline passed")}}
                             @elseif($isWaitingReceipt)
                                 {{__("Waiting for the customer to pay and upload a receipt.")}}
+                            @elseif($isReadyForPickup)
+                                {{ __('The order is ready for customer pickup at the store.') }}
+                            @elseif($isPickup && in_array($displayStatus, [\App\Models\Invoice::PAID, \App\Models\Invoice::PROCESSING], true))
+                                {{ __('Prepare the order and mark it ready when the customer can collect it from the store.') }}
                             @elseif($displayStatus === \App\Models\Invoice::PAID)
                                 {{__("Payment is confirmed. Choose shipping and send the order out for delivery.")}}
                             @elseif($displayStatus === \App\Models\Invoice::PROCESSING)
                                 {{__("This order is being prepared.")}}
+                            @elseif($isOutForDelivery && $isPickup)
+                                {{ __('This pickup order must be marked ready before it can be collected.') }}
                             @elseif($isOutForDelivery)
                                 {{__("This order is out for motorcycle delivery. The customer received a confirmation code by SMS.")}}
                             @elseif($isCompleted)
-                                {{__("This invoice is completed.")}}
+                                {{ $isPickup ? __('The customer collected this order from the store.') : __('This invoice is completed.') }}
                             @elseif($displayStatus === \App\Models\Invoice::FAILED)
                                 {{__("This invoice failed.")}}
                             @elseif($displayStatus === \App\Models\Invoice::CANCELED)
                                 {{__("This invoice was canceled.")}}
                             @endif
                         </p>
+                        <div class="d-flex align-items-center gap-2 mt-2" data-fulfillment-method="{{ $isPickup ? 'pickup' : 'delivery' }}">
+                            <i class="{{ $isPickup ? 'ri-store-2-line' : 'ri-motorbike-line' }} text-primary"></i>
+                            <span class="text-muted">{{ __('Fulfillment method:') }}</span>
+                            <strong class="text-dark">{{ $isPickup ? __('Store pickup') : ($selectedTransport?->title ?? __('Delivery')) }}</strong>
+                        </div>
                         @if($item->isOfflineCardPayment() && $persianDeadline && in_array($displayStatus, [\App\Models\Invoice::WAITING_RECEIPT, \App\Models\Invoice::WAITING_CONFIRMATION], true))
                             <p class="invoice-manage__deadline mb-0">
                                 <i class="ri-time-line"></i>
@@ -528,7 +558,53 @@
             @endif
 
             {{-- Step 3: shipping / dispatch --}}
-            @if($isShipping)
+            @if($isPickupWorkflow)
+                <div class="general-form item-list mb-3" data-fulfillment-method="pickup">
+                    <div class="p-3">
+                        <h4 class="mb-2"><i class="ri-store-2-line me-1"></i> {{ __('Store pickup') }}</h4>
+                        @if($isReadyForPickup)
+                            <p class="text-muted mb-3">{{ __('The order is ready for customer pickup at the store.') }}</p>
+                        @else
+                            <p class="text-muted mb-3">{{ __('Prepare the order and mark it ready when the customer can collect it from the store.') }}</p>
+                        @endif
+
+                        <div class="alert alert-info border border-info-subtle d-flex align-items-start gap-2 p-3 mb-3 rounded-3">
+                            <i class="ri-map-pin-line text-primary fs-5"></i>
+                            <div>
+                                <strong class="d-block">{{ __('Pickup location') }}</strong>
+                                <span>{{ $pickupLocation !== '' ? $pickupLocation : __('Gallery address is not configured.') }}</span>
+                            </div>
+                        </div>
+
+                        @if($isReadyForPickup)
+                            <div class="d-flex flex-wrap gap-2">
+                                <form action="{{ route('admin.invoice.update', $item) }}" method="post">
+                                    @csrf
+                                    <input type="hidden" name="status" value="{{ \App\Models\Invoice::COMPLETED }}">
+                                    <button type="submit" class="btn btn-success fw-bold">
+                                        <i class="ri-checkbox-circle-line me-1"></i>{{ __('Mark as collected') }}
+                                    </button>
+                                </form>
+                                <form action="{{ route('admin.invoice.update', $item) }}" method="post">
+                                    @csrf
+                                    <input type="hidden" name="status" value="{{ \App\Models\Invoice::PROCESSING }}">
+                                    <button type="submit" class="btn btn-outline-secondary">
+                                        <i class="ri-arrow-go-back-line me-1"></i>{{ __('Return to preparation') }}
+                                    </button>
+                                </form>
+                            </div>
+                        @else
+                            <form action="{{ route('admin.invoice.update', $item) }}" method="post">
+                                @csrf
+                                <input type="hidden" name="status" value="{{ \App\Models\Invoice::READY_FOR_PICKUP }}">
+                                <button type="submit" class="btn btn-primary fw-bold">
+                                    <i class="ri-store-2-line me-1"></i>{{ __('Mark ready for pickup') }}
+                                </button>
+                            </form>
+                        @endif
+                    </div>
+                </div>
+            @elseif($isShipping)
                 <div class="general-form item-list mb-3">
                     <h4 class="p-3 pb-0"><i class="ri-truck-line me-1"></i> {{ __('Shipping') }}</h4>
                     <div class="px-3 pb-2 pt-2">
@@ -566,27 +642,19 @@
                                     </ul>
                                 </div>
                                 <div class="col-md-6 mt-3">
-                                    <h5>{{__("Shipping method")}}</h5>
-                                    <ul class="list-group">
-                                        @foreach(\App\Models\Transport::all() as $t)
-                                            <li class="list-group-item">
-                                                <label class="mb-0 d-flex gap-2 align-items-start">
-                                                    <input type="radio" name="transport_id" value="{{$t->id}}"
-                                                           data-requires-code="{{ $t->requires_delivery_code ? 1 : 0 }}"
-                                                           @checked($t->id == old('transport_id', $item->transport_id))/>
-                                                    <span>
-                                                        {{$t->title}}
-                                                        @if($t->requires_delivery_code)
-                                                            <small class="text-muted d-block">{{ __('Needs delivery confirmation code') }}</small>
-                                                        @endif
-                                                    </span>
-                                                </label>
-                                            </li>
-                                        @endforeach
-                                    </ul>
+                                    <h5>{{ __('Shipping method') }}</h5>
+                                    <div class="border rounded-3 bg-light p-3" data-fulfillment-method="delivery">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="{{ $requiresCourier ? 'ri-motorbike-line' : 'ri-truck-line' }} text-primary fs-5"></i>
+                                            <strong>{{ $selectedTransport?->title ?? __('Delivery method unavailable') }}</strong>
+                                        </div>
+                                        @if($requiresCourier)
+                                            <small class="text-muted d-block mt-1">{{ __('Needs delivery confirmation code') }}</small>
+                                        @endif
+                                        <small class="text-muted d-block mt-2">{{ __('The fulfillment method selected at checkout cannot be changed here.') }}</small>
+                                    </div>
                                 </div>
-                                <div class="col-md-6 mt-3 {{ $showCourier ? '' : 'd-none' }}" id="courier-assign"
-                                     data-force="{{ $forceCourier ? 1 : 0 }}">
+                                <div class="col-md-6 mt-3 {{ $showCourier ? '' : 'd-none' }}" id="courier-assign">
                                     <div class="form-group">
                                         <label for="courier_id">{{ __('Courier') }}</label>
                                         <select name="courier_id" id="courier_id" class="form-select @error('courier_id') is-invalid @enderror">
@@ -626,7 +694,7 @@
             @endif
 
             {{-- Step 4: out for delivery --}}
-            @if($isOutForDelivery)
+            @if($isOutForDelivery && !$isPickup)
                 <div class="general-form item-list mb-3">
                     <div class="p-3">
                         <h4 class="mb-2"><i class="ri-motorbike-line me-1"></i> {{ __('Order delivery') }}</h4>
@@ -718,8 +786,8 @@
             @if($isCompleted)
                 <div class="item-list mb-3">
                     <div class="p-3">
-                        <h4 class="mb-2 text-success"><i class="ri-checkbox-circle-line me-1"></i> {{ __('Completed') }}</h4>
-                        <p class="text-muted mb-1">{{ __('This invoice was delivered and confirmed. No further action is needed.') }}</p>
+                        <h4 class="mb-2 text-success"><i class="ri-checkbox-circle-line me-1"></i> {{ $isPickup ? __('Collected') : __('Completed') }}</h4>
+                        <p class="text-muted mb-1">{{ $isPickup ? __('The customer collected this order from the store. No further action is needed.') : __('This invoice was delivered and confirmed. No further action is needed.') }}</p>
                         <small class="text-muted d-flex align-items-center gap-1 mb-0">
                             <i class="ri-information-line text-primary"></i>
                             {{ __('Order has moved to Previous Orders in the customer dashboard. They can now print their invoice.') }}
@@ -794,25 +862,4 @@
         </div>
     </div>
 
-    <script>
-        (function () {
-            var box = document.getElementById('courier-assign');
-            if (!box) return;
-            var sendBtn = document.getElementById('send-for-delivery-btn');
-            var completeBtn = document.getElementById('mark-completed-btn');
-            var forced = box.getAttribute('data-force') === '1';
-            var radios = document.querySelectorAll('input[name="transport_id"]');
-            var sync = function () {
-                var selected = document.querySelector('input[name="transport_id"]:checked');
-                var needs = selected && selected.getAttribute('data-requires-code') === '1';
-                box.classList.toggle('d-none', !needs);
-                if (sendBtn) sendBtn.classList.toggle('d-none', !needs);
-                if (completeBtn) completeBtn.classList.toggle('d-none', needs);
-            };
-            radios.forEach(function (radio) {
-                radio.addEventListener('change', sync);
-            });
-            if (!forced) sync();
-        })();
-    </script>
 @endsection

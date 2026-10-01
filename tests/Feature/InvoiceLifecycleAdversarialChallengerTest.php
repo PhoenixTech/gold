@@ -370,7 +370,7 @@ class InvoiceLifecycleAdversarialChallengerTest extends TestCase
         $this->assertSame('IN_STOCK', $product->fresh()->stock_status);
     }
 
-    public function test_all_ten_statuses_reachability_via_workflow_transitions(): void
+    public function test_all_eleven_statuses_reachability_via_workflow_transitions(): void
     {
         Event::fake([InvoiceCompleted::class, InvoiceFailed::class, InvoiceSucceed::class]);
 
@@ -417,6 +417,11 @@ class InvoiceLifecycleAdversarialChallengerTest extends TestCase
         $deliveryService->applyAdminStatus($invoice, Invoice::PROCESSING, null);
         $this->assertSame(Invoice::PROCESSING, $invoice->fresh()->status);
         $this->assertSame(Invoice::PROCESSING, $invoice->fresh()->displayStatusKey());
+
+        $pickupInvoice = Invoice::factory()->pickup()->processing()->create();
+        $deliveryService->applyAdminStatus($pickupInvoice, Invoice::READY_FOR_PICKUP, null);
+        $this->assertSame(Invoice::READY_FOR_PICKUP, $pickupInvoice->fresh()->status);
+        $this->assertSame(Invoice::READY_FOR_PICKUP, $pickupInvoice->fresh()->displayStatusKey());
 
         $transport = new Transport;
         $transport->title = 'Courier Delivery';

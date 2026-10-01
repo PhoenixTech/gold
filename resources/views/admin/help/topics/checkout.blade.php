@@ -572,20 +572,25 @@
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
                 <div class="d-flex align-items-center gap-2">
                     <span class="badge bg-secondary rounded-pill px-2 py-1 fs-12">3</span>
-                    <h5 class="fs-15 fw-bold text-dark mb-0">{{ __('Admin Step 3: Shipping & Dispatch') }}</h5>
+                    <h5 class="fs-15 fw-bold text-dark mb-0">{{ __('Admin Step 3: Fulfillment Preparation') }}</h5>
                 </div>
                 <div class="d-flex align-items-center gap-1">
                     <span class="badge bg-success-subtle text-success border border-success-subtle fs-12">{{ __('PAID') }}</span>
                     <span class="badge bg-info-subtle text-info border border-info-subtle fs-12">{{ __('PROCESSING') }}</span>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle fs-12">{{ __('READY_FOR_PICKUP') }}</span>
                 </div>
             </div>
             <p class="text-muted fs-13 mb-3">{{ __('Admin Step 3 Desc') }}</p>
+            <div class="alert alert-info border border-info-subtle rounded-3 d-flex align-items-start gap-2 fs-13">
+                <i class="ri-information-line fs-5"></i>
+                <span>{{ __('Fulfillment mode and transport are fixed at checkout. For store pickup, mark the order ready, then confirm collection after handover.') }}</span>
+            </div>
             <div class="row g-3 align-items-center">
                 <div class="col-12 col-md-7">
                     <div class="d-flex flex-wrap gap-2 pt-2 border-top">
                         <span class="badge bg-light text-dark border fs-12"><i class="ri-save-line me-1 text-primary"></i>{{ __('Save shipment details') }}</span>
                         <span class="badge bg-light text-dark border fs-12"><i class="ri-motorbike-line me-1 text-warning"></i>{{ __('Send for delivery') }} ({{ __('Option A Workflow (Courier/Post):') }})</span>
-                        <span class="badge bg-light text-dark border fs-12"><i class="ri-checkbox-circle-line me-1 text-success"></i>{{ __('Mark as completed') }} ({{ __('Option B Workflow (Gallery Pickup):') }})</span>
+                        <span class="badge bg-light text-dark border fs-12"><i class="ri-store-2-line me-1 text-success"></i>{{ __('Mark ready for pickup') }} ({{ __('Option B Workflow (Gallery Pickup):') }})</span>
                     </div>
                 </div>
                 <div class="col-12 col-md-5 text-center">
@@ -656,7 +661,7 @@
             <div class="row g-3 align-items-center">
                 <div class="col-12 col-md-7">
                     <div class="d-flex flex-wrap gap-2 pt-2 border-top">
-                        <span class="badge bg-light text-dark border fs-12"><i class="ri-check-line me-1 text-success"></i>{{ __('Order delivered') }}</span>
+                        <span class="badge bg-light text-dark border fs-12"><i class="ri-check-line me-1 text-success"></i>{{ __('Order delivered or collected') }}</span>
                         <span class="badge bg-light text-dark border fs-12"><i class="ri-printer-line me-1 text-primary"></i>{{ __('Print invoice') }}</span>
                     </div>
                 </div>

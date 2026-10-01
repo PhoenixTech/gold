@@ -3,7 +3,6 @@
 namespace App\Http\Requests;
 
 use App\Models\Invoice;
-use App\Models\Transport;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -25,10 +24,13 @@ class InvoiceSaveRequest extends FormRequest
      */
     public function rules(): array
     {
+        $isPickup = $this->invoiceFromRoute()?->isPickup() ?? false;
+
         return [
-            'transport_id' => ['nullable', 'integer', 'exists:transports,id'],
-            'address_id' => ['nullable', 'integer', 'exists:addresses,id'],
-            'tracking_code' => ['nullable', 'string'],
+            'delivery_type' => ['prohibited'],
+            'transport_id' => ['prohibited'],
+            'address_id' => $isPickup ? ['prohibited'] : ['nullable', 'integer', 'exists:addresses,id'],
+            'tracking_code' => $isPickup ? ['prohibited'] : ['nullable', 'string'],
             'status' => ['required', 'string', Rule::in(Invoice::editableStatuses())],
             'courier_id' => [
                 Rule::requiredIf(fn () => $this->input('status') === Invoice::OUT_FOR_DELIVERY),
@@ -55,17 +57,81 @@ class InvoiceSaveRequest extends FormRequest
     public function withValidator($validator): void
     {
         $validator->after(function ($validator): void {
-            if ($this->input('status') !== Invoice::OUT_FOR_DELIVERY) {
+            $invoice = $this->invoiceFromRoute();
+            if ($invoice === null) {
                 return;
             }
 
-            $transport = Transport::query()->find($this->input('transport_id'));
-            if ($transport === null || ! $transport->requires_delivery_code) {
+            $status = $this->input('status');
+
+            if ($status === Invoice::READY_FOR_PICKUP && ! $invoice->isPickup()) {
+                $validator->errors()->add(
+                    'status',
+                    __('Only store pickup invoices can be marked ready for pickup.')
+                );
+
+                return;
+            }
+
+            if ($invoice->isPickup() && $status === Invoice::OUT_FOR_DELIVERY) {
+                $validator->errors()->add(
+                    'status',
+                    __('Store pickup invoices cannot be sent for motorcycle delivery.')
+                );
+
+                return;
+            }
+
+            if ($invoice->isPickup() && $status === Invoice::COMPLETED && $invoice->status !== Invoice::READY_FOR_PICKUP) {
+                $validator->errors()->add(
+                    'status',
+                    __('Pickup orders must be marked ready before they can be completed.')
+                );
+
+                return;
+            }
+
+            if ($invoice->isPickup() && $status === Invoice::READY_FOR_PICKUP
+                && ! in_array($invoice->status, [Invoice::PAID, Invoice::PROCESSING, Invoice::OUT_FOR_DELIVERY, Invoice::READY_FOR_PICKUP], true)) {
+                $validator->errors()->add(
+                    'status',
+                    __('Pickup orders can only be marked ready after payment is confirmed.')
+                );
+
+                return;
+            }
+
+            if ($status !== Invoice::OUT_FOR_DELIVERY) {
+                return;
+            }
+
+            if (! $invoice->requiresDeliveryCode()) {
                 $validator->errors()->add(
                     'status',
                     __('Motorcycle delivery is only available for courier transports.')
                 );
             }
         });
+    }
+
+    private function invoiceFromRoute(): ?Invoice
+    {
+        $item = $this->route('item');
+        if ($item instanceof Invoice) {
+            return $item;
+        }
+
+        if (! is_string($item) && ! is_int($item)) {
+            return null;
+        }
+
+        if (is_numeric($item)) {
+            $invoice = Invoice::query()->find($item);
+            if ($invoice !== null) {
+                return $invoice;
+            }
+        }
+
+        return Invoice::query()->where('hash', $item)->first();
     }
 }

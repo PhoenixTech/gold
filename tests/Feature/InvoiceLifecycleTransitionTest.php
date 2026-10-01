@@ -70,7 +70,7 @@ class InvoiceLifecycleTransitionTest extends TestCase
         $this->seedSettings();
     }
 
-    public function test_all_ten_statuses_are_reachable_via_display_status_key_and_state_transitions(): void
+    public function test_all_eleven_statuses_are_reachable_via_display_status_key_and_state_transitions(): void
     {
         $pending = Invoice::factory()->pending()->create();
         $this->assertSame(Invoice::PENDING, $pending->status);
@@ -99,6 +99,10 @@ class InvoiceLifecycleTransitionTest extends TestCase
         $processing = Invoice::factory()->processing()->create();
         $this->assertSame(Invoice::PROCESSING, $processing->status);
         $this->assertSame(Invoice::PROCESSING, $processing->displayStatusKey());
+
+        $readyForPickup = Invoice::factory()->readyForPickup()->create();
+        $this->assertSame(Invoice::READY_FOR_PICKUP, $readyForPickup->status);
+        $this->assertSame(Invoice::READY_FOR_PICKUP, $readyForPickup->displayStatusKey());
 
         $outForDelivery = Invoice::factory()->outForDelivery()->create();
         $this->assertSame(Invoice::OUT_FOR_DELIVERY, $outForDelivery->status);
@@ -331,6 +335,11 @@ class InvoiceLifecycleTransitionTest extends TestCase
 
         $deliveryService->applyAdminStatus($invoice, Invoice::PROCESSING, null);
         $this->assertSame(Invoice::PROCESSING, $invoice->fresh()->status);
+
+        $deliveryService->applyAdminStatus($invoice, Invoice::READY_FOR_PICKUP, null);
+        $this->assertSame(Invoice::READY_FOR_PICKUP, $invoice->fresh()->status);
+        $this->assertContains(Invoice::READY_FOR_PICKUP, Invoice::activeStatuses());
+        $this->assertContains(Invoice::READY_FOR_PICKUP, Invoice::successfulStatuses());
 
         $deliveryService->applyAdminStatus($invoice, Invoice::COMPLETED, null);
         $this->assertSame(Invoice::COMPLETED, $invoice->fresh()->status);

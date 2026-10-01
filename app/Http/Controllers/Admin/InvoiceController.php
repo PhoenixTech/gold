@@ -148,10 +148,6 @@ class InvoiceController extends Controller
             sendingSMS(getSetting('sent'), $invoice->customer->mobile, $args);
         }
 
-        if ($request->has('transport_id')) {
-            $invoice->transport_id = $request->input('transport_id');
-        }
-
         if ($request->has('address_id')) {
             $invoice->address_id = $request->input('address_id');
         }

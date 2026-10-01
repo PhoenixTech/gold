@@ -128,6 +128,26 @@ class AdminInvoiceShowTest extends TestCase
         $response->assertSee(route('admin.invoice.edit', $invoice));
     }
 
+    public function test_admin_invoice_show_renders_store_pickup_without_shipment_placeholders(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        $this->actingAsAdmin();
+        $invoice = Invoice::factory()->readyForPickup()->create();
+
+        $response = $this->get(route('admin.invoice.show', $invoice->hash));
+
+        $response->assertOk();
+        $response->assertSee('data-fulfillment-method="pickup"', false);
+        $response->assertSee(__('Store pickup'));
+        $response->assertSee(__('Pickup location'));
+        $response->assertSee(__('Pickup cost'));
+        $response->assertDontSee(__('No address registered.'));
+        $response->assertDontSee(__('Standard Transport'));
+        $response->assertDontSee(__('Pending shipment'));
+        $response->assertDontSee(__('Shipping cost'));
+    }
+
     public function test_admin_can_view_invoice_print_layout_with_autoprint(): void
     {
         $this->withoutVite();

@@ -24,9 +24,10 @@ class OrderBoardController extends Controller
 
         $scope = $request->input('scope', 'active');
         $search = trim((string) $request->input('q'));
+        $galleryAddress = (string) getSetting('address');
 
         $query = Invoice::query()
-            ->with(['customer', 'address.state', 'address.city', 'payments', 'paymentReceipts.customer', 'activeDelivery.courier', 'deliveries.courier'])
+            ->with(['customer', 'address.state', 'address.city', 'transport', 'payments', 'paymentReceipts.customer', 'activeDelivery.courier', 'deliveries.courier'])
             ->latest('id');
 
         $activeCount = (clone $query)->whereNotIn('status', [Invoice::COMPLETED, Invoice::FAILED, Invoice::CANCELED])->count();
@@ -48,12 +49,16 @@ class OrderBoardController extends Controller
             });
         }
 
-        $orders = $query->get()->values()->map(function (Invoice $inv, int $i) {
+        $orders = $query->get()->values()->map(function (Invoice $inv, int $i) use ($galleryAddress) {
             $isPickup = $inv->isPickup();
-            $isPaid = in_array($inv->status, [Invoice::PAID, Invoice::PROCESSING, Invoice::OUT_FOR_DELIVERY, Invoice::COMPLETED], true) || ($inv->hasUploadedReceipt() && ! in_array($inv->status, [Invoice::CANCELED, Invoice::FAILED], true));
-            $isConfirmed = in_array($inv->status, [Invoice::PAID, Invoice::PROCESSING, Invoice::OUT_FOR_DELIVERY, Invoice::COMPLETED], true);
+            $isReadyForPickup = $inv->status === Invoice::READY_FOR_PICKUP;
+            $isCollected = $inv->status === Invoice::COMPLETED;
+            $isMotorcycle = $inv->requiresDeliveryCode();
+            $isPaid = in_array($inv->status, Invoice::successfulStatuses(), true) || ($inv->hasUploadedReceipt() && ! in_array($inv->status, [Invoice::CANCELED, Invoice::FAILED], true));
+            $isConfirmed = in_array($inv->status, Invoice::successfulStatuses(), true);
             $isCourier = ! $isPickup && (in_array($inv->status, [Invoice::OUT_FOR_DELIVERY, Invoice::COMPLETED], true) || $inv->activeDelivery !== null);
-            $isDelivered = $inv->status === Invoice::COMPLETED || $inv->hasSuccessfulDelivery();
+            $isDelivered = $isPickup ? $isCollected : ($inv->status === Invoice::COMPLETED || $inv->hasSuccessfulDelivery());
+            $fulfillmentReady = $isPickup && ($isReadyForPickup || $isCollected);
 
             $confirmedPayment = $inv->payments
                 ->where('status', Payment::SUCCESS)
@@ -120,9 +125,39 @@ class OrderBoardController extends Controller
                 ] : null,
                 'delivery' => [
                     'done' => $isDelivered,
-                    'delivered_at' => $deliveredDelivery?->delivered_at?->jdate('Y/m/d H:i'),
+                    'delivered_at' => $isPickup ? null : $deliveredDelivery?->delivered_at?->jdate('Y/m/d H:i'),
                 ],
             ];
+
+            $pickupLocation = $galleryAddress !== '' ? $galleryAddress : __('Gallery address is not configured.');
+            $province = $inv->address?->state?->name ?: ($inv->address_alt ? __('Specified in note') : '—');
+            $address = $inv->address?->address ?: ($inv->address_alt ?: '—');
+
+            if ($isPickup) {
+                $province = __('Store pickup');
+                $address = $pickupLocation;
+                $fulfillmentText = $fulfillmentReady ? __('Ready for pickup') : __('Preparing pickup');
+                $fulfillmentTitle = $fulfillmentReady
+                    ? __('Order is ready for store pickup.')
+                    : __('Order is being prepared for store pickup.');
+                $handoverText = __('Not ready for pickup');
+                $handoverTitle = __('Not ready for pickup');
+
+                if ($isReadyForPickup) {
+                    $handoverText = __('Awaiting customer collection');
+                    $handoverTitle = __('Awaiting customer collection');
+                }
+
+                if ($isCollected) {
+                    $handoverText = __('Collected');
+                    $handoverTitle = __('Collected at store');
+                }
+            } else {
+                $fulfillmentText = $isCourier ? __('Dispatched') : __('Pending courier');
+                $fulfillmentTitle = $isCourier ? __('Handed over to courier') : __('Awaiting courier pickup');
+                $handoverText = $isDelivered ? __('Delivered') : __('In transit');
+                $handoverTitle = $isDelivered ? __('Delivered to customer') : __('In delivery transit');
+            }
 
             return [
                 'index' => $i + 1,
@@ -132,10 +167,13 @@ class OrderBoardController extends Controller
                 'customer_code' => $inv->customer?->code ?: ('ZK-'.($inv->customer_id ?? $inv->id)),
                 'customer_name' => $inv->customer?->name ?: __('Customer'),
                 'customer_mobile' => $inv->customer?->mobile ?: '—',
-                'province' => $inv->address?->state?->name ?: ($inv->address_alt ? __('Specified in note') : '—'),
+                'province' => $province,
                 'city' => $inv->address?->city?->name ?: '',
-                'address' => $inv->address?->address ?: ($inv->address_alt ?: '—'),
+                'address' => $address,
                 'postal_code' => $inv->address?->zip ?: '',
+                'pickup_location' => $pickupLocation,
+                'is_pickup' => $isPickup,
+                'is_motorcycle' => $isMotorcycle,
                 'date_persian' => $inv->created_at?->jdate('Y/m/d') ?? '—',
                 'time_persian' => $inv->created_at?->jdate('H:i') ?? '',
                 'total_price' => $inv->total_price ?? 0,
@@ -156,15 +194,15 @@ class OrderBoardController extends Controller
                         'title' => $isConfirmed ? __('Balance fully settled') : __('Unsettled balance'),
                     ],
                     'courier' => [
-                        'done' => $isPickup ? $isConfirmed : $isCourier,
-                        'text' => $isPickup ? __('In-person') : ($isCourier ? __('Dispatched') : __('Pending pickup')),
-                        'title' => $isPickup ? __('In-person gallery pickup') : ($isCourier ? __('Handed over to courier') : __('Awaiting courier pickup')),
+                        'done' => $isPickup ? $fulfillmentReady : $isCourier,
+                        'text' => $fulfillmentText,
+                        'title' => $fulfillmentTitle,
                         'is_pickup' => $isPickup,
                     ],
                     'delivery' => [
                         'done' => $isDelivered,
-                        'text' => $isDelivered ? __('Delivered') : ($isPickup ? __('Awaiting visit') : __('In transit')),
-                        'title' => $isDelivered ? ($isPickup ? __('Delivered in gallery') : __('Delivered to customer')) : ($isPickup ? __('Awaiting customer visit to gallery') : __('In delivery transit')),
+                        'text' => $handoverText,
+                        'title' => $handoverTitle,
                         'is_pickup' => $isPickup,
                     ],
                 ],

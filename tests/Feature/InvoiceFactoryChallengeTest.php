@@ -212,7 +212,7 @@ class InvoiceFactoryChallengeTest extends TestCase
         ]);
     }
 
-    public function test_all_twelve_states_created_sequentially_in_single_database_session(): void
+    public function test_all_thirteen_states_created_sequentially_in_single_database_session(): void
     {
         $this->assertSame(0, Customer::count());
         $this->assertSame(0, Invoice::count());
@@ -237,6 +237,12 @@ class InvoiceFactoryChallengeTest extends TestCase
         $processing = Invoice::factory()->processing()->create();
         $this->assertSame(Invoice::PROCESSING, $processing->status);
 
+        $readyForPickup = Invoice::factory()->readyForPickup()->create();
+        $this->assertSame(Invoice::READY_FOR_PICKUP, $readyForPickup->status);
+        $this->assertSame('pickup', $readyForPickup->delivery_type);
+        $this->assertNull($readyForPickup->address_id);
+        $this->assertNull($readyForPickup->transport_id);
+
         $outForDelivery = Invoice::factory()->outForDelivery()->create();
         $this->assertSame(Invoice::OUT_FOR_DELIVERY, $outForDelivery->status);
 
@@ -257,7 +263,7 @@ class InvoiceFactoryChallengeTest extends TestCase
         $this->assertSame('address', $courier->delivery_type);
         $this->assertNotNull($courier->transport_id);
 
-        $this->assertSame(12, Invoice::count());
+        $this->assertSame(13, Invoice::count());
     }
 
     public function test_batch_count_creation_on_empty_database(): void

@@ -27,9 +27,36 @@ class DeliveryService
 
     public function applyAdminStatus(Invoice $invoice, string $newStatus, ?User $courier): void
     {
+        $isPickup = $invoice->isPickup();
         $requiresCode = $invoice->requiresDeliveryCode();
 
+        if ($newStatus === Invoice::READY_FOR_PICKUP) {
+            if (! $isPickup) {
+                throw ValidationException::withMessages([
+                    'status' => __('Only store pickup invoices can be marked ready for pickup.'),
+                ]);
+            }
+
+            if (! in_array($invoice->status, [Invoice::PAID, Invoice::PROCESSING, Invoice::OUT_FOR_DELIVERY, Invoice::READY_FOR_PICKUP], true)) {
+                throw ValidationException::withMessages([
+                    'status' => __('Pickup orders can only be marked ready after payment is confirmed.'),
+                ]);
+            }
+        }
+
+        if ($newStatus === Invoice::OUT_FOR_DELIVERY && $isPickup) {
+            throw ValidationException::withMessages([
+                'status' => __('Store pickup invoices cannot be sent for motorcycle delivery.'),
+            ]);
+        }
+
         if ($newStatus === Invoice::COMPLETED) {
+            if ($isPickup && $invoice->status !== Invoice::READY_FOR_PICKUP) {
+                throw ValidationException::withMessages([
+                    'status' => __('Pickup orders must be marked ready before they can be completed.'),
+                ]);
+            }
+
             $hasOpenDelivery = $invoice->deliveries()->open()->exists();
             if (($requiresCode || $hasOpenDelivery) && ! $invoice->hasSuccessfulDelivery()) {
                 throw ValidationException::withMessages([

@@ -42,6 +42,7 @@ class InvoiceWorkflowGapsResolutionTest extends TestCase
         Invoice::factory()->pickup()->create([
             'status' => Invoice::PROCESSING,
         ]);
+        Invoice::factory()->readyForPickup()->create();
 
         Invoice::factory()->courier()->create([
             'status' => Invoice::PROCESSING,
@@ -50,8 +51,11 @@ class InvoiceWorkflowGapsResolutionTest extends TestCase
         $response = $this->actingAs($this->admin)->get(route('admin.order-board.index'));
         $response->assertOk();
 
-        $response->assertSee(__('In-person gallery pickup'));
-        $response->assertSee(__('Awaiting customer visit to gallery'));
+        $response->assertSee(__('Store pickup'));
+        $response->assertSee(__('Preparing pickup'));
+        $response->assertSee(__('Ready for pickup'));
+        $response->assertSee(__('Not ready for pickup'));
+        $response->assertSee(__('Awaiting customer collection'));
     }
 
     public function test_gap2_customer_invoice_shows_processing_and_completed_banners(): void
@@ -171,6 +175,28 @@ class InvoiceWorkflowGapsResolutionTest extends TestCase
         $response->assertOk();
         $response->assertSee(__('Your order is ready for pickup at the gallery.'));
         $response->assertDontSee(__('A 4-digit code was sent to your mobile. Give it only to the courier.'));
+
+        $readyPickupInvoice = Invoice::factory()->readyForPickup()->create([
+            'customer_id' => $this->customer->id,
+        ]);
+        $response = $this->actingAs($this->customer, 'customer')
+            ->get(route('client.invoice', $readyPickupInvoice->hash));
+
+        $response->assertOk();
+        $response->assertSee(__('READY_FOR_PICKUP'));
+        $response->assertSee(__('Your order is ready for pickup at the gallery.'));
+        $response->assertDontSee(__('A 4-digit code was sent to your mobile. Give it only to the courier.'));
+
+        $collectedPickupInvoice = Invoice::factory()->pickup()->completed()->create([
+            'customer_id' => $this->customer->id,
+        ]);
+        $response = $this->actingAs($this->customer, 'customer')
+            ->get(route('client.invoice', $collectedPickupInvoice->hash));
+
+        $response->assertOk();
+        $response->assertSee(__('Order collected'));
+        $response->assertSee(__('You collected your order from the store. Thank you for your purchase.'));
+        $response->assertDontSee(__('Order delivered'));
 
         $courierTransport = Transport::factory()->create([
             'title' => 'Courier',

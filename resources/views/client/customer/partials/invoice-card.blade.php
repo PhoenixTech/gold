@@ -63,7 +63,12 @@
     </div>
 
     {{-- Helpful Status Context Hints --}}
-    @if($inv->status === \App\Models\Invoice::OUT_FOR_DELIVERY)
+    @if($inv->status === \App\Models\Invoice::READY_FOR_PICKUP)
+        <div class="alert alert-success py-1.5 px-2.5 rounded-3 fs-12 d-flex align-items-center gap-1.5 mb-2.5 border-0 bg-success-subtle text-success-emphasis">
+            <i class="ri-store-2-line fs-14"></i>
+            <span>{{ __('Your order is ready for pickup at the gallery.') }}</span>
+        </div>
+    @elseif($inv->status === \App\Models\Invoice::OUT_FOR_DELIVERY)
         <div class="alert alert-warning py-1.5 px-2.5 rounded-3 fs-12 d-flex align-items-center gap-1.5 mb-2.5 border-0 bg-warning-subtle text-warning-emphasis">
             <i class="ri-motorbike-line fs-14"></i>
             <span>{{ __('Courier is delivering your order. Delivery code was sent via SMS.') }}</span>

@@ -173,13 +173,23 @@
         <div class="alert alert-success border border-success-subtle rounded-3 d-flex align-items-center gap-2.5 fs-13 mb-3 p-3">
             <i class="ri-checkbox-circle-fill fs-4 text-success flex-shrink-0"></i>
             <div>
-                <strong class="d-block text-dark">{{ __('Order delivered') }}</strong>
-                <span class="text-muted">{{ __('Your order has been delivered successfully. Thank you for your purchase.') }}</span>
+                <strong class="d-block text-dark">{{ $invoice->isPickup() ? __('Order collected') : __('Order delivered') }}</strong>
+                <span class="text-muted">{{ $invoice->isPickup() ? __('You collected your order from the store. Thank you for your purchase.') : __('Your order has been delivered successfully. Thank you for your purchase.') }}</span>
             </div>
         </div>
     @endif
 
-    @if($invoice->status === \App\Models\Invoice::OUT_FOR_DELIVERY)
+    @if($invoice->status === \App\Models\Invoice::READY_FOR_PICKUP)
+        <div class="alert alert-success border border-success-subtle rounded-3 p-3 mb-3 d-flex align-items-center gap-2.5">
+            <i class="ri-store-2-line fs-4 text-success"></i>
+            <div class="fs-13 text-dark fw-medium">
+                <strong class="d-block">{{ __('Your order is ready for pickup at the gallery.') }}</strong>
+                @if(trim((string) getSetting('address')) !== '')
+                    <span class="d-block mt-1">{{ getSetting('address') }}</span>
+                @endif
+            </div>
+        </div>
+    @elseif($invoice->status === \App\Models\Invoice::OUT_FOR_DELIVERY)
         @if($invoice->isPickup())
             <div class="alert alert-info border border-info-subtle rounded-3 p-3 mb-3 d-flex align-items-center gap-2.5">
                 <i class="ri-store-2-line fs-4 text-info"></i>

@@ -146,6 +146,15 @@ class InvoiceFactory extends Factory
         ]);
     }
 
+    public function readyForPickup(): static
+    {
+        return $this->pickup()->state(fn (array $attributes) => [
+            'status' => Invoice::READY_FOR_PICKUP,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
     public function outForDelivery(): static
     {
         return $this->state(fn (array $attributes) => [

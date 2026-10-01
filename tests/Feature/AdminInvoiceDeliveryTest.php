@@ -106,7 +106,6 @@ class AdminInvoiceDeliveryTest extends TestCase
 
         $response = $this->post(route('admin.invoice.update', $invoice), [
             'status' => Invoice::OUT_FOR_DELIVERY,
-            'transport_id' => $transport->id,
             'address_id' => $address->id,
             'courier_id' => $courier->id,
             'tracking_code' => '',
@@ -137,7 +136,6 @@ class AdminInvoiceDeliveryTest extends TestCase
 
         $this->post(route('admin.invoice.update', $invoice), [
             'status' => Invoice::PROCESSING,
-            'transport_id' => $transport->id,
             'address_id' => $address->id,
             'courier_id' => $courier->id,
             'tracking_code' => '',
@@ -148,6 +146,101 @@ class AdminInvoiceDeliveryTest extends TestCase
         $this->assertSame(Invoice::PROCESSING, $invoice->fresh()->status);
     }
 
+    public function test_store_pickup_must_be_marked_ready_before_admin_can_complete_it(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        $this->actingAsAdmin();
+        $invoice = Invoice::factory()->pickup()->create([
+            'status' => Invoice::PROCESSING,
+        ]);
+
+        $edit = $this->get(route('admin.invoice.edit', $invoice));
+        $edit->assertOk();
+        $edit->assertSee('data-fulfillment-method="pickup"', false);
+        $edit->assertSee(__('Mark ready for pickup'));
+        $edit->assertSee(__('Pickup location'));
+        $edit->assertDontSee('name="address_id"', false);
+        $edit->assertDontSee('name="transport_id"', false);
+        $edit->assertDontSee('name="tracking_code"', false);
+
+        $this->from(route('admin.invoice.edit', $invoice))
+            ->post(route('admin.invoice.update', $invoice), ['status' => Invoice::COMPLETED])
+            ->assertSessionHasErrors('status');
+        $this->assertSame(Invoice::PROCESSING, $invoice->fresh()->status);
+
+        $this->post(route('admin.invoice.update', $invoice), ['status' => Invoice::READY_FOR_PICKUP])
+            ->assertRedirect(route('admin.invoice.edit', $invoice));
+        $this->assertSame(Invoice::READY_FOR_PICKUP, $invoice->fresh()->status);
+
+        $readyEdit = $this->get(route('admin.invoice.edit', $invoice));
+        $readyEdit->assertSee(__('Mark as collected'));
+        $readyEdit->assertDontSee(__('Mark ready for pickup'));
+
+        $this->post(route('admin.invoice.update', $invoice), ['status' => Invoice::COMPLETED])
+            ->assertRedirect(route('admin.invoice.edit', $invoice));
+        $this->assertSame(Invoice::COMPLETED, $invoice->fresh()->status);
+    }
+
+    public function test_admin_cannot_change_fulfillment_method_after_checkout(): void
+    {
+        $this->actingAsAdmin();
+        $pickup = Invoice::factory()->pickup()->create([
+            'status' => Invoice::PROCESSING,
+        ]);
+        $pickupAddress = new Address;
+        $pickupAddress->customer_id = $pickup->customer_id;
+        $pickupAddress->address = 'Store conversion attempt';
+        $pickupAddress->save();
+        $courierTransport = Transport::factory()->create([
+            'title' => 'Courier conversion attempt',
+            'requires_delivery_code' => true,
+        ]);
+
+        $this->from(route('admin.invoice.edit', $pickup))
+            ->post(route('admin.invoice.update', $pickup), [
+                'status' => Invoice::PROCESSING,
+                'delivery_type' => 'address',
+                'transport_id' => $courierTransport->id,
+                'address_id' => $pickupAddress->id,
+                'tracking_code' => 'SHIPMENT-123',
+            ])
+            ->assertRedirect(route('admin.invoice.edit', $pickup))
+            ->assertSessionHasErrors(['delivery_type', 'transport_id', 'address_id', 'tracking_code']);
+
+        $this->assertTrue($pickup->fresh()->isPickup());
+        $this->assertNull($pickup->fresh()->transport_id);
+        $this->assertNull($pickup->fresh()->address_id);
+
+        $this->from(route('admin.invoice.edit', $pickup))
+            ->post(route('admin.invoice.update', $pickup), ['status' => Invoice::OUT_FOR_DELIVERY])
+            ->assertRedirect(route('admin.invoice.edit', $pickup))
+            ->assertSessionHasErrors('status');
+
+        [$deliveryInvoice, $originalTransport] = $this->makePaidCourierInvoice();
+        $otherTransport = Transport::factory()->create([
+            'title' => 'Different courier',
+            'requires_delivery_code' => true,
+        ]);
+
+        $this->from(route('admin.invoice.edit', $deliveryInvoice))
+            ->post(route('admin.invoice.update', $deliveryInvoice), [
+                'status' => Invoice::PROCESSING,
+                'delivery_type' => 'pickup',
+                'transport_id' => $otherTransport->id,
+            ])
+            ->assertRedirect(route('admin.invoice.edit', $deliveryInvoice))
+            ->assertSessionHasErrors(['delivery_type', 'transport_id']);
+
+        $this->assertSame('address', $deliveryInvoice->fresh()->delivery_type);
+        $this->assertSame($originalTransport->id, $deliveryInvoice->fresh()->transport_id);
+
+        $this->from(route('admin.invoice.edit', $deliveryInvoice))
+            ->post(route('admin.invoice.update', $deliveryInvoice), ['status' => Invoice::READY_FOR_PICKUP])
+            ->assertRedirect(route('admin.invoice.edit', $deliveryInvoice))
+            ->assertSessionHasErrors('status');
+    }
+
     public function test_out_for_delivery_requires_courier_transport_and_courier(): void
     {
         $this->actingAsAdmin();
@@ -156,7 +249,6 @@ class AdminInvoiceDeliveryTest extends TestCase
         $this->from(route('admin.invoice.edit', $invoice))
             ->post(route('admin.invoice.update', $invoice), [
                 'status' => Invoice::OUT_FOR_DELIVERY,
-                'transport_id' => $transport->id,
                 'address_id' => $address->id,
                 'courier_id' => $courier->id,
                 'tracking_code' => '',
@@ -171,7 +263,6 @@ class AdminInvoiceDeliveryTest extends TestCase
         $this->from(route('admin.invoice.edit', $invoice))
             ->post(route('admin.invoice.update', $invoice), [
                 'status' => Invoice::OUT_FOR_DELIVERY,
-                'transport_id' => $transport->id,
                 'address_id' => $address->id,
                 'tracking_code' => '',
             ])
@@ -186,7 +277,6 @@ class AdminInvoiceDeliveryTest extends TestCase
 
         $this->post(route('admin.invoice.update', $invoice), [
             'status' => Invoice::OUT_FOR_DELIVERY,
-            'transport_id' => $transport->id,
             'address_id' => $address->id,
             'courier_id' => $courier->id,
             'tracking_code' => '',
@@ -195,7 +285,6 @@ class AdminInvoiceDeliveryTest extends TestCase
         $this->from(route('admin.invoice.edit', $invoice))
             ->post(route('admin.invoice.update', $invoice), [
                 'status' => Invoice::COMPLETED,
-                'transport_id' => $transport->id,
                 'address_id' => $address->id,
                 'courier_id' => $courier->id,
                 'tracking_code' => '',
@@ -213,7 +302,6 @@ class AdminInvoiceDeliveryTest extends TestCase
 
         $this->post(route('admin.invoice.update', $invoice), [
             'status' => Invoice::OUT_FOR_DELIVERY,
-            'transport_id' => $transport->id,
             'address_id' => $address->id,
             'courier_id' => $courier->id,
             'tracking_code' => '',
@@ -240,7 +328,6 @@ class AdminInvoiceDeliveryTest extends TestCase
 
         $this->post(route('admin.invoice.update', $invoice), [
             'status' => Invoice::OUT_FOR_DELIVERY,
-            'transport_id' => $transport->id,
             'address_id' => $address->id,
             'courier_id' => $courier->id,
             'tracking_code' => '',
@@ -282,6 +369,8 @@ class AdminInvoiceDeliveryTest extends TestCase
         $response->assertSee(__('Shipping'), false);
         $response->assertSee(__('Send for delivery'), false);
         $response->assertSee(__('Select a courier'), false);
+        $response->assertSee('data-fulfillment-method="delivery"', false);
+        $response->assertDontSee('name="transport_id"', false);
         $response->assertSee('پیک تست', false);
     }
 

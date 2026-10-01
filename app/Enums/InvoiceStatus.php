@@ -10,6 +10,7 @@ enum InvoiceStatus: string
     case WaitingConfirmation = 'WAITING_CONFIRMATION';
     case Paid = 'PAID';
     case Processing = 'PROCESSING';
+    case ReadyForPickup = 'READY_FOR_PICKUP';
     case OutForDelivery = 'OUT_FOR_DELIVERY';
     case Completed = 'COMPLETED';
     case Canceled = 'CANCELED';
@@ -27,6 +28,7 @@ enum InvoiceStatus: string
             self::WaitingConfirmation => 'badge bg-primary-subtle text-primary border border-primary-subtle',
             self::Paid => 'badge bg-success-subtle text-success border border-success-subtle',
             self::Processing => 'badge bg-info-subtle text-info border border-info-subtle',
+            self::ReadyForPickup => 'badge bg-success-subtle text-success border border-success-subtle',
             self::OutForDelivery => 'badge bg-warning-subtle text-warning border border-warning-subtle',
             self::Completed => 'badge bg-success text-white',
             self::Failed => 'badge bg-danger-subtle text-danger border border-danger-subtle',

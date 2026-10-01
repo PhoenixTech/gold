@@ -89,7 +89,7 @@
                         <th style="min-width: 130px;" class="py-3 text-start" title="{{ __('Click phone icon in any row to expand details') }}">
                             <span class="d-inline-flex align-items-center gap-1">{{ __('Customer') }}<i class="ri-phone-line text-muted fs-14"></i></span>
                         </th>
-                        <th style="min-width: 100px;" class="py-3">{{ __('Province') }}</th>
+                        <th style="min-width: 120px;" class="py-3">{{ __('Area / fulfillment') }}</th>
                         <th style="min-width: 150px;" class="py-3 cursor-pointer sort-header" data-sort="date">
                             <span class="d-inline-flex align-items-center gap-1">{{ __('Order & Date') }}<i class="ri-arrow-up-down-line text-muted fs-11"></i></span>
                         </th>
@@ -102,11 +102,11 @@
                         <th style="min-width: 120px;" class="py-3 cursor-pointer sort-header" data-sort="settle" title="{{ __('Click to prioritize unsettled orders') }}">
                             <span class="d-inline-flex align-items-center gap-1">{{ __('Settlement') }}<i class="ri-arrow-up-down-line text-muted fs-11"></i></span>
                         </th>
-                        <th style="min-width: 120px;" class="py-3 cursor-pointer sort-header" data-sort="courier" title="{{ __('Click to prioritize pending courier') }}">
-                            <span class="d-inline-flex align-items-center gap-1">{{ __('Courier') }}<i class="ri-arrow-up-down-line text-muted fs-11"></i></span>
+                        <th style="min-width: 130px;" class="py-3 cursor-pointer sort-header" data-sort="courier" title="{{ __('Click to prioritize fulfillment') }}">
+                            <span class="d-inline-flex align-items-center gap-1">{{ __('Fulfillment') }}<i class="ri-arrow-up-down-line text-muted fs-11"></i></span>
                         </th>
-                        <th style="min-width: 130px;" class="py-3 cursor-pointer sort-header" data-sort="delivery" title="{{ __('Click to prioritize undelivered orders') }}">
-                            <span class="d-inline-flex align-items-center gap-1">{{ __('Delivered to customer') }}<i class="ri-arrow-up-down-line text-muted fs-11"></i></span>
+                        <th style="min-width: 145px;" class="py-3 cursor-pointer sort-header" data-sort="delivery" title="{{ __('Click to prioritize pending handover') }}">
+                            <span class="d-inline-flex align-items-center gap-1">{{ __('Delivery / collection') }}<i class="ri-arrow-up-down-line text-muted fs-11"></i></span>
                         </th>
                     </tr>
                 </thead>
@@ -164,7 +164,29 @@
                                             data-stage="{{ $key }}"
                                             title="{{ $stage['title'] }}">
                                         <span class="badge {{ $stage['done'] ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-warning-subtle text-warning-emphasis border border-warning-subtle' }} p-2 fs-12 w-100 d-inline-flex align-items-center justify-content-center gap-1">
-                                            <i class="{{ $stage['done'] ? ($key === 'delivery' ? 'ri-check-double-fill' : ($key === 'courier' ? ($order['invoice']->isPickup() ? 'ri-store-2-fill' : 'ri-truck-fill') : 'ri-checkbox-circle-fill')) : ($order['invoice']->isPickup() && $key === 'courier' ? 'ri-store-2-line' : 'ri-time-fill') }}"></i>
+                                            @php
+                                                $stageIcon = 'ri-time-fill';
+                                                if ($stage['done']) {
+                                                    if ($key === 'delivery') {
+                                                        $stageIcon = 'ri-check-double-fill';
+                                                    } elseif ($key === 'courier') {
+                                                        if ($order['is_pickup']) {
+                                                            $stageIcon = 'ri-store-2-fill';
+                                                        } elseif ($order['is_motorcycle']) {
+                                                            $stageIcon = 'ri-motorbike-fill';
+                                                        } else {
+                                                            $stageIcon = 'ri-truck-fill';
+                                                        }
+                                                    } else {
+                                                        $stageIcon = 'ri-checkbox-circle-fill';
+                                                    }
+                                                } elseif ($key === 'courier' && $order['is_pickup']) {
+                                                    $stageIcon = 'ri-store-2-line';
+                                                } elseif ($key === 'courier' && $order['is_motorcycle']) {
+                                                    $stageIcon = 'ri-motorbike-line';
+                                                }
+                                            @endphp
+                                            <i class="{{ $stageIcon }}"></i>
                                             <span>{{ $stage['text'] }}</span>
                                         </span>
                                     </button>
@@ -191,12 +213,12 @@
                                                 </a>
                                             </div>
                                             <div>
-                                                <span class="text-muted fs-12 d-block">{{ __('City / Province') }}</span>
-                                                <span class="text-dark fs-13 fw-semibold">{{ $order['province'] }} @if($order['city']) - {{ $order['city'] }} @endif</span>
+                                                <span class="text-muted fs-12 d-block">{{ $order['is_pickup'] ? __('Fulfillment method') : __('City / Province') }}</span>
+                                                <span class="text-dark fs-13 fw-semibold">{{ $order['is_pickup'] ? __('Store pickup') : trim($order['province'].' '.$order['city']) }}</span>
                                             </div>
                                             <div style="max-width: 420px;">
-                                                <span class="text-muted fs-12 d-block">{{ __('Shipping address') }}</span>
-                                                <span class="text-dark fs-13">{{ $order['address'] }} @if($order['postal_code'])<small class="text-muted font-monospace ms-1">({{ __('Postal code') }}: {{ $order['postal_code'] }})</small>@endif</span>
+                                                <span class="text-muted fs-12 d-block">{{ $order['is_pickup'] ? __('Pickup location') : __('Shipping address') }}</span>
+                                                <span class="text-dark fs-13">{{ $order['address'] }} @if(!$order['is_pickup'] && $order['postal_code'])<small class="text-muted font-monospace ms-1">({{ __('Postal code') }}: {{ $order['postal_code'] }})</small>@endif</span>
                                             </div>
                                             <div>
                                                 <span class="text-muted fs-12 d-block">{{ __('Total price') }}</span>
@@ -355,7 +377,7 @@
                                         @if($isPickup)
                                             <div class="alert alert-info border border-info-subtle rounded-3 p-2.5 mb-0 d-flex align-items-center gap-2 fs-13">
                                                 <i class="ri-information-line fs-5 text-primary"></i>
-                                                <span>{{ __('This is an in-person gallery pickup order. No courier assignment required.') }}</span>
+                                                <span>{{ __('This is a store pickup order. No courier assignment is required.') }} <span class="fw-semibold">{{ $order['pickup_location'] }}</span></span>
                                             </div>
                                         @elseif($d)
                                             <div class="d-flex align-items-start gap-4 flex-wrap">
@@ -390,22 +412,28 @@
                                     </div>
                                 </div>
 
-                                {{-- Delivery card --}}
+                                {{-- Delivery / collection card --}}
                                 @php $d = $order['details']['delivery']; @endphp
                                 <div class="subcard d-none" data-subcard="delivery">
                                     <div class="bg-white p-3 rounded-3 border border-secondary-subtle shadow-sm">
                                         <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
-                                            <i class="ri-home-smile-line text-primary fs-5"></i>
-                                            <strong class="text-dark fs-14">{{ __('Delivered to customer') }}</strong>
+                                            <i class="{{ $isPickup ? 'ri-store-2-line' : 'ri-home-smile-line' }} text-primary fs-5"></i>
+                                            <strong class="text-dark fs-14">{{ $isPickup ? __('Customer collection') : __('Delivered to customer') }}</strong>
                                         </div>
                                         <div class="d-flex align-items-start gap-4 flex-wrap">
-                                            <div>
-                                                <span class="text-muted fs-12 d-block">{{ __('Delivered at') }}</span>
-                                                <strong class="text-dark fs-13 font-monospace">{{ $d['delivered_at'] ?? '—' }}</strong>
-                                            </div>
+                                            @if(!$isPickup)
+                                                <div>
+                                                    <span class="text-muted fs-12 d-block">{{ __('Delivered at') }}</span>
+                                                    <strong class="text-dark fs-13 font-monospace">{{ $d['delivered_at'] ?? '—' }}</strong>
+                                                </div>
+                                            @endif
                                             @if(!$d['done'])
                                                 <div class="text-muted fs-13 d-flex align-items-center gap-2">
-                                                    <i class="ri-time-line"></i>{{ $isPickup ? __('Customer will pick up the order directly at the gallery.') : __('Not delivered yet.') }}
+                                                    <i class="ri-time-line"></i>{{ $isPickup ? ($order['stages']['courier']['done'] ? __('Waiting for the customer to collect the order.') : __('The order is still being prepared for pickup.')) : __('Not delivered yet.') }}
+                                                </div>
+                                            @elseif($isPickup)
+                                                <div class="text-success fs-13 d-flex align-items-center gap-2">
+                                                    <i class="ri-checkbox-circle-line"></i>{{ __('The customer collected the order from the store.') }}
                                                 </div>
                                             @endif
                                         </div>

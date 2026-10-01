@@ -19,6 +19,8 @@
         $offlineIsExpired = $invoice->isOfflinePaymentExpired();
         $persianDeadline = $invoice->formattedDeadline();
         $displayStatus = $invoice->displayStatusKey();
+        $isPickup = $invoice->isPickup();
+        $pickupLocation = (string) getSetting('address');
         $address = $invoice->address;
         $addressParts = array_filter([
             $address?->state?->name,
@@ -26,7 +28,9 @@
             $address?->address,
             $address?->zip ? __('Postal code') . ': ' . $address->zip : null,
         ], fn ($part) => $part !== null && trim((string) $part) !== '');
-        $fullAddress = $addressParts ? implode('، ', $addressParts) : ($invoice->address_alt ?: __('No address registered.'));
+        $fullAddress = $isPickup
+            ? ($pickupLocation !== '' ? $pickupLocation : __('Gallery address is not configured.'))
+            : ($addressParts ? implode('، ', $addressParts) : ($invoice->address_alt ?: __('No address registered.')));
         $receipts = $invoice->paymentReceipts ?? collect();
         $logoUrl = getSetting('logo_png') ? asset(getSetting('logo_png')) : (getSetting('logo_svg') ? asset(getSetting('logo_svg')) : asset('upload/images/logo.png'));
     @endphp
@@ -214,10 +218,12 @@
                                     <span class="text-muted">{{ __("Mobile") }}:</span>
                                     <span dir="ltr" class="text-dark fw-bold">{{ $invoice->customer?->mobile ?? '---' }}</span>
                                 </div>
-                                <div class="d-flex justify-content-between">
-                                    <span class="text-muted">{{ __("Address") }}:</span>
-                                    <span class="text-dark text-end fw-semibold text-truncate" style="max-width: 75%;" title="{{ $fullAddress }}">{{ $fullAddress }}</span>
-                                </div>
+                                @unless($isPickup)
+                                    <div class="d-flex justify-content-between">
+                                        <span class="text-muted">{{ __('Address') }}:</span>
+                                        <span class="text-dark text-end fw-semibold text-truncate" style="max-width: 75%;" title="{{ $fullAddress }}">{{ $fullAddress }}</span>
+                                    </div>
+                                @endunless
                             </div>
                         </div>
                     </div>
@@ -225,25 +231,40 @@
             </div>
 
             {{-- 3. Shipping & Transport Meta Strip --}}
-            <div class="invoice-shipping-strip mb-2 p-1.5 px-2 rounded-2 border bg-light d-flex flex-wrap align-items-center justify-content-between gap-2 fs-xs">
-                <div class="d-flex align-items-center gap-1.5">
-                    <i class="ri-truck-line text-primary"></i>
-                    <span class="text-muted">{{ __("Shipping method") }}:</span>
-                    <b class="text-dark">{{ $invoice->transport?->title ?? __('Standard Transport') }}</b>
-                    <span class="text-muted">({{ number_format($invoice->transport_price) }} {{ config('app.currency.symbol') }})</span>
+            @if($isPickup)
+                <div class="invoice-shipping-strip mb-2 p-1.5 px-2 rounded-2 border bg-light d-flex flex-wrap align-items-center justify-content-between gap-2 fs-xs" data-fulfillment-method="pickup">
+                    <div class="d-flex align-items-center gap-1.5">
+                        <i class="ri-store-2-line text-primary"></i>
+                        <span class="text-muted">{{ __('Fulfillment method:') }}</span>
+                        <b class="text-dark">{{ __('Store pickup') }}</b>
+                    </div>
+                    <div class="d-flex align-items-center gap-1.5">
+                        <i class="ri-map-pin-line text-primary"></i>
+                        <span class="text-muted">{{ __('Pickup location') }}:</span>
+                        <b class="text-dark">{{ $fullAddress }}</b>
+                    </div>
                 </div>
+            @else
+                <div class="invoice-shipping-strip mb-2 p-1.5 px-2 rounded-2 border bg-light d-flex flex-wrap align-items-center justify-content-between gap-2 fs-xs" data-fulfillment-method="delivery">
+                    <div class="d-flex align-items-center gap-1.5">
+                        <i class="{{ $invoice->requiresDeliveryCode() ? 'ri-motorbike-line' : 'ri-truck-line' }} text-primary"></i>
+                        <span class="text-muted">{{ __("Shipping method") }}:</span>
+                        <b class="text-dark">{{ $invoice->transport?->title ?? __('Standard Transport') }}</b>
+                        <span class="text-muted">({{ number_format($invoice->transport_price) }} {{ config('app.currency.symbol') }})</span>
+                    </div>
 
-                <div class="d-flex align-items-center gap-1.5">
-                    <i class="ri-barcode-line text-dark"></i>
-                    <span class="text-muted">{{ __("Tracking code") }}:</span>
-                    @if($invoice->tracking_code)
-                        <code class="fw-bold text-primary px-1.5 py-0.5 bg-white border rounded" dir="ltr">{{ $invoice->tracking_code }}</code>
-                    @else
-                        <span class="badge bg-secondary-subtle text-secondary">{{ __("Pending shipment") }}</span>
-                    @endif
+                    <div class="d-flex align-items-center gap-1.5">
+                        <i class="ri-barcode-line text-dark"></i>
+                        <span class="text-muted">{{ __("Tracking code") }}:</span>
+                        @if($invoice->tracking_code)
+                            <code class="fw-bold text-primary px-1.5 py-0.5 bg-white border rounded" dir="ltr">{{ $invoice->tracking_code }}</code>
+                        @else
+                            <span class="badge bg-secondary-subtle text-secondary">{{ __("Pending shipment") }}</span>
+                        @endif
+                    </div>
                 </div>
-            </div>
-            @if($invoice->activeDelivery)
+            @endif
+            @if($invoice->activeDelivery && !$isPickup)
                 <div class="invoice-shipping-strip mb-2 p-1.5 px-2 rounded-2 border bg-light d-flex flex-wrap align-items-center justify-content-between gap-2 fs-xs">
                     <div class="d-flex align-items-center gap-1.5">
                         <i class="ri-motorbike-line text-primary"></i>
@@ -397,7 +418,7 @@
                                 <span class="fw-semibold text-dark">{{ number_format($subtotal) }} {{ config('app.currency.symbol') }}</span>
                             </div>
                             <div class="d-flex justify-content-between py-0.5 border-bottom">
-                                <span class="text-muted">{{ __("Shipping cost") }}:</span>
+                                <span class="text-muted">{{ $isPickup ? __('Pickup cost') : __("Shipping cost") }}:</span>
                                 <span class="fw-semibold text-dark">{{ number_format($invoice->transport_price) }} {{ config('app.currency.symbol') }}</span>
                             </div>
                             @if($invoice->credit_price > 0)
