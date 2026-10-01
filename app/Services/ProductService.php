@@ -75,7 +75,7 @@ class ProductService
 
             $tags = array_filter(explode(',,', (string) $request->input('tags')));
             if (count($tags) > 0) {
-                $product->syncTags($tags);
+                $product->syncTagsWithType($tags, 'product');
             }
 
             $mediaIds = (array) $request->input('medias', []);

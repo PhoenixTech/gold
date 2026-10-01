@@ -34,6 +34,15 @@
             {{__("Below purchase price")}}
         </option>
     </select>
+
+    <select name="filter[tag]" class="form-select form-select-sm w-auto">
+        <option value="">{{__("All tags")}}</option>
+        @foreach($allTags as $tag)
+            <option value="{{ $tag->id }}" @if(request()->input('filter.tag') == $tag->id) selected @endif>
+                {{ $tag->name }}
+            </option>
+        @endforeach
+    </select>
 @endsection
 @section('bulk')
     <option value="publish"> {{__("Publish")}} </option>

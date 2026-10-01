@@ -15,6 +15,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Spatie\Tags\Tag;
 
 class ProductController extends Controller
 {
@@ -31,6 +32,7 @@ class ProductController extends Controller
     {
         $lowStock = $request->input('filter.low_stock');
         $belowBuyPrice = $request->input('filter.below_buy_price');
+        $tagFilter = $request->input('filter.tag');
 
         $query = Product::query()->with(['availableQuantities']);
 
@@ -60,9 +62,16 @@ class ProductController extends Controller
             }
         }
 
-        if ($lowStock !== null && $lowStock !== '' || $belowBuyPrice !== null && $belowBuyPrice !== '') {
+        if ($tagFilter !== null && $tagFilter !== '') {
+            $tagModel = Tag::find((int) $tagFilter);
+            if ($tagModel) {
+                $query->withAnyTags([$tagModel], 'product');
+            }
+        }
+
+        if ($lowStock !== null && $lowStock !== '' || $belowBuyPrice !== null && $belowBuyPrice !== '' || $tagFilter !== null && $tagFilter !== '') {
             $filters = (array) $request->input('filter', []);
-            unset($filters['low_stock'], $filters['below_buy_price']);
+            unset($filters['low_stock'], $filters['below_buy_price'], $filters['tag']);
             $request->merge(['filter' => $filters]);
         }
 
@@ -89,14 +98,20 @@ class ProductController extends Controller
         if ($belowBuyPrice !== null && $belowBuyPrice !== '') {
             $request->merge(['filter' => array_merge((array) $request->input('filter', []), ['below_buy_price' => $belowBuyPrice])]);
         }
+        if ($tagFilter !== null && $tagFilter !== '') {
+            $request->merge(['filter' => array_merge((array) $request->input('filter', []), ['tag' => $tagFilter])]);
+        }
 
-        return view('admin.products.product-list', $tableData);
+        $allTags = Tag::getWithType('product');
+
+        return view('admin.products.product-list', array_merge($tableData, compact('allTags')));
     }
 
     public function trashed(Request $request, AdminTableService $tableService): View
     {
         $lowStock = $request->input('filter.low_stock');
         $belowBuyPrice = $request->input('filter.below_buy_price');
+        $tagFilter = $request->input('filter.tag');
 
         $query = Product::query()->onlyTrashed()->with(['availableQuantities']);
 
@@ -126,9 +141,16 @@ class ProductController extends Controller
             }
         }
 
-        if ($lowStock !== null && $lowStock !== '' || $belowBuyPrice !== null && $belowBuyPrice !== '') {
+        if ($tagFilter !== null && $tagFilter !== '') {
+            $tagModel = Tag::find((int) $tagFilter);
+            if ($tagModel) {
+                $query->withAnyTags([$tagModel], 'product');
+            }
+        }
+
+        if ($lowStock !== null && $lowStock !== '' || $belowBuyPrice !== null && $belowBuyPrice !== '' || $tagFilter !== null && $tagFilter !== '') {
             $filters = (array) $request->input('filter', []);
-            unset($filters['low_stock'], $filters['below_buy_price']);
+            unset($filters['low_stock'], $filters['below_buy_price'], $filters['tag']);
             $request->merge(['filter' => $filters]);
         }
 
@@ -146,7 +168,9 @@ class ProductController extends Controller
             ])
             ->build($request);
 
-        return view('admin.products.product-list', $tableData);
+        $allTags = Tag::getWithType('product');
+
+        return view('admin.products.product-list', array_merge($tableData, compact('allTags')));
     }
 
     public function create(): View
