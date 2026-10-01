@@ -67,17 +67,17 @@
             <div class="liana-offline-alert__body">
                 <span class="liana-offline-alert__eyebrow">{{ __('Offline payment') }}</span>
                 @if($isWaitingConfirmation)
-                    <strong>{{ __('Waiting for payment confirmation') }}</strong>
+                    <div>{{ __('Waiting for payment confirmation') }}</div>
                     <p>
                         {{ __('Your receipt was received. We are reviewing your offline payment. Please wait for admin confirmation.') }}
                     </p>
                 @else
-                    <strong>{{ __('This invoice needs a payment receipt') }}</strong>
+                    <div>{{ __('This invoice needs a payment receipt') }}</div>
                     @if($invoice->declinedReceiptReason())
                         <div class="alert alert-warning border border-warning-subtle rounded-3 p-2.5 my-2 fs-13 d-flex align-items-center gap-2">
                             <i class="ri-alert-line text-warning fs-5 flex-shrink-0"></i>
                             <div>
-                                <strong class="d-block text-dark">{{ __('Previous receipt was declined') }}</strong>
+                                <div class="d-block text-dark">{{ __('Previous receipt was declined') }}</div>
                                 <span class="text-dark">{{ __('Reason:') }} {{ $invoice->declinedReceiptReason() }}</span>
                             </div>
                         </div>
@@ -106,7 +106,7 @@
             <div class="d-flex align-items-center gap-2">
                 <i class="ri-time-line fs-4 text-warning"></i>
                 <div>
-                    <strong class="d-block text-dark">{{ __('Awaiting online payment') }}</strong>
+                    <div class="d-block text-dark">{{ __('Awaiting online payment') }}</div>
                     <span class="text-muted fs-13">{{ __('Please complete your online payment to confirm the order.') }}</span>
                 </div>
             </div>
@@ -121,7 +121,7 @@
             </div>
             <div class="liana-offline-alert__body">
                 <span class="liana-offline-alert__eyebrow text-danger">{{ __('Failed invoice') }}</span>
-                <strong class="text-danger">{{ __('Payment was not completed.') }}</strong>
+                <div class="text-danger">{{ __('Payment was not completed.') }}</div>
                 @if($invoice->isOnlinePayment() && $invoice->canRetryOnlinePayment())
                     <p class="mb-2 text-muted fs-13">
                         {{ __('Payment failed or was interrupted. You can retry paying online before your session expires.') }}
@@ -144,7 +144,7 @@
             </div>
             <div class="liana-offline-alert__body">
                 <span class="liana-offline-alert__eyebrow text-secondary">{{ __('Canceled invoice') }}</span>
-                <strong class="text-dark">{{ __('This invoice was canceled.') }}</strong>
+                <div class="text-dark">{{ __('This invoice was canceled.') }}</div>
                 @if($invoice->declinedReceiptReason())
                     <p class="mb-0 text-muted fs-13">
                         {{ __('Decline reason:') }} {{ $invoice->declinedReceiptReason() }}

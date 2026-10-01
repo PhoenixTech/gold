@@ -119,18 +119,22 @@ class CustomerController extends Controller
             $customer->password = bcrypt($request->input('password'));
         }
 
-        if ($request->filled('dob_year') && $request->filled('dob_month') && $request->filled('dob_day')) {
-            $jy = (int) $request->input('dob_year');
-            $jm = (int) $request->input('dob_month');
-            $jd = (int) $request->input('dob_day');
+        $dobYear = $this->normalizeDigits($request->input('dob_year'));
+        $dobMonth = $this->normalizeDigits($request->input('dob_month'));
+        $dobDay = $this->normalizeDigits($request->input('dob_day'));
+
+        if ($dobYear !== '' && $dobMonth !== '' && $dobDay !== '') {
+            $jy = (int) $dobYear;
+            $jm = (int) $dobMonth;
+            $jd = (int) $dobDay;
             $geDate = PersianDate::toGregorian($jy, $jm, $jd);
             $customer->dob = sprintf('%04d-%02d-%02d', $geDate[0], $geDate[1], $geDate[2]);
         } elseif ($request->filled('dob')) {
             $dobVal = $request->input('dob');
             if (is_numeric($dobVal)) {
                 $customer->dob = date('Y-m-d', (int) $dobVal);
-            } elseif (strtotime($dobVal)) {
-                $customer->dob = date('Y-m-d', strtotime($dobVal));
+            } elseif (strtotime((string) $dobVal)) {
+                $customer->dob = date('Y-m-d', strtotime((string) $dobVal));
             }
         }
 
@@ -244,9 +248,21 @@ class CustomerController extends Controller
         return auth('customer')->user()->addresses;
     }
 
+    private function normalizeDigits(mixed $value): string
+    {
+        if ($value === null) {
+            return '';
+        }
+        $persian = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+        $arabic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+        $latin = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+
+        return str_replace($arabic, $latin, str_replace($persian, $latin, (string) $value));
+    }
+
     public function addressUpdate(Request $request, $item)
     {
-        $address = Address::where('id', $item)->firstOrFail();
+        $address = $item instanceof Address ? $item : Address::where('id', $item)->firstOrFail();
         if ($address->customer_id != auth('customer')->id()) {
             return abort(403);
         }
@@ -257,14 +273,15 @@ class CustomerController extends Controller
         return ['OK' => true, 'message' => __('address updated')];
     }
 
-    public function addressDestroy(Address $item)
+    public function addressDestroy($item)
     {
-        if ($item->customer_id != auth('customer')->id()) {
+        $address = $item instanceof Address ? $item : Address::where('id', $item)->firstOrFail();
+        if ($address->customer_id != auth('customer')->id()) {
             return abort(403);
         }
 
-        $addressText = $item->address;
-        $item->delete();
+        $addressText = $address->address;
+        $address->delete();
 
         return ['OK' => true, 'message' => __(':ADDRESS removed', ['ADDRESS' => $addressText])];
     }

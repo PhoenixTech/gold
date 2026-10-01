@@ -52,10 +52,9 @@
     $firstName = $nameParts[0] ?? '';
     $lastName = $nameParts[1] ?? '';
 
-    // Birth date parts
-    $currentDobYear = $customer->dob ? (int) $customer->dob->jdate('Y') : null;
-    $currentDobMonth = $customer->dob ? (int) $customer->dob->jdate('n') : null;
-    $currentDobDay = $customer->dob ? (int) $customer->dob->jdate('j') : null;
+    $currentDobYear = $customer->dob ? (int) $customer->dob->jdate('Y', 'en') : null;
+    $currentDobMonth = $customer->dob ? (int) $customer->dob->jdate('n', 'en') : null;
+    $currentDobDay = $customer->dob ? (int) $customer->dob->jdate('j', 'en') : null;
 
     $persianMonths = [
         1 => 'فروردین',
@@ -84,15 +83,13 @@
                 <input type="file" name="avatar" id="avisa-avatar-input" accept="image/jpeg,image/png,image/webp" onchange="document.getElementById('avisa-avatar-form').submit();">
             </form>
 
-            {{-- Notice Banners --}}
-            @include('components.err')
-
-            @if(session('message'))
-                <div class="alert alert-success alert-dismissible fade show rounded-4 mb-3 d-flex align-items-center gap-2 shadow-xs" role="alert">
-                    <i class="ri-checkbox-circle-line fs-5"></i>
-                    <div>{{ session('message') }}</div>
-                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
+            @if($errors->any())
+                @foreach($errors->all() as $err)
+                    <div class="alert alert-danger rounded-4 mb-3 d-flex align-items-center gap-2 shadow-xs">
+                        <i class="ri-error-warning-line fs-5"></i>
+                        <div>{{ $err }}</div>
+                    </div>
+                @endforeach
             @endif
 
             @if($waitingConfirmInvoices->count() > 0)
@@ -306,35 +303,6 @@
                                             <input type="email" name="email" class="form-control" value="{{ old('email', $customer->email) }}">
                                         </div>
                                         <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold">{{ __('Save') }}</button>
-                                    </form>
-                                </div>
-                            </div>
-
-                            {{-- Row 4: Change Password --}}
-                            <div class="list-group-item p-3">
-                                <div class="d-flex align-items-center justify-content-between" data-bs-toggle="collapse" data-bs-target="#collapsePasswordEdit" role="button">
-                                    <div>
-                                        <span class="fw-bold text-dark fs-14">{{ __('Change password') }}</span>
-                                    </div>
-                                    <i class="ri-arrow-left-s-line text-dark fs-5"></i>
-                                </div>
-                                <div class="collapse mt-3" id="collapsePasswordEdit">
-                                    <form action="{{ route('client.profile.save') }}" method="post" class="p-3 bg-light rounded-3 border">
-                                        @csrf
-                                        <input type="hidden" name="_tab_redirect" value="#profile">
-                                        <div class="row g-2">
-                                            <div class="col-12 col-md-6">
-                                                <label class="fs-12 text-muted mb-1">{{ __('Password') }}</label>
-                                                <input type="password" name="password" class="form-control" placeholder="{{ __('Password') }}" minlength="8" required>
-                                            </div>
-                                            <div class="col-12 col-md-6">
-                                                <label class="fs-12 text-muted mb-1">{{ __('password repeat') }}</label>
-                                                <input type="password" name="password_confirmation" class="form-control" placeholder="{{ __('password repeat') }}" minlength="8" required>
-                                            </div>
-                                            <div class="col-12 mt-2">
-                                                <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold">{{ __('Save') }}</button>
-                                            </div>
-                                        </div>
                                     </form>
                                 </div>
                             </div>

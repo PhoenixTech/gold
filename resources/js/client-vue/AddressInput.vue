@@ -341,12 +341,16 @@ export default {
             }
         },
         async updateState() {
+            if (!this.state_id) {
+                this.cities = [];
+                return;
+            }
+
             for (const st of this.states) {
                 if (st.id == this.state_id) {
-                    // console.log(st);
                     if (st.lat != null && st.lng != null) {
                         this.zoom = 10;
-                        this.changeMapCenter(st.lat, st.lng)
+                        this.changeMapCenter(st.lat, st.lng);
                     }
                     break;
                 }

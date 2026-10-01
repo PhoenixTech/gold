@@ -91,7 +91,7 @@ class CustomerProfileRedesignTest extends TestCase
         $response->assertSee($customer->dob->jdate('j F Y'));
         $response->assertSee(__('Verified'));
         $response->assertSee('sadeghpm@gmail.com');
-        $response->assertSee(__('Change password'));
+        $response->assertDontSee(__('Change password'));
         $response->assertSee(__('Bank account info'));
 
         // Edit sub-view (wish-profile-edit.png)
