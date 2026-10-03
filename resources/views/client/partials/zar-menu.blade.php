@@ -37,7 +37,7 @@
         </div>
     </div>
 
-    <!-- Row 2: Info & Status Bar (Profile, Credit, Gold Price) -->
+    <!-- Row 2: Info & Status Bar (Profile, Gold Price) -->
     <div class="zar-sub-bar">
         <div class="container d-flex align-items-center justify-content-between">
             <!-- Right in RTL: User Profile / Guest -->
@@ -46,17 +46,10 @@
                 <span class="fs-14 fw-medium">{{auth('customer')->check() ? auth('customer')->user()->name : __('Guest')}}</span>
             </a>
 
-            <!-- Middle in RTL: Credit -->
-            <a href="{{route('client.profile')}}" class="d-inline-flex align-items-center gap-1.5 text-dark text-decoration-none">
-                <i class="ri-trophy-line fs-18"></i>
-                <span class="fs-14 fw-medium">{{__('Credit')}}</span>
-            </a>
-
             <!-- Left in RTL: Live Gold Price -->
             <span class="d-inline-flex align-items-center gap-1.5 text-dark">
                 <i class="ri-line-chart-line fs-18"></i>
-                <span class="fs-14 fw-bold font-monospace">{{number_format((int) $goldPrice)}}</span>
-                <span class="fs-12 text-muted">{{config('app.currency.symbol') ?: 'تومان'}}</span>
+                <span class="fs-14 fw-bold font-monospace">{{toPersianDigits(number_format((int) $goldPrice))}}</span>
             </span>
         </div>
     </div>

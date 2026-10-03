@@ -386,6 +386,15 @@ function formatFileSize($size): string
     return number_format($size / 1073741824, 1).' GB';
 }
 
+/**
+ * Convert latin digits of a number-like string to Persian digits.
+ */
+function toPersianDigits(string|int|float|null $value): string
+{
+    return strtr((string) $value, ['0' => '۰', '1' => '۱', '2' => '۲', '3' => '۳', '4' => '۴',
+        '5' => '۵', '6' => '۶', '7' => '۷', '8' => '۸', '9' => '۹']);
+}
+
 function generateUniqueID($length = 8): string
 {
     $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';

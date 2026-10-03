@@ -88,26 +88,20 @@
         </div>
     </section>
 
-    <!-- Latest / Featured Products Section -->
-    @if(isset($latestProducts) && $latestProducts->isNotEmpty())
+    <!-- Featured Products Section (driven by the tags picked in settings) -->
+    @if(isset($featuredProducts) && $featuredProducts->isNotEmpty())
         <section class="featured-products py-5 bg-light-subtle border-top border-bottom reveal-on-scroll">
             <div class="{{gfx()['container']}}">
-                <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
-                    <div>
-                        <h4 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
-                            <i class="ri-sparkling-fill text-primary"></i>
-                            <span>{{__("Latest Products")}}</span>
-                        </h4>
-                        <p class="text-muted fs-14 mb-0">{{__("Discover our newest fine jewelry & gold collection")}}</p>
-                    </div>
-                    <a href="{{route('client.products')}}" class="btn btn-outline-primary rounded-pill btn-sm px-3.5 py-1.5 fw-semibold d-inline-flex align-items-center gap-1">
-                        <span>{{__("View all")}}</span>
-                        <i class="ri-arrow-left-line"></i>
-                    </a>
+                <div class="mb-4 pb-2 border-bottom">
+                    <h4 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                        <i class="ri-sparkling-fill text-primary"></i>
+                        <span>{{__("Our Featured Products")}}</span>
+                    </h4>
+                    <p class="text-muted fs-14 mb-0">{{__("A curated selection of our finest gold & jewelry pieces")}}</p>
                 </div>
 
                 <div class="row g-3 g-md-4">
-                    @foreach($latestProducts as $product)
+                    @foreach($featuredProducts as $product)
                         <div class="col-6 col-md-4 col-lg-3">
                             @include('client.partials.product-card', ['product' => $product])
                         </div>

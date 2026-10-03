@@ -20,6 +20,7 @@ use App\Models\Product;
 use App\Models\Quantity;
 use App\Models\Rate;
 use App\Models\User;
+use App\Services\FeaturedProductsService;
 use App\Services\ProductPriceCalculator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -93,11 +94,7 @@ class ClientController extends Controller
             $mainCategories = $this->getHomeCategoryTabs();
         }
 
-        $latestProducts = Product::where('status', 1)
-            ->with(['category', 'availableQuantities', 'activeDiscounts', 'media'])
-            ->orderByDesc('id')
-            ->take(8)
-            ->get();
+        $featuredProducts = app(FeaturedProductsService::class)->get();
 
         $latestPosts = Post::where('status', 1)
             ->with('mainGroup')
@@ -118,7 +115,7 @@ class ClientController extends Controller
         $introText = getSetting('index_Natalia2Categories_text') ?: getSetting('about');
         $newsText = getSetting('index_NeginNews_text');
 
-        return view('client.home', compact('title', 'subtitle', 'mainCategories', 'footerCategories', 'zarMenuItems', 'goldPrice', 'latestProducts', 'latestPosts', 'introText', 'newsText'));
+        return view('client.home', compact('title', 'subtitle', 'mainCategories', 'footerCategories', 'zarMenuItems', 'goldPrice', 'featuredProducts', 'latestPosts', 'introText', 'newsText'));
     }
 
     public function homeV1()

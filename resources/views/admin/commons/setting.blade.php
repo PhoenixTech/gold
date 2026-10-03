@@ -46,7 +46,9 @@
 
         <form id="setting-form" action="{{route('admin.setting.update')}}" method="post" enctype="multipart/form-data">
             @csrf
-            <div class="item-list">
+            {{-- overflow-visible: the searchable dropdowns of CATEGORY_SET / TAG_SET / MENU fields
+                 are absolutely positioned and would be clipped by the card otherwise --}}
+            <div class="item-list overflow-visible">
                 <div class="p-3 pb-0">
                     @include('components.err')
 
@@ -119,6 +121,7 @@
                                        value="{{old('section')}}"/>
                                 <datalist id="known-sections">
                                     <option value="General"></option>
+                                    <option value="Homepage"></option>
                                     <option value="SEO"></option>
                                     <option value="Media"></option>
                                     <option value="SMS"></option>

@@ -41,6 +41,7 @@
         'min' => __('Minimum profit percent added to the daily metal rate when calculating product prices.'),
         'offline_payment_hours' => __('How many hours a customer has to transfer money and upload the receipt; after that the offline invoice is cancelled automatically.'),
         'cart_quote_minutes' => __('Cart prices are quoted with the current gold rate and stay valid for this long. After it expires, prices are recalculated at checkout.'),
+        \App\Services\FeaturedProductsService::SETTING_KEY => __('Choose up to three tags. The home page section merges the newest products carrying any of them; leave it empty to keep showing the newest products of the shop.'),
         'under' => __("While enabled, the storefront shows a maintenance page and visitors can't browse the shop."),
         'subtitle' => __('Shown next to the site name in the header and used as a short description of the shop.'),
         'css' => __('Injected into every page, ideal for small theme tweaks.'),
@@ -174,6 +175,18 @@
                 xname="{{$setting->key}}"
                 :xvalue='{{old($setting->key,$setting->value??[])}}'
                 :close-on-Select="true"></searchable-multi-select>
+            @break
+        @case('TAG_SET')
+            <searchable-multi-select
+                @error($setting->key) :err="true" @enderror
+            :items='@json($tags ?? [])'
+                title-field="name"
+                value-field="id"
+                xlang="{{config('app.locale')}}"
+                xid="{{$setting->key}}"
+                xname="{{$setting->key}}"
+                :xvalue='{{old($setting->key, $setting->value) ?: '[]'}}'
+                :close-on-Select="false"></searchable-multi-select>
             @break
         @case('GROUP')
             <searchable-select

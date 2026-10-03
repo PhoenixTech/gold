@@ -8,9 +8,11 @@ use App\Models\Category;
 use App\Models\Group;
 use App\Models\Menu;
 use App\Models\Setting;
+use App\Services\FeaturedProductsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Spatie\Image\Image;
+use Spatie\Tags\Tag;
 
 class SettingController extends Controller
 {
@@ -71,6 +73,13 @@ class SettingController extends Controller
                 })->values(),
             ],
             [
+                'id' => 'homepage',
+                'label' => __('Home page sections'),
+                'icon' => 'ri-home-smile-line',
+                'intro' => __('These options control which content fills the sections of the storefront home page.'),
+                'settings' => $settings->where('section', 'Homepage')->values(),
+            ],
+            [
                 'id' => 'seo',
                 'label' => __('SEO'),
                 'icon' => 'ri-search-eye-line',
@@ -105,7 +114,7 @@ class SettingController extends Controller
         // freshly created developer settings) gets its own "Other" tab so it
         // stays editable on this page.
         $rest = $settings->reject(fn (Setting $setting) => in_array($setting->key, $tabbedKeys)
-            || in_array($setting->section, ['SEO', 'Media', 'SMS'])
+            || in_array($setting->section, ['SEO', 'Media', 'SMS', 'Homepage'])
             || $setting->section === 'theme');
         if ($rest->isNotEmpty()) {
             $tabs[] = [
@@ -125,9 +134,13 @@ class SettingController extends Controller
         $groups = Group::all(['id', 'name'])->toArray();
         $catz = array_merge([['id' => 0, 'name' => __('All')]], $cats);
         $groupz = array_merge([['id' => 0, 'name' => __('All')]], $groups);
+        $tags = Tag::getWithType(FeaturedProductsService::TAG_TYPE)
+            ->map(fn (Tag $tag) => ['id' => $tag->id, 'name' => $tag->name])
+            ->values()
+            ->toArray();
 
         return view('admin.commons.setting',
-            compact('tabs', 'cats', 'groups', 'menus', 'catz', 'groupz'));
+            compact('tabs', 'cats', 'groups', 'menus', 'catz', 'groupz', 'tags'));
     }
 
     /**

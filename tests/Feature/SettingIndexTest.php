@@ -3,7 +3,11 @@
 namespace Tests\Feature;
 
 use App\Models\Setting;
+use App\Models\User;
+use App\Services\FeaturedProductsService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
+use Spatie\Tags\Tag;
 use Tests\TestCase;
 
 class SettingIndexTest extends TestCase
@@ -89,5 +93,46 @@ class SettingIndexTest extends TestCase
 
         $this->assertStringContainsString('xmin="1"', $html);
         $this->assertStringContainsString('xmax="24"', $html);
+    }
+
+    public function test_home_featured_tags_setting_is_registered_and_renders_a_tag_multi_select(): void
+    {
+        $setting = Setting::where('key', FeaturedProductsService::SETTING_KEY)->first();
+
+        $this->assertNotNull($setting, 'The featured products setting is missing.');
+        $this->assertSame('TAG_SET', $setting->type);
+        $this->assertSame('Homepage', $setting->section);
+
+        $tag = Tag::findOrCreate('ویژه', FeaturedProductsService::TAG_TYPE);
+        $ids = json_encode([$tag->id]);
+        $setting->update(['value' => $ids, 'raw' => $ids]);
+
+        $this->withViewErrors([]);
+
+        $html = view('components.setting-field', [
+            'setting' => $setting->fresh(),
+            'tags' => [['id' => $tag->id, 'name' => $tag->name]],
+        ])->render();
+
+        $this->assertStringContainsString('<searchable-multi-select', $html);
+        $this->assertStringContainsString('xname="'.FeaturedProductsService::SETTING_KEY.'"', $html);
+        $this->assertStringContainsString('"id":'.$tag->id, $html);
+    }
+
+    public function test_settings_page_has_a_home_page_tab_holding_the_tag_picker(): void
+    {
+        Role::findOrCreate('admin', 'web');
+        $user = User::factory()->create(['role' => 'ADMIN']);
+        $user->assignRole('admin');
+
+        Tag::findOrCreate('ویژه', FeaturedProductsService::TAG_TYPE);
+
+        $response = $this->actingAs($user)->get(route('admin.setting.index'));
+
+        $response->assertOk();
+        $response->assertSee('id="tab-homepage"', false);
+        $response->assertSee('xname="'.FeaturedProductsService::SETTING_KEY.'"', false);
+        // The card must not clip the absolutely positioned tag dropdown.
+        $response->assertSee('item-list overflow-visible', false);
     }
 }

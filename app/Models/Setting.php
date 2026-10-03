@@ -16,7 +16,7 @@ class Setting extends Model
 
     public static $settingTypes = ['TEXT', 'NUMBER', 'LONGTEXT', 'CODE', 'EDITOR',
         'CATEGORY', 'GROUP', 'CHECKBOX', 'FILE', 'COLOR', 'SELECT', 'MENU', 'LOCATION',
-        'ICON', 'DATE', 'DATETIME', 'TIME', 'PRODUCT_QUERY', 'POST_QUERY', 'CATEGORY_SET', 'GROUP_SET'];
+        'ICON', 'DATE', 'DATETIME', 'TIME', 'PRODUCT_QUERY', 'POST_QUERY', 'CATEGORY_SET', 'GROUP_SET', 'TAG_SET'];
 
     /**
      * Extra attributes for the setting input (e.g. xmin/xmax for NUMBER fields).
