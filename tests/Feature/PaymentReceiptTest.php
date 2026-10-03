@@ -328,7 +328,7 @@ class PaymentReceiptTest extends TestCase
         $response->assertOk();
         $response->assertSee(__('WAITING_RECEIPT'), false);
         $response->assertSee(__('Payment'), false);
-        $response->assertSee(__('Waiting for the customer to pay by card-to-card and upload a receipt.'), false);
+        $response->assertSee(__('Waiting for the customer'), false);
         $response->assertDontSee(__('Delivery address'), false);
         $response->assertSee(Invoice::formatPersianDateTime($invoice->offlinePaymentDeadline()), false);
         $response->assertDontSee($invoice->offlinePaymentDeadline()->format('Y-m-d H:i'), false);
@@ -353,7 +353,7 @@ class PaymentReceiptTest extends TestCase
         $response = $this->actingAs($admin)->get(route('admin.invoice.edit', $invoice));
 
         $response->assertOk();
-        $response->assertSee(__('Payment review'), false);
+        $response->assertSee(__('Receipt review'), false);
         $response->assertSee(__('Confirm payment'), false);
         $response->assertSee(__('Decline payment'), false);
     }

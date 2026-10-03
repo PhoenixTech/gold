@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Invoice;
+use App\Services\InvoiceWorkflow;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -24,14 +25,10 @@ class InvoiceSaveRequest extends FormRequest
      */
     public function rules(): array
     {
-        $isPickup = $this->invoiceFromRoute()?->isPickup() ?? false;
-
         return [
             'delivery_type' => ['prohibited'],
             'transport_id' => ['prohibited'],
-            'address_id' => $isPickup ? ['prohibited'] : ['nullable', 'integer', 'exists:addresses,id'],
-            'tracking_code' => $isPickup ? ['prohibited'] : ['nullable', 'string'],
-            'status' => ['required', 'string', Rule::in(Invoice::editableStatuses())],
+            'status' => ['required', 'string', Rule::in(InvoiceWorkflow::fulfillmentStatuses())],
             'courier_id' => [
                 Rule::requiredIf(fn () => $this->input('status') === Invoice::OUT_FOR_DELIVERY),
                 'nullable',
@@ -99,17 +96,6 @@ class InvoiceSaveRequest extends FormRequest
                 );
 
                 return;
-            }
-
-            if ($status !== Invoice::OUT_FOR_DELIVERY) {
-                return;
-            }
-
-            if (! $invoice->requiresDeliveryCode()) {
-                $validator->errors()->add(
-                    'status',
-                    __('Motorcycle delivery is only available for courier transports.')
-                );
             }
         });
     }

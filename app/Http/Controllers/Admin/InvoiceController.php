@@ -5,19 +5,21 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Admin\Concerns\ResolvesAdminModel;
 use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CancelInvoiceRequest;
 use App\Http\Requests\ConfirmInvoicePaymentRequest;
 use App\Http\Requests\DeclineInvoicePaymentRequest;
 use App\Http\Requests\InvoiceSaveRequest;
 use App\Http\Requests\RequestReceiptReuploadRequest;
 use App\Models\BankAccount;
-use App\Models\Credit;
 use App\Models\Invoice;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\User;
 use App\Services\Admin\AdminBulkService;
 use App\Services\Admin\AdminTableService;
+use App\Services\CreditService;
 use App\Services\DeliveryService;
+use App\Services\InvoiceCancellationService;
 use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
 use Illuminate\Database\Eloquent\Builder;
@@ -300,48 +302,11 @@ class InvoiceController extends Controller
     {
         $invoice = $this->resolveInvoice($item);
 
-        $newTrackingCode = trim((string) $request->input('tracking_code'));
-
         $courier = $request->filled('courier_id')
             ? User::query()->couriers()->find($request->input('courier_id'))
             : null;
 
-        // Persist the shipment fields and apply the status transition together:
-        // applyAdminStatus() throws on an illegal transition, and previously that
-        // left the address/tracking code already written with the status untouched.
-        DB::transaction(function () use ($invoice, $request, $courier, $deliveryService): void {
-            if ($request->has('address_id')) {
-                $invoice->address_id = $request->input('address_id');
-            }
-
-            if ($request->has('tracking_code')) {
-                $invoice->tracking_code = $request->input('tracking_code');
-            }
-
-            $invoice->save();
-            $invoice->load('transport');
-
-            $deliveryService->applyAdminStatus(
-                $invoice,
-                (string) $request->status,
-                $courier
-            );
-        });
-
-        $mobile = $invoice->customer?->mobile;
-        if ($invoice->tracking_code != $request->get('tracking_code') && strlen($newTrackingCode) == 24 && $mobile) {
-            if (config('app.sms.driver') == 'Kavenegar') {
-                $args = [
-                    'receptor' => $mobile,
-                    'template' => trim(getSetting('sent')),
-                    'token' => $newTrackingCode,
-                ];
-            } else {
-                $args = ['code' => $newTrackingCode];
-            }
-
-            sendingSMS(getSetting('sent'), $mobile, $args);
-        }
+        $deliveryService->applyAdminStatus($invoice, (string) $request->status, $courier);
 
         logAdmin(__METHOD__, Invoice::class, $invoice->id);
 
@@ -648,6 +613,41 @@ class InvoiceController extends Controller
             ->with(['message' => __('Receipt re-upload requested. The customer was notified to upload a new receipt.')]);
     }
 
+    public function cancel(CancelInvoiceRequest $request, Invoice|string|int $item, InvoiceCancellationService $cancellation): RedirectResponse
+    {
+        $invoice = $this->resolveInvoice($item);
+
+        try {
+            $refunded = $cancellation->cancel($invoice, trim((string) $request->input('reason')), auth()->user());
+        } catch (ValidationException $exception) {
+            return redirect()->back()->withErrors($exception->errors());
+        }
+
+        logAdmin(__METHOD__, Invoice::class, $invoice->id);
+
+        $this->notifyCanceled($invoice, $refunded);
+
+        return redirect()
+            ->route('admin.invoice.edit', $invoice)
+            ->with(['message' => $refunded > 0
+                ? __('Invoice canceled and :amount was returned to the customer credit.', ['amount' => number_format($refunded)])
+                : __('Invoice canceled.')]);
+    }
+
+    private function notifyCanceled(Invoice $invoice, int $refunded): void
+    {
+        $mobile = $invoice->customer?->mobile;
+        if (! $mobile) {
+            return;
+        }
+
+        $text = $refunded > 0
+            ? __('Your order :hash was canceled and :amount was added to your credit.', ['hash' => $invoice->hash, 'amount' => number_format($refunded)])
+            : __('Your order :hash was canceled.', ['hash' => $invoice->hash]);
+
+        sendingSMS($text, $mobile, ['receptor' => $mobile, 'text' => $text]);
+    }
+
     private function notifyPaymentApproved(Invoice $invoice): void
     {
         $mobile = $invoice->customer?->mobile;
@@ -712,22 +712,14 @@ class InvoiceController extends Controller
             && in_array($invoice->status, Invoice::successfulStatuses(), true);
 
         DB::transaction(function () use ($order, $invoice, $amount, $refund): void {
-            if ($refund) {
-                $customer = $invoice->customer;
-                if ($customer !== null) {
-                    $customer->credit += $amount;
-                    $customer->save();
-
-                    $credit = new Credit;
-                    $credit->customer_id = $customer->id;
-                    $credit->invoice_id = $invoice->id;
-                    $credit->amount = $amount;
-                    $credit->data = json_encode([
-                        'user_id' => auth()->id(),
-                        'message' => __('Increase by Admin removed:').' '.($order->product->name ?? '').' '.__('Invoice').' : '.$invoice->hash,
-                    ]);
-                    $credit->save();
-                }
+            if ($refund && $invoice->customer !== null) {
+                app(CreditService::class)->refund(
+                    $invoice->customer,
+                    $amount,
+                    $invoice,
+                    __('Increase by Admin removed:').' '.($order->product->name ?? '').' '.__('Invoice').' : '.$invoice->hash,
+                    auth()->user()
+                );
             }
 
             $invoice->releaseReservedStockFor($order);

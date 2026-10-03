@@ -65,12 +65,13 @@ class DeliveryService
             }
         }
 
+        if (! app(InvoiceWorkflow::class)->canMove($invoice, $newStatus)) {
+            throw ValidationException::withMessages([
+                'status' => __('This status change is not allowed for the current invoice step.'),
+            ]);
+        }
+
         if ($newStatus === Invoice::OUT_FOR_DELIVERY) {
-            if (! $requiresCode) {
-                throw ValidationException::withMessages([
-                    'status' => __('Motorcycle delivery is only available for courier transports.'),
-                ]);
-            }
             if ($courier === null || ! $courier->isCourier()) {
                 throw ValidationException::withMessages([
                     'courier_id' => __('Select a courier for this delivery.'),

@@ -206,7 +206,7 @@ class AdminInvoiceDeliveryTest extends TestCase
                 'tracking_code' => 'SHIPMENT-123',
             ])
             ->assertRedirect(route('admin.invoice.edit', $pickup))
-            ->assertSessionHasErrors(['delivery_type', 'transport_id', 'address_id', 'tracking_code']);
+            ->assertSessionHasErrors(['delivery_type', 'transport_id']);
 
         $this->assertTrue($pickup->fresh()->isPickup());
         $this->assertNull($pickup->fresh()->transport_id);
@@ -241,24 +241,10 @@ class AdminInvoiceDeliveryTest extends TestCase
             ->assertSessionHasErrors('status');
     }
 
-    public function test_out_for_delivery_requires_courier_transport_and_courier(): void
+    public function test_out_for_delivery_requires_a_courier(): void
     {
         $this->actingAsAdmin();
-        [$invoice, $transport, $courier, $address] = $this->makePaidCourierInvoice(false);
-
-        $this->from(route('admin.invoice.edit', $invoice))
-            ->post(route('admin.invoice.update', $invoice), [
-                'status' => Invoice::OUT_FOR_DELIVERY,
-                'address_id' => $address->id,
-                'courier_id' => $courier->id,
-                'tracking_code' => '',
-            ])
-            ->assertRedirect(route('admin.invoice.edit', $invoice))
-            ->assertSessionHasErrors('status');
-
-        $invoice->refresh();
-        $transport->requires_delivery_code = true;
-        $transport->save();
+        [$invoice, $transport, $courier, $address] = $this->makePaidCourierInvoice();
 
         $this->from(route('admin.invoice.edit', $invoice))
             ->post(route('admin.invoice.update', $invoice), [
@@ -366,7 +352,7 @@ class AdminInvoiceDeliveryTest extends TestCase
         $response = $this->get(route('admin.invoice.edit', $invoice));
 
         $response->assertOk();
-        $response->assertSee(__('Shipping'), false);
+        $response->assertSee(__('Courier delivery'), false);
         $response->assertSee(__('Send for delivery'), false);
         $response->assertSee(__('Select a courier'), false);
         $response->assertSee('data-fulfillment-method="delivery"', false);

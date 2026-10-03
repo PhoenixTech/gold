@@ -304,21 +304,16 @@ class AdminInvoiceReceiptReviewTest extends TestCase
         $response->assertOk();
         $response->assertSee(__('Waiting on customer'), false);
 
-        // The current step is flagged is-waiting, and no step is ticked as done:
-        // the customer has not paid yet, so payment is not complete.
         $this->assertSame(1, preg_match(
-            '/<ol class="invoice-stepper.*?<\/ol>/s',
+            '/<ol class="list-unstyled d-flex.*?<\/ol>/s',
             $response->getContent(),
             $matches
         ), 'The stepper should render');
 
         $stepper = $matches[0];
 
-        $this->assertMatchesRegularExpression(
-            '/<li class="invoice-stepper__item is-current is-waiting"/',
-            $stepper
-        );
-        $this->assertStringNotContainsString('is-done', $stepper);
+        $this->assertStringNotContainsString('ri-check-line', $stepper);
+        $this->assertStringContainsString('bg-warning', $stepper);
         $this->assertStringContainsString('aria-current="step"', $stepper);
     }
 

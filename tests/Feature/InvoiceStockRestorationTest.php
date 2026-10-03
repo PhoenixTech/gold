@@ -263,7 +263,7 @@ class InvoiceStockRestorationTest extends TestCase
         $this->assertSame('IN_STOCK', $product->stock_status);
     }
 
-    public function test_round_trip_admin_transitions_toggle_stock_between_failed_and_paid(): void
+    public function test_failed_invoice_cannot_be_reopened_so_released_stock_is_not_resold(): void
     {
         $product = $this->createProduct();
         $quantity = $this->createQuantity($product, 2_000_000);
@@ -280,11 +280,13 @@ class InvoiceStockRestorationTest extends TestCase
         $this->assertSame(1, $product->fresh()->stock_quantity);
         $this->assertSame('IN_STOCK', $product->fresh()->stock_status);
 
-        $deliveryService->applyAdminStatus($invoice, Invoice::PAID, null);
-        $this->assertSame(QuantityPieceStatus::Sold, $quantity->fresh()->status);
-        $this->assertSame(0, $quantity->fresh()->count);
+        try {
+            $deliveryService->applyAdminStatus($invoice->fresh(), Invoice::PAID, null);
+            $this->fail('A failed invoice must not be reopened.');
+        } catch (\Illuminate\Validation\ValidationException) {
+        }
 
-        $deliveryService->applyAdminStatus($invoice, Invoice::FAILED, null);
+        $this->assertSame(Invoice::FAILED, $invoice->fresh()->status);
         $this->assertSame(QuantityPieceStatus::Available, $quantity->fresh()->status);
         $this->assertSame(1, $quantity->fresh()->count);
         $this->assertSame(1, $product->fresh()->stock_quantity);
