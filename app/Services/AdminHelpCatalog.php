@@ -29,6 +29,12 @@ class AdminHelpCatalog
                 'view' => 'admin.help.topics.checkout',
             ],
             [
+                'slug' => 'order-flow',
+                'title' => __('How an order moves from payment to delivery'),
+                'icon' => 'ri-route-line',
+                'view' => 'admin.help.topics.order-flow',
+            ],
+            [
                 'slug' => 'shop-settings',
                 'title' => __('Gold, checkout, and bank card options'),
                 'icon' => 'ri-settings-4-line',

@@ -174,6 +174,21 @@ class AdminHelpTest extends TestCase
             ->assertSee('F1A0001-00005', false);
     }
 
+    public function test_order_flow_topic_shows_the_steps_statuses_and_refund_rules(): void
+    {
+        $this->seed(GfxSeeder::class);
+        $this->actingAsAdmin();
+        App::setLocale('fa');
+
+        $this->get(route('admin.help', ['topic' => 'order-flow']))
+            ->assertOk()
+            ->assertSee('مسیر سفارش از پرداخت تا تحویل', false)
+            ->assertSee('بررسی فیش: شما پول را کنترل می‌کنید', false)
+            ->assertSee('معنی هر وضعیت', false)
+            ->assertSee('بعد از تایید پرداخت', false)
+            ->assertSee(route('admin.help', ['topic' => 'order-flow']), false);
+    }
+
     public function test_unknown_help_topic_returns_not_found(): void
     {
         $this->actingAsAdmin();
