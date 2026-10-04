@@ -80,6 +80,12 @@ class SettingSeeder extends Seeder
                     'size' => '6',
                 ],
                 [
+                    'title' => __('Address'),
+                    'key' => 'address',
+                    'type' => 'LONGTEXT',
+                    'value' => '',
+                ],
+                [
                     'title' => __('Subtitle'),
                     'key' => 'subtitle',
                     'type' => 'TEXT',
