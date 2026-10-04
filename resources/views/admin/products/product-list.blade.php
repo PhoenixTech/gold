@@ -26,6 +26,9 @@
         <option value="1" @if(request()->input('filter.low_stock') === '1') selected @endif>
             {{__("Below minimum stock")}}
         </option>
+        <option value="2" @if(request()->input('filter.low_stock') === '2') selected @endif>
+            {{__("Has stock")}}
+        </option>
     </select>
 
     <select name="filter[below_buy_price]" class="form-select form-select-sm w-auto">
@@ -37,6 +40,9 @@
 
     <select name="filter[tag]" class="form-select form-select-sm w-auto">
         <option value="">{{__("All tags")}}</option>
+        <option value="none" @if(request()->input('filter.tag') === 'none') selected @endif>
+            {{__("No tag")}}
+        </option>
         @foreach($allTags as $tag)
             <option value="{{ $tag->id }}" @if(request()->input('filter.tag') == $tag->id) selected @endif>
                 {{ $tag->name }}

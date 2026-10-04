@@ -47,6 +47,8 @@ class ProductController extends Controller
                         ->orWhereNull('min_stock_level')
                         ->orWhereColumn('stock_quantity', '>=', 'min_stock_level');
                 });
+            } elseif ((string) $lowStock === '2') {
+                $query->where('stock_quantity', '>', 0);
             }
         }
 
@@ -64,9 +66,13 @@ class ProductController extends Controller
         }
 
         if ($tagFilter !== null && $tagFilter !== '') {
-            $tagModel = Tag::find((int) $tagFilter);
-            if ($tagModel) {
-                $query->withAnyTags([$tagModel], 'product');
+            if ((string) $tagFilter === 'none') {
+                $query->doesntHave('tags');
+            } else {
+                $tagModel = Tag::find((int) $tagFilter);
+                if ($tagModel) {
+                    $query->withAnyTags([$tagModel], 'product');
+                }
             }
         }
 
@@ -126,6 +132,8 @@ class ProductController extends Controller
                         ->orWhereNull('min_stock_level')
                         ->orWhereColumn('stock_quantity', '>=', 'min_stock_level');
                 });
+            } elseif ((string) $lowStock === '2') {
+                $query->where('stock_quantity', '>', 0);
             }
         }
 
@@ -143,9 +151,13 @@ class ProductController extends Controller
         }
 
         if ($tagFilter !== null && $tagFilter !== '') {
-            $tagModel = Tag::find((int) $tagFilter);
-            if ($tagModel) {
-                $query->withAnyTags([$tagModel], 'product');
+            if ((string) $tagFilter === 'none') {
+                $query->doesntHave('tags');
+            } else {
+                $tagModel = Tag::find((int) $tagFilter);
+                if ($tagModel) {
+                    $query->withAnyTags([$tagModel], 'product');
+                }
             }
         }
 
