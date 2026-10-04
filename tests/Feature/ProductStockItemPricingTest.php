@@ -288,7 +288,7 @@ class ProductStockItemPricingTest extends TestCase
         $this->assertStringContainsString('label: `نرخ روز ${this.metalName}`', $vue);
         $this->assertStringContainsString('label: `حداقل درصد سود ${this.formatPercent(minimumPercent)}`', $vue);
         $this->assertStringContainsString('@change.stop="setSupplier(item, $event.target.value)"', $vue);
-        $this->assertStringContainsString("setSupplier(item, value) {", $vue);
+        $this->assertStringContainsString('setSupplier(item, value) {', $vue);
         $this->assertTrue(strpos($vue, '{{ weightLabel }}') < strpos($vue, '{{ supplierLabel }}'));
         $this->assertTrue(
             strpos($vue, 'v-model.number="item.weight"') < strpos($vue, '@change.stop="setSupplier(item, $event.target.value)"')
