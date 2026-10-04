@@ -38,6 +38,7 @@ class AdminMenuTest extends TestCase
         $this->assertStringContainsString(__('Categories'), $html);
         $this->assertStringContainsString(__('Invoices'), $html);
         $this->assertStringContainsString(__('Bank accounts'), $html);
+        $this->assertStringContainsString(__('Suppliers'), $html);
         $this->assertStringContainsString(__('Transports'), $html);
         $this->assertStringContainsString(__('Discounts'), $html);
         $this->assertStringContainsString(__('Product attributes'), $html);
@@ -46,6 +47,7 @@ class AdminMenuTest extends TestCase
         $this->assertStringContainsString(route('admin.product.index'), $html);
         $this->assertStringContainsString(route('admin.invoice.index'), $html);
         $this->assertStringContainsString(route('admin.bank-account.index'), $html);
+        $this->assertStringContainsString(route('admin.supplier.index'), $html);
         $this->assertStringContainsString(route('admin.transport.index'), $html);
         $this->assertStringContainsString(route('admin.discount.index'), $html);
         $this->assertStringContainsString(route('admin.prop.index'), $html);
@@ -115,6 +117,7 @@ class AdminMenuTest extends TestCase
         $this->assertStringContainsString('محصولات', $html);
         $this->assertStringContainsString('صورت‌حساب‌ها', $html);
         $this->assertStringContainsString('حساب‌های بانکی', $html);
+        $this->assertStringContainsString('تأمین‌کنندگان', $html);
         $this->assertStringContainsString('روش‌های ارسال', $html);
         $this->assertStringContainsString('تخفیف‌ها', $html);
         $this->assertStringContainsString('ویژگی‌های محصول', $html);

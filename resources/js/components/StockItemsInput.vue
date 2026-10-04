@@ -64,6 +64,7 @@
                 </span>
                 <span>{{ skuLabel }}</span>
                 <span>{{ weightLabel }}</span>
+                <span>{{ supplierLabel }}</span>
                 <span>{{ priceLabel }}</span>
                 <span>{{ statusLabel }}</span>
                 <span></span>
@@ -103,6 +104,18 @@
                         :disabled="!isAvailable(item)"
                         @input="recalculateItem(item)"
                     >
+                    <select
+                        class="form-select form-select-sm"
+                        data-piece-supplier
+                        :data-initial-supplier="item.supplier_id"
+                        :aria-label="supplierLabel"
+                        @change.stop="setSupplier(item, $event.target.value)"
+                    >
+                        <option value="">{{ noSupplierLabel }}</option>
+                        <option v-for="supplier in supplierOptions" :key="supplier.id" :value="String(supplier.id)" :disabled="supplier.disabled">
+                            {{ supplier.label }}
+                        </option>
+                    </select>
                     <input
                         type="text"
                         class="form-control form-control-sm fw-semibold"
@@ -324,6 +337,18 @@ export default {
             type: String,
             default: 'مجموع اجرت',
         },
+        supplierOptions: {
+            type: Array,
+            default: () => [],
+        },
+        supplierLabel: {
+            type: String,
+            default: 'تأمین‌کننده',
+        },
+        noSupplierLabel: {
+            type: String,
+            default: 'بدون تأمین‌کننده',
+        },
     },
     data() {
         return {
@@ -370,6 +395,7 @@ export default {
                     count: status === 'available' ? 1 : 0,
                     price,
                     image: item.image,
+                    supplier_id: item.supplier_id === '' || item.supplier_id == null ? null : Number(item.supplier_id),
                 };
             }));
         },
@@ -451,6 +477,7 @@ export default {
         this.syncFormulaFromForm();
         this.ensurePieceSkus();
         this.recalculateAll();
+        this.applyInitialSuppliers();
 
         if (this.formEl) {
             this.formEl.addEventListener('input', this.onFormChanged);
@@ -636,6 +663,16 @@ export default {
         isAvailable(item) {
             return !this.isScrapped(item) && !this.isSold(item);
         },
+        setSupplier(item, value) {
+            item.supplier_id = value === '' || value === undefined || value === null
+                ? ''
+                : String(value);
+        },
+        applyInitialSuppliers() {
+            this.$el.querySelectorAll('[data-piece-supplier]').forEach((select) => {
+                select.value = select.dataset.initialSupplier || '';
+            });
+        },
         toggleScrap(item) {
             if (this.isScrapped(item)) {
                 item.status = 'available';
@@ -691,6 +728,7 @@ export default {
                     count: rawStatus === 'available' ? 1 : 0,
                     price: row.price ?? 0,
                     image: row.image ?? null,
+                    supplier_id: row.supplier_id == null ? '' : String(row.supplier_id),
                     selected: false,
                     breakdownOpen: false,
                     isNew: false,
@@ -758,6 +796,7 @@ export default {
                 count: 1,
                 price: 0,
                 image: null,
+                supplier_id: '',
                 selected: false,
                 breakdownOpen: false,
                 isNew: true,
@@ -856,7 +895,7 @@ export default {
 .stock-table-head,
 .stock-row-main {
     display: grid;
-    grid-template-columns: 28px minmax(130px, 1.15fr) 110px minmax(110px, 1fr) 95px 36px 36px 36px;
+    grid-template-columns: 28px minmax(115px, 1.1fr) 90px minmax(140px, 1.3fr) minmax(110px, 1fr) 85px 36px 36px 36px;
     gap: .5rem;
     align-items: center;
 }
@@ -975,4 +1014,3 @@ export default {
     }
 }
 </style>
-

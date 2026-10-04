@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ProductSaveRequest;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Supplier;
 use App\Services\Admin\AdminBulkService;
 use App\Services\Admin\AdminTableService;
 use App\Services\ProductService;
@@ -176,8 +177,9 @@ class ProductController extends Controller
     public function create(): View
     {
         $cats = Category::all(['id', 'name', 'parent_id', 'code']);
+        $suppliers = $this->supplierOptions();
 
-        return view('admin.products.product-form', compact('cats'));
+        return view('admin.products.product-form', compact('cats', 'suppliers'));
     }
 
     public function store(ProductSaveRequest $request, ProductService $productService): JsonResponse|RedirectResponse
@@ -203,8 +205,9 @@ class ProductController extends Controller
     {
         $item = $this->resolveProduct($item);
         $cats = Category::all(['id', 'name', 'parent_id', 'code']);
+        $suppliers = $this->supplierOptions();
 
-        return view('admin.products.product-form', compact('item', 'cats'));
+        return view('admin.products.product-form', compact('item', 'cats', 'suppliers'));
     }
 
     public function update(ProductSaveRequest $request, Product|string|int $item, ProductService $productService): JsonResponse|RedirectResponse
@@ -287,5 +290,33 @@ class ProductController extends Controller
     protected function resolveProduct(Product|string|int $item, bool $withTrashed = false): Product
     {
         return $this->resolveModel(Product::class, $item, $withTrashed);
+    }
+
+    /**
+     * @return array<int, array{id: int, label: string, disabled: bool}>
+     */
+    private function supplierOptions(): array
+    {
+        return Supplier::query()
+            ->withTrashed()
+            ->orderBy('last_name')
+            ->orderBy('first_name')
+            ->get(['id', 'first_name', 'last_name', 'company_name', 'deleted_at'])
+            ->map(function (Supplier $supplier): array {
+                $label = trim("{$supplier->first_name} {$supplier->last_name}");
+                if ($supplier->company_name) {
+                    $label .= " — {$supplier->company_name}";
+                }
+                if ($supplier->trashed()) {
+                    $label .= ' ('.__('Trashed').')';
+                }
+
+                return [
+                    'id' => $supplier->id,
+                    'label' => $label,
+                    'disabled' => $supplier->trashed(),
+                ];
+            })
+            ->all();
     }
 }

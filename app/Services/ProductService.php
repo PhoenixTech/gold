@@ -152,6 +152,11 @@ class ProductService
             $quantity->weight = $weight;
             $quantity->code = isset($item['code']) && $item['code'] !== '' ? (string) $item['code'] : null;
             $quantity->image = $item['image'] ?? $quantity->image;
+            if (array_key_exists('supplier_id', $item)) {
+                $quantity->supplier_id = $item['supplier_id'] === null || $item['supplier_id'] === ''
+                    ? null
+                    : (int) $item['supplier_id'];
+            }
             $quantity->data = json_encode(array_filter([
                 'weight' => $weight,
                 'code' => $quantity->code,

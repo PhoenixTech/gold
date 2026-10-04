@@ -29,6 +29,11 @@ class Quantity extends Model
         return $this->belongsTo(Product::class);
     }
 
+    public function supplier(): BelongsTo
+    {
+        return $this->belongsTo(Supplier::class)->withTrashed();
+    }
+
     public static function pieceSku(string $productSku, int $number): string
     {
         return trim($productSku).'-'.sprintf('%05d', $number);

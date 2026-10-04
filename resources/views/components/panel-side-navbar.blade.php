@@ -80,7 +80,7 @@
             </li>
         @endif
 
-        @if(auth()->user()->hasAnyAccesses(['category', 'bank-account', 'transport', 'discount', 'prop', 'rate', 'evaluation']))
+        @if(auth()->user()->hasAnyAccesses(['category', 'bank-account', 'supplier', 'transport', 'discount', 'prop', 'rate', 'evaluation']))
             <li>
                 <a href="#shop-definitions" class="dsb-item">
                     <i class="ri-equalizer-line"></i>
@@ -101,6 +101,14 @@
                             <a href="{{ route('admin.bank-account.index') }}">
                                 <i class="ri-bank-card-line"></i>
                                 {{__('Bank accounts')}}
+                            </a>
+                        </li>
+                    @endif
+                    @if(auth()->user()->hasAnyAccess('supplier'))
+                        <li>
+                            <a href="{{ route('admin.supplier.index') }}">
+                                <i class="ri-contacts-line"></i>
+                                {{ __('Suppliers') }}
                             </a>
                         </li>
                     @endif

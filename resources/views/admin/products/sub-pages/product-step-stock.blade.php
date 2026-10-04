@@ -1,10 +1,11 @@
 @php
     use App\Models\Setting;
 
+    $suppliers = $suppliers ?? [];
     $stockItems = old('stock_items');
     if ($stockItems === null) {
         $stockItems = isset($item)
-            ? $item->quantities()->get(['id', 'weight', 'code', 'status', 'count', 'price', 'image'])->map(function ($q) {
+            ? $item->quantities()->get(['id', 'weight', 'code', 'status', 'count', 'price', 'image', 'supplier_id'])->map(function ($q) {
                 return [
                     'id' => $q->id,
                     'weight' => $q->weight,
@@ -13,6 +14,7 @@
                     'count' => $q->count,
                     'price' => $q->price,
                     'image' => $q->image,
+                    'supplier_id' => $q->supplier_id,
                 ];
             })->toArray()
             : [];
@@ -87,6 +89,7 @@
         <stock-items-input
             xname="stock_items"
             :xvalue='@json($stockItems)'
+            :supplier-options='@json($suppliers)'
             :product-sku='@json($item->sku ?? "")'
             :gold-price="{{ $goldMarketPrice }}"
             :silver-price="{{ $silverMarketPrice }}"
@@ -117,7 +120,8 @@
             metal-silver-label="{{__('Silver')}}"
             search-placeholder="{{__('Search SKU or weight')}}"
             total-wage-label="{{__('Total wage')}}"
+            supplier-label="{{__('Supplier')}}"
+            no-supplier-label="{{__('No supplier')}}"
         ></stock-items-input>
     </div>
 </div>
-

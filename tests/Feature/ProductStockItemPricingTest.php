@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\Quantity;
 use App\Models\Setting;
+use App\Models\Supplier;
 use App\Models\User;
 use App\Services\ProductPriceCalculator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -173,6 +174,103 @@ class ProductStockItemPricingTest extends TestCase
         ], $codes);
     }
 
+    public function test_saving_stock_piece_persists_its_supplier(): void
+    {
+        $this->actingAsAdmin();
+        $product = $this->makeProduct([
+            'metal_type' => 'gold',
+            'target_group' => 'unisex',
+            'status' => 1,
+            'stock_status' => 'IN_STOCK',
+        ]);
+        $supplier = Supplier::factory()->create([
+            'first_name' => 'Sara',
+            'last_name' => 'Ahmadi',
+            'company_name' => 'Zhonella Metals',
+        ]);
+
+        $response = $this->post(route('admin.product.update', $product), [
+            'id' => $product->id,
+            'name' => $product->name,
+            'excerpt' => $product->excerpt,
+            'category_id' => $product->category_id,
+            'metal_type' => 'gold',
+            'target_group' => 'unisex',
+            'stock_status' => 'IN_STOCK',
+            'status' => 1,
+            'addon' => $product->addon ?? 0,
+            'labor_charge_1' => $product->labor_charge_1 ?? 15,
+            'profit' => $product->profit ?? 7,
+            'tax' => $product->tax ?? 9,
+            'stock_quantity' => $product->stock_quantity ?? 0,
+            'weight' => $product->weight ?? 0,
+            'cat' => [],
+            'tags' => '',
+            'stock_items' => json_encode([
+                ['weight' => 1.5, 'count' => 1, 'supplier_id' => $supplier->id],
+            ]),
+        ]);
+
+        $response->assertRedirect();
+
+        $piece = $product->fresh()->quantities()->firstOrFail();
+        $this->assertSame($supplier->id, $piece->supplier_id);
+        $this->assertTrue($supplier->is($piece->supplier));
+        $this->assertTrue($piece->is($supplier->quantities()->first()));
+    }
+
+    public function test_stock_piece_rejects_an_unknown_supplier(): void
+    {
+        $this->actingAsAdmin();
+        $product = $this->makeProduct();
+
+        $this->from(route('admin.product.edit', $product))
+            ->post(route('admin.product.update', $product), [
+                'id' => $product->id,
+                'name' => $product->name,
+                'excerpt' => $product->excerpt,
+                'category_id' => $product->category_id,
+                'metal_type' => 'gold',
+                'target_group' => 'unisex',
+                'stock_status' => 'IN_STOCK',
+                'status' => 1,
+                'cat' => [],
+                'tags' => '',
+                'stock_items' => json_encode([
+                    ['weight' => 1.5, 'count' => 1, 'supplier_id' => 999999],
+                ]),
+            ])
+            ->assertRedirect(route('admin.product.edit', $product))
+            ->assertSessionHasErrors('stock_items.0.supplier_id');
+
+        $this->assertDatabaseCount('quantities', 0);
+    }
+
+    public function test_product_stock_editor_shows_supplier_options_for_existing_pieces(): void
+    {
+        $supplier = Supplier::factory()->create([
+            'first_name' => 'Sara',
+            'last_name' => 'Ahmadi',
+            'company_name' => 'Zhonella Metals',
+        ]);
+        $product = $this->makeProduct();
+        Quantity::factory()->create([
+            'product_id' => $product->id,
+            'supplier_id' => $supplier->id,
+            'weight' => 2,
+        ]);
+        $admin = $this->actingAsAdmin();
+
+        $response = $this->actingAs($admin)->get(route('admin.product.edit', $product));
+
+        $response->assertOk();
+        $response->assertSee('supplier-options', false);
+        $response->assertSee('Sara Ahmadi', false);
+        $response->assertSee('Zhonella Metals', false);
+        $response->assertSee('"disabled":false', false);
+        $response->assertSee('supplier_id', false);
+    }
+
     public function test_stock_editor_shows_sku_before_weight_and_collapses_price_breakdown(): void
     {
         $vue = file_get_contents(base_path('resources/js/components/StockItemsInput.vue'));
@@ -189,10 +287,37 @@ class ProductStockItemPricingTest extends TestCase
         $this->assertStringNotContainsString('this.items.push(item)', $vue);
         $this->assertStringContainsString('label: `نرخ روز ${this.metalName}`', $vue);
         $this->assertStringContainsString('label: `حداقل درصد سود ${this.formatPercent(minimumPercent)}`', $vue);
+        $this->assertStringContainsString('@change.stop="setSupplier(item, $event.target.value)"', $vue);
+        $this->assertStringContainsString("setSupplier(item, value) {", $vue);
+        $this->assertTrue(strpos($vue, '{{ weightLabel }}') < strpos($vue, '{{ supplierLabel }}'));
+        $this->assertTrue(
+            strpos($vue, 'v-model.number="item.weight"') < strpos($vue, '@change.stop="setSupplier(item, $event.target.value)"')
+        );
 
         $blade = file_get_contents(resource_path('views/admin/products/sub-pages/product-step-stock.blade.php'));
         $this->assertNotFalse($blade);
         $this->assertTrue(strpos($blade, 'id="stock_quantity"') < strpos($blade, 'stock-items-input'));
+    }
+
+    public function test_stock_piece_supplier_select_is_not_reset_by_rerenders(): void
+    {
+        $vue = file_get_contents(base_path('resources/js/components/StockItemsInput.vue'));
+
+        $this->assertNotFalse($vue);
+
+        $marker = strpos($vue, 'data-piece-supplier');
+        $selectStart = strrpos(substr($vue, 0, $marker), '<select');
+        $selectTagEnd = strpos($vue, '>', $marker);
+        $selectTag = substr($vue, $selectStart, $selectTagEnd - $selectStart);
+
+        $this->assertStringNotContainsString(':value=', $selectTag);
+        $this->assertStringNotContainsString('v-model', $selectTag);
+        $this->assertStringContainsString('data-piece-supplier', $selectTag);
+        $this->assertStringContainsString(':data-initial-supplier="item.supplier_id"', $selectTag);
+        $this->assertStringContainsString('@change.stop="setSupplier(item, $event.target.value)"', $selectTag);
+        $this->assertStringContainsString(':value="String(supplier.id)"', $vue);
+        $this->assertStringContainsString('this.applyInitialSuppliers()', $vue);
+        $this->assertStringContainsString('select.value = select.dataset.initialSupplier', $vue);
     }
 
     public function test_stock_editor_passes_market_prices_and_minimum_percent_separately(): void

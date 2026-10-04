@@ -28,6 +28,7 @@ use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\ShopVisitController;
 use App\Http\Controllers\Admin\StockController;
 use App\Http\Controllers\Admin\SummaryController;
+use App\Http\Controllers\Admin\SupplierController;
 use App\Http\Controllers\Admin\TagController;
 use App\Http\Controllers\Admin\TicketController;
 use App\Http\Controllers\Admin\TransportController;
@@ -382,6 +383,18 @@ Route::prefix(config('app.panel.prefix'))->name('admin.')->group(
                         Route::get('activate/{item}', [BankAccountController::class, 'activate'])->name('activate');
                         Route::post('bulk', [BankAccountController::class, 'bulk'])->name('bulk');
                         Route::get('trashed', [BankAccountController::class, 'trashed'])->name('trashed');
+                    });
+                Route::prefix('suppliers')->name('supplier.')->group(
+                    function () {
+                        Route::get('', [SupplierController::class, 'index'])->name('index');
+                        Route::get('create', [SupplierController::class, 'create'])->name('create');
+                        Route::post('store', [SupplierController::class, 'store'])->name('store');
+                        Route::get('edit/{item}', [SupplierController::class, 'edit'])->name('edit');
+                        Route::post('update/{item}', [SupplierController::class, 'update'])->name('update');
+                        Route::get('delete/{item}', [SupplierController::class, 'destroy'])->name('destroy');
+                        Route::get('restore/{item}', [SupplierController::class, 'restore'])->name('restore');
+                        Route::post('bulk', [SupplierController::class, 'bulk'])->name('bulk');
+                        Route::get('trashed', [SupplierController::class, 'trashed'])->name('trashed');
                     });
                 Route::prefix('shop-visits')->name('shop-visit.')->group(
                     function () {
