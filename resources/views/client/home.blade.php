@@ -75,6 +75,13 @@
                                 </a>
                             </div>
                         @endforeach
+
+                        {{-- 12th cell: the live campaign for this metal tab. Renders nothing when no campaign is live. --}}
+                        @include('client.partials.home.campaign-slot', [
+                            'campaign' => $campaigns[$metalParam] ?? null,
+                            'products' => $products[$metalParam] ?? null,
+                            'metal' => $metalParam,
+                        ])
                     </div>
                 </div>
             @endforeach

@@ -804,7 +804,7 @@ function CalcPrice($gold, $gr, $fee, ?float $profitRate = null, ?float $taxRate 
     );
 }
 
-function getCategoriesSet($key, $limit = 4, $orderBy = 'sort', $asc = 'ASC')
+function getCategoriesSet($key, $limit = null, $orderBy = 'sort', $asc = 'ASC')
 {
     $val = getSetting($key);
     $ids = is_string($val) ? (json_decode($val, true) ?: []) : (is_array($val) ? $val : []);
@@ -812,7 +812,11 @@ function getCategoriesSet($key, $limit = 4, $orderBy = 'sort', $asc = 'ASC')
         return collect();
     }
 
-    return Category::whereIn('id', $ids)->where('hide', 0)->limit($limit)->orderBy($orderBy, $asc)->get();
+    return Category::whereIn('id', $ids)
+        ->where('hide', 0)
+        ->when($limit, fn ($query) => $query->limit($limit))
+        ->orderBy($orderBy, $asc)
+        ->get();
 }
 
 function getGroupsSet($key, $limit = 4, $orderBy = 'sort', $asc = 'ASC')

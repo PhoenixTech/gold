@@ -162,7 +162,7 @@ class AdminTableService
         }
 
         $perPage = $this->perPage ?? (int) config('app.panel.page_count', 15);
-        $selectCols = $this->selectColumns ?? array_values(array_unique(array_merge($this->extraCols, $this->cols)));
+        $selectCols = $this->selectColumns ?? $this->defaultSelectColumns();
 
         $items = $this->query->paginate($perPage, $selectCols);
         $quickCounts = $this->computeQuickCounts($request);
@@ -174,6 +174,32 @@ class AdminTableService
             'buttons' => $this->buttons,
             'quickCounts' => $quickCounts,
         ];
+    }
+
+    /**
+     * The SELECT list used when the caller did not pass one explicitly.
+     *
+     * $cols is the *display* list, and it may legitimately contain virtual names
+     * that only exist as a rendered cell (a computed "payment_progress", a
+     * "schedule" accessor). Passing those to the database would raise
+     * "Unknown column ... in 'field list'", so only real columns are selected;
+     * the virtual ones are filled in by the cell partial instead.
+     *
+     * @return list<string>
+     */
+    protected function defaultSelectColumns(): array
+    {
+        if ($this->realColumns === null) {
+            $this->realColumns = $this->resolveRealColumns();
+        }
+
+        $selected = array_filter(
+            array_merge($this->extraCols, $this->cols),
+            fn (string $column) => $this->realColumns[$column] ?? false
+        );
+
+        // Never end up with an empty SELECT.
+        return $selected === [] ? ['*'] : array_values(array_unique($selected));
     }
 
     protected function applySorting(Request $request): void

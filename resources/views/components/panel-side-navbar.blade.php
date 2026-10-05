@@ -80,7 +80,7 @@
             </li>
         @endif
 
-        @if(auth()->user()->hasAnyAccesses(['category', 'bank-account', 'supplier', 'transport', 'discount', 'prop', 'rate', 'evaluation']))
+        @if(auth()->user()->hasAnyAccesses(['category', 'campaign', 'bank-account', 'supplier', 'transport', 'discount', 'prop', 'rate', 'evaluation']))
             <li>
                 <a href="#shop-definitions" class="dsb-item">
                     <i class="ri-equalizer-line"></i>
@@ -93,6 +93,14 @@
                             <a href="{{route('admin.category.index')}}">
                                 <i class="ri-box-3-fill"></i>
                                 {{__('Categories')}}
+                            </a>
+                        </li>
+                    @endif
+                    @if(auth()->user()->hasAnyAccess('campaign'))
+                        <li>
+                            <a href="{{route('admin.campaign.index')}}">
+                                <i class="ri-lightbulb-flash-fill"></i>
+                                {{__('Campaigns')}}
                             </a>
                         </li>
                     @endif

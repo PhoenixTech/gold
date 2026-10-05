@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Contracts\Payment;
+use App\Enums\MetalType;
 use App\Http\Controllers\Auth\CustomerAuthController;
 use App\Http\Requests\ContactSubmitRequest;
 use App\Models\Attachment;
+use App\Models\Campaign;
 use App\Models\Category;
 use App\Models\Clip;
 use App\Models\Comment;
@@ -20,9 +22,12 @@ use App\Models\Product;
 use App\Models\Quantity;
 use App\Models\Rate;
 use App\Models\User;
+use App\Services\CampaignProductSource;
+use App\Services\CampaignResolver;
 use App\Services\FeaturedProductsService;
 use App\Services\ProductPriceCalculator;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Route;
 use Plank\Metable\Meta;
 use Spatie\Tags\Tag;
@@ -84,6 +89,39 @@ class ClientController extends Controller
         return getWtfFooterCategories();
     }
 
+    /**
+     * The campaigns owning the 12th cell of the category grid, one per metal
+     * tab, with the products that fill each tile already resolved.
+     *
+     * A campaign that resolves to zero products is dropped here, so the grid
+     * simply falls back to 11 category cells instead of rendering an empty
+     * tile when every tagged product was unpublished.
+     *
+     * @return array{campaigns: array<string, Campaign>, products: array<string, Collection>}
+     */
+    protected function getHomeCampaignSlot(): array
+    {
+        $campaigns = [];
+        $products = [];
+
+        foreach (app(CampaignResolver::class)->forHome() as $metal => $campaign) {
+            if (! $campaign instanceof Campaign) {
+                continue;
+            }
+
+            $tile = app(CampaignProductSource::class)->tile($campaign, $metal);
+
+            if ($tile->isEmpty()) {
+                continue;
+            }
+
+            $campaigns[$metal] = $campaign;
+            $products[$metal] = $tile;
+        }
+
+        return ['campaigns' => $campaigns, 'products' => $products];
+    }
+
     public function welcome()
     {
         $title = config('app.name');
@@ -115,7 +153,32 @@ class ClientController extends Controller
         $introText = getSetting('index_Natalia2Categories_text') ?: getSetting('about');
         $newsText = getSetting('index_NeginNews_text');
 
-        return view('client.home', compact('title', 'subtitle', 'mainCategories', 'footerCategories', 'zarMenuItems', 'goldPrice', 'featuredProducts', 'latestPosts', 'introText', 'newsText'));
+        $homeCampaignSlot = $this->getHomeCampaignSlot();
+
+        return view('client.home', compact('title', 'subtitle', 'mainCategories', 'footerCategories', 'zarMenuItems', 'goldPrice', 'featuredProducts', 'latestPosts', 'introText', 'newsText')
+            + $homeCampaignSlot);
+    }
+
+    /**
+     * The campaign the catalog page is scoped to, if any.
+     *
+     * A campaign that is not live is only reachable for a signed in panel user
+     * outside production, so a campaign can be checked before it starts without
+     * exposing drafts to shoppers.
+     */
+    protected function campaignFromRequest(Request $request): ?Campaign
+    {
+        if (! $request->filled('campaign')) {
+            return null;
+        }
+
+        $query = Campaign::query()->where('slug', $request->input('campaign'));
+
+        if (app()->isProduction() || ! auth()->check()) {
+            $query->published()->live();
+        }
+
+        return $query->firstOrFail();
     }
 
     public function homeV1()
@@ -252,7 +315,7 @@ class ClientController extends Controller
         return view('client.posts.index', compact('posts', 'title', 'subtitle'));
     }
 
-    public function products(Request $request)
+    public function products(Request $request, CampaignProductSource $source)
     {
         if ($request->filled('category')) {
             $catSlug = $request->input('category');
@@ -260,6 +323,7 @@ class ClientController extends Controller
             return redirect()->route('client.category', array_merge(['category' => $catSlug], $request->except(['category'])), 301);
         }
 
+        $campaign = $this->campaignFromRequest($request);
         $metal = $request->filled('metal') ? strtolower($request->input('metal')) : null;
         $targetGroup = $request->filled('target_group') ? strtolower($request->input('target_group')) : null;
 
@@ -276,14 +340,36 @@ class ClientController extends Controller
             ':men' => __('Men products'),
             ':children' => __('Children products'),
         ];
-        $title = $titles["{$metal}:{$targetGroup}"] ?? __('Products list');
-        $subtitle = '';
-        $products = Product::query()
+
+        // The campaign is resolved per metal, because its gold and silver sets
+        // differ. The metal filter in the sidebar switches between them.
+        $campaignMetal = $metal ?: MetalType::Gold->value;
+
+        $title = $campaign?->name ?? ($titles["{$metal}:{$targetGroup}"] ?? __('Products list'));
+        $subtitle = $campaign?->subtitle ?? '';
+
+        $query = Product::query()
             ->where('status', 1)
             ->with(['category', 'availableQuantities', 'activeDiscounts', 'media'])
-            ->filterCatalog($request)
-            ->paginate($this->paginate)
-            ->withQueryString();
+            ->filterCatalog($request);
+
+        if ($campaign !== null) {
+            $query->whereIn('id', $source->ids($campaign, $campaignMetal));
+        }
+
+        $products = $query->paginate($this->paginate)->withQueryString();
+
+        if ($campaign !== null && ! $request->filled('sort')) {
+            // Campaign order (hand picked first) beats the catalog's newest-first
+            // default, unless the shopper explicitly asked for a different sort.
+            $order = $source->orderMap($campaign, $campaignMetal);
+
+            $products->setCollection(
+                $products->getCollection()
+                    ->sortBy(fn (Product $product) => $order[$product->getKey()] ?? PHP_INT_MAX)
+                    ->values()
+            );
+        }
 
         $categories = Category::query()
             ->where('hide', 0)
@@ -298,7 +384,7 @@ class ClientController extends Controller
             }])
             ->get();
 
-        return view('client.products.index', compact('products', 'title', 'subtitle', 'categories'));
+        return view('client.products.index', compact('products', 'title', 'subtitle', 'categories', 'campaign'));
     }
 
     public function galleries()

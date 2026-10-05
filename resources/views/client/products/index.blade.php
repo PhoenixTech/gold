@@ -29,6 +29,45 @@
                 </ol>
             </nav>
 
+            {{-- The campaign banner. The page itself is the ordinary catalog,
+                 scoped to the campaign's product set, so filters and pagination
+                 keep working. --}}
+            @if($campaign ?? null)
+                <div class="campaign-header mb-4 p-3 rounded-4 border bg-light-subtle d-flex flex-column flex-md-row align-items-md-center gap-3">
+                    @if($campaign->hasImage())
+                        <img src="{{ $campaign->imgUrl() }}" alt="{{ $campaign->name }}"
+                             class="rounded-3" style="max-height: 110px; object-fit: cover;">
+                    @endif
+
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                            @if($campaign->badge_text)
+                                <span class="badge rounded-pill px-3 py-2 {{ $campaign->primaryOccasion()?->isSeasonal() ? 'bg-danger-subtle text-danger-emphasis border border-danger-subtle' : 'bg-primary-subtle text-primary-emphasis border border-primary-subtle' }}">
+                                    <i class="ri-flashlight-fill"></i>
+                                    {{ $campaign->badge_text }}
+                                </span>
+                            @endif
+
+                            @if($campaign->ends_at)
+                                <span class="text-muted fs-13">
+                                    <i class="ri-time-line"></i>
+                                    {{ __('Offer ends at') }}
+                                    <b class="fa-num">{{ $campaign->ends_at->ldate('Y/m/d') }}</b>
+                                </span>
+                            @endif
+                        </div>
+
+                        @if($campaign->subtitle)
+                            <p class="text-muted mb-1">{{ $campaign->subtitle }}</p>
+                        @endif
+
+                        @if($campaign->description)
+                            <div class="fs-14 text-body">{{ $campaign->description }}</div>
+                        @endif
+                    </div>
+                </div>
+            @endif
+
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                 <div>
                     <h5 class="page-title fw-bold text-dark mb-1 d-flex align-items-center gap-2">

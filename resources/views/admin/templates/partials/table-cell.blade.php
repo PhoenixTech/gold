@@ -16,11 +16,12 @@
     @break
     @case('status')
     @php
-    $stVal = (string) $item->status;
+    // Backed enums cannot be cast to string; read the backing value instead.
+    $stVal = $item->status instanceof \BackedEnum ? (string) $item->status->value : (string) $item->status;
     $stIsPublished = ($stVal === '1' || strtolower($stVal) === 'published');
     $stIsDraft = ($stVal === '0' || strtolower($stVal) === 'draft');
     @endphp
-    @if(method_exists($item, 'statusLabel'))
+    @if(method_exists($item, 'statusBadgeClass'))
     <span class="{{ $item->statusBadgeClass() }}">
     {{ $item->statusLabel() }}
     </span>
@@ -317,6 +318,31 @@
     @break
     @case('icon')
     <i class="{{$item->$col}}"></i>
+    @break
+    @case('schedule')
+    {{ method_exists($item, 'scheduleLabel') ? $item->scheduleLabel() : $item->$col }}
+    @break
+    @case('occasions')
+    @php
+    $occasionLabels = method_exists($item, 'occasionLabels') ? $item->occasionLabels() : [];
+    @endphp
+    @forelse($occasionLabels as $occasionLabel)
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle fs-12">{{ $occasionLabel }}</span>
+    @empty
+        <span class="text-muted fs-12">{{ __('Only hand picked products') }}</span>
+    @endforelse
+    @break
+    @case('metal_scope')
+    {{-- Guarded because this partial renders every admin list: a bare
+         `metal_scope` column on an unrelated model must fall through to the
+         default cell rather than calling a method it does not have. --}}
+    @if(method_exists($item, 'metalLabels'))
+        @foreach($item->metalLabels() as $metalLabel)
+            <span class="badge @if($metalLabel === __('Silver')) bg-secondary text-white @else bg-warning text-dark @endif">{{ $metalLabel }}</span>
+        @endforeach
+    @else
+        {{ $item->$col }}
+    @endif
     @break
     @default
     @if(substr($col,0,3) == 'is_')

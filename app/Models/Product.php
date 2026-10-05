@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use App\Enums\GoldKarat;
+use App\Enums\Occasion;
 use App\Http\Resources\CommentMarkupCollection;
+use App\Services\CampaignCache;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -60,6 +62,15 @@ class Product extends Model implements HasMedia
                         $product->id
                     );
                 }
+            }
+        });
+
+        // Occasions, metal and publication status decide which products fill the
+        // home page campaign tile, so any of them changing retires the cached
+        // tile immediately instead of after the TTL.
+        static::saved(function (Product $product) {
+            if ($product->wasChanged(['occasions', 'metal_type', 'status', 'deleted_at'])) {
+                CampaignCache::flush();
             }
         });
     }
@@ -740,16 +751,7 @@ RESULT;
 
     public static function occasionOptions(): array
     {
-        return [
-            'valentine' => __('Valentine'),
-            'mothers_day' => __("Mother's Day"),
-            'girls_day' => __("Girl's Day"),
-            'womens_day' => __("Women's Day"),
-            'birthday' => __('Birthday'),
-            'anniversary' => __('Anniversary'),
-            'yalda' => __('Yalda'),
-            'wedding' => __('Wedding'),
-        ];
+        return Occasion::options();
     }
 
     public function getPlatingColorLabels(): array
@@ -799,9 +801,12 @@ RESULT;
         return $query->whereJsonContains('accessories', $accessory);
     }
 
-    public function scopeWithOccasion($query, string $occasion)
+    public function scopeWithOccasion($query, Occasion|string $occasion)
     {
-        return $query->whereJsonContains('occasions', $occasion);
+        return $query->whereJsonContains(
+            'occasions',
+            $occasion instanceof Occasion ? $occasion->value : $occasion
+        );
     }
 
     public function scopePublished($query)

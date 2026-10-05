@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AddressController;
 use App\Http\Controllers\Admin\AdminLogController;
 use App\Http\Controllers\Admin\AttachmentController;
 use App\Http\Controllers\Admin\BankAccountController;
+use App\Http\Controllers\Admin\CampaignController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\CkeditorController;
 use App\Http\Controllers\Admin\ClipController;
@@ -97,6 +98,19 @@ Route::prefix(config('app.panel.prefix'))->name('admin.')->group(
                         Route::get('detach/{item?}', [AttachmentController::class, 'detach'])->name('detach');
                         Route::post('bulk', [AttachmentController::class, 'bulk'])->name('bulk');
                         Route::post('attaching', [AttachmentController::class, 'attaching'])->name('attaching');
+                    });
+                Route::prefix('campaigns')->name('campaign.')->group(
+                    function () {
+                        Route::get('', [CampaignController::class, 'index'])->name('index');
+                        Route::get('create', [CampaignController::class, 'create'])->name('create');
+                        Route::post('store', [CampaignController::class, 'store'])->name('store');
+                        Route::get('edit/{item}', [CampaignController::class, 'edit'])->name('edit');
+                        Route::post('update/{item}', [CampaignController::class, 'update'])->name('update');
+                        Route::get('end-now/{item}', [CampaignController::class, 'endNow'])->name('end-now');
+                        Route::get('delete/{item}', [CampaignController::class, 'destroy'])->name('destroy');
+                        Route::get('restore/{item}', [CampaignController::class, 'restore'])->name('restore');
+                        Route::post('bulk', [CampaignController::class, 'bulk'])->name('bulk');
+                        Route::get('trashed', [CampaignController::class, 'trashed'])->name('trashed');
                     });
                 Route::prefix('categories')->name('category.')->group(
                     function () {
