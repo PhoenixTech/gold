@@ -16,5 +16,6 @@ class GoldFreeScheduleTest extends TestCase
         $this->assertNotNull($event);
         $this->assertSame('*/2 * * * *', $event->expression);
         $this->assertTrue($event->withoutOverlapping);
+        $this->assertFalse($event->releaseOnTerminationSignals);
     }
 }

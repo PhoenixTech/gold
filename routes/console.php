@@ -9,11 +9,9 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote')->hourly();
 
-Schedule::command('gold')->everyFiveMinutes();
-
 Schedule::command('gold:free')
     ->everyTwoMinutes()
-    ->withoutOverlapping();
+    ->withoutOverlapping(10, false);
 
 Schedule::command('offline:expire')->everyFifteenMinutes();
 
