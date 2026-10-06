@@ -289,43 +289,230 @@
     }
 }
 
-// Slide-out Zar Drawer Menu
 #zar-menu {
-    display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.45);
-    backdrop-filter: blur(6px);
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.3s;
 
-    nav {
-        height: 100%;
+    &.is-open {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+
+        .zar-drawer-panel {
+            transform: translateX(0);
+        }
     }
 
-    ul {
-        background: var(--xshop-background, #ffffff);
+    .zar-drawer-panel {
         position: absolute;
-        inset-inline-end: 0;
         top: 0;
         bottom: 0;
-        width: 300px;
-        max-width: 85vw;
-        overflow-y: auto;
-        list-style: none;
-        padding: 1.25rem 1rem;
-        margin: 0;
-        box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
+        right: 0;
+        left: auto;
+        width: 320px;
+        max-width: 86vw;
+        background: var(--xshop-surface-0);
+        display: flex;
+        flex-direction: column;
+        box-shadow: var(--xshop-shadow-xl);
+        transform: translateX(100%);
+        transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+        will-change: transform;
+        overflow: hidden;
+    }
 
-        li {
-            padding: 0.5rem 0;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    .zar-drawer-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 1.25rem;
+        background: var(--xshop-surface-50);
+        border-bottom: 1px solid var(--xshop-surface-200);
 
-            a {
-                display: block;
-                color: var(--xshop-text, #111111);
-                text-decoration: none;
-                font-weight: 500;
+        .zar-close-btn {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: var(--xshop-surface-0);
+            border: 1px solid var(--xshop-surface-200);
+            color: var(--xshop-text-muted);
+            transition: all 0.2s ease;
+
+            &:hover {
+                color: var(--xshop-primary);
+                border-color: var(--xshop-primary);
+                background: var(--xshop-gold-50);
             }
         }
+    }
+
+    .zar-drawer-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1rem 1.25rem;
+        overscroll-behavior: contain;
+    }
+
+    .zar-customer-card,
+    .zar-guest-card {
+        padding: 0.85rem;
+        border-radius: 12px;
+        background: var(--xshop-surface-50);
+        border: 1px solid var(--xshop-surface-200);
+
+        .zar-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--xshop-gold-100);
+            color: var(--xshop-primary-text);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+    }
+
+    .zar-gold-rate-card {
+        background: var(--xshop-gold-50);
+        border: 1px solid var(--xshop-gold-200);
+        border-radius: 10px;
+        padding: 0.65rem 0.85rem;
+
+        .zar-gold-rate-val {
+            color: var(--xshop-primary-text);
+        }
+    }
+
+    .zar-search-box {
+        .zar-search-field {
+            background: var(--xshop-surface-50);
+            border: 1px solid var(--xshop-surface-200);
+            color: var(--xshop-text-main);
+            padding-inline-start: 1rem;
+            padding-inline-end: 2.25rem;
+            height: 40px;
+            transition: all 0.2s ease;
+
+            &:focus {
+                background: var(--xshop-surface-0);
+                border-color: var(--xshop-primary);
+                box-shadow: var(--xshop-ring-focus);
+            }
+        }
+
+        .zar-search-submit {
+            text-decoration: none;
+            inset-inline-end: 0;
+            right: auto;
+
+            &:hover {
+                color: var(--xshop-primary) !important;
+            }
+        }
+    }
+
+    .zar-nav-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+
+        .zar-nav-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 44px;
+            padding: 0.6rem 0.75rem;
+            border-radius: 8px;
+            color: var(--xshop-text-body);
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.18s ease;
+
+            .zar-nav-icon {
+                font-size: 17px;
+                color: var(--xshop-primary);
+            }
+
+            .zar-nav-arrow {
+                font-size: 16px;
+                color: var(--xshop-text-light);
+                transition: transform 0.18s ease;
+            }
+
+            &:hover {
+                background: var(--xshop-gold-50);
+                color: var(--xshop-primary-text);
+
+                .zar-nav-arrow {
+                    color: var(--xshop-primary);
+                    transform: translateX(-3px);
+                }
+            }
+        }
+    }
+
+    .zar-drawer-footer {
+        padding: 1rem 1.25rem;
+        background: var(--xshop-surface-50);
+        border-top: 1px solid var(--xshop-surface-200);
+
+        .zar-contact-btn {
+            border-color: var(--xshop-primary);
+            color: var(--xshop-primary-text);
+
+            &:hover {
+                background: var(--xshop-primary);
+                border-color: var(--xshop-primary);
+                color: #ffffff;
+            }
+        }
+
+        .zar-social-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--xshop-surface-0);
+            border: 1px solid var(--xshop-surface-200);
+            color: var(--xshop-text-body);
+            transition: all 0.2s ease;
+
+            &:hover {
+                background: var(--xshop-primary);
+                border-color: var(--xshop-primary);
+                color: #ffffff;
+                transform: translateY(-2px);
+            }
+        }
+    }
+}
+
+[dir="ltr"] #zar-menu {
+    .zar-drawer-panel {
+        right: auto;
+        left: 0;
+        transform: translateX(-100%);
+    }
+
+    &.is-open .zar-drawer-panel {
+        transform: translateX(0);
+    }
+
+    .zar-nav-list .zar-nav-link:hover .zar-nav-arrow {
+        transform: translateX(3px);
     }
 }
