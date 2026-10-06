@@ -45,7 +45,7 @@
 
             <span class="d-inline-flex align-items-center gap-1.5 text-dark">
                 <i class="ri-line-chart-line fs-18"></i>
-                <span class="fs-14 fw-bold font-monospace">{{toPersianDigits(number_format((int) $goldPrice))}}</span>
+                <span class="fs-14 fw-bold">{{toPersianDigits(number_format((int) $goldPrice))}}</span>
             </span>
         </div>
     </div>
@@ -67,62 +67,6 @@
         </div>
 
         <div class="zar-drawer-body">
-            @if(auth('customer')->check())
-                <div class="zar-customer-card mb-3">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="zar-avatar">
-                                <i class="ri-user-3-line"></i>
-                            </span>
-                            <div>
-                                <div class="fw-bold fs-13 text-dark">{{ auth('customer')->user()->name ?: __('Customer') }}</div>
-                                <div class="fs-11 text-muted font-monospace" dir="ltr">{{ auth('customer')->user()->mobile }}</div>
-                            </div>
-                        </div>
-                        <a href="{{ route('client.profile') }}" class="btn btn-xs btn-outline-warning rounded-pill px-2.5 py-1 fs-11">
-                            {{ __('Profile') }}
-                        </a>
-                    </div>
-                    <div class="d-flex align-items-center justify-content-between pt-2 border-top border-light-subtle fs-12">
-                        <span class="text-muted d-inline-flex align-items-center gap-1">
-                            <i class="ri-trophy-line text-warning"></i>
-                            <span>{{ __('Credit') }}:</span>
-                        </span>
-                        <span class="fw-bold text-dark font-monospace">{{ toPersianDigits(number_format((int) (auth('customer')->user()->credit ?? 0))) }} {{ config('app.currency.symbol') }}</span>
-                    </div>
-                </div>
-            @else
-                <div class="zar-guest-card mb-3">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="zar-avatar">
-                                <i class="ri-user-line"></i>
-                            </span>
-                            <div>
-                                <div class="fw-bold fs-13 text-dark">{{ __('Guest') }}</div>
-                                <div class="fs-11 text-muted">{{ __('Welcome to our gallery') }}</div>
-                            </div>
-                        </div>
-                        <a href="{{ route('client.sign-in') }}" class="btn btn-sm btn-primary rounded-pill px-3 py-1 fs-12 fw-medium">
-                            {{ __('Sign in') }}
-                        </a>
-                    </div>
-                </div>
-            @endif
-
-            @if(!empty($goldPrice) && (int) $goldPrice > 0)
-                <div class="zar-gold-rate-card mb-3">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <span class="d-inline-flex align-items-center gap-1.5 fs-12 fw-medium text-dark">
-                            <i class="ri-line-chart-line text-warning fs-16"></i>
-                            <span>{{ __('Live gold price') }}</span>
-                        </span>
-                        <span class="zar-gold-rate-val font-monospace fs-13 fw-bold" dir="ltr">
-                            {{ toPersianDigits(number_format((int) $goldPrice)) }} <small class="fw-normal">{{ config('app.currency.symbol') }}</small>
-                        </span>
-                    </div>
-                </div>
-            @endif
 
             <div class="zar-search-box mb-3">
                 <form action="{{ route('client.search') }}" method="GET" class="side-data m-0">
@@ -137,29 +81,6 @@
 
             <div class="zar-nav-section mb-3">
                 <ul class="zar-nav-list list-unstyled m-0 p-0">
-                    <li>
-                        <a href="{{ route('client.welcome') }}" class="zar-nav-link">
-                            <span class="d-inline-flex align-items-center gap-2">
-                                <i class="ri-home-7-line zar-nav-icon"></i>
-                                <span>{{ __('Home') }}</span>
-                            </span>
-                            <i class="ri-arrow-left-s-line zar-nav-arrow"></i>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('client.card') }}" class="zar-nav-link">
-                            <span class="d-inline-flex align-items-center gap-2">
-                                <i class="ri-shopping-bag-line zar-nav-icon"></i>
-                                <span>{{ __('Cart') }}</span>
-                            </span>
-                            <div class="d-flex align-items-center gap-1">
-                                @if(cardCount() > 0)
-                                    <span class="badge bg-danger rounded-pill fs-11">{{ cardCount() }}</span>
-                                @endif
-                                <i class="ri-arrow-left-s-line zar-nav-arrow"></i>
-                            </div>
-                        </a>
-                    </li>
                     @if(isset($zarMenuItems) && $zarMenuItems->isNotEmpty())
                         @foreach($zarMenuItems as $item)
                             <li>
