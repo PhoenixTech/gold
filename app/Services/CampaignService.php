@@ -7,19 +7,74 @@ use App\Enums\MetalType;
 use App\Enums\Occasion;
 use App\Http\Requests\CampaignSaveRequest;
 use App\Models\Campaign;
+use App\Models\Product;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Writes a campaign and its include/exclude rows.
- *
- * Translatable text is assigned as a scalar, exactly like CategoryController
- * does, so spatie/laravel-translatable stamps it with the active locale.
- */
 class CampaignService
 {
     public function __construct(
         private readonly AdminMediaService $media
     ) {}
+
+    public function save(Campaign $campaign, CampaignSaveRequest $request, SlugService $slug): Campaign
+    {
+        return DB::transaction(function () use ($campaign, $request, $slug) {
+            $this->fillFromRequest($campaign, $request, $slug);
+            $this->handleUploads($campaign, $request);
+            $campaign->save();
+
+            $this->syncProductLinks($campaign, $request);
+
+            return $campaign;
+        });
+    }
+
+    public function formData(?Campaign $campaign = null): array
+    {
+        $includedIds = [];
+        $excludedIds = [];
+        $clashes = collect();
+
+        if ($campaign && $campaign->exists) {
+            $links = $campaign->productLinks()->get(['product_id', 'role', 'sort']);
+            $includedIds = $links->where('role', CampaignProductRole::Include->value)
+                ->sortBy('sort')
+                ->pluck('product_id')
+                ->all();
+            $excludedIds = $links->where('role', CampaignProductRole::Exclude->value)
+                ->pluck('product_id')
+                ->all();
+            $clashes = $campaign->clashingCampaigns();
+        }
+
+        $allSelected = array_merge(
+            (array) old('included_products', $includedIds),
+            (array) old('excluded_products', $excludedIds)
+        );
+
+        $productOptions = Product::query()
+            ->published()
+            ->where(function ($q) use ($allSelected) {
+                if ($allSelected !== []) {
+                    $q->whereIn('id', $allSelected);
+                }
+            })
+            ->orWhere(function ($q) {
+                $q->published()->orderByDesc('id')->limit(500);
+            })
+            ->get(['id', 'name', 'sku', 'metal_type'])
+            ->unique('id')
+            ->values();
+
+        return [
+            'includedIds' => $includedIds,
+            'excludedIds' => $excludedIds,
+            'includedValue' => json_encode(old('included_products', $includedIds)),
+            'excludedValue' => json_encode(old('excluded_products', $excludedIds)),
+            'productOptions' => $productOptions,
+            'clashes' => $clashes,
+        ];
+    }
 
     public function fillFromRequest(
         Campaign $campaign,

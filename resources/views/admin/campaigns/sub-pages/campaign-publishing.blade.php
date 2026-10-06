@@ -1,13 +1,3 @@
-{{-- Tab: whether the campaign is live, and where it lives on the storefront.
-     @var \App\Models\Campaign|null $item --}}
-
-<div class="alert alert-info border border-info-subtle d-flex align-items-start gap-2 py-2 mb-4">
-    <i class="ri-send-plane-line fs-5"></i>
-    <div>
-        {{__("A campaign is visible on the home page only while its status is published and the current time is inside its schedule. The tile always opens the campaign product page.")}}
-    </div>
-</div>
-
 <div class="form-group mb-4">
     <label for="status" class="fw-semibold">{{__("Status")}}</label>
     <select name="status" id="status" class="form-control @error('status') is-invalid @enderror">

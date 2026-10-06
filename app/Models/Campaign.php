@@ -168,7 +168,7 @@ class Campaign extends Model
     {
         return match (true) {
             $this->status !== CampaignStatus::Published => $this->status->badgeClass(),
-            $this->isLive() => 'badge bg-success text-white',
+            $this->isLive() => 'badge bg-success-subtle text-success-emphasis border border-success-subtle',
             $this->hasStarted() => 'badge bg-warning-subtle text-warning-emphasis border border-warning-subtle',
             default => 'badge bg-info-subtle text-info-emphasis border border-info-subtle',
         };

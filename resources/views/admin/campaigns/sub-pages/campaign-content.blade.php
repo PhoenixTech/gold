@@ -1,13 +1,3 @@
-{{-- Tab: the words and artwork shown on the tile and the campaign page.
-     @var \App\Models\Campaign|null $item --}}
-
-<div class="alert alert-info border border-info-subtle d-flex align-items-start gap-2 py-2 mb-4">
-    <i class="ri-information-line fs-5"></i>
-    <div>
-        {{__("This campaign fills the 12th cell of the home page category grid, separately for the gold and the silver tab. When nothing is scheduled, the grid falls back to 11 category tiles.")}}
-    </div>
-</div>
-
 <div class="form-group mb-3">
     <label for="name" class="fw-semibold">{{__("Title shown in the tile")}}</label>
     <input name="name" type="text" id="name"

@@ -12,23 +12,7 @@
     $occasions = \App\Enums\Occasion::options();
     $selectedOccasions = old('occasions', $item->occasions ?? []);
     $selectedMetals = old('metal_scope', $item->metal_scope ?? \App\Enums\MetalType::values());
-
-    $includedIds = isset($item)
-        ? $item->productLinks()->where('role', \App\Enums\CampaignProductRole::Include->value)->orderBy('sort')->pluck('product_id')->all()
-        : [];
-    $excludedIds = isset($item)
-        ? $item->productLinks()->where('role', \App\Enums\CampaignProductRole::Exclude->value)->pluck('product_id')->all()
-        : [];
-
-    // The Vue multi-select expects a JSON string.
-    $includedValue = json_encode(old('included_products', $includedIds));
-    $excludedValue = json_encode(old('excluded_products', $excludedIds));
-
-    $productOptions = \App\Models\Product::published()->orderByDesc('id')->limit(500)->get(['id', 'name', 'sku', 'metal_type']);
-
-    $clashes = isset($item) ? $item->clashingCampaigns() : collect();
-
-    // Only computed for an existing campaign; a new one has nothing to resolve.
+    $clashes = $clashes ?? collect();
     $preview = $preview ?? null;
 
     $tabs = [

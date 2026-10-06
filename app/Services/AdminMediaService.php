@@ -39,7 +39,12 @@ class AdminMediaService
             );
         }
 
-        $img->save(storage_path('app/public/'.$folder.'/optimized-'.$name));
+        $dest = storage_path('app/public/'.$folder.'/optimized-'.$name);
+        $img->save($dest);
+
+        @chmod(storage_path('app/public/'.$folder), 0755);
+        @chmod(storage_path('app/public/'.$folder.'/'.$name), 0644);
+        @chmod($dest, 0644);
 
         return $name;
     }

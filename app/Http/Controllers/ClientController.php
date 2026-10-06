@@ -354,22 +354,19 @@ class ClientController extends Controller
             ->filterCatalog($request);
 
         if ($campaign !== null) {
-            $query->whereIn('id', $source->ids($campaign, $campaignMetal));
+            $campaignIds = $source->ids($campaign, $campaignMetal);
+            $query->whereIn('id', $campaignIds);
+
+            if (! $request->filled('sort') && $campaignIds->isNotEmpty()) {
+                $cases = [];
+                foreach ($campaignIds->values() as $index => $id) {
+                    $cases[] = 'WHEN '.(int) $id.' THEN '.(int) $index;
+                }
+                $query->reorder()->orderByRaw('CASE id '.implode(' ', $cases).' ELSE '.count($cases).' END ASC');
+            }
         }
 
         $products = $query->paginate($this->paginate)->withQueryString();
-
-        if ($campaign !== null && ! $request->filled('sort')) {
-            // Campaign order (hand picked first) beats the catalog's newest-first
-            // default, unless the shopper explicitly asked for a different sort.
-            $order = $source->orderMap($campaign, $campaignMetal);
-
-            $products->setCollection(
-                $products->getCollection()
-                    ->sortBy(fn (Product $product) => $order[$product->getKey()] ?? PHP_INT_MAX)
-                    ->values()
-            );
-        }
 
         $categories = Category::query()
             ->where('hide', 0)

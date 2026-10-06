@@ -53,53 +53,40 @@ class CampaignController extends Controller
         return view('admin.campaigns.campaign-list', $tableData);
     }
 
-    public function create(): View
+    public function create(CampaignService $service): View
     {
-        return view('admin.campaigns.campaign-form');
+        return view('admin.campaigns.campaign-form', $service->formData());
     }
 
     public function store(CampaignSaveRequest $request, CampaignService $service, SlugService $slug): JsonResponse|RedirectResponse
     {
-        $campaign = new Campaign;
-
-        $service->fillFromRequest($campaign, $request, $slug);
-        $campaign->save();
-
-        $service->handleUploads($campaign, $request);
-        $campaign->save();
-
-        $service->syncProductLinks($campaign, $request);
+        $campaign = $service->save(new Campaign, $request, $slug);
 
         logAdmin(__METHOD__, Campaign::class, $campaign->id);
 
         return $this->respondAfterSave($request, $campaign, __('As you wished created successfully'), 'admin.campaign.edit');
     }
 
-    public function edit(Campaign|string|int $item, CampaignProductSource $source): View
+    public function edit(Campaign|string|int $item, CampaignService $service, CampaignProductSource $source): View
     {
         $item = $this->resolveCampaign($item);
 
-        return view('admin.campaigns.campaign-form', [
-            'item' => $item,
-            'preview' => $source->preview($item, 'gold'),
-        ]);
+        return view('admin.campaigns.campaign-form', array_merge(
+            $service->formData($item),
+            [
+                'item' => $item,
+                'preview' => $source->preview($item, 'gold'),
+            ]
+        ));
     }
 
     public function update(CampaignSaveRequest $request, Campaign|string|int $item, CampaignService $service, SlugService $slug): JsonResponse|RedirectResponse
     {
-        $item = $this->resolveCampaign($item);
+        $campaign = $service->save($this->resolveCampaign($item), $request, $slug);
 
-        $service->fillFromRequest($item, $request, $slug);
-        $item->save();
+        logAdmin(__METHOD__, Campaign::class, $campaign->id);
 
-        $service->handleUploads($item, $request);
-        $item->save();
-
-        $service->syncProductLinks($item, $request);
-
-        logAdmin(__METHOD__, Campaign::class, $item->id);
-
-        return $this->respondAfterSave($request, $item, __('As you wished updated successfully'), 'admin.campaign.edit');
+        return $this->respondAfterSave($request, $campaign, __('As you wished updated successfully'), 'admin.campaign.edit');
     }
 
     /**

@@ -229,12 +229,12 @@
             font-size: 10.5px;
             font-weight: 700;
             line-height: 1.6;
-            color: #ffffff;
+            color: var(--xshop-surface-0);
             background: var(--xshop-primary-text);
             box-shadow: var(--xshop-shadow-xs);
 
             &--hot {
-                background: #b91c1c;
+                background: var(--xshop-danger);
             }
         }
 
@@ -264,7 +264,7 @@
             height: 1.35rem;
             border-radius: 999px;
             font-size: 13px;
-            color: #ffffff;
+            color: var(--xshop-surface-0);
             background: var(--xshop-primary);
         }
 

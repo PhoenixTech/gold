@@ -1,14 +1,3 @@
-{{-- Tab: when the campaign runs and where it appears.
-     @var \App\Models\Campaign|null $item
-     @var array $selectedMetals --}}
-
-<div class="alert alert-info border border-info-subtle d-flex align-items-start gap-2 py-2 mb-4">
-    <i class="ri-calendar-event-line fs-5"></i>
-    <div>
-        {{__("The tile disappears by itself at the end date — no scheduled job needed. Only one campaign can hold the slot, and the highest priority wins an overlap.")}}
-    </div>
-</div>
-
 <div class="form-group mb-3">
     <label for="starts_at" class="fw-semibold">{{__("Start date")}}</label>
     <vue-datetime-picker-input

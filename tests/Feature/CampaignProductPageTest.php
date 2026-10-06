@@ -188,6 +188,25 @@ class CampaignProductPageTest extends TestCase
         $this->assertSame([$hero->id, $auto->id], $page->pluck('id')->all());
     }
 
+    public function test_the_campaign_page_keeps_pinned_products_first_across_pagination(): void
+    {
+        $hero = Product::factory()->create(['name' => 'HeroRing', 'occasions' => []]);
+
+        foreach (range(1, 15) as $i) {
+            $this->tag("AutoRing{$i}", [Occasion::Yalda->value]);
+        }
+
+        $campaign = $this->liveCampaign();
+        $campaign->productLinks()->create([
+            'product_id' => $hero->id,
+            'role' => CampaignProductRole::Include,
+        ]);
+
+        $page = $this->get($campaign->url())->assertOk()->viewData('products');
+
+        $this->assertSame($hero->id, $page->first()->id);
+    }
+
     public function test_an_explicit_sort_overrides_the_campaign_order(): void
     {
         $auto = Product::factory()->create([
