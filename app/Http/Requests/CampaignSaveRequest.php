@@ -30,6 +30,12 @@ class CampaignSaveRequest extends FormRequest
                 $this->merge([$field => is_array($decoded) ? $decoded : []]);
             }
         }
+
+        foreach (['starts_at', 'ends_at'] as $field) {
+            if (is_numeric($this->input($field))) {
+                $this->merge([$field => date('Y-m-d H:i:s', (int) $this->input($field))]);
+            }
+        }
     }
 
     /**

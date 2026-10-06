@@ -1,223 +1,301 @@
 <template>
     <div id="vue-datepicker">
-
-        <div id="dp-modal" @click.self="hideModal" @mousedown.self="canCloseModal = true" v-if="modalShow">
+        <div id="dp-modal" @click.self="closeModal" v-if="modalShow">
             <div id="picker">
-                <div class="equal-width" id="vuejs-tabs">
-                    <div :class="tabIndex == 0?'active-tab':''" @click="tabIndex = 0;">
-                        {{ pTitle }}
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                    <div class="nav nav-pills gap-1">
+                        <button type="button" class="btn btn-sm rounded-pill py-1 px-2.5"
+                                :class="tabIndex === 0 ? 'btn-primary' : 'btn-light border-0 text-muted'"
+                                @click="tabIndex = 0">
+                            {{ pTitle }}
+                        </button>
+                        <button type="button" class="btn btn-sm rounded-pill py-1 px-2.5"
+                                :class="tabIndex === 1 ? 'btn-primary' : 'btn-light border-0 text-muted'"
+                                @click="tabIndex = 1">
+                            {{ gTitle }}
+                        </button>
+                        <button v-if="timepicker" type="button" class="btn btn-sm rounded-pill py-1 px-2.5"
+                                :class="tabIndex === 2 ? 'btn-primary' : 'btn-light border-0 text-muted'"
+                                @click="tabIndex = 2">
+                            <i class="ri-time-line me-1"></i>
+                            {{ tTitle }}
+                        </button>
                     </div>
-                    <div :class="tabIndex == 1?'active-tab':''" @click="tabIndex = 1;">
-                        {{ gTitle }}
+                    <button type="button" class="btn btn-sm btn-light rounded-circle p-0 d-flex align-items-center justify-content-center text-muted"
+                            style="width: 32px; height: 32px;"
+                            @click="closeModal" title="بستن">
+                        <i class="ri-close-line fs-5"></i>
+                    </button>
+                </div>
+
+                <div class="d-flex align-items-center justify-content-between mb-3 px-1" v-if="pDate !== null && tabIndex < 2">
+                    <button type="button" class="btn btn-sm btn-light border-0 p-1" style="width: 32px; height: 32px;" @click="previous" title="ماه قبل">
+                        <i class="ri-arrow-right-s-line fs-5"></i>
+                    </button>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary fw-bold px-2 py-1" @click="monthPick">
+                            <span v-if="tabIndex === 0">{{ pMonths[parseInt(peDate[1]) - 1] }}</span>
+                            <span v-else>{{ gMonths[geDate[1]] }}</span>
+                            <i class="ri-arrow-down-s-line ms-1"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary fw-bold px-2 py-1" @click="yearPick">
+                            <span v-if="tabIndex === 0">{{ pDate.parseHindi(peDate[0]) }}</span>
+                            <span v-else>{{ geDate[0] }}</span>
+                            <i class="ri-arrow-down-s-line ms-1"></i>
+                        </button>
                     </div>
-                    <div v-if="timepicker" :class="tabIndex == 2?'active-tab':''" @click="tabIndex = 2;">
-                        {{ tTitle }}
+                    <button type="button" class="btn btn-sm btn-light border-0 p-1" style="width: 32px; height: 32px;" @click="next" title="ماه بعد">
+                        <i class="ri-arrow-left-s-line fs-5"></i>
+                    </button>
+                </div>
+
+                <div class="position-relative" style="min-height: 240px;">
+                    <div class="sub-picker p-2" v-if="yPicker">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <button type="button" class="btn btn-sm btn-light border-0" @click="startYear -= 12">
+                                <i class="ri-arrow-right-s-line"></i>
+                            </button>
+                            <span class="fw-bold fs-14 text-secondary">انتخاب سال</span>
+                            <button type="button" class="btn btn-sm btn-light border-0" @click="startYear += 12">
+                                <i class="ri-arrow-left-s-line"></i>
+                            </button>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-4" v-for="i in 12" :key="i">
+                                <button type="button"
+                                        class="btn btn-sm w-100 py-2 font-monospace"
+                                        :class="parseInt(tabIndex === 0 ? peDate[0] : geDate[0]) === (startYear - 6 + i) ? 'btn-primary' : 'btn-light border'"
+                                        @click="yearPicking(startYear - 6 + i)">
+                                    {{ tabIndex === 0 ? pDate.parseHindi(startYear - 6 + i) : (startYear - 6 + i) }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sub-picker p-2" v-if="pmPicker">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="fw-bold fs-14 text-secondary">انتخاب ماه</span>
+                            <button type="button" class="btn btn-sm btn-light border-0" @click="pmPicker = false">
+                                <i class="ri-close-line"></i>
+                            </button>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-4" v-for="(m, i) in pMonths" :key="m">
+                                <button type="button"
+                                        class="btn btn-sm w-100 py-2"
+                                        :class="(parseInt(peDate[1]) - 1 === i) ? 'btn-primary' : 'btn-light border'"
+                                        @click="pMonthPicking(i)">
+                                    {{ m }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sub-picker p-2" v-if="gmPicker">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="fw-bold fs-14 text-secondary">Select Month</span>
+                            <button type="button" class="btn btn-sm btn-light border-0" @click="gmPicker = false">
+                                <i class="ri-close-line"></i>
+                            </button>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-4" v-for="(m, i) in gMonths" :key="m">
+                                <button type="button"
+                                        class="btn btn-sm w-100 py-2"
+                                        :class="(geDate[1] === i) ? 'btn-primary' : 'btn-light border'"
+                                        @click="gMonthPicking(i)">
+                                    {{ m }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="tabIndex === 0">
+                        <table class="calendar-table w-100">
+                            <thead>
+                                <tr>
+                                    <th v-for="(day, idx) in pWeekDays" :key="day" :class="{ 'text-danger': idx === 6 }">
+                                        {{ day }}
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody v-if="pDate !== null">
+                                <tr v-for="(week, wIdx) in pArray" :key="wIdx">
+                                    <td v-for="(d, dIdx) in week" :key="dIdx">
+                                        <button type="button"
+                                                class="day-btn"
+                                                :class="[d.class, isActive(d)]"
+                                                :disabled="isDateDisabled(d)"
+                                                :title="d.date"
+                                                @click="select(d)">
+                                            {{ pDate.parseHindi(d.pDay) }}
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div v-if="tabIndex === 1" dir="ltr">
+                        <table class="calendar-table w-100">
+                            <thead>
+                                <tr>
+                                    <th v-for="(day, idx) in gWeekDays" :key="day" :class="{ 'text-danger': idx === 0 }">
+                                        {{ day }}
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody v-if="pDate !== null">
+                                <tr v-for="(week, wIdx) in gArray" :key="wIdx">
+                                    <td v-for="(d, dIdx) in week" :key="dIdx">
+                                        <button type="button"
+                                                class="day-btn"
+                                                :class="[d.class, isActive(d)]"
+                                                :disabled="isDateDisabled(d)"
+                                                :title="d.pdate"
+                                                @click="select(d)">
+                                            {{ d.day }}
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div v-if="tabIndex === 2" class="py-2">
+                        <div class="text-center p-3 mb-3 bg-light rounded-3 border">
+                            <span class="d-block fs-12 text-muted mb-1">زمان انتخاب شده</span>
+                            <div class="fs-1 fw-bold text-primary font-monospace" dir="ltr">
+                                {{ String(cTime[0]).padStart(2, '0') }} : {{ String(cTime[1]).padStart(2, '0') }}
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-center justify-content-center gap-4 mb-3" dir="ltr">
+                            <div class="d-flex flex-column align-items-center">
+                                <span class="fs-12 text-muted mb-1 fw-semibold">ساعت</span>
+                                <button type="button" class="btn btn-outline-secondary btn-sm rounded-circle p-0"
+                                        style="width: 32px; height: 32px;"
+                                        @click="incrementHour(1)">
+                                    <i class="ri-arrow-up-s-line fs-5"></i>
+                                </button>
+                                <div class="step-value font-monospace my-1" @wheel.prevent="incrementHour($event.deltaY < 0 ? 1 : -1)">
+                                    {{ String(cTime[0]).padStart(2, '0') }}
+                                </div>
+                                <button type="button" class="btn btn-outline-secondary btn-sm rounded-circle p-0"
+                                        style="width: 32px; height: 32px;"
+                                        @click="incrementHour(-1)">
+                                    <i class="ri-arrow-down-s-line fs-5"></i>
+                                </button>
+                            </div>
+
+                            <div class="fs-1 fw-bold text-muted mt-3">:</div>
+
+                            <div class="d-flex flex-column align-items-center">
+                                <span class="fs-12 text-muted mb-1 fw-semibold">دقیقه</span>
+                                <button type="button" class="btn btn-outline-secondary btn-sm rounded-circle p-0"
+                                        style="width: 32px; height: 32px;"
+                                        @click="incrementMinute(5)">
+                                    <i class="ri-arrow-up-s-line fs-5"></i>
+                                </button>
+                                <div class="step-value font-monospace my-1" @wheel.prevent="incrementMinute($event.deltaY < 0 ? 1 : -1)">
+                                    {{ String(cTime[1]).padStart(2, '0') }}
+                                </div>
+                                <button type="button" class="btn btn-outline-secondary btn-sm rounded-circle p-0"
+                                        style="width: 32px; height: 32px;"
+                                        @click="incrementMinute(-5)">
+                                    <i class="ri-arrow-down-s-line fs-5"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <span class="fs-12 text-muted d-block mb-1">دقیقه:</span>
+                            <div class="d-flex gap-1 justify-content-center" dir="ltr">
+                                <button type="button"
+                                        v-for="m in [0, 15, 30, 45]"
+                                        :key="m"
+                                        class="btn btn-sm btn-light border flex-fill font-monospace py-1"
+                                        :class="{ 'btn-primary text-white': cTime[1] === m }"
+                                        @click="setMinute(m)">
+                                    :{{ String(m).padStart(2, '0') }}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <span class="fs-12 text-muted d-block mb-1">میانبر ساعت:</span>
+                            <div class="d-flex gap-1 justify-content-center">
+                                <button type="button"
+                                        v-for="s in [{h:0,m:0,t:'۰۰:۰۰'}, {h:9,m:0,t:'۰۹:۰۰'}, {h:12,m:0,t:'۱۲:۰۰'}, {h:18,m:0,t:'۱۸:۰۰'}, {h:23,m:59,t:'۲۳:۵۹'}]"
+                                        :key="s.t"
+                                        class="btn btn-sm btn-light border flex-fill py-1 fs-12"
+                                        @click="setQuickTime(s.h, s.m)">
+                                    {{ s.t }}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-center pt-1">
+                            <button type="button" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1 px-3 py-1.5" @click="tabIndex = 0">
+                                <i class="ri-calendar-line"></i>
+                                <span>بازگشت به تقویم</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
-                <div class="equal-width" v-if="pDate !== null && tabIndex < 2">
-                    <div @click="next" class="vuejsbtn">
+
+                <div v-if="timepicker && tabIndex < 2"
+                     class="d-flex align-items-center justify-content-between mt-2 p-2 rounded-3 bg-light border">
+                    <div class="d-flex align-items-center gap-1.5 text-muted fs-13">
+                        <i class="ri-time-line text-primary fs-14"></i>
+                        <span>ساعت:</span>
+                        <span class="fw-bold font-monospace text-dark fs-14" dir="ltr">
+                            {{ String(cTime[0]).padStart(2, '0') }}:{{ String(cTime[1]).padStart(2, '0') }}
+                        </span>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-primary py-0.5 px-2 fs-12 d-flex align-items-center gap-1" @click="tabIndex = 2">
+                        <span>تنظیم ساعت</span>
                         <i class="ri-arrow-left-s-line"></i>
-                    </div>
-                    <div @click="monthPick">
-                        <span v-if="tabIndex == 0">
-                            {{ pMonths[parseInt(peDate[1]) - 1] }}
-                        </span>
-                        <span v-if="tabIndex == 1">
-                            {{ gMonths[geDate[1]] }}
-                        </span>
-                    </div>
-                    <div @click="yearPick">
-                        <span v-if="tabIndex == 0">
-                            {{ pDate.parseHindi(peDate[0]) }}
-                        </span>
-                        <span v-if="tabIndex == 1">
-                            {{ geDate[0] }}
-                        </span>
-                    </div>
-                    <div @click="previous" class="vuejsbtn">
-                        <i class="ri-arrow-right-s-line"></i>
-                    </div>
+                    </button>
                 </div>
-                <div style="overflow: hidden"
-                     @mousedown="startSwipe($event)"
-                     @touchstart="startSwipe($event, $event.touches[0])"
-                     @mousemove="handleSwipe($event)"
-                     @touchmove="handleSwipe($event, $event.touches[0])"
-                     @mouseup="endSwipe($event)"
-                     @touchend="endSwipe($event)"
-                     @mouseleave="endSwipe($event)"
-                >
-                    <div id="calendar-container" :style="`top:${calContainerTop}px;left:${calContainerLeft}px;`">
-                        <div class="sub-picker" v-if="yPicker" dir="rtl">
-                            <div class="equal-width month-list" v-for="j in 5">
-                                <template v-for="i in 5">
-                                    <template v-if="i == 1 && j == 1">
-                                        <div @click="startYear -= 23">
-                                            <i class="ri-arrow-right-s-line"></i>
-                                        </div>
-                                    </template>
-                                    <template v-else-if="i == 5 && j == 5">
-                                        <div @click="startYear += 23">
-                                            <i class="ri-arrow-left-s-line"></i>
-                                        </div>
-                                    </template>
-                                    <div v-else class="year"
-                                         @click="yearPicking( (startYear - 13) + ( i + ((j - 1)*5)) )">
-                                        <span v-if="tabIndex == 0">
-                                            {{ pDate.parseHindi((startYear - 13) + (i + ((j - 1) * 5))) }}
-                                        </span>
-                                        <span v-else>
-                                            {{ (startYear - 13) + (i + ((j - 1) * 5)) }}
-                                        </span>
-                                    </div>
-                                </template>
-                            </div>
-                        </div>
-                        <div class="sub-picker" v-if="pmPicker" dir="rtl">
-                            <div class="equal-width month-list" v-for="(ms,j) in chunkArray(pMonths,3)">
-                                <div v-for="(m,i) in ms" class="month" @click="pMonthPicking((i + (j * 3)))">
-                                    {{ m }}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="sub-picker" v-if="gmPicker">
-                            <div class="equal-width month-list" v-for="(ms,j) in chunkArray(gMonths,3)">
-                                <div v-for="(m,i) in ms" class="month" @click="gMonthPicking((i + (j * 3)))">
-                                    {{ m }}
-                                </div>
-                            </div>
-                        </div>
-                        <div v-if="tabIndex == 0 || _debug" dir="rtl">
-                            <table>
-                                <thead>
-                                <tr>
-                                    <th v-for="day in pWeekDays">
-                                        {{ day }}
-                                    </th>
-                                </tr>
-                                </thead>
-                                <tbody v-if="pDate !== null">
-                                <tr v-for="week in pArray">
-                                    <td v-for="d in week" :class="d.class +' '+ isActive(d)" :title="d.date"
-                                        @click="select(d)">
-                                        {{ pDate.parseHindi(d.pDay) }}
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div v-if="tabIndex == 1 || _debug">
-                            <table>
-                                <thead>
-                                <tr>
-                                    <th v-for="day in gWeekDays">
-                                        {{ day }}
-                                    </th>
-                                </tr>
-                                </thead>
-                                <tbody v-if="pDate !== null">
-                                <tr v-for="week in gArray">
-                                    <td v-for="d in week" :class="d.class +' '+ isActive(d) " :title="d.pdate"
-                                        @click="select(d)">
-                                        {{ d.day }}
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div v-if="tabIndex == 2">
-                            <div style="padding-top: 10px">
 
-                                <div id="clock"
-                                     @mousedown="startDrag"
-                                     @mousemove="pickMinutes"
-                                     @mouseup="endDrag"
-                                     @touchstart="startDrag"
-                                     @touchmove.prevent="pickMinutes"
-                                     @touchend="endDrag"
-                                >
-                                    <div id="modes">
-                                        <div :class="`vuejs-btn ${mode == 'AM'?'active-selected':''}`"
-                                             @click="changeMode('AM')"
-                                             @touchend="changeMode('AM')"
-                                        >
-                                            AM
-                                        </div>
-                                        <div :class="`vuejs-btn ${mode == 'PM'?'active-selected':''}`"
-                                             @click="changeMode('PM')"
-                                             @touchend="changeMode('PM')"
-                                        >
-                                            PM
-                                        </div>
-                                    </div>
-                                    <div id="time">
-                                        {{ pDate.make2number(cTime[0]) }} :
-                                        {{ pDate.make2number(cTime[1]) }}
-                                    </div>
-                                    <div id="clock-container">
-                                        <div class="wrapper">
-                                            <div id="circle"></div>
-                                            <div class="bar-seconds">
-                                        <span v-for="i in 60" :key="i" :style="{ '--index': i }">
-                                          <i :class="{ 'thick-bar': i % 5 === 0 }"></i>
-                                        </span>
-                                            </div>
-                                            <div class="number-hours">
-                                        <span v-for="i in 12" :key="i" :style="{ '--index': i }">
-                                          <i>
-                                              <b @touchend.self="pickHour(i)" @click="pickHour(i)"
-                                                 :class="((cTime[0] % 12) == i?'active-selected':'')">
-                                                  {{ i }}
-                                              </b>
-                                          </i>
-                                        </span>
-                                            </div>
-                                            <div class="hands-box">
-                                                <div class="hand minutes"
-                                                     :style="`transform: rotate(${cTime[1] * 6}deg)`">
-                                                    <i></i></div>
-                                                <div class="hand hours"
-                                                     :style="`transform: rotate(${cTime[0] * 30 + cTime[1] / 2}deg)`">
-                                                    <i></i></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-                <div id="bottom-bar">
-                    <div>
-                        <div class="vuejs-btn" title="Clear" @click="clear">
-                            <i class="ri-eraser-line"></i>
-                        </div>
-                    </div>
-                    <div class="centered">
-                        <span v-if="pDate != null && '1970-0-1' != vgeDate.join('-')">
-                            [{{ pDate.parseHindi(vpeDate.join('/')) }}]  [{{ vgeDate.join('-') }}]
-                        </span>
-                    </div>
-                    <div>
-                        <div class="vuejs-btn" title="Now" @click="nowSelect">
-                            <i class="ri-time-line"></i>
-                        </div>
-                    </div>
+                <div class="d-flex align-items-center justify-content-between pt-3 mt-2 border-top gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-danger d-flex align-items-center gap-1 py-1 px-2" @click="clear" title="پاک کردن">
+                        <i class="ri-delete-bin-line"></i>
+                        <span class="fs-12">پاک</span>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-light border d-flex align-items-center gap-1 py-1 px-2" @click="nowSelect" title="زمان کنونی">
+                        <i class="ri-time-line"></i>
+                        <span class="fs-12">اکنون</span>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-primary d-flex align-items-center gap-1 py-1 px-3 ms-auto" @click="confirmAndClose">
+                        <i class="ri-check-line"></i>
+                        <span class="fs-12 fw-bold">تایید</span>
+                    </button>
                 </div>
             </div>
         </div>
-        <div id="datepicker">
-            <input @focus="modalShow = true" :id="xid" :placeholder="xtitle"
-                   :class="getClass" type="text"
-                   :value="(val == null || val == ''?'':selectedDateTime)">
-            <input type="hidden" :name="xname" :value="val">
+
+        <div class="position-relative">
+            <div class="input-group">
+                <input @click="openModal"
+                       @focus="openModal"
+                       :id="xid"
+                       :placeholder="xtitle"
+                       :class="getClass"
+                       type="text"
+                       readonly
+                       :value="(val == null || val === '' ? '' : selectedDateTime)">
+                <button class="btn btn-outline-secondary" type="button" @click="openModal">
+                    <i class="ri-calendar-2-line"></i>
+                </button>
+            </div>
+            <input v-if="xname" type="hidden" :name="xname" :value="val">
         </div>
     </div>
 </template>
 
 <script>
-
 import persianDate from './libs/persian-date.js';
 
 const ONE_DAY = 86400;
@@ -225,53 +303,30 @@ const ONE_YEAR = ONE_DAY * 365;
 
 function chunkArray(arr, count) {
     const result = [];
-
     for (let i = 0; i < arr.length; i += count) {
         result.push(arr.slice(i, i + count));
     }
-
     return result;
 }
 
 export default {
     name: "vue-datetimepicker",
-    components: {},
     data: () => {
         return {
-            _debug: false, // debug all tabs
-
-            /**
-             * to handling swiping calendar
-             */
-            startX: 0,
-            startY: 0,
-            swipeDirection: null,
-            swipeDistance: 0,
-            tableRect: null,
-            calContainerTop: 0,
-            calContainerLeft: 0,
-            isSwiping: false,
-            canCloseModal: false,
-
-            /**
-             * to handling dragging clock
-             */
-            isDragging: false,
-            fullData: {}, // full data of this date
-            modalShow: false, // modal handle
-            pDate: null, // persian date update
-            startYear: 1970, // start year for year picking
-            tabIndex: 0, // active tab index
-            current: null, // current is not selected value just for show calendar
-            gmPicker: false,  // handle gr month picker modal
-            pmPicker: false,// handle persian month picker modal
-            yPicker: false, // handle year picker modal
-            val: null, // selected value
-            pWeekDays: ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'آ'],
+            modalShow: false,
+            pDate: null,
+            startYear: 1403,
+            tabIndex: 0,
+            current: null,
+            gmPicker: false,
+            pmPicker: false,
+            yPicker: false,
+            val: null,
+            pWeekDays: ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'],
             gWeekDays: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
             pMonths: ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'],
             gMonths: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-        }
+        };
     },
     emits: ['update:modelValue'],
     props: {
@@ -280,7 +335,7 @@ export default {
         },
         xvalue: {
             default: null,
-            type: Number,
+            type: [Number, String],
         },
         xmax: {
             default: null,
@@ -291,30 +346,28 @@ export default {
             type: Number,
         },
         xshow: {
-            default: 'pdate', // show value
+            default: 'pdate',
             type: String,
         },
         onSelect: {
-            default: function (date) {
-
-            },
+            default: function (date) {},
             type: Function,
         },
         pTitle: {
-            default: 'Persian',
+            default: 'شمسی',
             type: String,
         },
         gTitle: {
-            default: 'Gregorian',
+            default: 'میلادی',
             type: String,
         },
         tTitle: {
-            default: 'Time',
+            default: 'ساعت',
             type: String,
         },
         defTab: {
             default: 0,
-            type: Number,
+            type: [Number, String],
         },
         xname: {
             default: "",
@@ -334,7 +387,7 @@ export default {
         },
         err: {
             default: false,
-            type: Boolean,
+            type: [Boolean, String, Number],
         },
         timepicker: {
             default: false,
@@ -347,85 +400,73 @@ export default {
     },
     mounted() {
         this.pDate = new persianDate();
-        let dt;
-        // check value changed by user or not, then ignore xvalue
-        if (this.val == null) {
+        let initialTs = null;
 
-
-            if (!isNaN(this.modelValue)) {
-                dt = new Date(parseInt(this.modelValue) * 1000);
-                if (this.modelValue == null || this.modelValue == '' || this.modelValue == 'null') {
-                    dt = new Date();
-                    this.val = null;
-                    this.current = Math.floor(new Date() / 1000);
-                } else {
-                    this.current = new Date(parseInt(this.modelValue));
-                    this.val = this.modelValue;
-                }
-            } else {
-                dt = new Date(parseInt(this.xvalue) * 1000);
-                if (this.xvalue == null || this.xvalue == '' || this.xvalue == 'null') {
-                    dt = new Date();
-                    this.val = null;
-                    this.current = Math.floor(new Date() / 1000);
-                } else {
-                    this.current = new Date(parseInt(this.xvalue));
-                    this.val = this.xvalue;
-                }
-            }
-            // tab fix
-            this.tabIndex = parseInt(this.defTab);
-
-
-        } else {
-            this.current = this.val;
+        if (!isNaN(this.modelValue) && this.modelValue !== null && this.modelValue !== '' && this.modelValue !== 'null') {
+            initialTs = parseInt(this.modelValue);
+        } else if (this.xvalue !== null && this.xvalue !== '' && this.xvalue !== 'null' && !isNaN(parseInt(this.xvalue))) {
+            initialTs = parseInt(this.xvalue);
         }
-        this.fullData = this.makeDateObject(dt)
 
-        // if (this.xvalue != this.val){
-        //
-        // }
+        if (initialTs !== null && !isNaN(initialTs)) {
+            this.val = initialTs;
+            this.current = initialTs;
+        } else {
+            this.val = null;
+            this.current = Math.floor(Date.now() / 1000);
+        }
+
+        this.tabIndex = parseInt(this.defTab) || 0;
+        this.startYear = parseInt(this.peDate[0]) || 1403;
+        window.addEventListener('keydown', this.handleKeyDown);
+    },
+    beforeUnmount() {
+        window.removeEventListener('keydown', this.handleKeyDown);
     },
     computed: {
         selectedDateTime() {
-            // fullData[xshow]
-            const dt = new Date(this.val * 1000);
-            return this.makeDateObject(dt)[this.xshow];
-        },
-        // get input class
-        getClass: function () {
-            if (this.err == true || (typeof this.err == 'String' && this.err.trim() == '1')) {
-                return 'form-control is-invalid text-center' + this.customClass;
+            if (this.val == null || this.val === '') {
+                return '';
             }
-            return 'form-control text-center ' + this.customClass;
+            if (!this.pDate) {
+                return '';
+            }
+            const dt = new Date(this.val * 1000);
+            const obj = this.makeDateObject(dt);
+            return obj[this.xshow] || obj.pdatetime || '';
         },
-        /*
-         * make array of this month days [gregorian]
-         */
-        gArray: function () {
+        getClass() {
+            let base = 'form-control text-center bg-white cursor-pointer';
+            if (this.err === true || this.err === '1' || this.err === 1) {
+                base += ' is-invalid';
+            }
+            if (this.customClass) {
+                base += ' ' + this.customClass;
+            }
+            return base;
+        },
+        gArray() {
             let result = [];
-            const baseDate = this.current * 1000;
+            const baseDate = (this.current || Math.floor(Date.now() / 1000)) * 1000;
             let d = new Date(baseDate);
-            const currentMonth = d.getMonth(baseDate);
-            // find days of last month end by dayweek
+            const currentMonth = d.getMonth();
             for (let i = 0; i >= -7; i--) {
                 d = new Date(baseDate);
                 d.setDate(i);
                 result.push(this.makeDateObject(d, 'previous'));
-                if (d.getDay() == 0) {
+                if (d.getDay() === 0) {
                     break;
                 }
             }
-            result = result.reverse(); // fix sort
+            result = result.reverse();
             let nextCount = 0;
-            // find days of this month and start of next end by dayweek
             for (let i = 1; i <= 45; i++) {
                 d = new Date(baseDate);
                 d.setDate(i);
-                if (d.getMonth() == currentMonth) {
+                if (d.getMonth() === currentMonth) {
                     result.push(this.makeDateObject(d));
                 } else {
-                    if (d.getDay() == 0 && nextCount > 0) {
+                    if (d.getDay() === 0 && nextCount > 0) {
                         break;
                     }
                     result.push(this.makeDateObject(d, 'next'));
@@ -434,786 +475,408 @@ export default {
             }
             return chunkArray(result, 7);
         },
-        /*
-         * make array of this month days [persian]
-         */
-        pArray: function () {
+        pArray() {
+            if (!this.pDate) {
+                return [];
+            }
             let result = [];
-            const baseDate = this.current * 1000;
+            const baseDate = (this.current || Math.floor(Date.now() / 1000)) * 1000;
             let d = this.pDate.convertDate2Persian(new Date(baseDate));
             const currentMonth = d[1];
-            // get current date to prev until last month end by day week
             for (let i = 0; i > -40; i--) {
                 let dt = new Date(baseDate + (i * ONE_DAY * 1000));
                 let pdt = this.pDate.convertDate2Persian(dt);
-                if (pdt[1] == currentMonth) {
+                if (pdt[1] === currentMonth) {
                     result.push(this.makeDateObject(dt));
                 } else {
                     result.push(this.makeDateObject(dt, 'previous'));
-                    if (this.makePWeek(dt) == 0) {
+                    if (this.makePWeek(dt) === 0) {
                         break;
                     }
                 }
             }
-            // fix sort
             result = result.reverse();
-            // get current date to next until next month end by day week
             for (let i = 1; i < 40; i++) {
                 let dt = new Date(baseDate + (i * ONE_DAY * 1000));
                 let pdt = this.pDate.convertDate2Persian(dt);
-                if (pdt[1] == currentMonth) {
+                if (pdt[1] === currentMonth) {
                     result.push(this.makeDateObject(dt));
                 } else {
                     result.push(this.makeDateObject(dt, 'next'));
-                    if (this.makePWeek(dt) == 6) {
+                    if (this.makePWeek(dt) === 6) {
                         break;
                     }
                 }
             }
             return chunkArray(result, 7);
         },
-        // gregorian date
         geDate() {
-            const baseDate = this.current * 1000;
+            const baseDate = (this.current || Math.floor(Date.now() / 1000)) * 1000;
             let d = new Date(baseDate);
             return [d.getFullYear(), d.getMonth(), d.getDate()];
         },
-        // persian date
         peDate() {
-            const baseDate = this.current * 1000;
-            let d = new Date(baseDate);
-            return this.pDate.convertDate2Persian(d);
-        },
-        // gregorian date by value
-        vgeDate() {
-            const baseDate = this.val * 1000;
-            let d = new Date(baseDate);
-            return [d.getFullYear(), d.getMonth(), d.getDate()];
-        },
-        // persian date by value
-        vpeDate() {
-            const baseDate = this.val * 1000;
-            let d = new Date(baseDate);
-            return this.pDate.convertDate2Persian(d);
-        },
-        // current time
-        cTime() {
-            const baseDate = this.val * 1000;
-            let d = new Date(baseDate);
-            return [d.getHours(), d.getMinutes()];
-        },
-        mode() {
-            const date = new Date(this.val * 1000); // Convert Unix timestamp to milliseconds
-            const hours = date.getHours();
-
-            if (hours >= 12) {
-                return 'PM';
-            } else {
-                return 'AM';
+            if (!this.pDate) {
+                return ['1403', '01', '01'];
             }
+            const baseDate = (this.current || Math.floor(Date.now() / 1000)) * 1000;
+            let d = new Date(baseDate);
+            return this.pDate.convertDate2Persian(d);
+        },
+        cTime() {
+            const ts = (this.val || this.current || Math.floor(Date.now() / 1000)) * 1000;
+            const d = new Date(ts);
+            return [d.getHours(), d.getMinutes()];
         },
     },
     methods: {
-        // clear input
-        clear() {
-            this.hideModal();
-            this.val = null;
-            this.fullData[this.xshow] = '';
+        openModal() {
+            if (this.val == null && !this.current) {
+                this.current = Math.floor(Date.now() / 1000);
+            }
+            this.modalShow = true;
         },
-        // select now time
-        nowSelect() {
-            this.val = Math.floor(new Date() / 1000);
-            this.select(this.makeDateObject(new Date()));
-        },
-        // handle select
-        select(obj) {
-
-            if (this.xmax != null && obj.unix > this.xmax) {
-                return;
-            }
-            if (this.xmin != null && obj.unix < this.xmin) {
-                return;
-            }
-            if (this.isSwiping) {
-                return false;
-            }
-            if (obj.class == 'next') {
-                this.next();
-                return false;
-            }
-            if (obj.class == 'previous') {
-                this.previous();
-                return false;
-            }
-            // reset values
-            this.onSelect(obj);
-            this.val = obj.unix;
-            this.fullData = obj;
-            this.current = this.val = obj.unix;
-            if (this.closeOnSelect) {
-                this.canCloseModal = true;
-                this.hideModal();
-            }
-            return true;
-
-        },
-        // select year
-        yearPicking(i) {
-            let dt = this.current * 1000;
-            dt = new Date(dt);
-            // for gregorian
-            if (this.tabIndex == 1) {
-                dt.setFullYear(i);
-                this.current = Math.floor(dt / 1000);
-            } else {
-                // for persian
-                let cYear = parseInt(this.peDate[0]);
-                let diff = ONE_YEAR * (i - cYear);
-                this.current = Math.floor((dt / 1000) + diff);
-            }
-
+        closeModal() {
+            this.modalShow = false;
+            this.pmPicker = false;
+            this.gmPicker = false;
             this.yPicker = false;
         },
-        // change gregorian current month
-        gMonthPicking(i) {
-            let dt = this.current * 1000;
-            dt = new Date(dt);
-            dt.setMonth(parseInt(i));
-            this.current = Math.floor(dt / 1000);
-            this.gmPicker = false;
-        },
-        // change persian current month
-        pMonthPicking(i) {
-            let dt = this.current * 1000;
-            dt = new Date(dt);
-            let x = 10;
-            if ((i + 1) != parseInt(this.peDate[1])) {
-                if ((i + 1) < parseInt(this.peDate[1])) {
-                    x = -10;
-                }
-                // for persian find by loop for dec tolerance
-                do {
-                    dt.setDate(dt.getDate() + x);
-                } while ((i + 1) != this.pDate.convertDate2Persian(dt)[1]);
-                this.current = Math.floor(dt / 1000);
+        confirmAndClose() {
+            if (this.val == null) {
+                this.val = this.current || Math.floor(Date.now() / 1000);
             }
-
-            this.pmPicker = false;
+            this.closeModal();
         },
-
-        // next month
-        next() {
-            let dt = this.current * 1000;
-            dt = new Date(dt);
-            // for gregorian
-            if (this.tabIndex == 1) {
-                dt.setMonth(dt.getMonth() + 1);
-            } else {
-                let currentMonth = this.pDate.convertDate2Persian(new Date(dt))[1];
-                // for persian find by loop for dec tolerance
-                do {
-                    dt.setDate(dt.getDate() + 10);
-                } while (currentMonth == this.pDate.convertDate2Persian(dt)[1]);
-            }
-            this.current = Math.floor(dt / 1000);
+        clear() {
+            this.val = null;
+            this.current = Math.floor(Date.now() / 1000);
+            this.closeModal();
         },
-        // previous month
-        previous() {
-            let dt = this.current * 1000;
-            dt = new Date(dt);
-            // for gregorian
-            if (this.tabIndex == 1) {
-                dt.setMonth(dt.getMonth() - 1);
-            } else {
-
-                // persian
-                let currentMonth = this.pDate.convertDate2Persian(new Date(dt))[1];
-                // for persian find by loop for dec tolerance
-                do {
-                    dt.setDate(dt.getDate() - 10);
-                } while (currentMonth == this.pDate.convertDate2Persian(dt)[1]);
-            }
-            this.current = Math.floor(dt / 1000);
+        nowSelect() {
+            const now = Math.floor(Date.now() / 1000);
+            this.val = now;
+            this.current = now;
+            this.onSelect(this.makeDateObject(new Date(now * 1000)));
         },
-        makeDateObject(dt, cls) {
-            dt.setHours(this.cTime[0], this.cTime[1]);
-            return {
-                day: this.pDate.make2number(dt.getDate()), // day
-                pDay: this.pDate.convertDate2Persian(dt)[2], // persian date
-                date: dt.getFullYear() + '-' + dt.getMonth() + '-' + dt.getDate(), // gregorian date
-                datetime: dt.getFullYear() + '-' + dt.getMonth() + '-' + dt.getDate() + ' ' + this.pDate.make2number(this.cTime[0]) + ':' + this.pDate.make2number(this.cTime[1]), // gregorian datetime
-                pdatetime: this.pDate.convertDate2Persian(dt).join('/') + ' ' + this.pDate.make2number(this.cTime[0]) + ':' + this.pDate.make2number(this.cTime[1]), // persian date
-                pdate: this.pDate.convertDate2Persian(dt).join('/'),  // persian date
-                hpdatetime: this.pDate.parseHindi(this.pDate.convertDate2Persian(dt).join('/') + ' ' + this.pDate.make2number(this.cTime[0]) + ':' + this.pDate.make2number(this.cTime[1])), // persian date hindi number
-                hpdate: this.pDate.parseHindi(this.pDate.convertDate2Persian(dt).join('/')),  // persian date hindi number
-                weekDay: dt.getDay(), // week day
-                class: cls, // class of d
-                unix: Math.floor(dt / 1000) // unix time stamp
-            };
-        },
-        // make persian week day
-        makePWeek(dt) {
-            let t = dt.getDay() + 1 % 7;
-            if (t == 7) {
-                return 0
-            }
-            return t;
-        },
-        // show month pick modal
-        monthPick() {
-            // gregorian
-            if (this.tabIndex == 1) {
-                this.gmPicker = !this.gmPicker;
-                this.pmPicker = false;
-            } else {
-                // persian
-                this.pmPicker = !this.pmPicker;
-                this.gmPicker = false;
+        handleKeyDown(e) {
+            if (e.key === 'Escape' && this.modalShow) {
+                this.closeModal();
             }
         },
-
-        // show year pick modal
-        yearPick() {
-            // gregorian
-            if (this.tabIndex == 1) {
-                this.startYear = parseInt(this.geDate[0]);
-            } else {
-                // persian
-                this.startYear = parseInt(this.peDate[0]);
+        isDateDisabled(d) {
+            if (this.xmax != null && d.unix > this.xmax) {
+                return true;
             }
-            this.yPicker = !this.yPicker;
+            if (this.xmin != null && d.unix < this.xmin) {
+                return true;
+            }
+            return false;
         },
-        // is selected this td
         isActive(obj) {
-            let dt = new Date(this.val * 1000);
             let r = '';
-            if (dt.getFullYear() + '-' + dt.getMonth() + '-' + dt.getDate() == obj.date) {
-                r = 'active-selected';
-            }
-            if (this.xmax != null && obj.unix > this.xmax) {
-                r += ' disabled-date';
-            }
-            if (this.xmin != null && obj.unix < this.xmin) {
-                r += ' disabled-date';
+            if (this.val != null) {
+                const dt = new Date(this.val * 1000);
+                const gMonthStr = String(dt.getMonth() + 1).padStart(2, '0');
+                const gDayStr = String(dt.getDate()).padStart(2, '0');
+                if (`${dt.getFullYear()}-${gMonthStr}-${gDayStr}` === obj.date) {
+                    r = 'active-selected';
+                }
             }
             return r;
         },
-        // select hour
-        pickHour(i, ignore = false) {
-            let dt = new Date(this.val * 1000);
-            if (ignore) {
-                dt.setHours(i);
-            } else {
-                dt.setHours((this.mode == 'AM' ? i : (i + 12)));
-            }
-            dt.setMinutes(this.cTime[1]);
-            this.val = Math.floor(dt.getTime() / 1000);
-        },
-
-
-        /**
-         * drag handling for clock select
-         */
-        startDrag(e) {
-            if (e.target.tagName != 'B') {
-                this.isDragging = true;
-            }
-            this.dragHandle(e);
-        },
-        pickMinutes(e) {
-            if (!this.isDragging) return;
-            this.dragHandle(e);
-        },
-        endDrag(e) {
-            this.isDragging = false;
-            this.dragHandle(e);
-        },
-        dragHandle(e) {
-
-            e.preventDefault();
-            if (!this.isDragging) {
-                return;
-            }
-            // calc polar system delta
-            const touch = e.touches ? e.touches[0] : null;
-            const eventX = touch ? touch.clientX : e.clientX;
-            const eventY = touch ? touch.clientY : e.clientY;
-
-            const rect = e.currentTarget.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-
-            const deltaX = eventX - centerX;
-            const deltaY = eventY - centerY;
-
-            const r = Math.sqrt(deltaX ** 2 + deltaY ** 2);
-
-            let theta = Math.atan2(deltaY, deltaX);
-            theta = ((theta * 180 / Math.PI) + 450) % 360;
-
-            // console.log('r:', r);
-            // console.log('theta:', theta);
-            if (r > 90 && r < 160) {
-                const minutes = Math.floor((theta / 360) * 60);
-                let dt = new Date(this.val * 1000);
-                dt.setHours(dt.getHours());
-                dt.setMinutes(minutes);
-                this.val = Math.floor(dt / 1000);
-            }
-        },
-
-
-        /**
-         * swipe calendar next  / perv ( month / year)
-         */
-
-        startSwipe(e, touch) {
-            this.isSwiping = true;
-            this.canCloseModal = false;
-            this.contentRect = e.currentTarget.getBoundingClientRect();
-            this.startX = touch ? touch.clientX : e.clientX;
-            this.startY = touch ? touch.clientY : e.clientY;
-            this.swipeDirection = null;
-            this.swipeDistance = 0;
-            this.hasSwipedOnce = false; // Reset the swipe flag
-        },
-        handleSwipe(e, touch) {
-            e.preventDefault();
-            if (this.tabIndex == 2) {
+        select(obj) {
+            if (this.isDateDisabled(obj)) {
                 return false;
             }
-            if (!this.startX || !this.startY) return;
-
-            const currentX = touch ? touch.clientX : e.clientX;
-            const currentY = touch ? touch.clientY : e.clientY;
-
-            const deltaX = currentX - this.startX;
-            const deltaY = currentY - this.startY;
-
-
-            if (Math.abs(deltaY) > Math.abs(deltaX)) {
-                this.calContainerTop = deltaY * .5;
-                this.calContainerLeft = 0;
+            if (obj.class === 'next') {
+                this.next();
+                return false;
             }
-
-            if (Math.abs(deltaY) < Math.abs(deltaX)) {
-                this.calContainerTop = 0;
-                this.calContainerLeft = deltaX * .5;
+            if (obj.class === 'previous') {
+                this.previous();
+                return false;
             }
-
-
-            this.swipeDirection = Math.abs(deltaX) > Math.abs(deltaY)
-                ? deltaX > 0 ? 'right' : 'left'
-                : deltaY > 0 ? 'down' : 'up';
-
-            this.swipeDistance = this.swipeDirection === 'right' || this.swipeDirection === 'left'
-                ? Math.abs(deltaX)
-                : Math.abs(deltaY);
-
-            // Update content padding based on swipe distance and direction (handle 40%)
-            if (this.swipeDistance > this.contentRect.width * 0.4 && !this.hasSwipedOnce) {
-                this.triggerSwipe(this.swipeDirection);
-                this.hasSwipedOnce = true; // Set the swipe flag to true
+            this.val = obj.unix;
+            this.current = obj.unix;
+            this.onSelect(obj);
+            if (this.closeOnSelect && !this.timepicker) {
+                this.closeModal();
             }
+            return true;
         },
-        endSwipe() {
-            this.startX = 0;
-            this.startY = 0;
-            this.swipeDirection = null;
-            this.swipeDistance = 0;
-            this.calContainerTop = 0;
-            this.calContainerLeft = 0;
-            this.isSwiping = false;
+        setTime(h, m) {
+            const base = (this.val || this.current || Math.floor(Date.now() / 1000)) * 1000;
+            const dt = new Date(base);
+            dt.setHours(h, m, 0, 0);
+            this.val = Math.floor(dt.getTime() / 1000);
+            this.current = this.val;
         },
-        triggerSwipe(direction) {
-            // Update content padding based on swipe direction
-            let y = parseInt(this.peDate[0]);
-            if (this.tabIndex == 1) {
-                y = parseInt(this.geDate[1]);
-            }
-            switch (direction) {
-                case 'right':
-                    this.previous();
-                    break;
-                case 'left':
-                    this.next();
-                    break;
-                case 'up':
-                    this.yearPicking(y + 1);
-                    break;
-                case 'down':
-                    this.yearPicking(y - 1);
-                    break;
-            }
-            this.endSwipe();
+        setHour(h) {
+            this.setTime(Math.max(0, Math.min(23, parseInt(h) || 0)), this.cTime[1]);
         },
-
-
-        // change mode am/pm
-        changeMode(mode) {
-            // ignore AM while AM
-            if (this.mode == 'AM' && mode == 'AM') {
-                return;
-            }
-            // ignore PM while PM
-            if (this.mode == 'PM' && mode == 'PM') {
-                return;
-            }
-
-            if (mode == 'AM') {
-
-                if (this.cTime[0] == 12) {
-                    this.pickHour(12);
-                } else {
-                    this.pickHour(this.cTime[0] - 12, true);
-                }
+        setMinute(m) {
+            this.setTime(this.cTime[0], Math.max(0, Math.min(59, parseInt(m) || 0)));
+        },
+        incrementHour(delta) {
+            this.setHour((this.cTime[0] + delta + 24) % 24);
+        },
+        incrementMinute(delta) {
+            this.setMinute((this.cTime[1] + delta + 60) % 60);
+        },
+        setQuickTime(h, m) {
+            this.setTime(h, m);
+        },
+        next() {
+            let dt = new Date((this.current || Math.floor(Date.now() / 1000)) * 1000);
+            if (this.tabIndex === 1) {
+                dt.setMonth(dt.getMonth() + 1);
             } else {
-                this.pickHour(this.cTime[0] + 12, true);
+                let currentMonth = this.pDate.convertDate2Persian(new Date(dt))[1];
+                do {
+                    dt.setDate(dt.getDate() + 10);
+                } while (currentMonth === this.pDate.convertDate2Persian(dt)[1]);
             }
+            this.current = Math.floor(dt.getTime() / 1000);
         },
-
-        selfUpdate() {
-            let dt;
-            // check value changed by user or not, then ignore xvalue
-            if (this.val == null) {
-                dt = new Date(parseInt(this.xvalue) * 1000);
-                if (this.xvalue == null || this.xvalue == '' || this.xvalue == 'null') {
-                    dt = new Date();
-                    this.val = null;
-                    this.current = Math.floor(new Date() / 1000);
-                } else {
-                    this.current = new Date(parseInt(this.xvalue));
-                    this.val = this.xvalue;
-                }
+        previous() {
+            let dt = new Date((this.current || Math.floor(Date.now() / 1000)) * 1000);
+            if (this.tabIndex === 1) {
+                dt.setMonth(dt.getMonth() - 1);
             } else {
-                this.current = this.val;
+                let currentMonth = this.pDate.convertDate2Persian(new Date(dt))[1];
+                do {
+                    dt.setDate(dt.getDate() - 10);
+                } while (currentMonth === this.pDate.convertDate2Persian(dt)[1]);
             }
-            // this.fullData = this.makeDateObject(dt);
+            this.current = Math.floor(dt.getTime() / 1000);
         },
-        // hide modal
-        hideModal() {
-            if (this.canCloseModal) {
-                this.modalShow = false;
+        yearPick() {
+            this.startYear = parseInt(this.tabIndex === 1 ? this.geDate[0] : this.peDate[0]);
+            this.yPicker = !this.yPicker;
+            this.pmPicker = false;
+            this.gmPicker = false;
+        },
+        monthPick() {
+            if (this.tabIndex === 1) {
+                this.gmPicker = !this.gmPicker;
+                this.pmPicker = false;
+            } else {
+                this.pmPicker = !this.pmPicker;
+                this.gmPicker = false;
             }
+            this.yPicker = false;
         },
-        chunkArray: chunkArray,
+        yearPicking(i) {
+            let dt = new Date((this.current || Math.floor(Date.now() / 1000)) * 1000);
+            if (this.tabIndex === 1) {
+                dt.setFullYear(i);
+                this.current = Math.floor(dt.getTime() / 1000);
+            } else {
+                let diff = ONE_YEAR * (i - parseInt(this.peDate[0]));
+                this.current = Math.floor(this.current + diff);
+            }
+            this.yPicker = false;
+        },
+        pMonthPicking(i) {
+            let dt = new Date((this.current || Math.floor(Date.now() / 1000)) * 1000);
+            let targetMonth = String(i + 1).padStart(2, '0');
+            if (targetMonth !== this.peDate[1]) {
+                let dir = (i + 1 < parseInt(this.peDate[1])) ? -10 : 10;
+                do {
+                    dt.setDate(dt.getDate() + dir);
+                } while (targetMonth !== this.pDate.convertDate2Persian(dt)[1]);
+                this.current = Math.floor(dt.getTime() / 1000);
+            }
+            this.pmPicker = false;
+        },
+        gMonthPicking(i) {
+            let dt = new Date((this.current || Math.floor(Date.now() / 1000)) * 1000);
+            dt.setMonth(parseInt(i));
+            this.current = Math.floor(dt.getTime() / 1000);
+            this.gmPicker = false;
+        },
+        makeDateObject(dt, cls) {
+            const dateObj = new Date(dt.getTime());
+            dateObj.setHours(this.cTime[0], this.cTime[1], 0, 0);
+            const pArr = this.pDate ? this.pDate.convertDate2Persian(dateObj) : ['1403', '01', '01'];
+            const hh = String(this.cTime[0]).padStart(2, '0');
+            const mm = String(this.cTime[1]).padStart(2, '0');
+            const pdateStr = pArr.join('/');
+            const pdateTimeStr = `${pdateStr} ${hh}:${mm}`;
+            const gMonthStr = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const gDayStr = String(dateObj.getDate()).padStart(2, '0');
+            const gdateStr = `${dateObj.getFullYear()}-${gMonthStr}-${gDayStr}`;
+            const gdateTimeStr = `${gdateStr} ${hh}:${mm}`;
+            return {
+                day: gDayStr,
+                pDay: pArr[2],
+                date: gdateStr,
+                datetime: gdateTimeStr,
+                pdatetime: pdateTimeStr,
+                pdate: pdateStr,
+                hpdatetime: this.pDate ? this.pDate.parseHindi(pdateTimeStr) : pdateTimeStr,
+                hpdate: this.pDate ? this.pDate.parseHindi(pdateStr) : pdateStr,
+                weekDay: dateObj.getDay(),
+                class: cls,
+                unix: Math.floor(dateObj.getTime() / 1000),
+            };
+        },
+        makePWeek(dt) {
+            let t = (dt.getDay() + 1) % 7;
+            return t === 7 ? 0 : t;
+        },
     },
     watch: {
-        val(newValue) {
-            if (!isNaN(this.modelValue)) {
-                this.$emit('update:modelValue', newValue);
+        val(newVal) {
+            this.$emit('update:modelValue', newVal);
+        },
+        modelValue(newVal) {
+            if (!isNaN(newVal) && newVal !== null && newVal !== '' && newVal !== 'null') {
+                this.val = parseInt(newVal);
+                this.current = parseInt(newVal);
+            } else if (newVal === null || newVal === '') {
+                this.val = null;
             }
-        }
-    }
+        },
+        xvalue(newVal) {
+            if (newVal !== null && newVal !== '' && newVal !== 'null' && !isNaN(parseInt(newVal))) {
+                this.val = parseInt(newVal);
+                this.current = parseInt(newVal);
+            } else if (newVal === null || newVal === '') {
+                this.val = null;
+            }
+        },
+    },
 }
 </script>
 
 <style scoped>
-
-
 #vue-datepicker {
-    font-size: 12pt;
-    direction: ltr;
+    font-size: 14px;
+    direction: rtl;
+    width: 100%;
+}
+
+.cursor-pointer {
+    cursor: pointer;
 }
 
 #dp-modal {
     position: fixed;
-    /* display: none; left: 0; right: 0; top: 0; bottom: 0; z-index: 999; background: #00000033; backdrop-filter: blur(4px); */
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 2050;
+    background: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    overflow-y: auto;
+    box-sizing: border-box;
 }
 
 #picker {
-    max-width: 400px;
-    min-height: 450px;
-    margin: calc(50vh - 225px) auto;
-    background: #ffffffdd;
-    backdrop-filter: blur(4px);
-    user-select: none;
-    color: black;
-    padding: 5px;
-    font-family: 'Yekan Bakh VF', 'Yekan Bakh', sans-serif;
-}
-
-#picker table {
-    border: 1px solid black;
-    width: 100%;
-    margin-top: 5px;
-}
-
-#picker table td, #picker table th {
-    border: 1px solid silver;
-    width: calc(100% / 7);
-    text-align: center;
-    padding: 7px;
-    transition: 500ms;
-}
-
-#picker table td:hover {
-    background: deepskyblue;
-    cursor: pointer;
-}
-
-#picker .next, #picker .previous {
-    color: gray;
-}
-
-.equal-width {
-    display: grid;
-    grid-auto-columns: minmax(0, 1fr);
-    grid-auto-flow: column;
-    text-align: center;
-    cursor: pointer;
-}
-
-.equal-width div {
-    padding: .5rem 5px;
-    font-weight: 800;
-}
-
-.equal-width div i {
-    font-size: 25px;
-}
-
-#bottom-bar {
-    display: grid;
-    grid-template-columns: 1fr 2fr 1fr;
-    text-align: center;
-}
-
-#bottom-bar > div {
-    padding: 7px 4px;
-}
-
-#vuejs-tabs {
-    border: 1px solid gray;
-    margin-bottom: .5rem;
-}
-
-.equal-width div:hover {
-    background: teal;
-    color: white;;
-}
-
-.active-tab {
-    background: deepskyblue;
-    color: white;
-}
-
-.vuejsbtn {
-    padding: 1px !important;
-}
-
-#calendar-container {
     position: relative;
-    min-height: 285px;
+    width: 100%;
+    max-width: 380px;
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    padding: 16px;
+    color: #1e293b;
+    direction: rtl;
+    box-sizing: border-box;
+    font-family: 'Yekan Bakh VF', 'Yekan Bakh', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .sub-picker {
     position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    right: 0;
-    background: white;
-}
-
-.month {
-    padding: 1.4rem 0 !important;
-}
-
-.year {
-    padding: .97rem 0 !important;
-}
-
-.vuejs-btn {
-    padding: 3px;
-    background: silver;
-    display: block;
-    cursor: pointer;
-}
-
-.vuejs-btn:hover {
-    background: deepskyblue;
-    color: white;
-}
-
-.vuejs-btn i {
-    font-size: 20px;
-}
-
-.centered {
+    inset: 0;
+    background: #ffffff;
+    z-index: 10;
+    border-radius: 8px;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
 }
 
-.centered span {
-    margin-top: 6px;
-    display: inline-block;
+.calendar-table {
+    border-collapse: separate;
+    border-spacing: 2px;
 }
 
-.active-selected {
-    background: teal;
-    color: yellow !important;
-}
-
-#clock {
-    padding: 33.5px 65px;
-}
-
-#circle {
-    position: absolute;
-    background: deepskyblue;
-    width: 6px;
-    height: 6px;
-    left: calc(50% - 3px);
-    top: calc(50% - 3px);
-    border-radius: 50%;
-    z-index: 5;
-}
-
-.wrapper {
-    position: relative;
-    width: 255px;
-    height: 255px;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.bar-seconds,
-.number-hours {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-}
-
-.bar-seconds span {
-    position: absolute;
-    transform: rotate(calc(var(--index) * 6deg));
-    inset: -20px;
+.calendar-table th {
     text-align: center;
-    pointer-events: none;
+    padding: 6px 0;
+    font-size: 12px;
+    font-weight: 700;
+    color: #64748b;
 }
 
-.bar-seconds span i {
-    display: inline-block;
-    width: 2px;
-    height: 12px;
-    background: deepskyblue;
-    border-radius: 2px;
-    box-shadow: 0 0 10px deepskyblue;
-    pointer-events: none;
-    font-style: normal;
-}
-
-.bar-seconds span:nth-child(5n) i { /* 5n pour dire tout les mutliples de 5 */
-    width: 6px;
-    height: 18px;
-    transform: translateY(1px);
-}
-
-.number-hours span {
-    position: absolute;
-    transform: rotate(calc(var(--index) * 30deg));
-    inset: 6px;
+.calendar-table td {
     text-align: center;
-    pointer-events: none;
-}
-
-.number-hours span i {
-    font-size: 25px;
-    color: deepskyblue;
-    transform: rotate(calc(var(--index) * -30deg));
-    pointer-events: none;
-    font-style: normal;
-}
-
-.number-hours span i b {
-    text-decoration: none;
-    color: deepskyblue;
-    pointer-events: all;
-    display: inline-block;
-    width: 40px;
-    border-radius: 50%;
-    height: 40px;
-    box-sizing: border-box;
     padding: 2px;
-    font-weight: 400;
 }
 
-.number-hours span i b:hover {
-    background: teal;
-    color: white;
-}
-
-.hands-box {
-    position: relative;
-    display: flex;
-    justify-content: center;
+.day-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    font-size: 13px;
+    font-weight: 500;
+    color: #1e293b;
+    display: inline-flex;
     align-items: center;
-    pointer-events: none;
-}
-
-.hands-box .hand {
-    position: absolute;
-    border-radius: 50%;
-    display: flex;
     justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin: auto;
 }
 
-.hands-box .hand i {
-    display: inline-block;
-    transform-origin: bottom;
-    border-radius: 50%;
-    box-shadow: 0 0 10px deepskyblue;
+.day-btn:hover:not(:disabled) {
+    background: #f1f5f9;
+    color: #0f172a;
 }
 
-.hands-box .hours {
-    width: 180px;
-    height: 180px;
+.day-btn.active-selected {
+    background: #0d6efd;
+    color: #ffffff !important;
+    font-weight: 700;
+    box-shadow: 0 4px 6px -1px rgba(13, 110, 253, 0.3);
 }
 
-.hands-box .hours i {
-    width: 8px;
-    height: 90px;
-    background: deepskyblue;
+.day-btn.previous,
+.day-btn.next {
+    color: #94a3b8;
+    opacity: 0.6;
 }
 
-.hands-box .minutes {
-    width: 275px;
-    height: 275px;
+.day-btn:disabled {
+    color: #cbd5e1;
+    cursor: not-allowed;
+    background: transparent;
 }
 
-.hands-box .minutes i {
-    width: 6px;
-    height: 140px;
-    background: dodgerblue;
-    border-radius: 2px;
-}
-
-#modes {
-    position: absolute;
-    left: 5px;
-    top: 5px;
-}
-
-#modes .vuejs-btn {
-    padding: 5px;
-    width: 40px;
-    text-align: center;
-    padding-top: 10px;
-}
-
-#time {
-    position: absolute;
-    right: 5px;
-    top: 5px;
-    font-size: 25px;
-}
-
-.disabled-date {
-    background: silver;
+.step-value {
+    width: 70px;
+    height: 50px;
+    border-radius: 10px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    font-size: 24px;
+    font-weight: 700;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    user-select: none;
 }
 </style>

@@ -150,6 +150,21 @@ class AdminCampaignTest extends TestCase
         ]))->assertSessionHasErrors('ends_at');
     }
 
+    public function test_it_accepts_numeric_timestamps_from_vue_datetime_picker(): void
+    {
+        $start = now()->addDay()->timestamp;
+        $end = now()->addDays(5)->timestamp;
+
+        $this->post(route('admin.campaign.store'), $this->payload([
+            'starts_at' => (string) $start,
+            'ends_at' => (string) $end,
+        ]))->assertRedirect();
+
+        $campaign = Campaign::firstOrFail();
+        $this->assertSame(date('Y-m-d H:i:s', $start), $campaign->starts_at->toDateTimeString());
+        $this->assertSame(date('Y-m-d H:i:s', $end), $campaign->ends_at->toDateTimeString());
+    }
+
     public function test_it_stores_included_and_excluded_products_in_pick_order(): void
     {
         $hero = Product::factory()->create();

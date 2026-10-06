@@ -15,7 +15,7 @@
         :xmin="{{strtotime('-1 year')}}"
         xid="c-start" xname="starts_at" xtitle="{{__('Start date')}}"
         @if(app()->getLocale() != 'fa') def-tab="1" xshow="datetime" @else xshow="pdatetime" @endif
-        @if(isset($item) && $item->starts_at) :xvalue="{{$item->starts_at->getTimestamp()}}" @elseif(old('starts_at')) :xvalue="{{strtotime(old('starts_at'))}}" @endif
+        @if(isset($item) && $item->starts_at) :xvalue="{{$item->starts_at->getTimestamp()}}" @elseif(old('starts_at')) :xvalue="{{strtotime(old('starts_at')) ?: old('starts_at')}}" @endif
         :timepicker="true"
     ></vue-datetime-picker-input>
     <small class="text-muted d-block mt-1">{{__("Leave empty to start as soon as it is published.")}}</small>
@@ -28,7 +28,7 @@
         :xmin="{{strtotime('-1 year')}}"
         xid="c-end" xname="ends_at" xtitle="{{__('End date')}}"
         @if(app()->getLocale() != 'fa') def-tab="1" xshow="datetime" @else xshow="pdatetime" @endif
-        @if(isset($item) && $item->ends_at) :xvalue="{{$item->ends_at->getTimestamp()}}" @elseif(old('ends_at')) :xvalue="{{strtotime(old('ends_at'))}}" @endif
+        @if(isset($item) && $item->ends_at) :xvalue="{{$item->ends_at->getTimestamp()}}" @elseif(old('ends_at')) :xvalue="{{strtotime(old('ends_at')) ?: old('ends_at')}}" @endif
         :timepicker="true"
     ></vue-datetime-picker-input>
     <small class="text-muted d-block mt-1">{{__("Leave empty to run without an end date. The tile disappears by itself at this moment — no cron job needed.")}}</small>
