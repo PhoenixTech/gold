@@ -31,17 +31,20 @@ class SupplierTest extends TestCase
                 'first_name' => 'Sara',
                 'last_name' => 'Ahmadi',
                 'company_name' => 'Zhonella Metals',
+                'phone' => '09123456789',
                 'account_number' => '1234567890',
                 'iban' => 'IR120170000000123456789001',
             ])
             ->assertRedirect();
 
         $supplier = Supplier::query()->firstOrFail();
+        $this->assertSame('Sara Ahmadi', $supplier->name);
         $this->assertDatabaseHas('suppliers', [
             'id' => $supplier->id,
             'first_name' => 'Sara',
             'last_name' => 'Ahmadi',
             'company_name' => 'Zhonella Metals',
+            'phone' => '09123456789',
             'account_number' => '1234567890',
             'iban' => 'IR120170000000123456789001',
         ]);
@@ -51,6 +54,7 @@ class SupplierTest extends TestCase
                 'first_name' => 'Sahar',
                 'last_name' => 'Ahmadi',
                 'company_name' => 'Zhonella Trading',
+                'phone' => '09998887766',
                 'account_number' => '9876543210',
                 'iban' => 'IR120170000000123456789001',
             ])
@@ -60,6 +64,7 @@ class SupplierTest extends TestCase
             'id' => $supplier->id,
             'first_name' => 'Sahar',
             'company_name' => 'Zhonella Trading',
+            'phone' => '09998887766',
             'account_number' => '9876543210',
         ]);
 
@@ -107,5 +112,48 @@ class SupplierTest extends TestCase
         $this->assertStringContainsString('تعاریف فروشگاه', $html);
         $this->assertStringContainsString('تأمین‌کنندگان', $html);
         $this->assertStringContainsString(route('admin.supplier.index'), $html);
+    }
+
+    public function test_unauthorized_user_cannot_access_or_mutate_suppliers(): void
+    {
+        $user = User::factory()->create(['role' => 'USER']);
+
+        $this->actingAs($user)
+            ->get(route('admin.supplier.index'))
+            ->assertForbidden();
+
+        $this->actingAs($user)
+            ->post(route('admin.supplier.store'), [
+                'first_name' => 'Sara',
+                'last_name' => 'Ahmadi',
+            ])
+            ->assertForbidden();
+
+        $this->assertDatabaseCount('suppliers', 0);
+    }
+
+    public function test_supplier_to_select_options_separates_active_and_trashed(): void
+    {
+        $active = Supplier::factory()->create([
+            'first_name' => 'Sara',
+            'last_name' => 'Ahmadi',
+            'company_name' => 'Zhonella',
+        ]);
+        $trashed = Supplier::factory()->create([
+            'first_name' => 'Reza',
+            'last_name' => 'Rad',
+        ]);
+        $trashed->delete();
+
+        $onlyActive = Supplier::toSelectOptions(false);
+        $this->assertCount(1, $onlyActive);
+        $this->assertSame($active->id, $onlyActive[0]['id']);
+        $this->assertFalse($onlyActive[0]['disabled']);
+
+        $withTrashed = Supplier::toSelectOptions(true);
+        $this->assertCount(2, $withTrashed);
+        $trashedOption = collect($withTrashed)->firstWhere('id', $trashed->id);
+        $this->assertNotNull($trashedOption);
+        $this->assertTrue($trashedOption['disabled']);
     }
 }

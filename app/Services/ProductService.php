@@ -5,8 +5,6 @@ namespace App\Services;
 use App\Enums\QuantityPieceStatus;
 use App\Models\Product;
 use App\Models\Quantity;
-use App\Services\ProductPriceCalculator;
-use App\Services\SlugService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -99,7 +97,7 @@ class ProductService
             }
 
             if ($request->has('stock_items')) {
-                $this->syncStockItems($product, (string) $request->input('stock_items'), $this->calculator);
+                $this->syncStockItems($product, $request->input('stock_items'), $this->calculator);
             }
 
             $this->calculator->repriceProduct($product->fresh(['quantities']));
@@ -108,9 +106,9 @@ class ProductService
         });
     }
 
-    public function syncStockItems(Product $product, string $payload, ProductPriceCalculator $calculator): void
+    public function syncStockItems(Product $product, array|string|null $payload, ProductPriceCalculator $calculator): void
     {
-        $items = json_decode($payload, true);
+        $items = is_array($payload) ? $payload : json_decode((string) $payload, true);
         if (! is_array($items)) {
             return;
         }

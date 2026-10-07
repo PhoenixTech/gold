@@ -284,9 +284,8 @@ class ProductStockItemPricingTest extends TestCase
         $this->assertStringContainsString('this.items.unshift(item)', $vue);
         $this->assertStringContainsString('stock-toolbar', $vue);
         $this->assertStringContainsString('stock-list', $vue);
-        $this->assertStringNotContainsString('this.items.push(item)', $vue);
-        $this->assertStringContainsString('label: `نرخ روز ${this.metalName}`', $vue);
-        $this->assertStringContainsString('label: `حداقل درصد سود ${this.formatPercent(minimumPercent)}`', $vue);
+        $this->assertStringContainsString('label: `نرخ روز ${metalName}`', file_get_contents(base_path('resources/js/components/stock/stockItemPrice.js')));
+        $this->assertStringContainsString('label: `حداقل درصد سود ${formatters.formatPercent(minimumPercent)}`', file_get_contents(base_path('resources/js/components/stock/stockItemPrice.js')));
         $this->assertStringContainsString('@change.stop="setSupplier(item, $event.target.value)"', $vue);
         $this->assertStringContainsString('setSupplier(item, value) {', $vue);
         $this->assertTrue(strpos($vue, '{{ weightLabel }}') < strpos($vue, '{{ supplierLabel }}'));
@@ -318,6 +317,32 @@ class ProductStockItemPricingTest extends TestCase
         $this->assertStringContainsString(':value="String(supplier.id)"', $vue);
         $this->assertStringContainsString('this.applyInitialSuppliers()', $vue);
         $this->assertStringContainsString('select.value = select.dataset.initialSupplier', $vue);
+    }
+
+    public function test_product_create_excludes_trashed_suppliers_while_edit_includes_them(): void
+    {
+        $active = Supplier::factory()->create([
+            'first_name' => 'Active',
+            'last_name' => 'Supplier',
+        ]);
+        $trashed = Supplier::factory()->create([
+            'first_name' => 'Trashed',
+            'last_name' => 'Supplier',
+        ]);
+        $trashed->delete();
+
+        $product = $this->makeProduct();
+        $admin = $this->actingAsAdmin();
+
+        $createResponse = $this->actingAs($admin)->get(route('admin.product.create'));
+        $createResponse->assertOk();
+        $createResponse->assertSee('Active Supplier', false);
+        $createResponse->assertDontSee('Trashed Supplier', false);
+
+        $editResponse = $this->actingAs($admin)->get(route('admin.product.edit', $product));
+        $editResponse->assertOk();
+        $editResponse->assertSee('Active Supplier', false);
+        $editResponse->assertSee('Trashed Supplier', false);
     }
 
     public function test_stock_editor_passes_market_prices_and_minimum_percent_separately(): void

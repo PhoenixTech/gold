@@ -2,7 +2,7 @@
 
 @section('title')
     @if(isset($item))
-        {{ __('Edit supplier') }} [{{ $item->first_name }} {{ $item->last_name }}]
+        {{ __('Edit supplier') }} [{{ $item->name }}]
     @else
         {{ __('Add new supplier') }}
     @endif -
@@ -12,22 +12,13 @@
     <div class="row">
         <div class="col-lg-3">
             @include('components.err')
-            <div class="item-list mb-3">
-                <h5 class="p-3">
-                    <i class="ri-information-line"></i>
-                    {{ __('Tips') }}
-                </h5>
-                <p class="px-3 pb-3 mb-0">
-                    {{ __('Manage shop payment card numbers under Shop definitions → Bank accounts.') }}
-                </p>
-            </div>
         </div>
 
         <div class="col-lg-9 ps-xl-1 ps-xxl-1">
             <div class="general-form">
                 <h3>
                     @if(isset($item))
-                        {{ __('Edit supplier') }} [{{ $item->first_name }} {{ $item->last_name }}]
+                        {{ __('Edit supplier') }} [{{ $item->name }}]
                     @else
                         {{ __('Add new supplier') }}
                     @endif
@@ -52,12 +43,21 @@
                         </div>
                     </div>
 
-                    <div class="col-md-12 mt-3">
+                    <div class="col-md-6 mt-3">
                         <div class="form-group">
                             <label for="company_name">{{ __('Company name') }}</label>
                             <input name="company_name" id="company_name" type="text"
                                    class="form-control @error('company_name') is-invalid @enderror"
                                    value="{{ old('company_name', $item->company_name ?? null) }}">
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mt-3">
+                        <div class="form-group">
+                            <label for="phone">{{ __('Phone number') }}</label>
+                            <input name="phone" id="phone" type="text" dir="ltr"
+                                   class="form-control @error('phone') is-invalid @enderror"
+                                   value="{{ old('phone', $item->phone ?? null) }}">
                         </div>
                     </div>
 

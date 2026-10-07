@@ -2,33 +2,27 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class SupplierSaveRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth()->check();
+        return auth()->check() && (auth()->user()->hasRole('admin|developer') || auth()->user()->hasAnyAccess('supplier'));
     }
 
-    /**
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
             'first_name' => ['required', 'string', 'min:2', 'max:100'],
             'last_name' => ['required', 'string', 'min:2', 'max:100'],
             'company_name' => ['nullable', 'string', 'max:191'],
+            'phone' => ['nullable', 'string', 'max:32'],
             'account_number' => ['nullable', 'string', 'max:64'],
             'iban' => ['nullable', 'string', 'max:34'],
         ];
     }
 
-    /**
-     * @return array<string, string>
-     */
     public function messages(): array
     {
         return [

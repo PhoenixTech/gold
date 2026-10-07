@@ -187,16 +187,9 @@
 
 
 <script>
+import { uncommafy, toNumber, explainPiecePrice } from './stock/stockItemPrice';
+
 let keySeed = 0;
-
-function uncommafy(txt) {
-    return String(txt ?? '').split(',').join('').trim();
-}
-
-function toNumber(value, fallback = 0) {
-    const n = Number(uncommafy(value));
-    return Number.isFinite(n) ? n : fallback;
-}
 
 export default {
     name: 'stock-items-input',
@@ -562,85 +555,22 @@ export default {
         explain(item) {
             this.formulaTick;
 
-            const weight = Number(item.weight || 0);
-            const marketMetalPrice = this.marketMetalUnitPrice;
-            const minimumPercent = this.minimumPercentValue;
-            const metalPrice = this.metalUnitPrice;
-            const fee1 = Number(this.formula.fee1 || 0);
-            const fee2 = Number(this.formula.fee2 || 0);
-            const fee3 = Number(this.formula.fee3 || 0);
-            const feePercent = Number(this.formula.feePercent || 0);
-            const profitPercent = Number(this.formula.profitPercent || 0);
-            const taxPercent = Number(this.formula.taxPercent || 0);
-            const addon = Number(this.formula.addon || 0);
-
-            if (!weight || weight <= 0 || !marketMetalPrice || !metalPrice) {
-                return null;
-            }
-
-            const profitRate = profitPercent / 100;
-            const taxRate = taxPercent / 100;
-            const p = metalPrice;
-            const n1 = p + (p * (feePercent / 100));
-            const n2 = (n1 + (n1 * profitRate) - p);
-            const n3 = (n2 * taxRate) + n2;
-            const complete = (n3 + p) * weight;
-            const rounded = Math.floor(complete / 1000) * 1000;
-            const final = rounded + addon;
-
-            return {
-                final,
-                steps: [
-                    {
-                        label: `نرخ روز ${this.metalName}` + (this.formula.metalType !== 'silver' && this.formula.karat !== 18 ? ` (عیار ${this.formula.karat} - ضریب ${this.formula.karatCoefficient})` : ''),
-                        math: this.formula.metalType === 'silver'
-                            ? `${this.metalName} / گرم`
-                            : (this.formula.karat !== 18
-                                ? `${this.formatPlain(toNumber(this.goldPrice))} × (${this.formula.karatCoefficient} / 750)`
-                                : `${this.metalName} / گرم`),
-                        value: this.formatPrice(marketMetalPrice),
-                    },
-                    {
-                        label: `حداقل درصد سود ${this.formatPercent(minimumPercent)}`,
-                        math: `${this.formatPlain(marketMetalPrice)} × ${this.formatPercent(minimumPercent)}`,
-                        value: this.formatPrice(p),
-                    },
-                    {
-                        label: (fee2 > 0 || fee3 > 0)
-                            ? `${this.totalWageLabel} ${this.formatPercent(feePercent)}`
-                            : `اجرت ${this.formatPercent(feePercent)}`,
-                        math: (fee2 > 0 || fee3 > 0)
-                            ? `(${this.formatPercent(fee1)} + ${this.formatPercent(fee2)} + ${this.formatPercent(fee3)}) ${this.formatPlain(p)} + (${this.formatPlain(p)} × ${this.formatPercent(feePercent)})`
-                            : `${this.formatPlain(p)} + (${this.formatPlain(p)} × ${this.formatPercent(feePercent)})`,
-                        value: this.formatPrice(Math.round(n1)),
-                    },
-                    {
-                        label: `سود ${this.formatPercent(profitPercent)} روی اجرت`,
-                        math: `(${this.formatPlain(Math.round(n1))} × ${this.formatPercent(100 + profitPercent)}) - ${this.formatPlain(p)}`,
-                        value: this.formatPrice(Math.round(n2)),
-                    },
-                    {
-                        label: `مالیات ${this.formatPercent(taxPercent)} روی اجرت+سود`,
-                        math: `${this.formatPlain(Math.round(n2))} × ${this.formatPercent(100 + taxPercent)}`,
-                        value: this.formatPrice(Math.round(n3)),
-                    },
-                    {
-                        label: `ضرب در وزن ${this.formatWeight(weight)} گرم`,
-                        math: `(${this.formatPlain(Math.round(n3))} + ${this.formatPlain(p)}) × ${this.formatWeight(weight)}`,
-                        value: this.formatPrice(Math.round(complete)),
-                    },
-                    {
-                        label: 'رند به پایین تا هزار تومان',
-                        math: `floor(${this.formatPlain(Math.round(complete))} / 1000) × 1000`,
-                        value: this.formatPrice(rounded),
-                    },
-                    {
-                        label: 'اضافه کردن اقلام اضافه',
-                        math: `${this.formatPlain(rounded)} + ${this.formatPlain(addon)}`,
-                        value: this.formatPrice(final),
-                    },
-                ],
-            };
+            return explainPiecePrice({
+                weight: item.weight,
+                marketMetalPrice: this.marketMetalUnitPrice,
+                minimumPercent: this.minimumPercentValue,
+                metalPrice: this.metalUnitPrice,
+                metalName: this.metalName,
+                goldPrice: this.goldPrice,
+                formula: this.formula,
+                formatters: {
+                    formatPrice: this.formatPrice,
+                    formatPlain: this.formatPlain,
+                    formatPercent: this.formatPercent,
+                    formatWeight: this.formatWeight,
+                },
+                totalWageLabel: this.totalWageLabel,
+            });
         },
         breakdown(item) {
             return this.explain(item);
@@ -669,7 +599,7 @@ export default {
                 : String(value);
         },
         applyInitialSuppliers() {
-            this.$el.querySelectorAll('[data-piece-supplier]').forEach((select) => {
+            this.$el?.querySelectorAll('[data-piece-supplier]').forEach((select) => {
                 select.value = select.dataset.initialSupplier || '';
             });
         },

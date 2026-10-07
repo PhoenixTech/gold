@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
 use App\Http\Controllers\Admin\Concerns\ResolvesAdminModel;
+use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProductSaveRequest;
 use App\Models\Category;
@@ -20,8 +20,8 @@ use Spatie\Tags\Tag;
 
 class ProductController extends Controller
 {
-    use RespondsWithAdmin;
     use ResolvesAdminModel;
+    use RespondsWithAdmin;
 
     protected array $cols = ['name', 'sku', 'weight', 'category_id', 'stock_quantity', 'status'];
 
@@ -189,7 +189,7 @@ class ProductController extends Controller
     public function create(): View
     {
         $cats = Category::all(['id', 'name', 'parent_id', 'code']);
-        $suppliers = $this->supplierOptions();
+        $suppliers = Supplier::toSelectOptions(false);
 
         return view('admin.products.product-form', compact('cats', 'suppliers'));
     }
@@ -217,7 +217,7 @@ class ProductController extends Controller
     {
         $item = $this->resolveProduct($item);
         $cats = Category::all(['id', 'name', 'parent_id', 'code']);
-        $suppliers = $this->supplierOptions();
+        $suppliers = Supplier::toSelectOptions(true);
 
         return view('admin.products.product-form', compact('item', 'cats', 'suppliers'));
     }
@@ -302,33 +302,5 @@ class ProductController extends Controller
     protected function resolveProduct(Product|string|int $item, bool $withTrashed = false): Product
     {
         return $this->resolveModel(Product::class, $item, $withTrashed);
-    }
-
-    /**
-     * @return array<int, array{id: int, label: string, disabled: bool}>
-     */
-    private function supplierOptions(): array
-    {
-        return Supplier::query()
-            ->withTrashed()
-            ->orderBy('last_name')
-            ->orderBy('first_name')
-            ->get(['id', 'first_name', 'last_name', 'company_name', 'deleted_at'])
-            ->map(function (Supplier $supplier): array {
-                $label = trim("{$supplier->first_name} {$supplier->last_name}");
-                if ($supplier->company_name) {
-                    $label .= " — {$supplier->company_name}";
-                }
-                if ($supplier->trashed()) {
-                    $label .= ' ('.__('Trashed').')';
-                }
-
-                return [
-                    'id' => $supplier->id,
-                    'label' => $label,
-                    'disabled' => $supplier->trashed(),
-                ];
-            })
-            ->all();
     }
 }

@@ -2,28 +2,29 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\GoldKarat;
 use App\Models\Product;
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Validator as ValidatorInstance;
 
 class ProductSaveRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return auth()->check();
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
+    protected function prepareForValidation(): void
+    {
+        $raw = $this->input('stock_items');
+        if (is_string($raw) && json_validate($raw)) {
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) {
+                $this->merge(['stock_items' => $decoded]);
+            }
+        }
+    }
+
     public function rules(): array
     {
         $routeItem = $this->route('item');
@@ -55,8 +56,9 @@ class ProductSaveRequest extends FormRequest
             'min_stock_level' => ['nullable', 'integer', 'min:0'],
             'target_group' => ['nullable', 'string', 'in:men,women,children,unisex'],
             'metal_type' => ['nullable', 'string', 'in:gold,silver'],
-            'karat' => ['nullable', 'integer', 'in:'.implode(',', \App\Enums\GoldKarat::values())],
-            'stock_items' => ['nullable', 'json'],
+            'karat' => ['nullable', 'integer', 'in:'.implode(',', GoldKarat::values())],
+            'stock_items' => ['nullable', 'array'],
+            'stock_items.*.supplier_id' => ['nullable', 'integer', Rule::exists('suppliers', 'id')],
             'image.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'canonical' => ['nullable', 'url', 'min:5', 'max:128'],
             'plating_colors' => ['nullable', 'array'],
@@ -70,40 +72,10 @@ class ProductSaveRequest extends FormRequest
         ];
     }
 
-    public function withValidator(ValidatorInstance $validator): void
+    public function attributes(): array
     {
-        $validator->after(function (ValidatorInstance $validator): void {
-            $stockItems = json_decode((string) $this->input('stock_items'), true);
-            if (! is_array($stockItems)) {
-                return;
-            }
-
-            $rules = [];
-            $attributes = [];
-            foreach ($stockItems as $index => $stockItem) {
-                if (! is_array($stockItem) || ! isset($stockItem['supplier_id']) || $stockItem['supplier_id'] === '') {
-                    continue;
-                }
-
-                $rules["{$index}.supplier_id"] = [
-                    'bail',
-                    'integer',
-                    Rule::exists('suppliers', 'id'),
-                ];
-                $attributes["{$index}.supplier_id"] = __('Supplier');
-            }
-
-            if ($rules === []) {
-                return;
-            }
-
-            $supplierValidation = Validator::make($stockItems, $rules, [], $attributes);
-            foreach ($supplierValidation->errors()->messages() as $field => $messages) {
-                foreach ($messages as $message) {
-                    $validator->errors()->add("stock_items.{$field}", $message);
-                }
-            }
-        });
+        return [
+            'stock_items.*.supplier_id' => __('Supplier'),
+        ];
     }
-
 }
