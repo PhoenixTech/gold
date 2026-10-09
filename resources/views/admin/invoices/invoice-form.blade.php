@@ -69,12 +69,12 @@
         <div class="row g-3">
             <div class="col-lg-8">
                 @unless($isClosed)
-                    <div class="alert alert-primary border border-primary-subtle shadow-sm d-flex align-items-start gap-3 p-3 mb-3 rounded-3" data-current-step="{{ $currentStep }}">
-                        <i class="ri-arrow-right-circle-fill fs-3"></i>
+                    <div class="alert alert-primary border border-primary-subtle shadow-sm d-flex align-items-start gap-3 p-3 mb-4 rounded-3" data-current-step="{{ $currentStep }}">
+                        <i class="ri-arrow-right-circle-fill fs-3 text-primary"></i>
                         <div>
-                            <div class="fs-12 text-muted">{{ __('What to do now') }}</div>
-                            <strong class="d-block fs-5">{{ $nowTitle }}</strong>
-                            <span>{{ $nowHelp }}</span>
+                            <div class="fs-12 text-muted fw-semibold">{{ __('What to do now') }}</div>
+                            <strong class="d-block fs-16 text-dark mt-0.5">{{ $nowTitle }}</strong>
+                            <span class="fs-13 text-muted">{{ $nowHelp }}</span>
                         </div>
                     </div>
                 @endunless
@@ -96,7 +96,9 @@
                 @include('admin.invoices.edit.items')
             </div>
             <div class="col-lg-4">
-                @include('admin.invoices.edit.side')
+                <div class="sticky-top" style="top: 1rem; z-index: 10;">
+                    @include('admin.invoices.edit.side')
+                </div>
             </div>
         </div>
     </div>

@@ -10,6 +10,7 @@ use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\PaymentReceipt;
 use App\Models\State;
+use App\Models\Supplier;
 use App\Models\Transport;
 use App\Models\User;
 use Database\Seeders\GfxSeeder;
@@ -654,5 +655,119 @@ class AdminOrderBoardTest extends TestCase
         $response->assertOk();
         $response->assertSee('Sara Mohammadi');
         $response->assertSee('phone-toggle-btn');
+    }
+
+    public function test_order_board_displays_entered_payments_in_payment_subcard(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        App::setLocale('fa');
+        $this->actingAsAdmin();
+
+        $supplier = Supplier::factory()->create(['first_name' => 'علی', 'last_name' => 'تأمین‌کننده']);
+        $customer = Customer::factory()->create();
+        $order = $this->createOrder($customer, Invoice::PAID, 1_500_000);
+
+        $payment = new Payment;
+        $payment->invoice_id = $order->id;
+        $payment->supplier_id = $supplier->id;
+        $payment->order_id = 'SHOP-'.$order->hash.'-1';
+        $payment->type = 'CARD';
+        $payment->status = Payment::SUCCESS;
+        $payment->amount = 1_500_000;
+        $payment->reference_id = 'TRK-ORDER-BOARD-99';
+        $payment->meta = [
+            'channel' => Payment::CHANNEL_IN_STORE,
+            'method' => 'pos',
+            'supplier_id' => $supplier->id,
+            'supplier_name' => $supplier->name,
+            'bank_account_name' => 'بانک سامان',
+            'card_number' => '6219-8610-1234-5678',
+            'payment_date' => '1405/07/16',
+            'payment_time' => '15:30',
+        ];
+        $payment->save();
+
+        $response = $this->get(route('admin.order-board.index', ['scope' => 'all']));
+        $response->assertOk();
+        $response->assertSee(__('Recorded payments'));
+        $response->assertSee('TRK-ORDER-BOARD-99');
+        $response->assertSee($supplier->name);
+        $response->assertSee('بانک سامان');
+        $response->assertSee('1,500,000');
+    }
+
+    public function test_order_board_displays_partially_paid_badge_when_partial_payment_is_entered(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        App::setLocale('fa');
+        $this->actingAsAdmin();
+
+        $customer = Customer::factory()->create();
+        $order = $this->createOrder($customer, Invoice::AWAITING_PAYMENT, 2_000_000);
+
+        $payment = new Payment;
+        $payment->invoice_id = $order->id;
+        $payment->order_id = 'SHOP-'.$order->hash.'-1';
+        $payment->type = 'CARD';
+        $payment->status = Payment::SUCCESS;
+        $payment->amount = 500_000;
+        $payment->meta = [
+            'channel' => Payment::CHANNEL_IN_STORE,
+            'method' => 'pos',
+        ];
+        $payment->save();
+
+        $response = $this->get(route('admin.order-board.index'));
+        $response->assertOk();
+
+        $content = $response->getContent();
+        $paymentCell = $this->stageCell($content, 'payment');
+        $this->assertStringContainsString(__('Partially paid'), $paymentCell);
+
+        $settleCell = $this->stageCell($content, 'settle');
+        $this->assertStringContainsString(__('Short'), $settleCell);
+    }
+
+    public function test_order_board_displays_entered_payment_with_uploaded_slip(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        App::setLocale('fa');
+        $this->actingAsAdmin();
+
+        Storage::fake('public');
+        Storage::disk('public')->put('receipts/slip.png', 'fake-image');
+
+        $customer = Customer::factory()->create();
+        $order = $this->createOrder($customer, Invoice::PAID, 1_000_000);
+
+        $payment = new Payment;
+        $payment->invoice_id = $order->id;
+        $payment->order_id = 'SHOP-'.$order->hash.'-1';
+        $payment->type = 'CARD';
+        $payment->status = Payment::SUCCESS;
+        $payment->amount = 1_000_000;
+        $payment->meta = [
+            'channel' => Payment::CHANNEL_IN_STORE,
+            'method' => 'card_to_card',
+        ];
+        $payment->save();
+
+        $receipt = new PaymentReceipt;
+        $receipt->payment_id = $payment->id;
+        $receipt->invoice_id = $order->id;
+        $receipt->path = 'receipts/slip.png';
+        $receipt->original_name = 'operator-slip.png';
+        $receipt->mime = 'image/png';
+        $receipt->size = 4096;
+        $receipt->save();
+
+        $response = $this->get(route('admin.order-board.index', ['scope' => 'all']));
+        $response->assertOk();
+        $response->assertSee(__('Recorded payments'));
+        $response->assertSee('operator-slip.png');
+        $response->assertSee($receipt->url());
     }
 }

@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\GroupController;
 use App\Http\Controllers\Admin\HelpController;
 use App\Http\Controllers\Admin\ImageController;
 use App\Http\Controllers\Admin\InvoiceController;
+use App\Http\Controllers\Admin\ManualInvoiceController;
 use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\OrderBoardController;
 use App\Http\Controllers\Admin\PostController;
@@ -229,14 +230,15 @@ Route::prefix(config('app.panel.prefix'))->name('admin.')->group(
                 Route::prefix('invoices')->name('invoice.')->group(
                     function () {
                         Route::get('', [InvoiceController::class, 'index'])->name('index');
-                        //                        Route::get('create', [\App\Http\Controllers\Admin\InvoiceController::class, 'create'])->name('create');
-                        //                        Route::post('store', [\App\Http\Controllers\Admin\InvoiceController::class, 'store'])->name('store');
+                        Route::get('create', [ManualInvoiceController::class, 'create'])->name('create');
+                        Route::post('store', [ManualInvoiceController::class, 'store'])->name('store');
                         Route::get('edit/{item}', [InvoiceController::class, 'edit'])->name('edit');
                         Route::get('show/{item}', [InvoiceController::class, 'show'])->name('show');
                         Route::get('print/{item}', [InvoiceController::class, 'print'])->name('print');
                         Route::get('shipping-label/{item}', [InvoiceController::class, 'shippingLabel'])->name('shipping-label');
                         Route::post('update/{item}', [InvoiceController::class, 'update'])->name('update');
                         Route::post('confirm-payment/{item}', [InvoiceController::class, 'confirmPayment'])->name('confirm-payment');
+                        Route::post('add-payment/{item}', [InvoiceController::class, 'addPayment'])->name('add-payment');
                         Route::post('cancel/{item}', [InvoiceController::class, 'cancel'])->name('cancel');
                         Route::post('decline-payment/{item}', [InvoiceController::class, 'declinePayment'])->name('decline-payment');
                         Route::post('request-receipt-reupload/{item}', [InvoiceController::class, 'requestReceiptReupload'])->name('request-receipt-reupload');

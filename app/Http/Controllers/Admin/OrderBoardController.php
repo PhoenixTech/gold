@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\DeliveryStatus;
+use App\Enums\ShopPaymentMethod;
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use App\Models\Payment;
@@ -33,7 +34,8 @@ class OrderBoardController extends Controller
             'address.state',
             'address.city',
             'transport',
-            'payments',
+            'payments.supplier',
+            'payments.receipts',
             'paymentReceipts.customer',
             'activeDelivery.courier',
             'deliveries.courier',
@@ -110,7 +112,7 @@ class OrderBoardController extends Controller
 
         // Money actually received vs. what the customer owes. This is what makes
         // the settlement stage distinct from the confirmation stage.
-        $receiptsAmount = (int) $inv->receiptsTotalAmount();
+        $receiptsAmount = (int) $inv->receivedAmount();
         $invoiceTotal = (int) $inv->total_price;
         $remainingBalance = max(0, $invoiceTotal - $receiptsAmount);
         $isSettled = $isConfirmed && $remainingBalance === 0;
@@ -131,14 +133,59 @@ class OrderBoardController extends Controller
             ? $inv->paymentReceipts->firstWhere('payment_id', $confirmedPayment->id)
             : null;
 
-        $receipts = $inv->paymentReceipts->sortByDesc('id')->map(fn (PaymentReceipt $r) => [
-            'url' => $r->url(),
-            'is_image' => $r->isImage(),
-            'name' => $r->original_name ?: basename($r->path),
-            'size' => $r->size ? number_format($r->size / 1024, 1).' KB' : '',
-            'date' => $r->created_at?->jdate('Y/m/d H:i') ?? '—',
-            'uploader' => $r->customer?->name ?? '—',
-        ])->values();
+        $enteredPayments = $inv->payments
+            ->filter(fn (Payment $p) => $p->status === Payment::SUCCESS || ($p->meta['channel'] ?? '') === Payment::CHANNEL_IN_STORE)
+            ->sortByDesc('id')
+            ->values()
+            ->map(function (Payment $p) use ($inv) {
+                $meta = $p->meta ?? [];
+                $methodEnum = ! empty($meta['method']) ? ShopPaymentMethod::tryFrom($meta['method']) : null;
+                $methodLabel = $methodEnum?->label() ?? ($meta['method'] ?? $p->type);
+                $slipReceipt = $inv->paymentReceipts->firstWhere('payment_id', $p->id) ?? $p->receipts->first();
+
+                $paymentDate = $meta['payment_date'] ?? $p->created_at?->jdate('Y/m/d');
+                $paymentTime = $meta['payment_time'] ?? $p->created_at?->format('H:i');
+                $dateFormatted = trim(($paymentDate ?: '').' '.($paymentTime ?: ''));
+
+                return [
+                    'id' => $p->id,
+                    'method' => $methodLabel,
+                    'method_value' => $meta['method'] ?? strtolower($p->type),
+                    'amount' => (int) $p->amount,
+                    'status' => $p->status,
+                    'reference' => $p->reference_id,
+                    'date' => $dateFormatted ?: '—',
+                    'supplier_name' => $p->supplier?->name ?? ($meta['supplier_name'] ?? null),
+                    'bank_account_name' => $meta['bank_account_name'] ?? null,
+                    'card_number' => $meta['card_number'] ?? null,
+                    'recorded_by' => $meta['confirmed_by_name'] ?? null,
+                    'slip' => $slipReceipt ? [
+                        'url' => $slipReceipt->url(),
+                        'is_image' => $slipReceipt->isImage(),
+                        'name' => $slipReceipt->original_name ?: basename($slipReceipt->path),
+                        'size' => $slipReceipt->size ? number_format($slipReceipt->size / 1024, 1).' KB' : '',
+                    ] : null,
+                ];
+            });
+
+        $operatorSlipIds = $inv->payments
+            ->where('meta.channel', Payment::CHANNEL_IN_STORE)
+            ->pluck('receipts.*.id')
+            ->flatten()
+            ->filter()
+            ->all();
+
+        $receipts = $inv->paymentReceipts
+            ->reject(fn (PaymentReceipt $r) => in_array($r->id, $operatorSlipIds, true))
+            ->sortByDesc('id')
+            ->map(fn (PaymentReceipt $r) => [
+                'url' => $r->url(),
+                'is_image' => $r->isImage(),
+                'name' => $r->original_name ?: basename($r->path),
+                'size' => $r->size ? number_format($r->size / 1024, 1).' KB' : '',
+                'date' => $r->created_at?->jdate('Y/m/d H:i') ?? '—',
+                'uploader' => $r->customer?->name ?? '—',
+            ])->values();
 
         $delivery = $inv->activeDelivery ?: $inv->deliveries->sortByDesc('id')->first();
         $deliveredDelivery = $inv->deliveries
@@ -148,6 +195,7 @@ class OrderBoardController extends Controller
 
         $details = [
             'payment' => [
+                'entered_payments' => $enteredPayments,
                 'receipts' => $receipts,
                 'pending_amount' => $inv->payments->where('status', Payment::PENDING)->sortByDesc('id')->first()?->amount,
                 'declined_at' => isset($inv->meta['declined_at'])
@@ -247,7 +295,7 @@ class OrderBoardController extends Controller
             'sortable_date' => (string) $inv->created_at?->timestamp,
             'total_price' => $invoiceTotal,
             'stages' => [
-                'payment' => $this->paymentStage($isConfirmed, $hasReceipt, $isClosed, $invoiceTotal, $receiptsAmount),
+                'payment' => $this->paymentStage($isConfirmed, $hasReceipt, $isClosed, $invoiceTotal, $receiptsAmount, $enteredPayments->isNotEmpty()),
                 'confirm' => [
                     'done' => $isConfirmed,
                     'state' => $isClosed ? 'closed' : ($isConfirmed ? 'done' : 'pending'),
@@ -279,7 +327,7 @@ class OrderBoardController extends Controller
      *
      * @return array<string, mixed>
      */
-    private function paymentStage(bool $isConfirmed, bool $hasReceipt, bool $isClosed, int $total, int $received): array
+    private function paymentStage(bool $isConfirmed, bool $hasReceipt, bool $isClosed, int $total, int $received, bool $hasEnteredPayments = false): array
     {
         if ($isClosed) {
             return [
@@ -296,6 +344,28 @@ class OrderBoardController extends Controller
                 'state' => 'done',
                 'text' => __('Paid'),
                 'title' => __('Payment confirmed by admin or gateway.'),
+            ];
+        }
+
+        if ($hasEnteredPayments && $received > 0) {
+            return [
+                'done' => false,
+                'state' => 'short',
+                'text' => __('Partially paid'),
+                'title' => __('Payment of :received of :total Toman entered (:remaining remaining).', [
+                    'received' => number_format($received),
+                    'total' => number_format($total),
+                    'remaining' => number_format(max(0, $total - $received)),
+                ]),
+            ];
+        }
+
+        if ($hasEnteredPayments) {
+            return [
+                'done' => false,
+                'state' => 'awaiting',
+                'text' => __('Payment recorded'),
+                'title' => __('Payment recorded by operator.'),
             ];
         }
 
@@ -333,7 +403,7 @@ class OrderBoardController extends Controller
             ];
         }
 
-        if ($remaining > 0 && $hasReceipt) {
+        if ($remaining > 0 && ($hasReceipt || $total - $remaining > 0)) {
             return [
                 'done' => false,
                 'state' => 'short',

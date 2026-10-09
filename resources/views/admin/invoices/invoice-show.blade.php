@@ -11,8 +11,9 @@
             && $cardPayment
             && $cardPayment->status === \App\Models\Payment::PENDING
             && $invoice->hasUploadedReceipt();
-        $receiptsTotal = $invoice->receiptsTotalAmount();
+        $receiptsTotal = $invoice->receivedAmount();
         $remainingBalance = $invoice->remainingReceiptBalance();
+        $shopMethod = $invoice->inStorePaymentMethod();
         $activeBankAccounts = $bankAccounts ?? \App\Models\BankAccount::where('is_active', true)->get();
         $offlineHours = \App\Models\Invoice::offlinePaymentHours();
         $offlineDeadline = $invoice->offlinePaymentDeadline();
@@ -380,7 +381,9 @@
                                 <div class="d-flex justify-content-between">
                                     <span class="text-muted">{{ __("Payment method") }}:</span>
                                     <b class="text-dark">
-                                        @if($invoice->isOfflineCardPayment())
+                                        @if($shopMethod)
+                                            <i class="ri-store-2-line text-success me-1"></i>{{ __("In-store payment") }}: {{ $shopMethod->label() }}
+                                        @elseif($invoice->isOfflineCardPayment())
                                             <i class="ri-exchange-funds-line text-warning me-1"></i>{{ __("Card to card") }}
                                         @else
                                             <i class="ri-bank-card-2-line text-success me-1"></i>{{ __("Online Gateway") }}

@@ -1,20 +1,23 @@
-<div class="item-list mb-3">
-    <div class="p-3">
-        <h4 class="mb-1"><i class="ri-file-list-3-line me-1"></i> {{ __('Receipt review') }}</h4>
-        <p class="text-muted mb-3">{{ __('Check the receipt against the invoice total, then confirm the payment or send it back to the customer.') }}</p>
-                        <div class="table-responsive border rounded-3 mb-3">
-                            <table class="table table-hover align-middle mb-0 fs-13">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th style="width: 60px;">{{ __('Preview') }}</th>
-                                        <th>{{ __('Amount') }}</th>
-                                        <th>{{ __('Destination account') }}</th>
-                                        <th>{{ __('Payment Date & Time') }}</th>
-                                        <th>{{ __('Tracking Number') }}</th>
-                                        <th>{{ __('File') }}</th>
-                                        <th class="text-center" style="width: 90px;">{{ __('Action') }}</th>
-                                    </tr>
-                                </thead>
+<div class="item-list shadow-sm mb-4">
+    <div class="d-flex align-items-center gap-2 p-3 p-md-3.5 border-bottom">
+        <i class="ri-file-list-3-line text-primary fs-18"></i>
+        <h5 class="mb-0 fw-bold fs-16 text-dark">{{ __('Receipt review') }}</h5>
+    </div>
+    <div class="p-3 p-md-3.5">
+        <p class="text-muted fs-13 mb-3">{{ __('Check the receipt against the invoice total, then confirm the payment or send it back to the customer.') }}</p>
+        <div class="table-responsive border rounded-3 mb-3">
+            <table class="table table-hover align-middle mb-0 fs-13">
+                <thead class="table-light text-muted fs-12 fw-semibold">
+                    <tr>
+                        <th style="width: 60px;">{{ __('Preview') }}</th>
+                        <th>{{ __('Amount') }}</th>
+                        <th>{{ __('Destination account') }}</th>
+                        <th>{{ __('Payment Date & Time') }}</th>
+                        <th>{{ __('Tracking Number') }}</th>
+                        <th>{{ __('File') }}</th>
+                        <th class="text-center" style="width: 90px;">{{ __('Action') }}</th>
+                    </tr>
+                </thead>
                                 <tbody>
                                     @forelse($item->paymentReceipts as $receipt)
                                         @php $declaredAccount = $receipt->bankAccount; @endphp
@@ -247,8 +250,6 @@
                                         </form>
                                     </div>
                                 @else
-                                    {{-- The invoice says a receipt is waiting but the payment is no
-                                         longer pending, so every review action would be rejected. --}}
                                     <div class="alert alert-warning border border-warning-subtle shadow-sm rounded-3 p-3 mb-3">
                                         <div class="d-flex align-items-start gap-2">
                                             <i class="ri-information-line fs-5 text-warning flex-shrink-0"></i>
@@ -302,9 +303,6 @@
                                     updateApprovalButton();
                                 }
 
-                                // Receipt lightbox: the 48px thumbnail was the only
-                                // way to inspect the evidence the four-point check
-                                // asks the admin to verify.
                                 const preview = document.getElementById('receipt-preview-modal');
                                 if (preview) {
                                     const img = document.getElementById('receipt-preview-image');

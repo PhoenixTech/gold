@@ -73,6 +73,11 @@
     {{-- Traditional invoice number. Usually the row-link column. --}}
     <span class="font-monospace fw-bold text-primary" dir="ltr">#{{ $item->hash ?: $item->id }}</span>
     <small class="text-muted fs-11 d-block">ID {{ $item->id }}</small>
+    @if(method_exists($item, 'isManual') && $item->isManual())
+    <span class="badge bg-dark-subtle text-dark-emphasis border border-dark-subtle fs-11 mt-1">
+    <i class="ri-store-2-line me-0.5"></i>{{ __('Shop sale') }}
+    </span>
+    @endif
     @break
     @case('items_summary')
     @php
@@ -92,8 +97,10 @@
     @case('payment_progress')
     @php
     $isOffline = method_exists($item, 'isOfflineCardPayment') ? $item->isOfflineCardPayment() : false;
+    $inStoreReceived = (int) ($item->shop_payments_amount ?? 0);
+    $isOffline = $isOffline || $inStoreReceived > 0;
     $total = (int) ($item->total_price ?? 0);
-    $received = (int) ($item->receipts_amount ?? 0);
+    $received = (int) ($item->receipts_amount ?? 0) + $inStoreReceived;
     $remaining = max(0, $total - $received);
     $hasReceipt = method_exists($item, 'hasUploadedReceipt') ? $item->hasUploadedReceipt() : $received > 0;
     $isSettled = in_array($item->status, \App\Models\Invoice::successfulStatuses(), true);
@@ -105,7 +112,7 @@
     <i class="ri-bank-card-line me-0.5"></i>{{ __('Online gateway') }}
     </span>
     @elseif($isSettled && $remaining === 0)
-    <span class="badge bg-success-subtle text-success border border-success-subtle fs-12 fw-bold" title="{{ __('The receipts cover the invoice total.') }}">
+    <span class="badge bg-success-subtle text-success border border-success-subtle fs-12 fw-bold" title="{{ $inStoreReceived > 0 ? __('Paid in the shop.') : __('The receipts cover the invoice total.') }}">
     <i class="ri-checkbox-circle-line me-0.5"></i>{{ __('Settled') }}
     </span>
     @elseif($hasReceipt)

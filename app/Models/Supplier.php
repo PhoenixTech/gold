@@ -34,6 +34,11 @@ class Supplier extends Model
         return $this->hasMany(Quantity::class);
     }
 
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
     public static function toSelectOptions(bool $includeTrashed = false): array
     {
         $query = static::query();

@@ -276,43 +276,105 @@
                                     </div>
                                 </div>
 
-                                {{-- Payment card: customer receipts --}}
                                 @php $d = $order['details']['payment']; @endphp
                                 <div class="subcard d-none" data-subcard="payment">
                                     <div class="bg-white p-3 rounded-3 border border-secondary-subtle shadow-sm">
-                                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 pb-2 border-bottom">
-                                            <strong class="text-dark fs-14 d-inline-flex align-items-center gap-2">
-                                                <i class="ri-receipt-line text-primary fs-5"></i>{{ __('Customer receipts') }}
-                                            </strong>
-                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle fs-12 px-2 py-1">
-                                                {{ $d['receipts']->count() }} {{ __('receipt(s)') }}
-                                            </span>
-                                        </div>
-                                        @if($d['receipts']->isNotEmpty())
-                                            <div class="d-flex flex-wrap gap-3">
-                                                @foreach($d['receipts'] as $r)
-                                                    <a href="{{ $r['url'] }}" target="_blank" rel="noopener noreferrer" class="d-flex align-items-center gap-2 text-decoration-none p-2 rounded-3 border border-secondary-subtle bg-light" title="{{ __('Open receipt') }}">
-                                                        @if($r['is_image'])
-                                                            <img src="{{ $r['url'] }}" alt="{{ $r['name'] }}" class="rounded border bg-white" style="width: 56px; height: 56px; object-fit: cover;">
-                                                        @else
-                                                            <span class="d-flex align-items-center justify-content-center bg-white border rounded" style="width: 56px; height: 56px;">
-                                                                <i class="ri-file-3-line fs-4 text-secondary"></i>
-                                                            </span>
-                                                        @endif
-                                                        <span class="d-flex flex-column">
-                                                            <span class="fw-semibold text-dark fs-13 text-truncate" style="max-width: 180px;">{{ $r['name'] }}</span>
-                                                            <span class="text-muted fs-11">{{ $r['size'] }}</span>
-                                                            <span class="text-muted fs-11 d-inline-flex align-items-center gap-1"><i class="ri-calendar-line"></i>{{ $r['date'] }}</span>
-                                                            <span class="text-muted fs-11 d-inline-flex align-items-center gap-1"><i class="ri-user-line"></i>{{ $r['uploader'] }}</span>
-                                                        </span>
-                                                    </a>
-                                                @endforeach
+                                        @if(! empty($d['entered_payments']) && $d['entered_payments']->isNotEmpty())
+                                            <div class="mb-3 @if($d['receipts']->isNotEmpty()) pb-3 border-bottom @endif">
+                                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                                                    <strong class="text-dark fs-14 d-inline-flex align-items-center gap-2">
+                                                        <i class="ri-bank-card-line text-primary fs-5"></i>{{ __('Recorded payments') }}
+                                                    </strong>
+                                                    <span class="badge bg-success-subtle text-success border border-success-subtle fs-12 px-2 py-1">
+                                                        {{ $d['entered_payments']->count() }} {{ __('payment(s)') }}
+                                                    </span>
+                                                </div>
+                                                <div class="d-flex flex-wrap gap-3">
+                                                    @foreach($d['entered_payments'] as $p)
+                                                        <div class="d-flex align-items-center gap-2 p-2 rounded-3 border border-secondary-subtle bg-light" style="min-width: 260px;">
+                                                            @if(! empty($p['slip']))
+                                                                <a href="{{ $p['slip']['url'] }}" target="_blank" rel="noopener noreferrer" class="flex-shrink-0" title="{{ __('Open receipt') }}">
+                                                                    @if($p['slip']['is_image'])
+                                                                        <img src="{{ $p['slip']['url'] }}" alt="{{ $p['slip']['name'] }}" class="rounded border bg-white" style="width: 56px; height: 56px; object-fit: cover;">
+                                                                    @else
+                                                                        <span class="d-flex align-items-center justify-content-center bg-white border rounded" style="width: 56px; height: 56px;">
+                                                                            <i class="ri-file-3-line fs-4 text-secondary"></i>
+                                                                        </span>
+                                                                    @endif
+                                                                </a>
+                                                            @else
+                                                                <div class="d-flex align-items-center justify-content-center bg-white border border-secondary-subtle rounded flex-shrink-0 text-primary" style="width: 56px; height: 56px;">
+                                                                    <i class="{{ $p['method_value'] === 'pos' ? 'ri-device-line' : 'ri-bank-card-line' }} fs-3"></i>
+                                                                </div>
+                                                            @endif
+                                                            <div class="d-flex flex-column gap-1 flex-grow-1">
+                                                                <div class="d-flex align-items-center justify-content-between gap-2">
+                                                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle fs-11">
+                                                                        {{ $p['method'] }}
+                                                                    </span>
+                                                                    <strong class="font-fanum text-success fs-13">{{ number_format($p['amount']) }} <small class="text-muted fw-normal">{{ __('Toman') }}</small></strong>
+                                                                </div>
+                                                                @if(! empty($p['supplier_name']))
+                                                                    <span class="badge bg-info-subtle text-info border border-info-subtle fs-11 align-self-start">
+                                                                        <i class="ri-building-line me-0.5"></i>{{ $p['supplier_name'] }}
+                                                                    </span>
+                                                                @endif
+                                                                <div class="d-flex align-items-center gap-2 fs-11 text-muted flex-wrap">
+                                                                    @if(! empty($p['bank_account_name']))
+                                                                        <span><i class="ri-bank-line me-0.5"></i>{{ $p['bank_account_name'] }}</span>
+                                                                    @endif
+                                                                    @if(! empty($p['reference']))
+                                                                        <span class="font-monospace"><i class="ri-hashtag me-0.5"></i>{{ $p['reference'] }}</span>
+                                                                    @endif
+                                                                    @if(! empty($p['date']))
+                                                                        <span class="font-fanum"><i class="ri-calendar-line me-0.5"></i>{{ $p['date'] }}</span>
+                                                                    @endif
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
                                             </div>
-                                        @else
+                                        @endif
+
+                                        @if($d['receipts']->isNotEmpty())
+                                            <div>
+                                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 pb-2 border-bottom">
+                                                    <strong class="text-dark fs-14 d-inline-flex align-items-center gap-2">
+                                                        <i class="ri-receipt-line text-primary fs-5"></i>{{ __('Customer receipts') }}
+                                                    </strong>
+                                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle fs-12 px-2 py-1">
+                                                        {{ $d['receipts']->count() }} {{ __('receipt(s)') }}
+                                                    </span>
+                                                </div>
+                                                <div class="d-flex flex-wrap gap-3">
+                                                    @foreach($d['receipts'] as $r)
+                                                        <a href="{{ $r['url'] }}" target="_blank" rel="noopener noreferrer" class="d-flex align-items-center gap-2 text-decoration-none p-2 rounded-3 border border-secondary-subtle bg-light" title="{{ __('Open receipt') }}">
+                                                            @if($r['is_image'])
+                                                                <img src="{{ $r['url'] }}" alt="{{ $r['name'] }}" class="rounded border bg-white" style="width: 56px; height: 56px; object-fit: cover;">
+                                                            @else
+                                                                <span class="d-flex align-items-center justify-content-center bg-white border rounded" style="width: 56px; height: 56px;">
+                                                                    <i class="ri-file-3-line fs-4 text-secondary"></i>
+                                                                </span>
+                                                            @endif
+                                                            <span class="d-flex flex-column">
+                                                                <span class="fw-semibold text-dark fs-13 text-truncate" style="max-width: 180px;">{{ $r['name'] }}</span>
+                                                                <span class="text-muted fs-11">{{ $r['size'] }}</span>
+                                                                <span class="text-muted fs-11 d-inline-flex align-items-center gap-1"><i class="ri-calendar-line"></i>{{ $r['date'] }}</span>
+                                                                <span class="text-muted fs-11 d-inline-flex align-items-center gap-1"><i class="ri-user-line"></i>{{ $r['uploader'] }}</span>
+                                                            </span>
+                                                        </a>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        @endif
+
+                                        @if((empty($d['entered_payments']) || $d['entered_payments']->isEmpty()) && $d['receipts']->isEmpty())
                                             <div class="text-muted fs-13 d-flex align-items-center gap-2">
                                                 <i class="ri-inbox-line"></i>{{ __('No receipt uploaded yet.') }}
                                             </div>
                                         @endif
+
                                         @if($d['declined_at'])
                                             <div class="mt-3 pt-2 border-top d-flex align-items-center justify-content-between text-warning-emphasis fs-12">
                                                 <span class="d-inline-flex align-items-center gap-2">

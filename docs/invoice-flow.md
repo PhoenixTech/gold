@@ -8,7 +8,7 @@ Technical reference for checkout, invoice, cancel and refund, and fulfillment. P
 
 | Piece | Role |
 |---|---|
-| `App\Models\Invoice` | Order record: totals, status, delivery type, meta. |
+| `App\Models\Invoice` | Order record: totals, status, delivery type, meta, `source` (`CHECKOUT` or `MANUAL`), `created_by`. |
 | `App\Models\Payment` | Payment attempt. Checkout creates one `CARD` payment in `PENDING`. |
 | `App\Models\PaymentReceipt` | Receipt files and details uploaded by the customer. |
 | `App\Models\Order` / `Quantity` | Line items and the physical pieces. |
@@ -19,6 +19,10 @@ Technical reference for checkout, invoice, cancel and refund, and fulfillment. P
 | `App\Services\DeliveryService` | Applies admin status moves, dispatches couriers, checks the PIN. |
 | `App\Services\InvoiceCancellationService` | Cancels an invoice and refunds to wallet credit. |
 | `App\Services\CreditService` | The only code that changes `Customer::credit`. |
+| `App\Http\Controllers\Admin\ManualInvoiceController` | Step-by-step shop sale wizard (`/dashboard/invoices/create`). |
+| `App\Services\ManualInvoiceService` | Creates a shop sale in one transaction: locks pieces, prices them, records the payment. |
+| `App\Services\ManualInvoiceDraft` | Holds the unfinished shop sale in the session. Nothing is saved until the last step. |
+| `App\Enums\InvoiceSource` / `ShopPaymentMethod` | Where an invoice came from, and how a shop customer pays. |
 | `php artisan offline:expire` | Runs every 15 minutes. Fails invoices with no receipt after the deadline. |
 
 ---
@@ -104,6 +108,30 @@ flowchart TD
 > [!WARNING]
 > Customers cannot spend wallet credit at checkout yet. A refund only raises the balance.
 
+### Shop sale (manual)
+An admin creates an invoice for a sale made at the counter: `/dashboard/invoices/create`. The invoice is marked `source = MANUAL` and `created_by` holds the admin. It uses the same statuses as checkout.
+
+Four steps, kept in the session until the last one:
+1. **Customer**: enter the mobile. An existing number reuses that customer. A new number needs a name, and the customer is created on save.
+2. **Items**: search available stock pieces and add them. Pieces below the purchase price are hidden. Each piece is priced with today's gold price.
+3. **Payment**: pick how the customer pays and whether to hand over now.
+4. **Review**: check the summary, then save.
+
+| Payment choice | Invoice status after save | Payment row |
+|---|---|---|
+| Cash | `PAID` (or `COMPLETED` with hand-over) | `CASH`, `SUCCESS`, `meta.channel = in_store` |
+| POS terminal | `PAID` (or `COMPLETED` with hand-over) | `CARD`, `SUCCESS`, `meta.channel = in_store` |
+| Card-to-card (pay later) | `AWAITING_PAYMENT` | `CARD`, `PENDING`, bank details. Then the normal receipt flow applies. |
+
+- Pieces are marked `Sold` on save, the same as checkout.
+- Hand-over runs `PAID` → `READY_FOR_PICKUP` → `COMPLETED` through `DeliveryService`, so the existing guards apply.
+- Shop sales are always store pickup. The courier path is not offered in the wizard.
+- In-store money counts toward `Invoice::receivedAmount()`, so the order board and the printout show it as settled. Card-to-card money is counted only through its receipts. This prevents double counting.
+- Filter the list with `filter[source]=MANUAL`. Shop sales show a "Shop sale" badge in the list and on the edit page.
+
+> [!NOTE]
+> The wizard checks each piece again on save, under a row lock. If a piece was sold elsewhere meanwhile, nothing is saved and the draft stays so the piece can be removed.
+
 ---
 
 ## 4. Transition guard
@@ -122,8 +150,11 @@ flowchart TD
 ### Customer: `/card` and `/invoice/{hash}`
 `/card` starts checkout. The invoice page shows a banner per state: countdown and upload (waiting receipt), under review, paid, preparing, ready for pickup, courier code reminder, completed, canceled or failed.
 
+### Admin create: `/dashboard/invoices/create`
+The "Add new" button on the invoice list. Four steps (customer, items, payment, review). The sidebar shows a running summary and a discard button. See section 3, "Shop sale (manual)".
+
 ### Admin edit: `/dashboard/invoices/edit/{hash}`
-- **Header**: number, status, fulfillment type, total, board, shipping label, print, cancel.
+- **Header**: number, status, fulfillment type, shop-sale badge, creator, total, board, shipping label, print, cancel.
 - **Stepper**: four steps. Payment, receipt review, preparing, customer pickup or courier delivery.
 - **What to do now**: one title and one help line.
 - **Panel for the current step only**:
@@ -149,6 +180,7 @@ Scopes: active, completed, all. Five stages: payment, confirm, settle (receipt t
 - `InvoiceStockRestorationTest`: stock release and no reopening of failed invoices.
 - `AdminInvoiceDeliveryTest`, `AdminInvoiceReceiptReviewTest`, `PaymentReceiptTest`: edit page, review and receipts.
 - `CustomerInvoiceViewTest`, `ViewAndUiEmpiricalVerificationTest`: customer view and translation audit.
+- `AdminManualInvoiceTest`: shop sale wizard per payment method, skipped steps, sold pieces, removed customers, draft discard, `MANUAL` filter.
 
 ---
 
@@ -159,3 +191,5 @@ Scopes: active, completed, all. Five stages: payment, confirm, settle (receipt t
 - Re-upload deletes the old receipt files with no archive.
 - The order board still has a postal branch for old invoices only.
 - `resources/sass/panel/_invoice.scss` still has unused stepper rules.
+- Shop sales: a card-to-card shop invoice that is never paid fails through `offline:expire` after the normal deadline, the same as checkout. Nothing is sent to the customer by SMS when a shop sale is saved.
+- Shop sales only cover stock pieces. Products without pieces are not offered in the wizard.

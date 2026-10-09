@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\InvoiceSource;
 use App\Models\Address;
 use App\Models\Customer;
 use App\Models\Invoice;
@@ -170,6 +171,13 @@ class InvoiceFactory extends Factory
             'status' => Invoice::COMPLETED,
             'created_at' => now(),
             'updated_at' => now(),
+        ]);
+    }
+
+    public function manual(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'source' => InvoiceSource::Manual,
         ]);
     }
 

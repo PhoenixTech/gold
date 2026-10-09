@@ -7,17 +7,24 @@
 
 @section('top-content')
 
-    {{-- Status quick filters with live counts --}}
     @if(!empty($statusChips))
-        @php $currentStatus = request()->input('filter.status'); @endphp
+        @php
+            $currentStatus = request()->input('filter.status');
+            $otherFilters = collect(request()->input('filter', []))->except('status')->all();
+            $chipQuery = fn (array $extra = []) => array_merge(
+                request()->except(['filter.status', 'filter']),
+                $otherFilters !== [] ? ['filter' => $otherFilters] : [],
+                $extra
+            );
+        @endphp
         <div class="d-flex align-items-center flex-wrap gap-2 mb-3 px-1">
-            <a href="{{ getRoute('index', request()->except(['filter.status', 'filter'])) }}"
+            <a href="{{ getRoute('index', $chipQuery()) }}"
                class="btn btn-sm {{ $currentStatus === null ? 'btn-light' : 'btn-outline-secondary' }} rounded-pill px-3">
                 {{ __('All') }}
                 <span class="ms-1 opacity-75">{{ number_format($quickCounts['all'] ?? 0) }}</span>
             </a>
             @foreach($statusChips as $chip)
-                <a href="{{ getRoute('index', array_merge(request()->except(['filter.status','filter']), ['filter' => ['status' => $chip['key']]])) }}"
+                <a href="{{ getRoute('index', $chipQuery(['filter' => array_merge($otherFilters, ['status' => $chip['key']])])) }}"
                    class="btn btn-sm {{ $currentStatus === $chip['key'] ? 'btn-light' : 'btn-outline-secondary' }} rounded-pill px-3"
                    title="{{ $chip['label'] }}">
                     <i class="{{ $chip['icon'] }} me-1"></i>{{ $chip['label'] }}
@@ -45,6 +52,12 @@
         <option value="">{{ __("All delivery types") }}</option>
         <option value="address" @selected(request()->input('filter.delivery_type') === 'address')>{{ __("Shipped to address") }}</option>
         <option value="pickup" @selected(request()->input('filter.delivery_type') === 'pickup')>{{ __("Store pickup") }}</option>
+    </select>
+    <select name="filter[source]" class="form-select form-select-sm w-auto">
+        <option value="">{{ __("All sources") }}</option>
+        @foreach(\App\Enums\InvoiceSource::cases() as $source)
+            <option value="{{ $source->value }}" @selected(request()->input('filter.source') === $source->value)>{{ $source->label() }}</option>
+        @endforeach
     </select>
 @endsection
 

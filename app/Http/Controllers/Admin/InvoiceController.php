@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Admin\Concerns\ResolvesAdminModel;
 use App\Http\Controllers\Admin\Concerns\RespondsWithAdmin;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\AddInvoicePaymentRequest;
 use App\Http\Requests\CancelInvoiceRequest;
 use App\Http\Requests\ConfirmInvoicePaymentRequest;
 use App\Http\Requests\DeclineInvoicePaymentRequest;
@@ -14,7 +15,9 @@ use App\Models\BankAccount;
 use App\Models\Invoice;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Models\Supplier;
 use App\Models\User;
+use App\Services\ManualInvoiceService;
 use App\Services\Admin\AdminBulkService;
 use App\Services\Admin\AdminTableService;
 use App\Services\CreditService;
@@ -86,6 +89,7 @@ class InvoiceController extends Controller
             ->with(['customer', 'transport', 'activeDelivery.courier'])
             ->withCount('paymentReceipts')
             ->withSum('paymentReceipts as receipts_amount', 'amount')
+            ->withSum(['payments as shop_payments_amount' => fn (Builder $payment) => $payment->inStore()], 'amount')
             ->addSelect('invoices.*')
             ->addSelect([
                 'total_weight' => Order::query()
@@ -275,11 +279,6 @@ class InvoiceController extends Controller
         return view('admin.invoices.invoice-list', $tableData);
     }
 
-    public function create(): View
-    {
-        return view('admin.invoices.invoice-form');
-    }
-
     public function edit(Invoice|string|int $item): View
     {
         $invoice = $this->resolveInvoice($item);
@@ -287,15 +286,23 @@ class InvoiceController extends Controller
             'customer.addresses',
             'orders.product',
             'orders.quantity',
-            'payments',
+            'payments.supplier',
+            'payments.receipts',
             'paymentReceipts',
             'transport',
             'activeDelivery.courier',
+            'createdBy',
         ]);
         $couriers = User::query()->couriers()->orderBy('name')->get();
         $bankAccounts = BankAccount::query()->where('is_active', true)->get();
+        $suppliers = Supplier::query()->orderBy('last_name')->orderBy('first_name')->get();
 
-        return view('admin.invoices.invoice-form', ['item' => $invoice, 'couriers' => $couriers, 'bankAccounts' => $bankAccounts]);
+        return view('admin.invoices.invoice-form', [
+            'item' => $invoice,
+            'couriers' => $couriers,
+            'bankAccounts' => $bankAccounts,
+            'suppliers' => $suppliers,
+        ]);
     }
 
     public function update(InvoiceSaveRequest $request, Invoice|string|int $item, DeliveryService $deliveryService): JsonResponse|RedirectResponse
@@ -507,6 +514,17 @@ class InvoiceController extends Controller
         return redirect()
             ->route('admin.invoice.edit', $invoice)
             ->with(['message' => __('Payment confirmed. The invoice is now paid.')]);
+    }
+
+    public function addPayment(AddInvoicePaymentRequest $request, Invoice|string|int $item, ManualInvoiceService $sales): RedirectResponse
+    {
+        $invoice = $this->resolveInvoice($item);
+        $data = $request->validated();
+        $payment = $sales->addPaymentToInvoice($invoice, $data, $request->user(), $request->file('slip'));
+
+        return redirect()
+            ->route('admin.invoice.edit', $invoice)
+            ->with(['message' => __('Payment of :amount Toman was recorded.', ['amount' => number_format($payment->amount)])]);
     }
 
     public function declinePayment(DeclineInvoicePaymentRequest $request, Invoice|string|int $item, DeliveryService $deliveryService): RedirectResponse

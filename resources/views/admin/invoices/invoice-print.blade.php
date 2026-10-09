@@ -7,9 +7,10 @@
     $isPickup = $invoice->isPickup();
     $cardPayment = $invoice->cardPayment();
     $isOfflineCard = $invoice->isOfflineCardPayment();
+    $shopMethod = $invoice->inStorePaymentMethod();
 
     $receipts = $invoice->paymentReceipts ?? collect();
-    $receiptsTotal = $invoice->receiptsTotalAmount();
+    $receiptsTotal = $invoice->receivedAmount();
     $remainingBalance = $invoice->remainingReceiptBalance();
     $invoiceTotal = (int) $invoice->total_price;
 
@@ -375,7 +376,7 @@
 
                 <div class="kv">
                     <span>{{ __('Payment method') }}</span>
-                    <b>{{ $isOfflineCard ? __('Card to card') : __('Online Gateway') }}</b>
+                    <b>{{ $shopMethod ? __('In-store payment').': '.$shopMethod->label() : ($isOfflineCard ? __('Card to card') : __('Online Gateway')) }}</b>
                 </div>
                 <div class="kv">
                     <span>{{ __('Status') }}</span>
@@ -390,17 +391,19 @@
 
                 {{-- Offline card-to-card invoices had no proof of transfer on the
                      "official" printout at all. --}}
-                @if($isOfflineCard)
-                    <div class="kv">
-                        <span>{{ __('Receipts uploaded') }}</span>
-                        <b class="fa-num">{{ $receipts->count() }}</b>
-                    </div>
+                @if($isOfflineCard || $shopMethod)
+                    @if($isOfflineCard)
+                        <div class="kv">
+                            <span>{{ __('Receipts uploaded') }}</span>
+                            <b class="fa-num">{{ $receipts->count() }}</b>
+                        </div>
+                    @endif
                     <div class="kv">
                         <span>{{ __('Invoice total') }}</span>
                         <b class="fa-num">{{ number_format($invoiceTotal) }} {{ $currency }}</b>
                     </div>
                     <div class="kv">
-                        <span>{{ __('Received via receipts') }}</span>
+                        <span>{{ $shopMethod ? __('Received amount') : __('Received via receipts') }}</span>
                         <b class="fa-num">{{ number_format($receiptsTotal) }} {{ $currency }}</b>
                     </div>
                     <div class="kv">

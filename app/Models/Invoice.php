@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use App\Enums\DeliveryStatus;
+use App\Enums\InvoiceSource;
 use App\Enums\InvoiceStatus;
+use App\Enums\ShopPaymentMethod;
 use App\Events\InvoiceFailed;
 use App\Events\InvoiceSucceed;
 use App\Services\ProductPriceCalculator;
@@ -11,10 +13,12 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Collection;
 
 class Invoice extends Model
 {
@@ -44,6 +48,7 @@ class Invoice extends Model
 
     protected $casts = [
         'meta' => 'array',
+        'source' => InvoiceSource::class,
     ];
 
     public static $invoiceStatus = ['PENDING', 'AWAITING_PAYMENT', 'CANCELED', 'FAILED', 'PAID', 'PROCESSING', self::READY_FOR_PICKUP, 'OUT_FOR_DELIVERY', 'COMPLETED'];
@@ -211,9 +216,46 @@ class Invoice extends Model
         return (int) $this->paymentReceipts()->sum('amount');
     }
 
+    public function shopPaymentsTotal(): int
+    {
+        return (int) $this->inStorePayments()->sum('amount');
+    }
+
+    public function inStorePaymentMethod(): ?ShopPaymentMethod
+    {
+        $method = $this->inStorePayments()->sortByDesc('id')->first()?->meta['method'] ?? null;
+
+        return is_string($method) ? ShopPaymentMethod::tryFrom($method) : null;
+    }
+
+    private function inStorePayments(): Collection
+    {
+        if ($this->relationLoaded('payments')) {
+            return $this->payments->filter(fn (Payment $payment) => $payment->status === Payment::SUCCESS
+                && ($payment->meta['channel'] ?? null) === Payment::CHANNEL_IN_STORE)->values();
+        }
+
+        return $this->payments()->inStore()->get();
+    }
+
+    public function receivedAmount(): int
+    {
+        return $this->receiptsTotalAmount() + $this->shopPaymentsTotal();
+    }
+
     public function remainingReceiptBalance(): int
     {
-        return max(0, (int) $this->total_price - $this->receiptsTotalAmount());
+        return max(0, (int) $this->total_price - $this->receivedAmount());
+    }
+
+    public function isManual(): bool
+    {
+        return $this->source === InvoiceSource::Manual;
+    }
+
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function cardPayment(): ?Payment
