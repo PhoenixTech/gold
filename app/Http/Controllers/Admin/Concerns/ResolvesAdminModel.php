@@ -12,22 +12,21 @@ trait ResolvesAdminModel
             return $item;
         }
 
+        $dummy = new $modelClass;
+        $routeKey = $dummy->getRouteKeyName() ?? 'id';
         $query = $withTrashed
             ? $modelClass::withTrashed()
             : $modelClass::query();
 
-        if (is_numeric($item)) {
-            $found = $query->find($item);
+        if ($routeKey !== 'id') {
+            $found = (clone $query)->where($routeKey, $item)->first();
             if ($found) {
                 return $found;
             }
         }
 
-        $dummy = new $modelClass;
-        $routeKey = $dummy->getRouteKeyName() ?? 'id';
-
-        if ($routeKey !== 'id') {
-            $found = $query->where($routeKey, $item)->first();
+        if (is_numeric($item)) {
+            $found = (clone $query)->find($item);
             if ($found) {
                 return $found;
             }

@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class CustomerAuthController extends Controller
@@ -68,7 +69,7 @@ class CustomerAuthController extends Controller
 
         $wantsJson = $this->wantsJsonResponse($request);
 
-        $passwd = generateUniqueID(12);
+        $passwd = Str::random(12);
         Mail::to($request->input('email'))->send(new AuthMail($passwd));
 
         $customer = new Customer;

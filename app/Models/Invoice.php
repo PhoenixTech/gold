@@ -46,6 +46,10 @@ class Invoice extends Model
 
     const WAITING_CONFIRMATION = 'WAITING_CONFIRMATION';
 
+    public const HASH_MIN = 10_000_000;
+
+    public const HASH_MAX = 99_999_999;
+
     protected $casts = [
         'meta' => 'array',
         'source' => InvoiceSource::class,
@@ -622,12 +626,23 @@ class Invoice extends Model
         return $this->hasMany(Order::class);
     }
 
+    public static function generateUniqueHash(): string
+    {
+        do {
+            $hash = (string) random_int(self::HASH_MIN, self::HASH_MAX);
+        } while (static::query()->where('hash', $hash)->exists());
+
+        return $hash;
+    }
+
     protected static function boot()
     {
         parent::boot();
 
         static::creating(function ($model) {
-            $model->hash = generateUniqueID((strlen(Invoice::count()) + 2));
+            if ($model->hash === null || $model->hash === '') {
+                $model->hash = self::generateUniqueHash();
+            }
         });
     }
 

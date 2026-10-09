@@ -2,14 +2,17 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Controllers\Admin\Concerns\ResolvesAdminModel;
 use App\Models\Invoice;
 use App\Services\InvoiceWorkflow;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class InvoiceSaveRequest extends FormRequest
 {
+    use ResolvesAdminModel;
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -103,21 +106,16 @@ class InvoiceSaveRequest extends FormRequest
     private function invoiceFromRoute(): ?Invoice
     {
         $item = $this->route('item');
-        if ($item instanceof Invoice) {
-            return $item;
-        }
-
-        if (! is_string($item) && ! is_int($item)) {
+        if (! $item instanceof Invoice && ! is_string($item) && ! is_int($item)) {
             return null;
         }
 
-        if (is_numeric($item)) {
-            $invoice = Invoice::query()->find($item);
-            if ($invoice !== null) {
-                return $invoice;
-            }
-        }
+        try {
+            $invoice = $this->resolveModel(Invoice::class, $item);
 
-        return Invoice::query()->where('hash', $item)->first();
+            return $invoice instanceof Invoice ? $invoice : null;
+        } catch (ModelNotFoundException) {
+            return null;
+        }
     }
 }

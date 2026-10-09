@@ -840,11 +840,8 @@ class ClientController extends Controller
         return $this->welcome();
     }
 
-    public function pay($hash)
+    public function pay(Invoice $invoice)
     {
-
-        $invoice = Invoice::where('hash', $hash)->first();
-        //        dd($invoice->created_at->timestamp , (time() - 3600));
 
         if (! in_array($invoice->status, ['PENDING', 'CANCELED', 'FAILED']) || $invoice->created_at->timestamp < (time() - 3600)) {
             return redirect()->back()->withErrors(__('This payment method is not available.'));

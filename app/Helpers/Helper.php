@@ -395,17 +395,6 @@ function toPersianDigits(string|int|float|null $value): string
         '5' => '۵', '6' => '۶', '7' => '۷', '8' => '۸', '9' => '۹']);
 }
 
-function generateUniqueID($length = 8): string
-{
-    $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
-    $uniqueID = '';
-
-    for ($i = 0; $i < $length; $i++) {
-        $uniqueID .= $chars[rand(0, strlen($chars) - 1)];
-    }
-
-    return $uniqueID;
-}
 
 function commentStatuses(): array
 {
