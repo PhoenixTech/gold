@@ -101,4 +101,38 @@ class InvoiceControllerTest extends TestCase
         $response->assertDontSee('filter[status]=1');
         $response->assertDontSee('filter[status]=0');
     }
+
+    public function test_invoice_edit_omits_paid_and_failed_invoices_row_in_customer_card(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        $this->actingAsAdmin();
+
+        $invoice = Invoice::factory()->create();
+
+        $response = $this->get(route('admin.invoice.edit', $invoice->hash));
+        $response->assertOk();
+        $response->assertDontSee(__('Paid invoices'), false);
+        $response->assertDontSee(__('Failed invoices'), false);
+        $response->assertDontSee('فاکتورهای پرداخت‌شده', false);
+        $response->assertDontSee('سفارش‌های ناموفق', false);
+    }
+
+    public function test_invoice_edit_ui_matches_creation_screen_layout(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        $this->actingAsAdmin();
+
+        $invoice = Invoice::factory()->create();
+
+        $response = $this->get(route('admin.invoice.edit', $invoice->hash));
+        $response->assertOk();
+        $response->assertSee(route('admin.invoice.index'), false);
+        $response->assertSee(__('Back to invoices'), false);
+        $response->assertSee('ri-arrow-left-s-line', false);
+        $response->assertSee(__('Invoice summary'), false);
+        $response->assertDontSee('action-btn circle-btn', false);
+    }
 }
+

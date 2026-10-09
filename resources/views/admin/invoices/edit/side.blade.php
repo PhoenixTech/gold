@@ -1,97 +1,124 @@
-@php
-    $successfulCount = $customer?->invoices()->whereIn('status', \App\Models\Invoice::successfulStatuses())->count() ?? 0;
-    $failedCount = $customer?->invoices()->whereIn('status', [\App\Models\Invoice::CANCELED, \App\Models\Invoice::FAILED])->count() ?? 0;
-@endphp
-
 <div class="item-list shadow-sm mb-4">
-    <div class="d-flex align-items-center justify-content-between p-3 p-md-3.5 border-bottom">
-        <div class="d-flex align-items-center gap-2">
-            <i class="ri-user-line text-primary fs-18"></i>
-            <h5 class="mb-0 fw-bold fs-16 text-dark">{{ __('Customer') }}</h5>
-        </div>
-        @if($customer)
-            <a href="{{ route('admin.customer.show', $customer->id) }}" class="btn btn-sm btn-outline-primary px-2 py-0.5 fs-12">
-                {{ __('Profile') }}
-            </a>
+    <div class="p-3 border-bottom d-flex align-items-center justify-content-between">
+        <h5 class="mb-0 fw-bold fs-15 text-dark d-flex align-items-center gap-2">
+            <i class="ri-file-list-3-line text-primary fs-18"></i>
+            <span>{{ __('Invoice summary') }}</span>
+        </h5>
+        @if($item->orders->count() > 0)
+            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle font-fanum">
+                {{ number_format($item->orders->count()) }} {{ __('Pieces') }}
+            </span>
         @endif
     </div>
-    <ul class="list-group list-group-flush fs-13">
-        <li class="list-group-item d-flex justify-content-between align-items-center py-2.5 px-3">
-            <span class="text-muted fs-12">{{ __('Name') }}</span>
+
+    <div class="p-3 border-bottom">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="text-muted fs-12">{{ __('Customer') }}</span>
             @if($customer)
-                <a href="{{ route('admin.customer.show', $customer->id) }}" class="fw-semibold text-dark text-decoration-none">
-                    {{ $customer->name }}
-                </a>
+                <div class="d-flex align-items-center gap-2">
+                    <a href="{{ route('admin.customer.show', $customer->id) }}" class="fw-semibold text-dark text-decoration-none fs-13">
+                        {{ $customer->name }}
+                    </a>
+                    <a href="{{ route('admin.customer.show', $customer->id) }}" class="btn btn-sm btn-outline-primary py-0 px-1.5 fs-11">
+                        {{ __('Profile') }}
+                    </a>
+                </div>
             @else
-                <span class="text-muted">—</span>
+                <span class="text-muted fs-13">—</span>
             @endif
-        </li>
-        <li class="list-group-item d-flex justify-content-between align-items-center py-2.5 px-3">
+        </div>
+        <div class="d-flex align-items-center justify-content-between">
             <span class="text-muted fs-12">{{ __('Mobile') }}</span>
             @if($customer?->mobile)
-                <a href="tel:{{ $customer->mobile }}" dir="ltr" class="font-fanum fw-semibold text-primary text-decoration-none d-inline-flex align-items-center gap-1">
+                <a href="tel:{{ $customer->mobile }}" dir="ltr" class="font-fanum fw-semibold text-primary text-decoration-none d-inline-flex align-items-center gap-1 fs-13">
                     <i class="ri-phone-line fs-14"></i>
                     <span>{{ $customer->mobile }}</span>
                 </a>
             @else
-                <span class="text-muted">—</span>
+                <span class="text-muted fs-13">—</span>
             @endif
-        </li>
+        </div>
         @if($item->is_third_party)
-            <li class="list-group-item d-flex justify-content-between align-items-center py-2.5 px-3">
+            <div class="d-flex align-items-center justify-content-between mt-2 pt-2 border-top">
                 <span class="text-muted fs-12">{{ __('Recipient (gift order)') }}</span>
-                <span class="fw-semibold text-dark">{{ $item->recipient_name ?: '—' }}</span>
-            </li>
-            <li class="list-group-item d-flex justify-content-between align-items-center py-2.5 px-3">
+                <span class="fw-semibold text-dark fs-13">{{ $item->recipient_name ?: '—' }}</span>
+            </div>
+            <div class="d-flex align-items-center justify-content-between mt-2">
                 <span class="text-muted fs-12">{{ __('Recipient mobile') }}</span>
                 @if($item->recipient_mobile)
-                    <a href="tel:{{ $item->recipient_mobile }}" dir="ltr" class="font-fanum fw-semibold text-primary text-decoration-none">
+                    <a href="tel:{{ $item->recipient_mobile }}" dir="ltr" class="font-fanum fw-semibold text-primary text-decoration-none fs-13">
                         {{ $item->recipient_mobile }}
                     </a>
                 @else
-                    <span class="text-muted">—</span>
+                    <span class="text-muted fs-13">—</span>
                 @endif
-            </li>
+            </div>
         @endif
-        <li class="list-group-item d-flex justify-content-between align-items-center py-2.5 px-3">
-            <span class="text-muted fs-12">{{ __('Paid invoices') }} / {{ __('Failed invoices') }}</span>
-            <div class="d-flex align-items-center gap-1 font-fanum">
-                <span class="badge bg-success-subtle text-success border border-success-subtle fs-12 px-2 py-0.5">
-                    {{ number_format($successfulCount) }}
+    </div>
+
+    @unless($isWaitingReceipt || $isWaitingConfirmation)
+        <div class="p-3 border-bottom">
+            <div class="d-flex align-items-center justify-content-between mb-1.5">
+                <span class="text-muted fs-12 d-flex align-items-center gap-1">
+                    <i class="{{ $isPickup ? 'ri-store-2-line' : 'ri-map-pin-line' }} text-primary"></i>
+                    <span>{{ $isPickup ? __('Pickup location') : __('Delivery address') }}</span>
                 </span>
-                <span class="text-muted">/</span>
-                <span class="badge bg-danger-subtle text-danger border border-danger-subtle fs-12 px-2 py-0.5">
-                    {{ number_format($failedCount) }}
+                <span class="badge bg-light text-dark border fs-11" data-fulfillment-method="{{ $isPickup ? 'pickup' : 'delivery' }}">
+                    {{ $isPickup ? __('Store pickup') : __('Courier delivery') }}
                 </span>
             </div>
-        </li>
-    </ul>
-</div>
+            <div class="fs-13 text-dark mt-1">
+                @if($isPickup)
+                    {{ $pickupLocation !== '' ? $pickupLocation : __('Gallery address is not configured.') }}
+                @else
+                    {{ $item->address?->address ?: ($item->address_alt ?: '—') }}
+                @endif
+            </div>
+        </div>
+    @endunless
 
-@unless($isWaitingReceipt || $isWaitingConfirmation)
-<div class="item-list shadow-sm mb-4">
-    <div class="d-flex align-items-center gap-2 p-3 p-md-3.5 border-bottom">
-        <i class="{{ $isPickup ? 'ri-store-2-line' : 'ri-map-pin-line' }} text-primary fs-18"></i>
-        <h5 class="mb-0 fw-bold fs-16 text-dark">{{ $isPickup ? __('Pickup location') : __('Delivery address') }}</h5>
-    </div>
-    <div class="p-3 p-md-3.5 fs-13 text-dark">
-        @if($isPickup)
-            {{ $pickupLocation !== '' ? $pickupLocation : __('Gallery address is not configured.') }}
-        @else
-            {{ $item->address?->address ?: ($item->address_alt ?: '—') }}
+    <div class="p-3 {{ trim((string) $item->desc) !== '' ? 'border-bottom' : '' }}">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="text-muted fs-13">{{ __('Pieces') }}</span>
+            <span class="font-fanum fw-semibold text-dark fs-13">{{ number_format($item->orders->count()) }}</span>
+        </div>
+        <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="text-muted fs-13">{{ __('Total price') }}</span>
+            <span class="font-fanum fw-bold text-dark fs-14">
+                {{ number_format($item->total_price) }} <small class="text-muted fw-normal fs-11">{{ __('Toman') }}</small>
+            </span>
+        </div>
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <span class="text-muted fs-13">{{ __('Paid amount') }}</span>
+            <span class="font-fanum fw-bold text-success fs-14">
+                {{ number_format($item->receivedAmount()) }} <small class="text-muted fw-normal fs-11">{{ __('Toman') }}</small>
+            </span>
+        </div>
+
+        @if($item->remainingReceiptBalance() > 0)
+            <div class="p-2.5 rounded-3 bg-danger-subtle border border-danger-subtle d-flex align-items-center justify-content-between">
+                <span class="text-danger fw-semibold fs-13">{{ __('Remaining balance') }}</span>
+                <span class="font-fanum fw-bold text-danger fs-15">
+                    {{ number_format($item->remainingReceiptBalance()) }} <small class="fw-normal fs-11">{{ __('Toman') }}</small>
+                </span>
+            </div>
+        @elseif($item->total_price > 0)
+            <div class="p-2.5 rounded-3 bg-success-subtle border border-success-subtle d-flex align-items-center justify-content-between">
+                <span class="text-success fw-semibold fs-13">{{ __('Remaining balance') }}</span>
+                <span class="badge bg-success text-white font-fanum">{{ __('Settled') }}</span>
+            </div>
         @endif
     </div>
-</div>
-@endunless
 
-@if(trim((string) $item->desc) !== '')
-    <div class="item-list shadow-sm mb-4">
-        <div class="d-flex align-items-center gap-2 p-3 p-md-3.5 border-bottom">
-            <i class="ri-message-line text-primary fs-18"></i>
-            <h5 class="mb-0 fw-bold fs-16 text-dark">{{ __('Description') }}</h5>
+    @if(trim((string) $item->desc) !== '')
+        <div class="p-3">
+            <div class="text-muted fs-12 mb-1 d-flex align-items-center gap-1">
+                <i class="ri-message-line text-primary"></i>
+                <span>{{ __('Description') }}</span>
+            </div>
+            <div class="fs-13 text-secondary">
+                {{ $item->desc }}
+            </div>
         </div>
-        <div class="p-3 p-md-3.5 fs-13 text-secondary">
-            {{ $item->desc }}
-        </div>
-    </div>
-@endif
+    @endif
+</div>

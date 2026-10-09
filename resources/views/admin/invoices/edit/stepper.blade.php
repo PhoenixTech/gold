@@ -1,30 +1,65 @@
-<div class="item-list shadow-sm mb-4 p-3 p-md-3.5">
-    <ol class="list-unstyled d-flex align-items-start gap-2 mb-0">
-        @foreach($steps as $step)
+@php
+    $totalSteps = count($steps);
+@endphp
+
+<div class="item-list p-3 mb-4 shadow-sm">
+    <ol class="list-unstyled d-flex align-items-center justify-content-between mb-0 p-0" aria-label="{{ __('Progress') }}">
+        @foreach($steps as $index => $step)
             @php
-                $badge = match ($step['state']) {
-                    'done' => 'bg-success text-white shadow-sm',
-                    'current' => 'bg-primary text-white shadow-sm',
-                    'waiting' => 'bg-warning text-dark shadow-sm',
-                    default => 'bg-light text-muted border',
-                };
+                $state = $step['state'];
                 $hint = null;
-                if ($step['state'] === 'waiting') {
+                if ($state === 'waiting') {
                     $hint = $isOutForDelivery ? __('Waiting for courier') : __('Waiting on customer');
-                } elseif ($step['state'] === 'current') {
+                } elseif ($state === 'current') {
                     $hint = __('Your action');
                 }
             @endphp
-            <li class="flex-fill text-center" @if(in_array($step['state'], ['current', 'waiting'], true)) aria-current="step" @endif>
-                <span class="badge rounded-circle {{ $badge }} d-inline-flex align-items-center justify-content-center fs-6" style="width: 2.25rem; height: 2.25rem;">
-                    @if($step['state'] === 'done')
-                        <i class="ri-check-line"></i>
-                    @else
-                        {{ $step['number'] }}
-                    @endif
-                </span>
-                <div class="fw-semibold mt-1.5 fs-13 {{ $step['state'] === 'todo' ? 'text-muted' : 'text-dark' }}">{{ $step['label'] }}</div>
-                <div class="fs-11 text-muted" style="min-height: 1.2rem;">{{ $hint }}</div>
+            <li class="d-flex align-items-center gap-2 {{ $index < $totalSteps - 1 ? 'flex-grow-1' : '' }}" @if(in_array($state, ['current', 'waiting'], true)) aria-current="step" @endif>
+                @if($state === 'done')
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge rounded-circle bg-success text-white shadow-sm d-inline-flex align-items-center justify-content-center" style="width: 2rem; height: 2rem;">
+                            <i class="ri-check-line fs-14"></i>
+                        </span>
+                        <span class="fw-semibold text-dark fs-13 d-none d-sm-inline">{{ $step['label'] }}</span>
+                    </div>
+                @elseif($state === 'current')
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge rounded-circle bg-primary text-white shadow-sm d-inline-flex align-items-center justify-content-center" style="width: 2rem; height: 2rem;">
+                            {{ $step['number'] }}
+                        </span>
+                        <div>
+                            <span class="fw-bold text-dark fs-13">{{ $step['label'] }}</span>
+                            @if($hint)
+                                <small class="text-primary d-block fs-11 fw-normal">{{ $hint }}</small>
+                            @endif
+                        </div>
+                    </div>
+                @elseif($state === 'waiting')
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge rounded-circle bg-warning text-dark shadow-sm d-inline-flex align-items-center justify-content-center" style="width: 2rem; height: 2rem;">
+                            <i class="ri-time-line fs-14"></i>
+                        </span>
+                        <div>
+                            <span class="fw-bold text-dark fs-13">{{ $step['label'] }}</span>
+                            @if($hint)
+                                <small class="text-warning-emphasis d-block fs-11 fw-normal">{{ $hint }}</small>
+                            @endif
+                        </div>
+                    </div>
+                @else
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge rounded-circle bg-light text-muted border d-inline-flex align-items-center justify-content-center" style="width: 2rem; height: 2rem;">
+                            {{ $step['number'] }}
+                        </span>
+                        <span class="text-muted fs-13 d-none d-sm-inline">{{ $step['label'] }}</span>
+                    </div>
+                @endif
+
+                @if($index < $totalSteps - 1)
+                    <div class="flex-grow-1 mx-2 text-center text-muted opacity-50 d-none d-md-block">
+                        <i class="ri-arrow-left-s-line fs-18"></i>
+                    </div>
+                @endif
             </li>
         @endforeach
     </ol>

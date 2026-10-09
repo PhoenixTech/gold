@@ -1,8 +1,8 @@
-@extends('admin.templates.panel-form-template')
+@extends('layouts.app')
 @section('title')
     {{ __('Edit invoice') }} [{{ $item->hash }}] -
 @endsection
-@section('out-of-form')
+@section('content')
     @php
         $workflow = app(\App\Services\InvoiceWorkflow::class);
         $steps = $workflow->steps($item);
@@ -59,7 +59,19 @@
         };
     @endphp
 
-    <div class="invoice-manage">
+    <div class="invoice-manage pb-5">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+            <h4 class="mb-0 fw-bold d-flex align-items-center gap-2 text-dark fs-18">
+                <i class="ri-file-edit-line text-primary"></i>
+                <span>{{ __('Edit invoice') }}</span>
+                <span class="badge bg-light text-dark border font-monospace fs-12">#{{ $item->hash }}</span>
+            </h4>
+            <a href="{{ route('admin.invoice.index') }}" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
+                <i class="ri-arrow-right-line"></i>
+                <span>{{ __('Back to invoices') }}</span>
+            </a>
+        </div>
+
         @include('components.err')
         @include('admin.invoices.edit.header')
         @unless($isClosed)
