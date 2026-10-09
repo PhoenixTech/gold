@@ -695,6 +695,9 @@ class AdminManualInvoiceTest extends TestCase
         $invoice = Invoice::query()->where('source', InvoiceSource::Manual->value)->firstOrFail();
 
         $this->get(route('admin.invoice.edit', $invoice))
+            ->assertRedirect(route('admin.invoice.show', $invoice));
+
+        $this->get(route('admin.invoice.show', $invoice))
             ->assertOk()
             ->assertSee(__('Shop sale'))
             ->assertSee(__('Created by'));

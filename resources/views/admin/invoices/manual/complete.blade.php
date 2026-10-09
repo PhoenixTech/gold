@@ -35,10 +35,17 @@
                     <i class="ri-add-line"></i>
                     <span>{{ __('New invoice') }}</span>
                 </a>
-                <a href="{{ route('admin.invoice.edit', $invoice) }}" class="btn btn-outline-secondary px-3 d-inline-flex align-items-center gap-1.5">
-                    <i class="ri-edit-line"></i>
-                    <span>{{ __('Manage invoice') }}</span>
-                </a>
+                @if($invoice->status === \App\Models\Invoice::COMPLETED)
+                    <a href="{{ route('admin.invoice.show', $invoice) }}" class="btn btn-outline-secondary px-3 d-inline-flex align-items-center gap-1.5">
+                        <i class="ri-eye-line"></i>
+                        <span>{{ __('View invoice') }}</span>
+                    </a>
+                @else
+                    <a href="{{ route('admin.invoice.edit', $invoice) }}" class="btn btn-outline-secondary px-3 d-inline-flex align-items-center gap-1.5">
+                        <i class="ri-edit-line"></i>
+                        <span>{{ __('Manage invoice') }}</span>
+                    </a>
+                @endif
                 <a href="{{ route('admin.invoice.index') }}" class="btn btn-outline-secondary px-3 d-inline-flex align-items-center gap-1.5">
                     <i class="ri-arrow-right-line"></i>
                     <span>{{ __('Back to invoices') }}</span>

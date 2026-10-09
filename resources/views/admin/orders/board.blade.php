@@ -259,9 +259,11 @@
                                             <a href="{{ route('admin.invoice.show', $order['hash']) }}" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
                                                 <i class="ri-eye-line"></i>{{ __('View invoice') }}
                                             </a>
-                                            <a href="{{ route('admin.invoice.edit', $order['hash']) }}" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
-                                                <i class="ri-edit-2-line"></i>{{ __('Edit') }}
-                                            </a>
+                                            @if($order['invoice']->status !== \App\Models\Invoice::COMPLETED)
+                                                <a href="{{ route('admin.invoice.edit', $order['hash']) }}" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
+                                                    <i class="ri-edit-2-line"></i>{{ __('Edit') }}
+                                                </a>
+                                            @endif
                                             @if(! $order['is_pickup'])
                                                 <a href="{{ route('admin.invoice.shipping-label', $order['hash']) }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
                                                     <i class="ri-printer-line"></i>{{ __('Shipping label') }}

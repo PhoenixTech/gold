@@ -269,7 +269,7 @@
                         <tbody>
                         @foreach($recentSales as $invoice)
                             <tr>
-                                <td><a href="{{ route('admin.invoice.edit', $invoice) }}">#{{ $invoice->hash }}</a></td>
+                                <td><a href="{{ route($invoice->status === \App\Models\Invoice::COMPLETED ? 'admin.invoice.show' : 'admin.invoice.edit', $invoice) }}">#{{ $invoice->hash }}</a></td>
                                 <td>{{ $invoice->customer?->name ?? '—' }}</td>
                                 <td>{{ \App\Models\Invoice::formatPersianDateTime($invoice->created_at) }}</td>
                                 <td>{{ number_format((int) $invoice->total_price) }} {{ config('app.currency.symbol') }}</td>

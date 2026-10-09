@@ -278,8 +278,13 @@
                                     @endif
                                     @foreach($cols as $k => $col)
                                         <td>
-                                            @if($k == 0 && hasRoute('edit'))
-                                                <a href="{{getRoute('edit',$item->{$item->getRouteKeyName()})}}" class="text-decoration-none">
+                                            @if($k == 0 && (hasRoute('edit') || hasRoute('show')))
+                                                @php
+                                                    $rowRoute = ($item instanceof \App\Models\Invoice && $item->status === \App\Models\Invoice::COMPLETED && hasRoute('show'))
+                                                        ? getRoute('show', $item->{$item->getRouteKeyName()})
+                                                        : (hasRoute('edit') ? getRoute('edit', $item->{$item->getRouteKeyName()}) : getRoute('show', $item->{$item->getRouteKeyName()}));
+                                                @endphp
+                                                <a href="{{$rowRoute}}" class="text-decoration-none">
                                                     <b>@include('admin.templates.partials.table-cell', ['item' => $item, 'col' => $col])</b>
                                                 </a>
                                             @else

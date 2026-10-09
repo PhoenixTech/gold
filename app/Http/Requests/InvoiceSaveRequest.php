@@ -62,6 +62,15 @@ class InvoiceSaveRequest extends FormRequest
                 return;
             }
 
+            if ($invoice->status === Invoice::COMPLETED) {
+                $validator->errors()->add(
+                    'status',
+                    __('Completed invoices cannot be edited.')
+                );
+
+                return;
+            }
+
             $status = $this->input('status');
 
             if ($status === Invoice::READY_FOR_PICKUP && ! $invoice->isPickup()) {
@@ -117,5 +126,15 @@ class InvoiceSaveRequest extends FormRequest
         } catch (ModelNotFoundException) {
             return null;
         }
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        $invoice = $this->invoiceFromRoute();
+        if ($invoice && $invoice->status === Invoice::COMPLETED) {
+            return route('admin.invoice.show', $invoice);
+        }
+
+        return parent::getRedirectUrl();
     }
 }

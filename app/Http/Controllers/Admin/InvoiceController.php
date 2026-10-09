@@ -140,7 +140,12 @@ class InvoiceController extends Controller
                 'closed' => fn () => Invoice::query()->whereIn('status', [Invoice::CANCELED, Invoice::FAILED])->count(),
             ])
             ->buttons([
-                'edit' => ['title' => 'Edit', 'class' => 'btn-outline-primary', 'icon' => 'ri-edit-2-line'],
+                'edit' => [
+                    'title' => 'Edit',
+                    'class' => 'btn-outline-primary',
+                    'icon' => 'ri-edit-2-line',
+                    'can' => fn (Invoice $item): bool => $item->status !== Invoice::COMPLETED,
+                ],
                 'show' => ['title' => 'Detail', 'class' => 'btn-outline-secondary', 'icon' => 'ri-eye-line'],
                 'print' => [
                     'title' => 'Print',
@@ -279,9 +284,16 @@ class InvoiceController extends Controller
         return view('admin.invoices.invoice-list', $tableData);
     }
 
-    public function edit(Invoice|string|int $item): View
+    public function edit(Invoice|string|int $item): View|RedirectResponse
     {
         $invoice = $this->resolveInvoice($item);
+
+        if ($invoice->status === Invoice::COMPLETED) {
+            return redirect()
+                ->route('admin.invoice.show', $invoice)
+                ->with(['message' => __('Completed invoices cannot be edited.')]);
+        }
+
         $invoice->loadMissing([
             'customer.addresses',
             'orders.product',
@@ -309,6 +321,12 @@ class InvoiceController extends Controller
     {
         $invoice = $this->resolveInvoice($item);
 
+        if ($invoice->status === Invoice::COMPLETED) {
+            return redirect()
+                ->route('admin.invoice.show', $invoice)
+                ->withErrors(__('Completed invoices cannot be edited.'));
+        }
+
         $courier = $request->filled('courier_id')
             ? User::query()->couriers()->find($request->input('courier_id'))
             : null;
@@ -317,7 +335,9 @@ class InvoiceController extends Controller
 
         logAdmin(__METHOD__, Invoice::class, $invoice->id);
 
-        return $this->respondAfterSave($request, $invoice, __('As you wished updated successfully'), 'admin.invoice.edit');
+        $targetRoute = $invoice->fresh()->status === Invoice::COMPLETED ? 'admin.invoice.show' : 'admin.invoice.edit';
+
+        return $this->respondAfterSave($request, $invoice, __('As you wished updated successfully'), $targetRoute);
     }
 
     public function destroy(Invoice|string|int $item): RedirectResponse

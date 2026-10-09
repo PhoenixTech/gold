@@ -178,8 +178,11 @@ class AdminInvoiceDeliveryTest extends TestCase
         $readyEdit->assertDontSee(__('Mark ready for pickup'));
 
         $this->post(route('admin.invoice.update', $invoice), ['status' => Invoice::COMPLETED])
-            ->assertRedirect(route('admin.invoice.edit', $invoice));
+            ->assertRedirect(route('admin.invoice.show', $invoice));
         $this->assertSame(Invoice::COMPLETED, $invoice->fresh()->status);
+
+        $this->get(route('admin.invoice.edit', $invoice))
+            ->assertRedirect(route('admin.invoice.show', $invoice));
     }
 
     public function test_admin_cannot_change_fulfillment_method_after_checkout(): void

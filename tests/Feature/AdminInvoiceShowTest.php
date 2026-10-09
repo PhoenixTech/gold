@@ -379,4 +379,41 @@ class AdminInvoiceShowTest extends TestCase
         $response->assertOk();
         $response->assertDontSee(__('Print invoice'));
     }
+
+    public function test_admin_invoice_show_print_button_links_to_print_page(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        $this->actingAsAdmin();
+
+        $invoice = $this->createSampleInvoice();
+
+        $response = $this->get(route('admin.invoice.show', $invoice->hash));
+
+        $response->assertOk();
+        $response->assertSee(route('admin.invoice.print', $invoice));
+    }
+
+    public function test_completed_invoice_hides_edit_button_and_redirects_edit_to_show(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        $this->actingAsAdmin();
+
+        $invoice = $this->createSampleInvoice();
+        $invoice->status = Invoice::COMPLETED;
+        $invoice->save();
+
+        $showResponse = $this->get(route('admin.invoice.show', $invoice->hash));
+        $showResponse->assertOk();
+        $showResponse->assertDontSee(route('admin.invoice.edit', $invoice));
+
+        $editResponse = $this->get(route('admin.invoice.edit', $invoice->hash));
+        $editResponse->assertRedirect(route('admin.invoice.show', $invoice));
+
+        $updateResponse = $this->post(route('admin.invoice.update', $invoice->hash), [
+            'status' => Invoice::PROCESSING,
+        ]);
+        $updateResponse->assertRedirect(route('admin.invoice.show', $invoice));
+    }
 }

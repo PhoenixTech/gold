@@ -47,20 +47,31 @@
                 <span class="text-muted">|</span>
                 <span class="fw-bold fs-6 text-dark">{{ __("Invoice") }} #{{ $invoice->hash }}</span>
                 <span class="{{ $invoice->statusBadgeClass() }}">{{ $invoice->statusLabel() }}</span>
+                @if($invoice->isManual())
+                    <span class="badge bg-dark-subtle text-dark-emphasis border border-dark-subtle fs-12 px-2.5 py-1.5 d-inline-flex align-items-center gap-1">
+                        <i class="ri-store-2-line"></i>
+                        <span>{{ __('Shop sale') }}</span>
+                    </span>
+                    @if($invoice->createdBy)
+                        <span class="text-muted fs-12">{{ __('Created by') }}: <strong class="text-dark">{{ $invoice->createdBy->name }}</strong></span>
+                    @endif
+                @endif
             </div>
 
             <div class="d-flex align-items-center gap-2 flex-wrap">
                 @if($invoice->canPrint())
-                    <button type="button" class="btn btn-sm btn-primary d-inline-flex align-items-center gap-1 shadow-sm px-3" onclick="window.print()">
+                    <a href="{{ route('admin.invoice.print', $invoice) }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary d-inline-flex align-items-center gap-1 shadow-sm px-3">
                         <i class="ri-printer-line"></i>
                         {{ __("Print invoice") }}
-                    </button>
+                    </a>
                 @endif
 
-                <a href="{{ route('admin.invoice.edit', $invoice) }}" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
-                    <i class="ri-edit-2-line"></i>
-                    {{ __("Edit invoice") }}
-                </a>
+                @if($invoice->status !== \App\Models\Invoice::COMPLETED)
+                    <a href="{{ route('admin.invoice.edit', $invoice) }}" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
+                        <i class="ri-edit-2-line"></i>
+                        {{ __("Edit invoice") }}
+                    </a>
+                @endif
 
                 <a href="{{ route('client.invoice', $invoice->hash) }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" title="{{ __('Open Customer View') }}">
                     <i class="ri-external-link-line"></i>
