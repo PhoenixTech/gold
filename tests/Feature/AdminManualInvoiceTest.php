@@ -748,4 +748,43 @@ class AdminManualInvoiceTest extends TestCase
 
         $this->assertSame('09121230011', session(ManualInvoiceDraft::SESSION_KEY)['customer']['mobile']);
     }
+
+    public function test_in_person_sales_list_action_buttons_link_to_correct_invoice_routes(): void
+    {
+        $this->withoutVite();
+        $this->actingAsAdmin();
+
+        $manual = Invoice::factory()->manual()->create([
+            'status' => Invoice::PAID,
+        ]);
+        $completedManual = Invoice::factory()->manual()->create([
+            'status' => Invoice::COMPLETED,
+        ]);
+
+        $response = $this->get(route('admin.shop-invoice.index'));
+
+        $response->assertOk();
+        $response->assertSee(route('admin.invoice.edit', $manual), false);
+        $response->assertSee(route('admin.invoice.show', $manual), false);
+        $response->assertSee(route('admin.invoice.print', $manual), false);
+        $response->assertSee(route('admin.invoice.destroy', $manual), false);
+        $response->assertSee(route('admin.invoice.show', $completedManual), false);
+    }
+
+    public function test_in_person_sales_trashed_list_restore_button_links_to_invoice_restore(): void
+    {
+        $this->withoutVite();
+        $this->actingAsAdmin();
+
+        $manual = Invoice::factory()->manual()->create([
+            'deleted_at' => now(),
+        ]);
+
+        $response = $this->get(route('admin.shop-invoice.trashed'));
+
+        $response->assertOk();
+        $response->assertSee(route('admin.invoice.restore', $manual), false);
+    }
 }
+
+

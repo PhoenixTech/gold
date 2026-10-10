@@ -278,11 +278,17 @@
                                     @endif
                                     @foreach($cols as $k => $col)
                                         <td>
-                                            @if($k == 0 && (hasRoute('edit') || hasRoute('show')))
+                                            @php
+                                                $canRowEdit = isset($buttons['edit']['route']) ? Route::has($buttons['edit']['route']) : hasRoute('edit');
+                                                $canRowShow = isset($buttons['show']['route']) ? Route::has($buttons['show']['route']) : hasRoute('show');
+                                            @endphp
+                                            @if($k == 0 && ($canRowEdit || $canRowShow))
                                                 @php
-                                                    $rowRoute = ($item instanceof \App\Models\Invoice && $item->status === \App\Models\Invoice::COMPLETED && hasRoute('show'))
-                                                        ? getRoute('show', $item->{$item->getRouteKeyName()})
-                                                        : (hasRoute('edit') ? getRoute('edit', $item->{$item->getRouteKeyName()}) : getRoute('show', $item->{$item->getRouteKeyName()}));
+                                                    $editUrl = isset($buttons['edit']['route']) ? route($buttons['edit']['route'], $item->{$item->getRouteKeyName()}) : getRoute('edit', $item->{$item->getRouteKeyName()});
+                                                    $showUrl = isset($buttons['show']['route']) ? route($buttons['show']['route'], $item->{$item->getRouteKeyName()}) : getRoute('show', $item->{$item->getRouteKeyName()});
+                                                    $rowRoute = ($item instanceof \App\Models\Invoice && $item->status === \App\Models\Invoice::COMPLETED && $canRowShow)
+                                                        ? $showUrl
+                                                        : ($canRowEdit ? $editUrl : $showUrl);
                                                 @endphp
                                                 <a href="{{$rowRoute}}" class="text-decoration-none">
                                                     <b>@include('admin.templates.partials.table-cell', ['item' => $item, 'col' => $col])</b>
@@ -293,17 +299,20 @@
                                         </td>
                                     @endforeach
 
-                                    {{--                                    @yield('table-body')--}}
                                     <td>
 
-                                        @if(strpos(request()->url(),'trashed') != false && hasRoute('restore'))
-                                            <a href="{{getRoute('restore',$item->{$item->getRouteKeyName()})}}"
+                                        @php
+                                            $canRestore = isset($buttons['restore']['route']) ? Route::has($buttons['restore']['route']) : hasRoute('restore');
+                                            $restoreUrl = isset($buttons['restore']['route']) ? route($buttons['restore']['route'], $item->{$item->getRouteKeyName()}) : getRoute('restore', $item->{$item->getRouteKeyName()});
+                                        @endphp
+                                        @if(strpos(request()->url(),'trashed') != false && $canRestore)
+                                            <a href="{{$restoreUrl}}"
                                                class="btn btn-success btn-sm mx-1 d-xl-none d-xxl-none"
                                                data-bs-toggle="tooltip"
                                                data-bs-placement="top"
                                                data-bs-custom-class="custom-tooltip"
                                                data-bs-title="{{__("Restore")}}">
-                                                <i class="ri-recycle-line"></i>
+                                                <i class="ri-refresh-line"></i>
                                             </a>
                                         @else
 
@@ -340,7 +349,7 @@
                                                 @endif
 
                                                 @if(strpos($btnData['class'],'delete') == false )
-                                                    @if(strpos(request()->url(),'trashed') == false)
+                                                    @if(strpos(request()->url(),'trashed') == false || $btn === 'restore')
 
                                                          @php
                                                              $btnUrl = isset($btnData['route']) ? route($btnData['route'], $item->{$item->getRouteKeyName()}) : getRoute($btn,$item->{$item->getRouteKeyName()});
@@ -355,16 +364,20 @@
                                                          </a>
                                                      @endif
                                                  @else
-                                                     @if( hasRoute('restore') && $item->trashed())
+                                                     @php
+                                                         $canRestore = isset($buttons['restore']['route']) ? Route::has($buttons['restore']['route']) : hasRoute('restore');
+                                                         $restoreIdUrl = isset($buttons['restore']['route']) ? route($buttons['restore']['route'], $item->id) : getRoute('restore', $item->id);
+                                                     @endphp
+                                                     @if( $canRestore && $item->trashed())
                                                          <a class="btn btn-success btn-sm mx-1"
-                                                            href="{{getRoute('restore',$item->id)}}"
-                                                            {{--dont change this id to getRouteKeyName --}}
+                                                            href="{{$restoreIdUrl}}"
                                                             data-bs-toggle="tooltip"
                                                             data-bs-placement="top"
                                                             data-bs-custom-class="custom-tooltip"
                                                             data-bs-title="{{__("Restore")}}">
-                                                             <i class="ri-recycle-line"></i>
+                                                             <i class="ri-refresh-line"></i>
                                                          </a>
+
                                                      @else
                                                          @php
                                                              $btnUrl = isset($btnData['route']) ? route($btnData['route'], $item->{$item->getRouteKeyName()}) : getRoute($btn,$item->{$item->getRouteKeyName()});

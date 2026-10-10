@@ -167,16 +167,28 @@ class InvoiceController extends Controller
                     'title' => 'Edit',
                     'class' => 'btn-outline-primary',
                     'icon' => 'ri-edit-2-line',
+                    'route' => 'admin.invoice.edit',
                     'can' => fn (Invoice $item): bool => $item->status !== Invoice::COMPLETED,
                 ],
-                'show' => ['title' => 'Detail', 'class' => 'btn-outline-secondary', 'icon' => 'ri-eye-line'],
+                'show' => [
+                    'title' => 'Detail',
+                    'class' => 'btn-outline-secondary',
+                    'icon' => 'ri-eye-line',
+                    'route' => 'admin.invoice.show',
+                ],
                 'print' => [
                     'title' => 'Print',
                     'class' => 'btn-outline-secondary',
                     'icon' => 'ri-printer-line',
+                    'route' => 'admin.invoice.print',
                     'can' => fn (Invoice $item): bool => $item->canPrint(),
                 ],
-                'destroy' => ['title' => 'Remove', 'class' => 'btn-outline-danger delete-confirm', 'icon' => 'ri-delete-bin-line'],
+                'destroy' => [
+                    'title' => 'Remove',
+                    'class' => 'btn-outline-danger delete-confirm',
+                    'icon' => 'ri-delete-bin-line',
+                    'route' => 'admin.invoice.destroy',
+                ],
             ])
             ->build($request);
 
@@ -312,7 +324,12 @@ class InvoiceController extends Controller
             ->withCustomSort(fn (Builder $q, ?string $sort, string $sortType) => $this->sortInvoices($q, $sort, $sortType))
             ->withoutStatusCounts()
             ->buttons([
-                'restore' => ['title' => 'Restore', 'class' => 'btn-outline-success', 'icon' => 'ri-refresh-line'],
+                'restore' => [
+                    'title' => 'Restore',
+                    'class' => 'btn-outline-success',
+                    'icon' => 'ri-refresh-line',
+                    'route' => 'admin.invoice.restore',
+                ],
             ])
             ->build($request);
 
