@@ -40,9 +40,9 @@
         {{-- Screen-Only Action & Navigation Bar --}}
         <div class="no-print admin-invoice-actionbar mb-3 p-3 bg-white border rounded-3 shadow-sm d-flex flex-wrap align-items-center justify-content-between gap-3">
             <div class="d-flex align-items-center gap-2 flex-wrap">
-                <a href="{{ route('admin.invoice.index') }}" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
+                <a href="{{ route($invoice->isManual() ? 'admin.shop-invoice.index' : 'admin.invoice.index') }}" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
                     <i class="ri-arrow-right-line"></i>
-                    {{ __("Invoices list") }}
+                    {{ $invoice->isManual() ? __('In-person sales') : __('Website sales') }}
                 </a>
                 <span class="text-muted">|</span>
                 <span class="fw-bold fs-6 text-dark">{{ __("Invoice") }} #{{ $invoice->hash }}</span>

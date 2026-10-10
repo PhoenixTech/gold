@@ -40,9 +40,9 @@
                 <i class="ri-store-2-line text-primary"></i>
                 {{ __('New shop invoice') }}
             </h4>
-            <a href="{{ route('admin.invoice.index') }}" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
+            <a href="{{ route('admin.shop-invoice.index') }}" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
                 <i class="ri-arrow-right-line"></i>
-                <span>{{ __('Back to invoices') }}</span>
+                <span>{{ __('In-person sales') }}</span>
             </a>
         </div>
 
@@ -56,7 +56,7 @@
                     <li class="d-flex align-items-center gap-2 {{ $index < count($stepKeys) - 1 ? 'flex-grow-1' : '' }}" @if($state === 'current') aria-current="step" @endif>
                         @if($state === 'done')
                             @if(! $isComplete)
-                                <a href="{{ route('admin.invoice.create', ['step' => $key]) }}" class="d-flex align-items-center gap-2 text-decoration-none">
+                                <a href="{{ route('admin.shop-invoice.create', ['step' => $key]) }}" class="d-flex align-items-center gap-2 text-decoration-none">
                             @else
                                 <div class="d-flex align-items-center gap-2">
                             @endif
@@ -166,7 +166,7 @@
                             </div>
 
                             @if($hasDraft)
-                                <form method="POST" action="{{ route('admin.invoice.store') }}" class="mt-3" data-confirm="{{ __('Discard this sale? Nothing has been saved yet.') }}">
+                                <form method="POST" action="{{ route('admin.shop-invoice.store') }}" class="mt-3" data-confirm="{{ __('Discard this sale? Nothing has been saved yet.') }}">
                                     @csrf
                                     <input type="hidden" name="step" value="cancel">
                                     <button type="submit" class="btn btn-sm btn-outline-danger w-100 d-inline-flex align-items-center justify-content-center gap-1">

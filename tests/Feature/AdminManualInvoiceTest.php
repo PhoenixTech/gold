@@ -80,22 +80,22 @@ class AdminManualInvoiceTest extends TestCase
 
     private function step(array $data): TestResponse
     {
-        return $this->post(route('admin.invoice.store'), $data);
+        return $this->post(route('admin.shop-invoice.store'), $data);
     }
 
     private function startWithCustomer(string $mobile = '09121230001', string $name = 'مشتری حضوری'): void
     {
         $this->step(['step' => 'customer', 'mobile' => $mobile, 'name' => $name])
-            ->assertRedirect(route('admin.invoice.create', ['step' => 'items']));
+            ->assertRedirect(route('admin.shop-invoice.create', ['step' => 'items']));
     }
 
     private function addPiece(Quantity $piece): void
     {
         $this->step(['step' => 'items', 'action' => 'add', 'quantity_ids' => [$piece->id]])
-            ->assertRedirect(route('admin.invoice.create', ['step' => 'items']));
+            ->assertRedirect(route('admin.shop-invoice.create', ['step' => 'items']));
     }
 
-    public function test_invoice_list_offers_create_button_and_source_filter(): void
+    public function test_website_sales_list_has_no_create_button_or_source_filter(): void
     {
         $this->withoutVite();
         $this->actingAsAdmin();
@@ -103,8 +103,43 @@ class AdminManualInvoiceTest extends TestCase
         $response = $this->get(route('admin.invoice.index'));
 
         $response->assertOk();
-        $response->assertSee(route('admin.invoice.create'), false);
-        $response->assertSee('name="filter[source]"', false);
+        $response->assertDontSee(route('admin.shop-invoice.create'), false);
+        $response->assertDontSee('name="filter[source]"', false);
+        $response->assertSee(__('Website sales'), false);
+    }
+
+    public function test_in_person_sales_list_offers_create_button_and_filters_manual_invoices_only(): void
+    {
+        $this->withoutVite();
+        $this->actingAsAdmin();
+
+        $checkout = Invoice::factory()->paid()->create();
+        $manual = Invoice::factory()->manual()->paid()->create();
+
+        $shopList = $this->get(route('admin.shop-invoice.index'));
+        $shopList->assertOk();
+        $shopList->assertDontSee(__('Waiting receipt'), false);
+        $shopList->assertDontSee('name="filter[status]"', false);
+        $shopList->assertSee(route('admin.shop-invoice.create'), false);
+        $shopList->assertSee($manual->hash, false);
+        $shopList->assertDontSee($checkout->hash, false);
+        $this->assertSame([$manual->id], $shopList->viewData('items')->pluck('id')->all());
+
+        $websiteList = $this->get(route('admin.invoice.index'));
+        $websiteList->assertOk();
+        $websiteList->assertSee($checkout->hash, false);
+        $websiteList->assertDontSee($manual->hash, false);
+        $this->assertSame([$checkout->id], $websiteList->viewData('items')->pluck('id')->all());
+    }
+
+    public function test_manual_invoice_routes_are_not_registered_under_website_invoices(): void
+    {
+        $this->actingAsAdmin();
+
+        $this->assertFalse(\Illuminate\Support\Facades\Route::has('admin.invoice.create'));
+        $this->assertFalse(\Illuminate\Support\Facades\Route::has('admin.invoice.store'));
+        $this->assertTrue(\Illuminate\Support\Facades\Route::has('admin.shop-invoice.create'));
+        $this->assertTrue(\Illuminate\Support\Facades\Route::has('admin.shop-invoice.store'));
     }
 
     public function test_create_page_starts_at_the_customer_step(): void
@@ -112,7 +147,7 @@ class AdminManualInvoiceTest extends TestCase
         $this->withoutVite();
         $this->actingAsAdmin();
 
-        $response = $this->get(route('admin.invoice.create'));
+        $response = $this->get(route('admin.shop-invoice.create'));
 
         $response->assertOk();
         $response->assertSee('name="mobile"', false);
@@ -124,18 +159,18 @@ class AdminManualInvoiceTest extends TestCase
         $this->withoutVite();
         $this->actingAsAdmin();
 
-        $this->get(route('admin.invoice.create', ['step' => 'items']))
-            ->assertRedirect(route('admin.invoice.create'));
-        $this->get(route('admin.invoice.create', ['step' => 'review']))
-            ->assertRedirect(route('admin.invoice.create'));
+        $this->get(route('admin.shop-invoice.create', ['step' => 'items']))
+            ->assertRedirect(route('admin.shop-invoice.create'));
+        $this->get(route('admin.shop-invoice.create', ['step' => 'review']))
+            ->assertRedirect(route('admin.shop-invoice.create'));
 
         $this->startWithCustomer();
 
-        $this->get(route('admin.invoice.create', ['step' => 'payment']))
-            ->assertRedirect(route('admin.invoice.create', ['step' => 'items']));
+        $this->get(route('admin.shop-invoice.create', ['step' => 'payment']))
+            ->assertRedirect(route('admin.shop-invoice.create', ['step' => 'items']));
 
         $this->step(['step' => 'review'])
-            ->assertRedirect(route('admin.invoice.create', ['step' => 'items']));
+            ->assertRedirect(route('admin.shop-invoice.create', ['step' => 'items']));
 
         $this->assertSame(0, Invoice::query()->count());
     }
@@ -183,13 +218,13 @@ class AdminManualInvoiceTest extends TestCase
             ],
             'handover' => '1',
             'note' => 'تحویل همان روز',
-        ])->assertRedirect(route('admin.invoice.create', ['step' => 'review']));
+        ])->assertRedirect(route('admin.shop-invoice.create', ['step' => 'review']));
 
         $response = $this->step(['step' => 'review']);
 
         $invoice = Invoice::query()->where('source', InvoiceSource::Manual->value)->firstOrFail();
-        $response->assertRedirect(route('admin.invoice.create', ['step' => 'complete', 'invoice' => $invoice->hash]));
-        $this->get(route('admin.invoice.create', ['step' => 'complete', 'invoice' => $invoice->hash]))
+        $response->assertRedirect(route('admin.shop-invoice.create', ['step' => 'complete', 'invoice' => $invoice->hash]));
+        $this->get(route('admin.shop-invoice.create', ['step' => 'complete', 'invoice' => $invoice->hash]))
             ->assertOk()
             ->assertSee(__('Shop invoice created successfully'))
             ->assertSee(__('Print invoice'));
@@ -216,8 +251,8 @@ class AdminManualInvoiceTest extends TestCase
         $this->assertSame($price, $invoice->receivedAmount());
         $this->assertSame(0, $invoice->remainingReceiptBalance());
 
-        $this->get(route('admin.invoice.create', ['step' => 'items']))
-            ->assertRedirect(route('admin.invoice.create'));
+        $this->get(route('admin.shop-invoice.create', ['step' => 'items']))
+            ->assertRedirect(route('admin.shop-invoice.create'));
     }
 
     public function test_pos_sale_stays_paid_until_it_is_handed_over(): void
@@ -240,7 +275,7 @@ class AdminManualInvoiceTest extends TestCase
                 ],
             ],
             'handover' => '0',
-        ])->assertRedirect(route('admin.invoice.create', ['step' => 'review']));
+        ])->assertRedirect(route('admin.shop-invoice.create', ['step' => 'review']));
         $this->step(['step' => 'review']);
 
         $invoice = Invoice::query()->where('source', InvoiceSource::Manual->value)->firstOrFail();
@@ -295,7 +330,7 @@ class AdminManualInvoiceTest extends TestCase
                 ],
             ],
             'handover' => '1',
-        ])->assertRedirect(route('admin.invoice.create', ['step' => 'review']));
+        ])->assertRedirect(route('admin.shop-invoice.create', ['step' => 'review']));
 
         $this->step(['step' => 'review']);
 
@@ -351,7 +386,7 @@ class AdminManualInvoiceTest extends TestCase
                 ],
             ],
             'handover' => '0',
-        ])->assertRedirect(route('admin.invoice.create', ['step' => 'review']));
+        ])->assertRedirect(route('admin.shop-invoice.create', ['step' => 'review']));
 
         $this->step(['step' => 'review']);
 
@@ -488,7 +523,7 @@ class AdminManualInvoiceTest extends TestCase
             'step' => 'payment',
             'payments' => [],
             'handover' => '0',
-        ])->assertRedirect(route('admin.invoice.create', ['step' => 'review']));
+        ])->assertRedirect(route('admin.shop-invoice.create', ['step' => 'review']));
 
         $this->step(['step' => 'review']);
 
@@ -549,7 +584,7 @@ class AdminManualInvoiceTest extends TestCase
         $this->step(['step' => 'review'])->assertSessionHasErrors('quantity_ids');
 
         $this->assertSame(0, Invoice::query()->where('source', InvoiceSource::Manual->value)->count());
-        $this->get(route('admin.invoice.create', ['step' => 'items']))->assertOk();
+        $this->get(route('admin.shop-invoice.create', ['step' => 'items']))->assertOk();
     }
 
     public function test_the_service_refuses_a_sale_without_a_customer_and_saves_nothing(): void
@@ -590,15 +625,15 @@ class AdminManualInvoiceTest extends TestCase
         $this->addPiece($piece);
 
         $this->step(['step' => 'cancel'])
-            ->assertRedirect(route('admin.invoice.create'));
+            ->assertRedirect(route('admin.shop-invoice.create'));
 
         $this->assertSame(0, Invoice::query()->count());
         $this->assertSame(QuantityPieceStatus::Available, $piece->fresh()->status);
-        $this->get(route('admin.invoice.create', ['step' => 'items']))
-            ->assertRedirect(route('admin.invoice.create'));
+        $this->get(route('admin.shop-invoice.create', ['step' => 'items']))
+            ->assertRedirect(route('admin.shop-invoice.create'));
     }
 
-    public function test_invoice_list_can_be_filtered_to_shop_sales(): void
+    public function test_website_sales_list_ignores_manual_source_query_filter(): void
     {
         $this->withoutVite();
         $this->actingAsAdmin();
@@ -609,8 +644,9 @@ class AdminManualInvoiceTest extends TestCase
         $response = $this->get(route('admin.invoice.index', ['filter' => ['source' => 'MANUAL']]));
 
         $response->assertOk();
-        $response->assertSee(__('Shop sale'));
-        $this->assertSame([$manual->id], $response->viewData('items')->pluck('id')->all());
+        $response->assertSee($checkout->hash, false);
+        $response->assertDontSee($manual->hash, false);
+        $this->assertSame([$checkout->id], $response->viewData('items')->pluck('id')->all());
 
         $this->assertSame(InvoiceSource::Checkout, $checkout->fresh()->source);
         $this->assertTrue($manual->fresh()->isManual());
@@ -651,24 +687,24 @@ class AdminManualInvoiceTest extends TestCase
 
         $this->startWithCustomer('09121230012', 'صفحه تست');
 
-        $this->get(route('admin.invoice.create', ['step' => 'items', 'q' => $other->code]))
+        $this->get(route('admin.shop-invoice.create', ['step' => 'items', 'q' => $other->code]))
             ->assertOk()
             ->assertSee($other->code)
             ->assertDontSee($piece->code);
 
         $this->addPiece($piece);
 
-        $this->get(route('admin.invoice.create', ['step' => 'items']))
+        $this->get(route('admin.shop-invoice.create', ['step' => 'items']))
             ->assertOk()
             ->assertSee($piece->code)
             ->assertSee(__('Selected pieces'));
 
         $this->step(['step' => 'items', 'action' => 'add', 'quantity_ids' => [$other->id], 'q' => $other->code])
-            ->assertRedirect(route('admin.invoice.create', ['step' => 'items', 'q' => $other->code]));
+            ->assertRedirect(route('admin.shop-invoice.create', ['step' => 'items', 'q' => $other->code]));
 
         $totalPrice = $this->priceOf($piece) + $this->priceOf($other);
 
-        $this->get(route('admin.invoice.create', ['step' => 'payment']))
+        $this->get(route('admin.shop-invoice.create', ['step' => 'payment']))
             ->assertOk()
             ->assertSee('value="pos"', false)
             ->assertDontSee('value="cash"', false)
@@ -685,7 +721,7 @@ class AdminManualInvoiceTest extends TestCase
             'handover' => '1',
         ]);
 
-        $this->get(route('admin.invoice.create', ['step' => 'review']))
+        $this->get(route('admin.shop-invoice.create', ['step' => 'review']))
             ->assertOk()
             ->assertSee(__('Create invoice'))
             ->assertSee($piece->code);

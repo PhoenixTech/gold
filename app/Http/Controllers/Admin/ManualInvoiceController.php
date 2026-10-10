@@ -105,7 +105,7 @@ class ManualInvoiceController extends Controller
             $this->draft->forget();
 
             return redirect()
-                ->route('admin.invoice.create')
+                ->route('admin.shop-invoice.create')
                 ->with(['message' => __('The shop sale was discarded.')]);
         }
 
@@ -138,7 +138,7 @@ class ManualInvoiceController extends Controller
         ];
         $this->draft->put($draft);
 
-        return redirect()->route('admin.invoice.create', ['step' => 'items']);
+        return redirect()->route('admin.shop-invoice.create', ['step' => 'items']);
     }
 
     private function changePieces(Request $request, array $draft): RedirectResponse
@@ -160,7 +160,7 @@ class ManualInvoiceController extends Controller
 
         $this->draft->put($draft);
 
-        return redirect()->route('admin.invoice.create', array_filter([
+        return redirect()->route('admin.shop-invoice.create', array_filter([
             'step' => 'items',
             'q' => trim((string) $request->input('q', '')),
         ]));
@@ -206,7 +206,7 @@ class ManualInvoiceController extends Controller
         $draft['note'] = trim((string) ($data['note'] ?? '')) ?: null;
         $this->draft->put($draft);
 
-        return redirect()->route('admin.invoice.create', ['step' => 'review']);
+        return redirect()->route('admin.shop-invoice.create', ['step' => 'review']);
     }
 
     private function createInvoice(Request $request, array $draft): RedirectResponse
@@ -217,7 +217,7 @@ class ManualInvoiceController extends Controller
         logAdmin(__METHOD__, Invoice::class, $invoice->id);
 
         return redirect()
-            ->route('admin.invoice.create', ['step' => 'complete', 'invoice' => $invoice->hash])
+            ->route('admin.shop-invoice.create', ['step' => 'complete', 'invoice' => $invoice->hash])
             ->with(['message' => __('Shop invoice :hash was created.', ['hash' => $invoice->hash])]);
     }
 
@@ -233,7 +233,7 @@ class ManualInvoiceController extends Controller
 
         if ($draft['customer'] === null) {
             return redirect()
-                ->route('admin.invoice.create')
+                ->route('admin.shop-invoice.create')
                 ->withErrors(__('Enter the customer details first.'));
         }
 
@@ -243,7 +243,7 @@ class ManualInvoiceController extends Controller
 
         if ($draft['quantity_ids'] === []) {
             return redirect()
-                ->route('admin.invoice.create', ['step' => 'items'])
+                ->route('admin.shop-invoice.create', ['step' => 'items'])
                 ->withErrors(__('Add at least one stock piece before continuing.'));
         }
 
@@ -253,7 +253,7 @@ class ManualInvoiceController extends Controller
 
         if (! ($draft['payment_step_completed'] ?? false)) {
             return redirect()
-                ->route('admin.invoice.create', ['step' => 'payment'])
+                ->route('admin.shop-invoice.create', ['step' => 'payment'])
                 ->withErrors(__('Complete the payment step first.'));
         }
 

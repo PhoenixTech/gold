@@ -227,11 +227,16 @@ Route::prefix(config('app.panel.prefix'))->name('admin.')->group(
                         Route::get('sort', [GroupController::class, 'sort'])->name('sort');
                     });
                 Route::get('order-board', [OrderBoardController::class, 'index'])->name('order-board.index');
+                Route::prefix('shop-invoices')->name('shop-invoice.')->group(
+                    function () {
+                        Route::get('', [InvoiceController::class, 'shopIndex'])->name('index');
+                        Route::get('create', [ManualInvoiceController::class, 'create'])->name('create');
+                        Route::post('store', [ManualInvoiceController::class, 'store'])->name('store');
+                        Route::get('trashed', [InvoiceController::class, 'shopTrashed'])->name('trashed');
+                    });
                 Route::prefix('invoices')->name('invoice.')->group(
                     function () {
                         Route::get('', [InvoiceController::class, 'index'])->name('index');
-                        Route::get('create', [ManualInvoiceController::class, 'create'])->name('create');
-                        Route::post('store', [ManualInvoiceController::class, 'store'])->name('store');
                         Route::get('edit/{item}', [InvoiceController::class, 'edit'])->name('edit');
                         Route::get('show/{item}', [InvoiceController::class, 'show'])->name('show');
                         Route::get('print/{item}', [InvoiceController::class, 'print'])->name('print');

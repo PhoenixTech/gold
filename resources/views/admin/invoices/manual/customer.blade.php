@@ -7,7 +7,7 @@
                 <i class="ri-information-line fs-5 text-info"></i>
                 <span>{{ __('You have an unfinished sale with :count pieces.', ['count' => $lines->count()]) }}</span>
             </span>
-            <a href="{{ route('admin.invoice.create', ['step' => 'items']) }}" class="btn btn-sm btn-primary">
+            <a href="{{ route('admin.shop-invoice.create', ['step' => 'items']) }}" class="btn btn-sm btn-primary">
                 {{ __('Continue the sale') }}
             </a>
         </div>
@@ -21,7 +21,7 @@
             </div>
             <p class="text-muted fs-13 mb-4">{{ __('Enter the customer mobile. If the number is already registered, that customer is used.') }}</p>
 
-            <form method="POST" action="{{ route('admin.invoice.store') }}">
+            <form method="POST" action="{{ route('admin.shop-invoice.store') }}">
                 @csrf
                 <input type="hidden" name="step" value="customer">
 

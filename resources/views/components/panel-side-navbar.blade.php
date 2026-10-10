@@ -54,9 +54,15 @@
                     @endif
                     @if(auth()->user()->hasAnyAccess('invoice'))
                         <li>
-                            <a href="{{ route('admin.invoice.index') }}" class="{{ request()->routeIs('admin.invoice.*') ? 'active' : '' }}">
+                            <a href="{{ route('admin.shop-invoice.index') }}" class="{{ request()->routeIs('admin.shop-invoice.*') ? 'active' : '' }}">
+                                <i class="ri-store-2-fill"></i>
+                                {{ __('In-person sales') }}
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('admin.invoice.index') }}" class="{{ request()->routeIs('admin.invoice.index', 'admin.invoice.trashed') ? 'active' : '' }}">
                                 <i class="ri-file-list-3-fill"></i>
-                                {{__('Invoices')}}
+                                {{ __('Website sales') }}
                             </a>
                         </li>
                     @endif

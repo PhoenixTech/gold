@@ -13,7 +13,7 @@
             </div>
             <p class="text-muted fs-13 mb-3">{{ __('Only available pieces are listed. Pieces below the purchase price are hidden.') }}</p>
 
-            <form method="GET" action="{{ route('admin.invoice.create') }}" class="mb-4">
+            <form method="GET" action="{{ route('admin.shop-invoice.create') }}" class="mb-4">
                 <input type="hidden" name="step" value="items">
                 <div class="input-group">
                     <span class="input-group-text bg-white text-muted border-end-0"><i class="ri-search-line"></i></span>
@@ -25,7 +25,7 @@
                 </div>
             </form>
 
-            <form method="POST" action="{{ route('admin.invoice.store') }}">
+            <form method="POST" action="{{ route('admin.shop-invoice.store') }}">
                 @csrf
                 <input type="hidden" name="step" value="items">
                 <input type="hidden" name="action" value="add">
@@ -129,7 +129,7 @@
                                         @endif
                                     </td>
                                     <td class="text-end">
-                                        <form method="POST" action="{{ route('admin.invoice.store') }}">
+                                        <form method="POST" action="{{ route('admin.shop-invoice.store') }}">
                                             @csrf
                                             <input type="hidden" name="step" value="items">
                                             <input type="hidden" name="action" value="remove">
@@ -160,12 +160,12 @@
     </div>
 
     <div class="d-flex justify-content-between gap-2">
-        <a href="{{ route('admin.invoice.create') }}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1">
+        <a href="{{ route('admin.shop-invoice.create') }}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1">
             <i class="ri-arrow-right-line"></i>
             <span>{{ __('Back') }}</span>
         </a>
         @if($allAvailable)
-            <a href="{{ route('admin.invoice.create', ['step' => 'payment']) }}" class="btn btn-primary px-4 d-inline-flex align-items-center gap-1.5">
+            <a href="{{ route('admin.shop-invoice.create', ['step' => 'payment']) }}" class="btn btn-primary px-4 d-inline-flex align-items-center gap-1.5">
                 <span>{{ __('Next') }}</span>
                 <i class="ri-arrow-left-line"></i>
             </a>

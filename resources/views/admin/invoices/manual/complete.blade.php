@@ -31,7 +31,7 @@
                     <i class="ri-printer-line"></i>
                     <span>{{ __('Print invoice') }}</span>
                 </a>
-                <a href="{{ route('admin.invoice.create') }}" class="btn btn-outline-primary px-3 d-inline-flex align-items-center gap-1.5">
+                <a href="{{ route('admin.shop-invoice.create') }}" class="btn btn-outline-primary px-3 d-inline-flex align-items-center gap-1.5">
                     <i class="ri-add-line"></i>
                     <span>{{ __('New invoice') }}</span>
                 </a>
@@ -46,9 +46,9 @@
                         <span>{{ __('Manage invoice') }}</span>
                     </a>
                 @endif
-                <a href="{{ route('admin.invoice.index') }}" class="btn btn-outline-secondary px-3 d-inline-flex align-items-center gap-1.5">
+                <a href="{{ route('admin.shop-invoice.index') }}" class="btn btn-outline-secondary px-3 d-inline-flex align-items-center gap-1.5">
                     <i class="ri-arrow-right-line"></i>
-                    <span>{{ __('Back to invoices') }}</span>
+                    <span>{{ __('In-person sales') }}</span>
                 </a>
             </div>
         </div>

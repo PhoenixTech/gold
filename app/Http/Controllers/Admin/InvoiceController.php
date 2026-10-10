@@ -11,6 +11,7 @@ use App\Http\Requests\ConfirmInvoicePaymentRequest;
 use App\Http\Requests\DeclineInvoicePaymentRequest;
 use App\Http\Requests\InvoiceSaveRequest;
 use App\Http\Requests\RequestReceiptReuploadRequest;
+use App\Enums\InvoiceSource;
 use App\Models\BankAccount;
 use App\Models\Invoice;
 use App\Models\Order;
@@ -75,6 +76,16 @@ class InvoiceController extends Controller
 
     public function index(Request $request, AdminTableService $tableService): View
     {
+        return $this->renderInvoiceList($request, $tableService, InvoiceSource::Checkout);
+    }
+
+    public function shopIndex(Request $request, AdminTableService $tableService): View
+    {
+        return $this->renderInvoiceList($request, $tableService, InvoiceSource::Manual);
+    }
+
+    private function renderInvoiceList(Request $request, AdminTableService $tableService, InvoiceSource $source): View
+    {
         $displayStatus = $request->input('filter.status');
         $isReceiptFilter = in_array($displayStatus, [Invoice::WAITING_RECEIPT, Invoice::WAITING_CONFIRMATION], true);
         $deliveryFilter = $request->input('filter.delivery_type');
@@ -86,6 +97,7 @@ class InvoiceController extends Controller
         // column list, which silently drops the withCount/withSum subqueries
         // that were registered before it.
         $query = Invoice::query()
+            ->where('source', $source->value)
             ->with(['customer', 'transport', 'activeDelivery.courier'])
             ->withCount('paymentReceipts')
             ->withSum('paymentReceipts as receipts_amount', 'amount')
@@ -114,13 +126,18 @@ class InvoiceController extends Controller
         if (in_array($deliveryFilter, ['address', 'pickup'], true)) {
             $query->where('delivery_type', $deliveryFilter);
         } else {
-            // Not a real column: strip it so applyFilters() never sees it.
             $filters = (array) $request->input('filter', []);
             unset($filters['delivery_type']);
             $request->merge(['filter' => $filters]);
         }
 
-        $tableData = $tableService->for($query)
+        $filters = (array) $request->input('filter', []);
+        unset($filters['source']);
+        $request->merge(['filter' => $filters]);
+
+        $isInPersonList = $source === InvoiceSource::Manual;
+
+        $tableBuilder = $tableService->for($query)
             ->columns($this->cols, $this->extraCols)
             ->selectColumns(['*'])
             ->searchable($this->searchable)
@@ -129,17 +146,23 @@ class InvoiceController extends Controller
             ])
             ->perPage($this->perPage($request))
             ->columnLabels($this->columnLabels())
-            ->withCustomSort(fn (Builder $q, ?string $sort, string $sortType) => $this->sortInvoices($q, $sort, $sortType))
-            ->withQuickCounts([
-                'waiting_receipt' => fn () => Invoice::waitingReceipt()->count(),
-                'waiting_confirmation' => fn () => Invoice::waitingConfirmation()->count(),
-                'paid' => fn () => Invoice::query()->where('status', Invoice::PAID)->count(),
-                'processing' => fn () => Invoice::query()->whereIn('status', [Invoice::PROCESSING, Invoice::READY_FOR_PICKUP])->count(),
-                'out_for_delivery' => fn () => Invoice::query()->where('status', Invoice::OUT_FOR_DELIVERY)->count(),
-                'completed' => fn () => Invoice::query()->where('status', Invoice::COMPLETED)->count(),
-                'closed' => fn () => Invoice::query()->whereIn('status', [Invoice::CANCELED, Invoice::FAILED])->count(),
-            ])
-            ->buttons([
+            ->withCustomSort(fn (Builder $q, ?string $sort, string $sortType) => $this->sortInvoices($q, $sort, $sortType));
+
+        if (! $isInPersonList) {
+            $tableBuilder->withQuickCounts([
+                'waiting_receipt' => fn () => Invoice::waitingReceipt()->where('source', $source->value)->count(),
+                'waiting_confirmation' => fn () => Invoice::waitingConfirmation()->where('source', $source->value)->count(),
+                'paid' => fn () => Invoice::query()->where('source', $source->value)->where('status', Invoice::PAID)->count(),
+                'processing' => fn () => Invoice::query()->where('source', $source->value)->whereIn('status', [Invoice::PROCESSING, Invoice::READY_FOR_PICKUP])->count(),
+                'out_for_delivery' => fn () => Invoice::query()->where('source', $source->value)->where('status', Invoice::OUT_FOR_DELIVERY)->count(),
+                'completed' => fn () => Invoice::query()->where('source', $source->value)->where('status', Invoice::COMPLETED)->count(),
+                'closed' => fn () => Invoice::query()->where('source', $source->value)->whereIn('status', [Invoice::CANCELED, Invoice::FAILED])->count(),
+            ]);
+        } else {
+            $tableBuilder->withoutStatusCounts();
+        }
+
+        $tableData = $tableBuilder->buttons([
                 'edit' => [
                     'title' => 'Edit',
                     'class' => 'btn-outline-primary',
@@ -165,7 +188,10 @@ class InvoiceController extends Controller
 
         $tableData['perPageOptions'] = [15, 30, 50, 100];
         $tableData['listTotals'] = $this->listTotals($tableData['items']);
-        $tableData['statusChips'] = $this->statusChips($tableData['quickCounts']);
+        $tableData['statusChips'] = $isInPersonList ? [] : $this->statusChips($tableData['quickCounts']);
+        $tableData['invoiceListSource'] = $source;
+        $tableData['showInvoiceStatusFilters'] = ! $isInPersonList;
+        $tableData['listTitleKey'] = $isInPersonList ? 'In-person sales' : 'Website sales';
 
         return view('admin.invoices.invoice-list', $tableData);
     }
@@ -259,7 +285,20 @@ class InvoiceController extends Controller
 
     public function trashed(Request $request, AdminTableService $tableService): View
     {
-        $query = Invoice::query()->onlyTrashed()->with(['customer', 'paymentReceipts']);
+        return $this->renderTrashedInvoiceList($request, $tableService, InvoiceSource::Checkout);
+    }
+
+    public function shopTrashed(Request $request, AdminTableService $tableService): View
+    {
+        return $this->renderTrashedInvoiceList($request, $tableService, InvoiceSource::Manual);
+    }
+
+    private function renderTrashedInvoiceList(Request $request, AdminTableService $tableService, InvoiceSource $source): View
+    {
+        $query = Invoice::query()
+            ->onlyTrashed()
+            ->where('source', $source->value)
+            ->with(['customer', 'paymentReceipts']);
 
         $tableData = $tableService->for($query)
             ->columns($this->cols, $this->extraCols)
@@ -280,6 +319,9 @@ class InvoiceController extends Controller
         $tableData['perPageOptions'] = [15, 30, 50, 100];
         $tableData['listTotals'] = null;
         $tableData['statusChips'] = [];
+        $tableData['invoiceListSource'] = $source;
+        $tableData['showInvoiceStatusFilters'] = $source !== InvoiceSource::Manual;
+        $tableData['listTitleKey'] = $source === InvoiceSource::Manual ? 'In-person sales' : 'Website sales';
 
         return view('admin.invoices.invoice-list', $tableData);
     }
