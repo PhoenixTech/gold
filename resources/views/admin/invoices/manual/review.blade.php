@@ -184,12 +184,12 @@
     </div>
 
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
-        <a href="{{ route('admin.invoice.create', ['step' => 'payment']) }}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1">
+        <a href="{{ route('admin.shop-invoice.create', ['step' => 'payment']) }}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1">
             <i class="ri-arrow-right-line"></i>
             <span>{{ __('Back') }}</span>
         </a>
 
-        <form method="POST" action="{{ route('admin.invoice.store') }}">
+        <form method="POST" action="{{ route('admin.shop-invoice.store') }}">
             @csrf
             <input type="hidden" name="step" value="review">
             <button type="submit" class="btn btn-success fw-bold px-4 py-2 shadow-sm d-inline-flex align-items-center gap-1.5" @disabled($hasUnavailable)>

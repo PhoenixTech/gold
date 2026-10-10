@@ -66,9 +66,9 @@
                 <span>{{ __('Edit invoice') }}</span>
                 <span class="badge bg-light text-dark border font-monospace fs-12">#{{ $item->hash }}</span>
             </h4>
-            <a href="{{ route('admin.invoice.index') }}" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
+            <a href="{{ route($item->isManual() ? 'admin.shop-invoice.index' : 'admin.invoice.index') }}" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
                 <i class="ri-arrow-right-line"></i>
-                <span>{{ __('Back to invoices') }}</span>
+                <span>{{ $item->isManual() ? __('In-person sales') : __('Website sales') }}</span>
             </a>
         </div>
 

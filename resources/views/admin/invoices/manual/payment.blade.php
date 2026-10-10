@@ -19,7 +19,7 @@
         $currentTime = now()->format('H:i');
     @endphp
 
-    <form method="POST" action="{{ route('admin.invoice.store') }}" enctype="multipart/form-data" id="manual-payment-form">
+    <form method="POST" action="{{ route('admin.shop-invoice.store') }}" enctype="multipart/form-data" id="manual-payment-form">
         @csrf
         <input type="hidden" name="step" value="payment">
 
@@ -171,7 +171,7 @@
         </div>
 
         <div class="d-flex justify-content-between gap-2">
-            <a href="{{ route('admin.invoice.create', ['step' => 'items']) }}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1">
+            <a href="{{ route('admin.shop-invoice.create', ['step' => 'items']) }}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1">
                 <i class="ri-arrow-right-line"></i>
                 <span>{{ __('Back') }}</span>
             </a>

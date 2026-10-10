@@ -2,7 +2,7 @@
 
 @section('list-title')
     <i class="ri-file-list-3-line"></i>
-    {{__("Invoices list")}}
+    {{ __($listTitleKey ?? 'Invoices list') }}
 @endsection
 
 @section('top-content')
@@ -36,7 +36,7 @@
 @endsection
 
 @section('title')
-    {{__("Invoices list")}} -
+    {{ __($listTitleKey ?? 'Invoices list') }} -
 @endsection
 
 @section('filter')
@@ -52,12 +52,6 @@
         <option value="">{{ __("All delivery types") }}</option>
         <option value="address" @selected(request()->input('filter.delivery_type') === 'address')>{{ __("Shipped to address") }}</option>
         <option value="pickup" @selected(request()->input('filter.delivery_type') === 'pickup')>{{ __("Store pickup") }}</option>
-    </select>
-    <select name="filter[source]" class="form-select form-select-sm w-auto">
-        <option value="">{{ __("All sources") }}</option>
-        @foreach(\App\Enums\InvoiceSource::cases() as $source)
-            <option value="{{ $source->value }}" @selected(request()->input('filter.source') === $source->value)>{{ $source->label() }}</option>
-        @endforeach
     </select>
 @endsection
 
