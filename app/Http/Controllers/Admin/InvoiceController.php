@@ -135,7 +135,9 @@ class InvoiceController extends Controller
         unset($filters['source']);
         $request->merge(['filter' => $filters]);
 
-        $tableData = $tableService->for($query)
+        $isInPersonList = $source === InvoiceSource::Manual;
+
+        $tableBuilder = $tableService->for($query)
             ->columns($this->cols, $this->extraCols)
             ->selectColumns(['*'])
             ->searchable($this->searchable)
@@ -144,8 +146,10 @@ class InvoiceController extends Controller
             ])
             ->perPage($this->perPage($request))
             ->columnLabels($this->columnLabels())
-            ->withCustomSort(fn (Builder $q, ?string $sort, string $sortType) => $this->sortInvoices($q, $sort, $sortType))
-            ->withQuickCounts([
+            ->withCustomSort(fn (Builder $q, ?string $sort, string $sortType) => $this->sortInvoices($q, $sort, $sortType));
+
+        if (! $isInPersonList) {
+            $tableBuilder->withQuickCounts([
                 'waiting_receipt' => fn () => Invoice::waitingReceipt()->where('source', $source->value)->count(),
                 'waiting_confirmation' => fn () => Invoice::waitingConfirmation()->where('source', $source->value)->count(),
                 'paid' => fn () => Invoice::query()->where('source', $source->value)->where('status', Invoice::PAID)->count(),
@@ -153,8 +157,12 @@ class InvoiceController extends Controller
                 'out_for_delivery' => fn () => Invoice::query()->where('source', $source->value)->where('status', Invoice::OUT_FOR_DELIVERY)->count(),
                 'completed' => fn () => Invoice::query()->where('source', $source->value)->where('status', Invoice::COMPLETED)->count(),
                 'closed' => fn () => Invoice::query()->where('source', $source->value)->whereIn('status', [Invoice::CANCELED, Invoice::FAILED])->count(),
-            ])
-            ->buttons([
+            ]);
+        } else {
+            $tableBuilder->withoutStatusCounts();
+        }
+
+        $tableData = $tableBuilder->buttons([
                 'edit' => [
                     'title' => 'Edit',
                     'class' => 'btn-outline-primary',
@@ -180,9 +188,10 @@ class InvoiceController extends Controller
 
         $tableData['perPageOptions'] = [15, 30, 50, 100];
         $tableData['listTotals'] = $this->listTotals($tableData['items']);
-        $tableData['statusChips'] = $this->statusChips($tableData['quickCounts']);
+        $tableData['statusChips'] = $isInPersonList ? [] : $this->statusChips($tableData['quickCounts']);
         $tableData['invoiceListSource'] = $source;
-        $tableData['listTitleKey'] = $source === InvoiceSource::Manual ? 'In-person sales' : 'Website sales';
+        $tableData['showInvoiceStatusFilters'] = ! $isInPersonList;
+        $tableData['listTitleKey'] = $isInPersonList ? 'In-person sales' : 'Website sales';
 
         return view('admin.invoices.invoice-list', $tableData);
     }
@@ -311,6 +320,7 @@ class InvoiceController extends Controller
         $tableData['listTotals'] = null;
         $tableData['statusChips'] = [];
         $tableData['invoiceListSource'] = $source;
+        $tableData['showInvoiceStatusFilters'] = $source !== InvoiceSource::Manual;
         $tableData['listTitleKey'] = $source === InvoiceSource::Manual ? 'In-person sales' : 'Website sales';
 
         return view('admin.invoices.invoice-list', $tableData);

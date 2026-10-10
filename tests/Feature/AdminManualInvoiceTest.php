@@ -118,6 +118,8 @@ class AdminManualInvoiceTest extends TestCase
 
         $shopList = $this->get(route('admin.shop-invoice.index'));
         $shopList->assertOk();
+        $shopList->assertDontSee(__('Waiting receipt'), false);
+        $shopList->assertDontSee('name="filter[status]"', false);
         $shopList->assertSee(route('admin.shop-invoice.create'), false);
         $shopList->assertSee($manual->hash, false);
         $shopList->assertDontSee($checkout->hash, false);

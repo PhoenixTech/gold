@@ -39,6 +39,7 @@
     {{ __($listTitleKey ?? 'Invoices list') }} -
 @endsection
 
+@if($showInvoiceStatusFilters ?? true)
 @section('filter')
     <select name="filter[status]" class="form-select form-select-sm w-auto">
         <option value="">{{__("All statuses")}}</option>
@@ -54,6 +55,7 @@
         <option value="pickup" @selected(request()->input('filter.delivery_type') === 'pickup')>{{ __("Store pickup") }}</option>
     </select>
 @endsection
+@endif
 
 @section('list-foot')
     @if(!empty($listTotals) && !request()->routeIs('*trashed*'))
