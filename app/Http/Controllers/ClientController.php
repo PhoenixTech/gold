@@ -132,7 +132,7 @@ class ClientController extends Controller
             $mainCategories = $this->getHomeCategoryTabs();
         }
 
-        $featuredProducts = app(FeaturedProductsService::class)->get();
+        $featuredTagGroups = app(FeaturedProductsService::class)->getTagsWithProducts();
 
         $latestPosts = Post::where('status', 1)
             ->with('mainGroup')
@@ -155,7 +155,7 @@ class ClientController extends Controller
 
         $homeCampaignSlot = $this->getHomeCampaignSlot();
 
-        return view('client.home', compact('title', 'subtitle', 'mainCategories', 'footerCategories', 'zarMenuItems', 'goldPrice', 'featuredProducts', 'latestPosts', 'introText', 'newsText')
+        return view('client.home', compact('title', 'subtitle', 'mainCategories', 'footerCategories', 'zarMenuItems', 'goldPrice', 'featuredTagGroups', 'latestPosts', 'introText', 'newsText')
             + $homeCampaignSlot);
     }
 

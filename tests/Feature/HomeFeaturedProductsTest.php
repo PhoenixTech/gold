@@ -115,6 +115,34 @@ class HomeFeaturedProductsTest extends TestCase
         $response->assertDontSee('IgnoredRing');
     }
 
+    public function test_home_section_renders_three_tag_boxes_with_labels_and_icons(): void
+    {
+        $special = $this->productTag('خاص');
+        $weight = $this->productTag('گرمی');
+        $bestseller = $this->productTag('پرفروش');
+
+        Product::factory()->create(['name' => 'DiamondRing'])->attachTag($special);
+        Product::factory()->create(['name' => 'GramBangle'])->attachTag($weight);
+        Product::factory()->create(['name' => 'HotNecklace'])->attachTag($bestseller);
+
+        $this->selectTags($special, $weight, $bestseller);
+
+        $response = $this->get(route('client.welcome'));
+
+        $response->assertOk();
+        $response->assertSee('featured-tag-box');
+        $response->assertSee('خاص');
+        $response->assertSee('گرمی');
+        $response->assertSee('پرفروش');
+        $response->assertSee('ri-vip-diamond-line');
+        $response->assertSee('ri-scales-3-line');
+        $response->assertSee('ri-fire-line');
+        $response->assertSee('id="featured-tab-0"', false);
+        $response->assertSee('id="featured-pane-0"', false);
+        $response->assertSee('aria-selected="true"', false);
+        $response->assertSee('show active');
+    }
+
     public function test_home_section_falls_back_to_the_newest_products_without_a_tag(): void
     {
         Product::factory()->create(['name' => 'NewestRing']);

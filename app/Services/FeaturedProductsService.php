@@ -43,6 +43,60 @@ class FeaturedProductsService
             ->get();
     }
 
+    public function getTagsWithProducts(?int $limitPerTag = null, ?string $settingKey = null): Collection
+    {
+        $limit = $limitPerTag ?? self::DEFAULT_LIMIT;
+        $tags = $this->tags($settingKey);
+
+        if ($tags->isEmpty()) {
+            $fallbackProducts = $this->get($limit, $settingKey);
+
+            if ($fallbackProducts->isEmpty()) {
+                return collect();
+            }
+
+            return collect([
+                [
+                    'tag' => null,
+                    'title' => __('Featured Products'),
+                    'slug' => null,
+                    'icon' => 'ri-sparkling-fill',
+                    'products' => $fallbackProducts,
+                ],
+            ]);
+        }
+
+        return $tags->map(function (Tag $tag, int $index) use ($limit) {
+            $products = Product::query()
+                ->published()
+                ->with(['category', 'availableQuantities', 'activeDiscounts', 'media'])
+                ->withAnyTags([$tag], self::TAG_TYPE)
+                ->orderByDesc('id')
+                ->take($limit)
+                ->get();
+
+            return [
+                'tag' => $tag,
+                'title' => $tag->name,
+                'slug' => $tag->slug,
+                'icon' => $this->resolveIcon($tag->name, $index),
+                'products' => $products,
+            ];
+        });
+    }
+
+    public function resolveIcon(string $name, int $index = 0): string
+    {
+        $normalized = mb_strtolower(trim($name));
+
+        return match (true) {
+            str_contains($normalized, 'خاص') => 'ri-vip-diamond-line',
+            str_contains($normalized, 'گرم') => 'ri-scales-3-line',
+            str_contains($normalized, 'پرفروش'), str_contains($normalized, 'محبوب'), str_contains($normalized, 'داغ') => 'ri-fire-line',
+            default => ['ri-sparkling-2-line', 'ri-gem-line', 'ri-price-tag-3-line'][$index % 3],
+        };
+    }
+
     /**
      * The tags selected by the admin, in the order they were picked and
      * capped to MAX_TAGS.

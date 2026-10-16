@@ -95,8 +95,11 @@
         </div>
     </section>
 
-    <!-- Featured Products Section (driven by the tags picked in settings) -->
-    @if(isset($featuredProducts) && $featuredProducts->isNotEmpty())
+    @php
+        $tagGroups = $featuredTagGroups ?? collect();
+    @endphp
+
+    @if($tagGroups->isNotEmpty() && $tagGroups->contains(fn($g) => $g['products']->isNotEmpty()))
         <section class="featured-products py-5 bg-light-subtle border-top border-bottom reveal-on-scroll">
             <div class="{{gfx()['container']}}">
                 <div class="mb-4 pb-2 border-bottom">
@@ -107,15 +110,71 @@
                     <p class="text-muted fs-14 mb-0">{{__("A curated selection of our finest gold & jewelry pieces")}}</p>
                 </div>
 
-                <div class="row g-3 g-md-4">
-                    @foreach($featuredProducts as $product)
-                        <div class="col-6 col-md-4 col-lg-3">
-                            @include('client.partials.product-card', ['product' => $product])
+                @if($tagGroups->count() > 1 || ($tagGroups->first()['tag'] ?? null) !== null)
+                    <div class="featured-tag-boxes row g-3 mb-4" role="tablist">
+                        @foreach($tagGroups as $index => $tagGroup)
+                            <div class="col-12 col-md-4">
+                                <button type="button"
+                                    class="featured-tag-box w-100 p-3 p-md-3.5 rounded-3 text-start d-flex align-items-center justify-content-between border transition-all @if($loop->first) active @endif"
+                                    id="featured-tab-{{ $index }}"
+                                    data-bs-toggle="pill"
+                                    data-bs-target="#featured-pane-{{ $index }}"
+                                    role="tab"
+                                    aria-controls="featured-pane-{{ $index }}"
+                                    aria-selected="{{ $loop->first ? 'true' : 'false' }}">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="featured-tag-icon-wrap rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
+                                            <i class="{{ $tagGroup['icon'] }} fs-20"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold fs-15 text-dark tag-box-title">{{ $tagGroup['title'] }}</div>
+                                            <div class="text-muted fs-12 mt-0.5">{{ count($tagGroup['products']) }} {{ __('Products') }}</div>
+                                        </div>
+                                    </div>
+                                    <i class="ri-arrow-left-s-line fs-20 text-muted tag-box-arrow"></i>
+                                </button>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+
+                <div class="tab-content" id="featured-tags-content">
+                    @foreach($tagGroups as $index => $tagGroup)
+                        <div class="tab-pane fade @if($loop->first) show active @endif"
+                            id="featured-pane-{{ $index }}"
+                            role="tabpanel"
+                            aria-labelledby="featured-tab-{{ $index }}">
+                            <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white">
+                                @if($tagGroup['products']->isNotEmpty())
+                                    <div class="row g-3 g-md-4">
+                                        @foreach($tagGroup['products'] as $item)
+                                            <div class="col-6 col-md-4 col-lg-3">
+                                                @include('client.partials.product-card', ['product' => $item])
+                                            </div>
+                                        @endforeach
+                                    </div>
+
+                                    @if(!empty($tagGroup['slug']))
+                                        <div class="text-center mt-4 pt-3 border-top">
+                                            <a href="{{ route('client.tag', $tagGroup['slug']) }}" class="btn btn-outline-primary rounded-pill btn-sm px-4 py-2 fw-semibold d-inline-flex align-items-center gap-1.5">
+                                                <span>{{ __('View all') }} {{ $tagGroup['title'] }}</span>
+                                                <i class="ri-arrow-left-line"></i>
+                                            </a>
+                                        </div>
+                                    @endif
+                                @else
+                                    <div class="text-center py-5 text-muted">
+                                        <i class="ri-inbox-line fs-1 d-block mb-2 text-secondary"></i>
+                                        <span>{{ __('No products found') }}</span>
+                                    </div>
+                                @endif
+                            </div>
                         </div>
                     @endforeach
                 </div>
             </div>
         </section>
+        @php unset($item, $tagGroup); @endphp
     @endif
 
     <!-- Latest News / Articles Section -->
