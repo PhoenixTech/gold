@@ -303,45 +303,44 @@
     }
 }
 
-.featured-tag-boxes {
+.featured-tags-nav {
     .featured-tag-box {
         background-color: var(--xshop-surface-0, #ffffff);
-        border: 1.5px solid rgba(0, 0, 0, 0.08) !important;
-        cursor: pointer;
-        text-align: right;
+        border: 1px solid rgba(0, 0, 0, 0.08) !important;
+        color: var(--xshop-text-main, #222222);
         transition: all 0.25s ease;
 
         .featured-tag-icon-wrap {
-            width: 44px;
-            height: 44px;
+            width: 36px;
+            height: 36px;
             background-color: rgba(202, 168, 103, 0.12);
             color: #caa867;
+            font-size: 18px;
             transition: all 0.25s ease;
+
+            @media (max-width: 575.98px) {
+                width: 30px;
+                height: 30px;
+                font-size: 15px;
+            }
         }
 
         .tag-box-title {
             color: var(--xshop-text-main, #222222);
+            font-size: 13.5px;
+            line-height: 1.25;
             transition: color 0.25s ease;
-        }
 
-        .tag-box-arrow {
-            transition: transform 0.25s ease, color 0.25s ease;
-        }
-
-        &:hover {
-            border-color: rgba(202, 168, 103, 0.45) !important;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
-
-            .tag-box-arrow {
-                transform: translateX(-4px);
-                color: #caa867 !important;
+            @media (max-width: 575.98px) {
+                font-size: 11px;
             }
         }
 
-        &.active {
+        &:hover {
             border-color: #caa867 !important;
-            background: linear-gradient(135deg, rgba(202, 168, 103, 0.08) 0%, #ffffff 100%);
-            box-shadow: 0 6px 18px rgba(202, 168, 103, 0.16);
+            background-color: rgba(202, 168, 103, 0.05);
+            box-shadow: 0 4px 12px rgba(202, 168, 103, 0.15);
+            transform: translateY(-2px);
 
             .featured-tag-icon-wrap {
                 background-color: #caa867;
@@ -350,11 +349,6 @@
 
             .tag-box-title {
                 color: #caa867;
-            }
-
-            .tag-box-arrow {
-                color: #caa867 !important;
-                transform: translateX(-4px);
             }
         }
     }

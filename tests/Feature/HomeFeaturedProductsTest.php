@@ -52,69 +52,6 @@ class HomeFeaturedProductsTest extends TestCase
         );
     }
 
-    public function test_home_section_shows_only_products_carrying_the_selected_tags(): void
-    {
-        $tagged = Product::factory()->create(['name' => 'TaggedRing', 'category_id' => Category::factory()]);
-        $alsoTagged = Product::factory()->create(['name' => 'SecondTaggedRing']);
-        $untagged = Product::factory()->create(['name' => 'PlainRing']);
-
-        $tag = $this->productTag('Special');
-        $tagged->attachTag($tag);
-        $alsoTagged->attachTag($tag);
-
-        $this->selectTags($tag);
-
-        $response = $this->get(route('client.welcome'));
-
-        $response->assertOk();
-        $response->assertSee('TaggedRing');
-        $response->assertSee('SecondTaggedRing');
-        $response->assertDontSee('PlainRing');
-    }
-
-    public function test_home_section_ignores_unpublished_products_of_the_selected_tags(): void
-    {
-        $published = Product::factory()->create(['name' => 'PublishedRing']);
-        $draft = Product::factory()->create(['name' => 'DraftRing', 'status' => 0]);
-
-        $tag = $this->productTag('Special');
-        $published->attachTag($tag);
-        $draft->attachTag($tag);
-
-        $this->selectTags($tag);
-
-        $response = $this->get(route('client.welcome'));
-
-        $response->assertOk();
-        $response->assertSee('PublishedRing');
-        $response->assertDontSee('DraftRing');
-    }
-
-    public function test_home_section_uses_at_most_three_tags(): void
-    {
-        $first = $this->productTag('One');
-        $second = $this->productTag('Two');
-        $third = $this->productTag('Three');
-        $ignored = $this->productTag('Four');
-        $tags = [$first, $second, $third, $ignored];
-
-        $names = ['FirstRing', 'SecondRing', 'ThirdRing', 'IgnoredRing'];
-
-        foreach ($names as $index => $name) {
-            Product::factory()->create(['name' => $name])->attachTag($tags[$index]);
-        }
-
-        $this->selectTags(...$tags);
-
-        $response = $this->get(route('client.welcome'));
-
-        $response->assertOk();
-        $response->assertSee('FirstRing');
-        $response->assertSee('SecondRing');
-        $response->assertSee('ThirdRing');
-        $response->assertDontSee('IgnoredRing');
-    }
-
     public function test_home_section_renders_three_tag_boxes_with_labels_and_icons(): void
     {
         $special = $this->productTag('خاص');
@@ -131,52 +68,45 @@ class HomeFeaturedProductsTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('featured-tag-box');
-        $response->assertSee('خاص');
-        $response->assertSee('گرمی');
-        $response->assertSee('پرفروش');
+        $response->assertSee('خاص‌ترین‌ها');
+        $response->assertSee('زیر یک‌گرمی‌ها');
+        $response->assertSee('پرفروش‌ترین‌ها');
         $response->assertSee('ri-vip-diamond-line');
         $response->assertSee('ri-scales-3-line');
         $response->assertSee('ri-fire-line');
-        $response->assertSee('id="featured-tab-0"', false);
-        $response->assertSee('id="featured-pane-0"', false);
-        $response->assertSee('aria-selected="true"', false);
-        $response->assertSee('show active');
+        $response->assertSee(route('client.tag', $special->slug));
+        $response->assertSee(route('client.tag', $weight->slug));
+        $response->assertSee(route('client.tag', $bestseller->slug));
+        $response->assertDontSee('DiamondRing');
+        $response->assertDontSee('GramBangle');
+        $response->assertDontSee('HotNecklace');
     }
 
-    public function test_home_section_falls_back_to_the_newest_products_without_a_tag(): void
+    public function test_home_section_uses_at_most_three_tags(): void
     {
-        Product::factory()->create(['name' => 'NewestRing']);
-        Product::factory()->create(['name' => 'OlderRing']);
+        $first = $this->productTag('AlphaTag');
+        $second = $this->productTag('BetaTag');
+        $third = $this->productTag('GammaTag');
+        $ignored = $this->productTag('DeltaTag');
+        $tags = [$first, $second, $third, $ignored];
+
+        $this->selectTags(...$tags);
 
         $response = $this->get(route('client.welcome'));
 
         $response->assertOk();
-        $response->assertSee('NewestRing');
-        $response->assertSee('OlderRing');
+        $response->assertSee('AlphaTag');
+        $response->assertSee('BetaTag');
+        $response->assertSee('GammaTag');
+        $response->assertDontSee('DeltaTag');
     }
 
-    public function test_home_section_is_hidden_when_nothing_matches(): void
+    public function test_home_section_is_hidden_without_tags(): void
     {
-        Product::factory()->create(['name' => 'SomeRing']);
-
-        $this->selectTags($this->productTag('Unused'));
-
         $response = $this->get(route('client.welcome'));
 
         $response->assertOk();
-        $response->assertDontSee('SomeRing');
-        $response->assertDontSee('featured-products');
-    }
-
-    public function test_home_section_heading_has_no_view_all_link(): void
-    {
-        Product::factory()->create();
-
-        $response = $this->get(route('client.welcome'));
-
-        $response->assertOk();
-        $response->assertSee(__('Our Featured Products'));
-        $response->assertSee(__('A curated selection of our finest gold & jewelry pieces'));
+        $response->assertDontSee('featured-tags-nav');
     }
 
     public function test_home_navbar_shows_persian_gold_price_without_credit_tag(): void

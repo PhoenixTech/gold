@@ -43,57 +43,34 @@ class FeaturedProductsService
             ->get();
     }
 
-    public function getTagsWithProducts(?int $limitPerTag = null, ?string $settingKey = null): Collection
+    public function getTagsWithProducts(?string $settingKey = null): Collection
     {
-        $limit = $limitPerTag ?? self::DEFAULT_LIMIT;
         $tags = $this->tags($settingKey);
 
         if ($tags->isEmpty()) {
-            $fallbackProducts = $this->get($limit, $settingKey);
-
-            if ($fallbackProducts->isEmpty()) {
-                return collect();
-            }
-
-            return collect([
-                [
-                    'tag' => null,
-                    'title' => __('Featured Products'),
-                    'slug' => null,
-                    'icon' => 'ri-sparkling-fill',
-                    'products' => $fallbackProducts,
-                ],
-            ]);
+            return collect();
         }
 
-        return $tags->map(function (Tag $tag, int $index) use ($limit) {
-            $products = Product::query()
-                ->published()
-                ->with(['category', 'availableQuantities', 'activeDiscounts', 'media'])
-                ->withAnyTags([$tag], self::TAG_TYPE)
-                ->orderByDesc('id')
-                ->take($limit)
-                ->get();
+        return $tags->map(function (Tag $tag, int $index) {
+            [$title, $icon] = $this->tagMeta($tag->name, $index);
 
             return [
-                'tag' => $tag,
-                'title' => $tag->name,
-                'slug' => $tag->slug,
-                'icon' => $this->resolveIcon($tag->name, $index),
-                'products' => $products,
+                'title' => $title,
+                'icon' => $icon,
+                'url' => route('client.tag', $tag->slug),
             ];
         });
     }
 
-    public function resolveIcon(string $name, int $index = 0): string
+    public function tagMeta(string $name, int $index = 0): array
     {
         $normalized = mb_strtolower(trim($name));
 
         return match (true) {
-            str_contains($normalized, 'خاص') => 'ri-vip-diamond-line',
-            str_contains($normalized, 'گرم') => 'ri-scales-3-line',
-            str_contains($normalized, 'پرفروش'), str_contains($normalized, 'محبوب'), str_contains($normalized, 'داغ') => 'ri-fire-line',
-            default => ['ri-sparkling-2-line', 'ri-gem-line', 'ri-price-tag-3-line'][$index % 3],
+            str_contains($normalized, 'خاص') => ['خاص‌ترین‌ها', 'ri-vip-diamond-line'],
+            str_contains($normalized, 'گرم') => ['زیر یک‌گرمی‌ها', 'ri-scales-3-line'],
+            str_contains($normalized, 'پرفروش'), str_contains($normalized, 'محبوب'), str_contains($normalized, 'داغ') => ['پرفروش‌ترین‌ها', 'ri-fire-line'],
+            default => [$name, ['ri-sparkling-2-line', 'ri-gem-line', 'ri-price-tag-3-line'][$index % 3]],
         };
     }
 
