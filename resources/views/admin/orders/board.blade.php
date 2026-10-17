@@ -88,30 +88,37 @@
             <table class="table table-hover align-middle mb-0 text-center order-board-table" id="orderBoardTable">
                 <caption class="visually-hidden">{{ __('Order board') }}</caption>
                 <thead class="table-light border-bottom">
+                    <tr class="fs-13 text-dark align-middle order-board-group-row">
+                        <th colspan="3" class="py-2 text-center fw-bold border-group-end d-none d-xl-table-cell">{{ __('Customer') }}</th>
+                        <th colspan="2" class="py-2 text-center fw-bold border-group-end d-xl-none">{{ __('Customer') }}</th>
+                        <th colspan="2" class="py-2 text-center fw-bold border-group-end">{{ __('Order') }}</th>
+                        <th colspan="2" class="py-2 text-center fw-bold border-group-end">{{ __('Confirmation') }}</th>
+                        <th colspan="2" class="py-2 text-center fw-bold border-group-end">{{ __('Delivery') }}</th>
+                    </tr>
                     <tr class="fs-13 text-dark align-middle">
-                        <th style="width: 60px;" class="py-3">
+                        <th style="width: 60px;" class="py-2">
                             <span class="d-inline-flex align-items-center gap-1">{{ __('#') }}</span>
                         </th>
-                        <th style="min-width: 130px;" class="py-3 text-start" title="{{ __('Click phone icon in any row to expand details') }}">
+                        <th style="min-width: 130px;" class="py-2 text-start border-group-end-md" title="{{ __('Click phone icon in any row to expand details') }}">
                             <span class="d-inline-flex align-items-center gap-1">{{ __('Customer') }}<i class="ri-phone-line text-muted fs-14"></i></span>
                         </th>
-                        <th class="py-3 d-none d-xl-table-cell">{{ __('Area / fulfillment') }}</th>
-                        <th style="min-width: 150px;" class="py-3 cursor-pointer sort-header" data-sort="date" aria-sort="none">
+                        <th class="py-2 d-none d-xl-table-cell border-group-end">{{ __('Area / fulfillment') }}</th>
+                        <th style="min-width: 150px;" class="py-2 cursor-pointer sort-header" data-sort="date" aria-sort="none">
                             <span class="d-inline-flex align-items-center gap-1">{{ __('Order & Date') }}<i class="ri-arrow-up-down-line text-muted fs-11"></i></span>
                         </th>
-                        <th style="min-width: 120px;" class="py-3 cursor-pointer sort-header" data-sort="payment" aria-sort="none" title="{{ __('Click to prioritize unpaid orders') }}">
+                        <th style="min-width: 120px;" class="py-2 cursor-pointer sort-header border-group-end" data-sort="payment" aria-sort="none" title="{{ __('Click to prioritize unpaid orders') }}">
                             <span class="d-inline-flex align-items-center gap-1">{{ __('Payment') }}<i class="ri-arrow-up-down-line text-muted fs-11"></i></span>
                         </th>
-                        <th style="min-width: 130px;" class="py-3 cursor-pointer sort-header" data-sort="confirm" aria-sort="none" title="{{ __('Click to prioritize pending confirmation') }}">
+                        <th style="min-width: 130px;" class="py-2 cursor-pointer sort-header" data-sort="confirm" aria-sort="none" title="{{ __('Click to prioritize pending confirmation') }}">
                             <span class="d-inline-flex align-items-center gap-1">{{ __('Payment confirmation') }}<i class="ri-arrow-up-down-line text-muted fs-11"></i></span>
                         </th>
-                        <th style="min-width: 120px;" class="py-3 cursor-pointer sort-header" data-sort="settle" aria-sort="none" title="{{ __('Click to prioritize unsettled orders') }}">
+                        <th style="min-width: 120px;" class="py-2 cursor-pointer sort-header border-group-end" data-sort="settle" aria-sort="none" title="{{ __('Click to prioritize unsettled orders') }}">
                             <span class="d-inline-flex align-items-center gap-1">{{ __('Settlement') }}<i class="ri-arrow-up-down-line text-muted fs-11"></i></span>
                         </th>
-                        <th style="min-width: 130px;" class="py-3 cursor-pointer sort-header" data-sort="courier" aria-sort="none" title="{{ __('Click to prioritize fulfillment') }}">
+                        <th style="min-width: 130px;" class="py-2 cursor-pointer sort-header" data-sort="courier" aria-sort="none" title="{{ __('Click to prioritize fulfillment') }}">
                             <span class="d-inline-flex align-items-center gap-1">{{ __('Fulfillment') }}<i class="ri-arrow-up-down-line text-muted fs-11"></i></span>
                         </th>
-                        <th style="min-width: 145px;" class="py-3 cursor-pointer sort-header" data-sort="delivery" aria-sort="none" title="{{ __('Click to prioritize pending handover') }}">
+                        <th style="min-width: 145px;" class="py-2 cursor-pointer sort-header border-group-end" data-sort="delivery" aria-sort="none" title="{{ __('Click to prioritize pending handover') }}">
                             <span class="d-inline-flex align-items-center gap-1">{{ __('Delivery / collection') }}<i class="ri-arrow-up-down-line text-muted fs-11"></i></span>
                         </th>
                     </tr>
@@ -131,7 +138,7 @@
                             <td class="fw-bold font-monospace text-muted fs-13">{{ $loop->iteration }}</td>
 
                             {{-- 2. Phone Toggle Button --}}
-                            <td class="text-start">
+                            <td class="text-start border-group-end-md">
                                 <div class="d-inline-flex align-items-center gap-1.5">
                                     <button type="button" class="btn btn-sm btn-light border border-secondary-subtle text-primary p-1 rounded phone-toggle-btn flex-shrink-0"
                                             data-target="#subrow-{{ $order['id'] }}" data-stage="contact"
@@ -149,7 +156,7 @@
                             </td>
 
                             {{-- 3. Province (wide screens only) --}}
-                            <td class="fs-13 fw-semibold text-dark d-none d-xl-table-cell">{{ $order['province'] }}</td>
+                            <td class="fs-13 fw-semibold text-dark d-none d-xl-table-cell border-group-end">{{ $order['province'] }}</td>
 
                             {{-- 4. Order Code & Date --}}
                             <td class="text-start px-3">
@@ -177,7 +184,7 @@
                                         default => 'bg-warning-subtle text-warning-emphasis border border-warning-subtle',
                                     };
                                 @endphp
-                                <td>
+                                <td class="{{ in_array($key, ['payment', 'settle', 'delivery']) ? 'border-group-end' : '' }}">
                                     <button type="button"
                                             class="stage-toggle-btn w-100 border-0 p-0 bg-transparent"
                                             data-target="#subrow-{{ $order['id'] }}"
@@ -594,13 +601,35 @@
         @endif
     </div>
 </div>
+@endsection
 
+@section('js-content')
 <style>
+    .order-board-table {
+        --board-divider-color: #0d6efd;
+    }
     .order-board-table thead th {
         position: sticky;
         top: 0;
         z-index: 2;
         background-color: var(--bs-table-bg, #f8f9fa);
+    }
+    .order-board-table thead tr:first-child th {
+        z-index: 4;
+    }
+    .order-board-table thead tr:last-child th {
+        top: 2.35rem;
+        z-index: 3;
+    }
+    .order-board-table .border-group-end {
+        border-left: 3px solid var(--board-divider-color) !important;
+        border-inline-end: 3px solid var(--board-divider-color) !important;
+    }
+    @media (max-width: 1199.98px) {
+        .order-board-table .border-group-end-md {
+            border-left: 3px solid var(--board-divider-color) !important;
+            border-inline-end: 3px solid var(--board-divider-color) !important;
+        }
     }
     .stage-toggle-btn { cursor: pointer; }
     .stage-toggle-btn .badge { transition: box-shadow .15s ease; }
