@@ -1,6 +1,6 @@
 # Repository Guidelines
-
 ## 1. Localization & Persian (`fa`)
+- **Avoid unnecessary secondary labels and descriptions. Let the layout do the explaining.**
 - **Primary Language**: Persian (`XLANG_MAIN=fa`). RTL-first layout with `Yekan Bakh VF` font.
 - **Translation Keys**: Every `__('English Key')` in Blade or PHP must exist verbatim in `resources/lang/fa.json`. Use natural Persian terminology (no machine-translation tone).
 - **Date & Numbers**: Use `PersianDate` or Jalali helpers for displaying Persian dates; format currency and weights using Iranian standard separators.
@@ -14,6 +14,7 @@
   - **Surfaces & Text**: Slate warm grayscale (`--xshop-surface-0` through `--xshop-surface-300`, text: `--xshop-text-main`, `--xshop-text-body`, `--xshop-text-muted`).
   - **Elevation**: Multi-layer shadows (`--xshop-shadow-xs` to `--xshop-shadow-xl`).
 - Never introduce hardcoded one-off hex colors when an existing `--xshop-*` token applies.
+- Avoid unnecessary secondary labels and descriptions. Let the layout do the explaining.
 
 ### Admin Panel (Native Bootstrap 5)
 - Use native Bootstrap 5 RTL utility classes. Do not write custom CSS for admin views.

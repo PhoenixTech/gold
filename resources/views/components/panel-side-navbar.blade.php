@@ -65,6 +65,12 @@
                                 {{ __('Website sales') }}
                             </a>
                         </li>
+                        <li>
+                            <a href="{{ route('admin.payment.index') }}" class="{{ request()->routeIs('admin.payment.*') ? 'active' : '' }}">
+                                <i class="ri-money-dollar-circle-fill"></i>
+                                {{ __('Payments') }}
+                            </a>
+                        </li>
                     @endif
                     @if(auth()->user()->hasAnyAccess('customer'))
                         <li>

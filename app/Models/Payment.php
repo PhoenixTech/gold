@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ShopPaymentMethod;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -49,5 +50,54 @@ class Payment extends Model
     {
         return $query->where('status', self::SUCCESS)
             ->where('meta->channel', self::CHANNEL_IN_STORE);
+    }
+
+    public function scopePhysical(Builder $query): Builder
+    {
+        return $query->where('meta->channel', self::CHANNEL_IN_STORE);
+    }
+
+    public function scopeOnline(Builder $query): Builder
+    {
+        return $query->where(function (Builder $q) {
+            $q->whereNull('meta->channel')->orWhere('meta->channel', '!=', self::CHANNEL_IN_STORE);
+        });
+    }
+
+    public function isPhysical(): bool
+    {
+        return ($this->meta['channel'] ?? null) === self::CHANNEL_IN_STORE;
+    }
+
+    public function methodLabel(): string
+    {
+        $method = $this->meta['method'] ?? null;
+        if (is_string($method) && $method !== '') {
+            $enum = ShopPaymentMethod::tryFrom($method);
+            if ($enum !== null) {
+                return $enum->label();
+            }
+        }
+
+        return match ($this->type) {
+            'ONLINE' => __('Online Gateway'),
+            'CARD' => __('Card to card'),
+            'CASH' => __('Cash'),
+            'CHEQUE' => __('Cheque'),
+            'CASH_ON_DELIVERY' => __('Cash on delivery'),
+            default => (string) ($this->type ?: '—'),
+        };
+    }
+
+    public function formattedPaymentDate(): string
+    {
+        $metaDate = $this->meta['payment_date'] ?? null;
+        $metaTime = $this->meta['payment_time'] ?? null;
+
+        if (! empty($metaDate)) {
+            return ! empty($metaTime) ? "{$metaDate} {$metaTime}" : (string) $metaDate;
+        }
+
+        return $this->created_at ? $this->created_at->jdate('Y/m/d H:i') : '—';
     }
 }

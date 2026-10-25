@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\ManualInvoiceController;
 use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\OrderBoardController;
+use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\PostController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\PropController;
@@ -253,6 +254,10 @@ Route::prefix(config('app.panel.prefix'))->name('admin.')->group(
                         Route::get('remove/ordere/{order}', [InvoiceController::class, 'removeOrder'])->name('remove-order');
                         Route::post('bulk', [InvoiceController::class, 'bulk'])->name('bulk');
                         Route::get('trashed', [InvoiceController::class, 'trashed'])->name('trashed');
+                    });
+                Route::prefix('payments')->name('payment.')->group(
+                    function () {
+                        Route::get('', [PaymentController::class, 'index'])->name('index');
                     });
                 Route::prefix('langs')->name('lang.')->group(
                     function () {
