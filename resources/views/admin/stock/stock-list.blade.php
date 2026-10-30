@@ -79,35 +79,28 @@
                                 <span class="fw-bold text-danger fs-16">{{ number_format($stockStats['total_scrapped_count'] ?? 0) }}</span>
                             </div>
                         </div>
-                        <div class="text-muted fs-11 mt-1">
-                            <span>{{ __('Excluded from net sellable stock') }}</span>
-                        </div>
                     </div>
                     <div class="bg-danger-subtle text-danger rounded-3 p-2.5 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                        <i class="ri-delete-bin-7-line fs-3"></i>
+                        <i class="ri-archive-line fs-3"></i>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Total Estimated Inventory Value -->
         <div class="col-xl-3 col-md-6">
             <div class="card border border-success-subtle shadow-sm h-100 rounded-3">
                 <div class="card-body d-flex align-items-center justify-content-between p-3">
                     <div>
                         <span class="text-muted fs-12 fw-semibold d-block mb-1">
-                            <i class="ri-money-dollar-circle-line text-success me-1"></i>{{ __('Total inventory value') }}
+                            <i class="ri-coins-line text-success me-1"></i>{{ __('Total inventory value') }}
                         </span>
                         <h4 class="fw-bold text-dark mb-1">
                             {{ number_format($stockStats['total_value'] ?? 0) }}
                             <small class="text-muted fs-13 fw-normal">{{ __('Toman') }}</small>
                         </h4>
-                        <div class="text-muted fs-11 mt-1">
-                            <span>{{ __('Live calculated retail value') }}</span>
-                        </div>
                     </div>
                     <div class="bg-success-subtle text-success rounded-3 p-2.5 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                        <i class="ri-bank-card-fill fs-3"></i>
+                        <i class="ri-coins-line fs-3"></i>
                     </div>
                 </div>
             </div>
@@ -142,25 +135,6 @@
             {{__("Out of stock")}}
         </option>
     </select>
-
-    <select name="sort" class="form-select form-select-sm w-auto">
-        <option value="">{{__("Default sorting")}}</option>
-        <option value="most_sold" @if(request()->input('sort') === 'most_sold') selected @endif>
-            {{__("Most sold")}}
-        </option>
-        <option value="most_scrapped" @if(request()->input('sort') === 'most_scrapped') selected @endif>
-            {{__("Most scrapped / defective")}}
-        </option>
-        <option value="total_ordered" @if(request()->input('sort') === 'total_ordered') selected @endif>
-            {{__("Most entered pieces")}}
-        </option>
-        <option value="stock_quantity" @if(request()->input('sort') === 'stock_quantity') selected @endif>
-            {{__("Highest net stock")}}
-        </option>
-        <option value="total_weight" @if(request()->input('sort') === 'total_weight') selected @endif>
-            {{__("Highest weight")}}
-        </option>
-    </select>
 @endsection
 
 @section('list-foot')
@@ -184,15 +158,9 @@
                         <span class="ms-2 fs-13 text-muted">{{ __('Loading pieces...') }}</span>
                     </div>
                     <div id="modalPiecesTableWrapper" class="d-none">
-                        <div class="alert alert-light border d-flex align-items-center justify-content-between p-2 mb-3 rounded-2 fs-12">
-                            <div>
-                                <span class="fw-semibold">{{ __('Net sellable stock:') }}</span>
-                                <strong id="modalNetStockCount" class="text-success fs-14">0</strong> {{ __('pieces') }}
-                            </div>
-                            <div class="text-muted">
-                                <i class="ri-information-line text-primary"></i>
-                                {{ __('Scrapped or sold pieces are automatically excluded from net stock.') }}
-                            </div>
+                        <div class="alert alert-light border p-2 mb-3 rounded-2 fs-12">
+                            <span class="fw-semibold">{{ __('Net sellable stock:') }}</span>
+                            <strong id="modalNetStockCount" class="text-success fs-14">0</strong> {{ __('pieces') }}
                         </div>
                         <div class="table-responsive" style="max-height: 55vh; overflow-y: auto;">
                             <table class="table table-sm table-hover align-middle mb-0 fs-13">
@@ -212,12 +180,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer py-2 px-3 bg-light d-flex justify-content-between">
-                    <span class="text-muted fs-12">
-                        <i class="ri-shield-check-line text-success"></i>
-                        {{ __('Scrap action instantly updates net inventory.') }}
-                    </span>
-                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">{{ __('Close') }}</button>
+                <div class="modal-footer py-2 px-3 bg-light">
+                    <button type="button" class="btn btn-sm btn-secondary ms-auto" data-bs-dismiss="modal">{{ __('Close') }}</button>
                 </div>
             </div>
         </div>
@@ -291,7 +255,7 @@
                             const toggleBtn = piece.is_sold
                                 ? `<span class="text-muted fs-12">—</span>`
                                 : `<button type="button" class="btn btn-xs ${piece.is_scrapped ? 'btn-danger' : 'btn-outline-danger'} toggle-scrap-btn py-0.5 px-2 fs-11" data-piece-id="${piece.id}">
-                                        <i class="${piece.is_scrapped ? 'ri-restart-line' : 'ri-fire-line'} me-1"></i>
+                                        <i class="${piece.is_scrapped ? 'ri-restart-line' : 'ri-close-circle-line'} me-1"></i>
                                         ${piece.is_scrapped ? @json(__('Restore piece')) : @json(__('Scrap product'))}
                                    </button>`;
 
@@ -365,7 +329,7 @@
                         if (actionCell) {
                             actionCell.innerHTML = `
                                 <button type="button" class="btn btn-xs ${data.is_scrapped ? 'btn-danger' : 'btn-outline-danger'} toggle-scrap-btn py-0.5 px-2 fs-11" data-piece-id="${pieceId}">
-                                    <i class="${data.is_scrapped ? 'ri-restart-line' : 'ri-fire-line'} me-1"></i>
+                                    <i class="${data.is_scrapped ? 'ri-restart-line' : 'ri-close-circle-line'} me-1"></i>
                                     ${data.is_scrapped ? @json(__('Restore piece')) : @json(__('Scrap product'))}
                                 </button>
                             `;

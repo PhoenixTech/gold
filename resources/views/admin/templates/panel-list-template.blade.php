@@ -108,7 +108,7 @@
                             </a>
                         </li>
                     @endif
-                    <!--@if(isset($quickCounts['published']))
+                    @if(isset($quickCounts['published']))
                         @php
                             $pubUrl = $baseUrl . '?' . http_build_query(array_merge($preservedParams, ['filter' => ['status' => 1]]));
                             $isPubActive = ($currentStatus === '1' || $currentStatus === 1);
@@ -131,7 +131,7 @@
                                 {{__("Draft")}} <span class="text-muted">({{number_format($quickCounts['draft'])}})</span>
                             </a>
                         </li>
-                    @endif-->
+                    @endif
                     @if(isset($quickCounts['trashed']) && hasRoute('trashed'))
                         @php
                             $trashedUrl = getRoute('trashed') . (count($preservedParams) ? '?' . http_build_query($preservedParams) : '');
@@ -170,6 +170,15 @@
 
                 @if(request()->has('q') && trim(request()->input('q')) != '')
                     <input type="hidden" name="q" value="{{request()->input('q')}}">
+                @endif
+                @if(request()->filled('filter.metal_type'))
+                    <input type="hidden" name="filter[metal_type]" value="{{ request('filter.metal_type') }}">
+                @endif
+                @if(request()->filled('filter.low_stock'))
+                    <input type="hidden" name="filter[low_stock]" value="{{ request('filter.low_stock') }}">
+                @endif
+                @if(request()->filled('filter.below_buy_price'))
+                    <input type="hidden" name="filter[below_buy_price]" value="{{ request('filter.below_buy_price') }}">
                 @endif
 
                 {{-- Custom Filters --}}
@@ -216,14 +225,8 @@
                         <thead>
                         <tr>
                             <th>
-                                <div
-                                    data-bs-toggle="tooltip"
-                                    data-bs-placement="top"
-                                    data-bs-custom-class="custom-tooltip"
-                                    data-bs-title="{{__("Check all")}}"
-                                    class="form-check form-switch mt-1 mx-2">
-                                    <input class="form-check-input chkall"
-                                           type="checkbox" role="switch">
+                                <div class="form-check mt-1 mx-2">
+                                    <input class="form-check-input chkall" type="checkbox" title="{{__('Check all')}}">
                                 </div>
                             </th>
                             @if(isset($items[0]) && method_exists($items[0],'imgUrl'))
@@ -250,8 +253,14 @@
                         <tbody>
                         @if(count($items) == 0)
                             <tr>
-                                <td colspan="100%">
-                                    {{__("There is nothing to show!")}}
+                                <td colspan="100%" class="text-center py-5 text-muted">
+                                    <i class="ri-inbox-line fs-2 d-block mb-2 opacity-50"></i>
+                                    <span class="fs-14 d-block">{{__("There is nothing to show!")}}</span>
+                                    @if(request()->filled('q') || request()->filled('filter'))
+                                        <a href="{{ hasRoute('index') ? getRoute('index') : request()->url() }}" class="btn btn-sm btn-outline-secondary mt-3">
+                                            <i class="ri-refresh-line me-1"></i>{{ __('Clear filters') }}
+                                        </a>
+                                    @endif
                                 </td>
                             </tr>
                         @else
