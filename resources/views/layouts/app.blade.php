@@ -39,5 +39,4 @@
         </div>
     @endif
 </div>
-@yield('js-content')
 @include('components.panel-footer')

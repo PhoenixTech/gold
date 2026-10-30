@@ -635,88 +635,99 @@
     .stage-toggle-btn .badge { transition: box-shadow .15s ease; }
     .stage-toggle-btn.stage-active .badge { box-shadow: 0 0 0 2px var(--bs-primary-bg-subtle); }
     .phone-toggle-btn { cursor: pointer; }
+    .order-board-table td:has(.stage-toggle-btn),
+    .order-board-table td:has(.phone-toggle-btn) { cursor: pointer; }
 </style>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    // 1. Subrow toggle (phone button shows contact card, stage badges show stage detail cards)
-    document.querySelectorAll('.phone-toggle-btn, .stage-toggle-btn').forEach(function (btn) {
-        btn.addEventListener('click', function (e) {
-            e.preventDefault();
-            var subrow = document.querySelector(this.getAttribute('data-target'));
-            if (!subrow) return;
-            var stage = this.getAttribute('data-stage') || 'contact';
-            var activeCard = subrow.querySelector('.subcard[data-subcard="' + stage + '"]');
-            var activeIsVisible = activeCard && !activeCard.classList.contains('d-none') && !subrow.classList.contains('d-none');
+if (!window.__orderBoardInitialized) {
+    window.__orderBoardInitialized = true;
 
-            // hide row + all cards first
-            subrow.classList.add('d-none');
-            subrow.querySelectorAll('.subcard').forEach(function (card) {
-                card.classList.add('d-none');
-            });
+    document.addEventListener('click', function (e) {
+        if (e.target.closest('a, input, select, textarea')) {
+            return;
+        }
 
-            // reset active styling on all triggers of this row
-            document.querySelectorAll('[data-target="#' + subrow.id + '"]').forEach(function (b) {
-                b.classList.remove('stage-active');
-                b.setAttribute('aria-expanded', 'false');
-                if (b.classList.contains('phone-toggle-btn')) {
-                    b.classList.add('btn-light', 'text-primary');
-                    b.classList.remove('btn-primary', 'text-white');
-                }
-            });
+        var trigger = e.target.closest('.phone-toggle-btn, .stage-toggle-btn');
+        if (!trigger) {
+            var td = e.target.closest('#orderBoardTable tbody tr.order-main-row td');
+            if (td) {
+                trigger = td.querySelector('.stage-toggle-btn, .phone-toggle-btn');
+            }
+        }
+        if (!trigger) return;
 
-            if (activeIsVisible) return; // second click on same trigger collapses
+        e.preventDefault();
+        var subrow = document.querySelector(trigger.getAttribute('data-target'));
+        if (!subrow) return;
 
-            // show requested card
-            subrow.classList.remove('d-none');
-            if (activeCard) activeCard.classList.remove('d-none');
+        var stage = trigger.getAttribute('data-stage') || 'contact';
+        var activeCard = subrow.querySelector('.subcard[data-subcard="' + stage + '"]');
+        var activeIsVisible = activeCard && !activeCard.classList.contains('d-none') && !subrow.classList.contains('d-none');
 
-            // highlight active trigger
-            this.classList.add('stage-active');
-            this.setAttribute('aria-expanded', 'true');
-            if (this.classList.contains('phone-toggle-btn')) {
-                this.classList.remove('btn-light', 'text-primary');
-                this.classList.add('btn-primary', 'text-white');
+        subrow.classList.add('d-none');
+        subrow.querySelectorAll('.subcard').forEach(function (card) {
+            card.classList.add('d-none');
+        });
+
+        document.querySelectorAll('[data-target="#' + subrow.id + '"]').forEach(function (b) {
+            b.classList.remove('stage-active');
+            b.setAttribute('aria-expanded', 'false');
+            if (b.classList.contains('phone-toggle-btn')) {
+                b.classList.add('btn-light', 'text-primary');
+                b.classList.remove('btn-primary', 'text-white');
             }
         });
+
+        if (activeIsVisible) return;
+
+        subrow.classList.remove('d-none');
+        if (activeCard) activeCard.classList.remove('d-none');
+
+        trigger.classList.add('stage-active');
+        trigger.setAttribute('aria-expanded', 'true');
+        if (trigger.classList.contains('phone-toggle-btn')) {
+            trigger.classList.remove('btn-light', 'text-primary');
+            trigger.classList.add('btn-primary', 'text-white');
+        }
     });
 
-    // 2. Urgent-first client sort. Operates on the current page only; server
-    //    side pagination handles cross-page ordering.
     let currentKey = '';
     let currentDir = 'asc';
 
-    document.querySelectorAll('.sort-header').forEach(function (th) {
-        th.addEventListener('click', function () {
-            const key = this.getAttribute('data-sort');
-            if (!key) return;
-            currentDir = (currentKey === key && currentDir === 'asc') ? 'desc' : 'asc';
-            currentKey = key;
+    document.addEventListener('click', function (e) {
+        var th = e.target.closest('#orderBoardTable .sort-header');
+        if (!th) return;
 
-            document.querySelectorAll('.sort-header').forEach(function (other) {
-                other.setAttribute('aria-sort', 'none');
-            });
-            this.setAttribute('aria-sort', currentDir === 'asc' ? 'ascending' : 'descending');
+        var key = th.getAttribute('data-sort');
+        if (!key) return;
+        currentDir = (currentKey === key && currentDir === 'asc') ? 'desc' : 'asc';
+        currentKey = key;
 
-            const tbody = document.querySelector('#orderBoardTable tbody');
-            const rows = Array.from(tbody.querySelectorAll('tr.order-main-row'));
+        document.querySelectorAll('#orderBoardTable .sort-header').forEach(function (other) {
+            other.setAttribute('aria-sort', 'none');
+        });
+        th.setAttribute('aria-sort', currentDir === 'asc' ? 'ascending' : 'descending');
 
-            rows.sort(function (a, b) {
-                let vA = a.getAttribute('data-' + key) ?? '';
-                let vB = b.getAttribute('data-' + key) ?? '';
-                return !isNaN(vA) && !isNaN(vB)
-                    ? (currentDir === 'asc' ? vA - vB : vB - vA)
-                    : (currentDir === 'asc' ? vA.localeCompare(vB) : vB.localeCompare(vA));
-            });
+        var tbody = document.querySelector('#orderBoardTable tbody');
+        if (!tbody) return;
+        var rows = Array.from(tbody.querySelectorAll('tr.order-main-row'));
 
-            rows.forEach(function (r, idx) {
-                const num = r.querySelector('td:first-child');
-                if (num) num.textContent = idx + 1;
-                tbody.appendChild(r);
-                const sub = document.getElementById(r.id.replace('order-row-', 'subrow-'));
-                if (sub) tbody.appendChild(sub);
-            });
+        rows.sort(function (a, b) {
+            var vA = a.getAttribute('data-' + key) ?? '';
+            var vB = b.getAttribute('data-' + key) ?? '';
+            return !isNaN(vA) && !isNaN(vB)
+                ? (currentDir === 'asc' ? vA - vB : vB - vA)
+                : (currentDir === 'asc' ? vA.localeCompare(vB) : vB.localeCompare(vA));
+        });
+
+        rows.forEach(function (r, idx) {
+            var num = r.querySelector('td:first-child');
+            if (num) num.textContent = idx + 1;
+            tbody.appendChild(r);
+            var sub = document.getElementById(r.id.replace('order-row-', 'subrow-'));
+            if (sub) tbody.appendChild(sub);
         });
     });
-});
+}
 </script>
 @endsection

@@ -770,4 +770,23 @@ class AdminOrderBoardTest extends TestCase
         $response->assertSee('operator-slip.png');
         $response->assertSee($receipt->url());
     }
+
+    public function test_order_board_renders_js_content_only_once(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        App::setLocale('fa');
+        $this->actingAsAdmin();
+
+        $customer = Customer::factory()->create();
+        $order = $this->createOrder($customer, Invoice::AWAITING_PAYMENT, 1_000_000);
+
+        $response = $this->get(route('admin.order-board.index'));
+        $response->assertOk();
+
+        $content = $response->getContent();
+        $this->assertSame(1, substr_count($content, 'if (!window.__orderBoardInitialized)'));
+        $this->assertStringContainsString('data-target="#subrow-'.$order->id.'"', $content);
+        $this->assertStringContainsString('id="subrow-'.$order->id.'"', $content);
+    }
 }
