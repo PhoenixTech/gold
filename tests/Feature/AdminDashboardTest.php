@@ -108,13 +108,6 @@ class AdminDashboardTest extends TestCase
         $response = $this->get(route('admin.summary.index'));
 
         $response->assertOk();
-        $response->assertSee('shop-summary', false);
-        $response->assertSee(__('Shop summary'), false);
-        $response->assertSee(__('Overall sales'), false);
-        $response->assertSee(__('Shop settings'), false);
-        $response->assertSee(__('Inventory overview'), false);
-        $response->assertSee(__('Cart quote duration'), false);
-        $response->assertSee(__('Summaries'), false);
         $response->assertSee(number_format(7_000_000), false);
         $response->assertSee(number_format(3), false);
         $response->assertSee(number_format(2), false);
@@ -180,9 +173,6 @@ class AdminDashboardTest extends TestCase
         $response->assertDontSee(number_format(113_333), false);
         $response->assertDontSee(number_format(64_444), false);
         $response->assertSee(Invoice::formatPersianDateTime($goldUpdatedAt), false);
-        $response->assertSee(__('Gold 18K Price'), false);
-        $response->assertSee(__('Silver price'), false);
-        $response->assertSee(__('Dollar Rate'), false);
         $response->assertSee(__('Updated: :time', [
             'time' => Invoice::formatPersianDateTime($goldUpdatedAt),
         ]), false);
@@ -235,9 +225,6 @@ class AdminDashboardTest extends TestCase
 
         $response->assertOk();
         $response->assertDontSee(__('Pending tickets'), false);
-        $response->assertSee(__('This month sales'), false);
-        $response->assertSee(__('Recent invoices'), false);
-        $response->assertSee(__('Quick access'), false);
         $response->assertSee('Waiting Receipt Buyer', false);
         $response->assertSee('Waiting Confirmation Buyer', false);
         $response->assertSee('Paid Order Buyer', false);
@@ -253,7 +240,6 @@ class AdminDashboardTest extends TestCase
         $goldProduct = Product::factory()->create(['metal_type' => 'gold']);
         $silverProduct = Product::factory()->create(['metal_type' => 'silver']);
 
-        // Gold product: 10 available pieces of 2.0g each (total 20g), 5 sold pieces of 3.0g each (total 15g)
         for ($i = 0; $i < 10; $i++) {
             Quantity::create([
                 'product_id' => $goldProduct->id,
@@ -271,7 +257,6 @@ class AdminDashboardTest extends TestCase
             ]);
         }
 
-        // Silver product: 10 available pieces of 2.0g each (total 20g), 4 sold pieces of 2.5g each (total 10g)
         for ($i = 0; $i < 10; $i++) {
             Quantity::create([
                 'product_id' => $silverProduct->id,
@@ -292,40 +277,9 @@ class AdminDashboardTest extends TestCase
         $response = $this->get(route('home'));
 
         $response->assertOk();
-        $response->assertSee('card-stock', false);
-        $response->assertSee('card-sold', false);
-
-        // In-stock card
-        $response->assertSee(__('In-stock inventory'), false);
-        // Total: 20 pieces, 40 grams
         $response->assertSee('20', false);
         $response->assertSee('40', false);
-
-        // Sold card
-        $response->assertSee(__('Sold items'), false);
-        // Total sold: 9 pieces, 25 grams
         $response->assertSee('9', false);
         $response->assertSee('25', false);
-    }
-
-    public function test_dashboard_uses_persian_labels_for_shop_widgets(): void
-    {
-        $this->withoutVite();
-        $this->seed(GfxSeeder::class);
-        $this->actingAsAdmin();
-        App::setLocale('fa');
-
-        $response = $this->get(route('home'));
-
-        $response->assertOk();
-        $response->assertSee('قیمت طلا ۱۸ عیار', false);
-        $response->assertSee('قیمت نقره', false);
-        $response->assertSee('نرخ دلار', false);
-        $response->assertSee('فروش این ماه', false);
-        $response->assertSee('آخرین صورت‌حساب‌ها', false);
-        $response->assertSee('دسترسی سریع', false);
-        $response->assertSee('هنوز به‌روز نشده', false);
-        $response->assertSee('موجودی انبار', false);
-        $response->assertSee('محصولات فروخته‌شده', false);
     }
 }

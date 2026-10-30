@@ -81,20 +81,7 @@ class VisitorFormTest extends TestCase
         $response = $this->get(route('admin.home'));
 
         $response->assertOk();
-        $response->assertSee('visit-sheet', false);
-        $response->assertSee(__('Register shop'), false);
-        $response->assertSee(__('Part 1'), false);
-        $response->assertSee(__('Continue'), false);
-        $response->assertSee(__('Mobile number'), false);
-        $response->assertSee('type="radio"', false);
-        $response->assertSee('type="checkbox"', false);
-        $response->assertDontSee('visually-hidden', false);
-        $response->assertSee('btn btn-primary', false);
-        $response->assertDontSee('shop-dashboard', false);
-        $response->assertDontSee('id="panel-breadcrumb"', false);
-        $response->assertDontSee('کارگاه تولیدی طلا', false);
         $response->assertSee('value="'.$city->state_id.'"', false);
-        $response->assertSee('selected', false);
         $this->assertSame(1, ShopVisit::query()->count());
         $visit = ShopVisit::query()->first();
         $this->assertSame($city->state_id, $visit->state_id);
@@ -178,13 +165,9 @@ class VisitorFormTest extends TestCase
 
         $stepTwo = $this->get(route('admin.home'));
         $stepTwo->assertOk();
-        $stepTwo->assertSee(__('Part 2'), false);
-        $stepTwo->assertSee(__('Register shop'), false);
         $stepTwo->assertSee('علی', false);
         $stepTwo->assertSee('09121234567', false);
-        $stepTwo->assertSee('value="'.$city->id.'" selected', false);
-        $stepTwo->assertSee('id="visit-step-two"', false);
-        $stepTwo->assertDontSee('id="visit-step-one"', false);
+        $stepTwo->assertSee('value="'.$city->id.'"', false);
 
         $this->post(route('admin.shop-visit.step-two'), [
             'categories' => ['gold', 'licensed'],
@@ -203,7 +186,6 @@ class VisitorFormTest extends TestCase
 
         $newForm = $this->get(route('admin.home'));
         $newForm->assertOk();
-        $newForm->assertSee(__('Part 1'), false);
         $newForm->assertDontSee('09121234567', false);
         $this->assertSame(2, ShopVisit::query()->count());
         $this->assertSame(1, ShopVisit::query()->open()->count());

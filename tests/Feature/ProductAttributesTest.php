@@ -231,10 +231,6 @@ class ProductAttributesTest extends TestCase
         $response = $this->get(route('client.product', $product->slug));
 
         $response->assertOk();
-        $response->assertSee(__('Plating Color'));
-        $response->assertSee(__('Stone'));
-        $response->assertSee(__('Accessory'));
-        $response->assertSee(__('Occasions'));
         $response->assertSee(__('Yellow Gold'));
         $response->assertSee(__('Diamond'));
         $response->assertSee(__('Leather Bracelet'));

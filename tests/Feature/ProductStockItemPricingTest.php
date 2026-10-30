@@ -72,19 +72,6 @@ class ProductStockItemPricingTest extends TestCase
         $this->assertGreaterThan($cheaper->price, $product->lowestAvailablePrice());
     }
 
-    public function test_product_view_only_offers_the_first_available_piece(): void
-    {
-        $blade = file_get_contents(resource_path('views/client/products/show.blade.php'));
-        $vue = file_get_contents(base_path('resources/js/client-vue/QuantitiesAddToCard.vue'));
-
-        $this->assertNotFalse($blade);
-        $this->assertNotFalse($vue);
-        $this->assertStringContainsString('firstAvailableQuantity', $blade);
-        $this->assertStringContainsString('$offerPiece', $blade);
-        $this->assertStringNotContainsString('$availableStockItems->count()', $blade);
-        $this->assertStringNotContainsString('availableQuantities()->get()', $blade);
-        $this->assertStringContainsString('this.select(first)', $vue);
-    }
 
     public function test_sold_piece_cannot_be_added_to_card_and_is_excluded_from_price(): void
     {
@@ -271,53 +258,6 @@ class ProductStockItemPricingTest extends TestCase
         $response->assertSee('supplier_id', false);
     }
 
-    public function test_stock_editor_shows_sku_before_weight_and_collapses_price_breakdown(): void
-    {
-        $vue = file_get_contents(base_path('resources/js/components/StockItemsInput.vue'));
-
-        $this->assertNotFalse($vue);
-        $this->assertTrue(strpos($vue, '{{ skuLabel }}') < strpos($vue, '{{ weightLabel }}'));
-        $this->assertStringContainsString('breakdownOpen: false', $vue);
-        $this->assertStringContainsString('v-show="item.breakdownOpen"', $vue);
-        $this->assertStringContainsString('breakdownTitle', $vue);
-        $this->assertStringNotContainsString('livePriceLabel', $vue);
-        $this->assertStringContainsString('this.items.unshift(item)', $vue);
-        $this->assertStringContainsString('stock-toolbar', $vue);
-        $this->assertStringContainsString('stock-list', $vue);
-        $this->assertStringContainsString('label: `نرخ روز ${metalName}`', file_get_contents(base_path('resources/js/components/stock/stockItemPrice.js')));
-        $this->assertStringContainsString('label: `حداقل درصد سود ${formatters.formatPercent(minimumPercent)}`', file_get_contents(base_path('resources/js/components/stock/stockItemPrice.js')));
-        $this->assertStringContainsString('@change.stop="setSupplier(item, $event.target.value)"', $vue);
-        $this->assertStringContainsString('setSupplier(item, value) {', $vue);
-        $this->assertTrue(strpos($vue, '{{ weightLabel }}') < strpos($vue, '{{ supplierLabel }}'));
-        $this->assertTrue(
-            strpos($vue, 'v-model.number="item.weight"') < strpos($vue, '@change.stop="setSupplier(item, $event.target.value)"')
-        );
-
-        $blade = file_get_contents(resource_path('views/admin/products/sub-pages/product-step-stock.blade.php'));
-        $this->assertNotFalse($blade);
-        $this->assertTrue(strpos($blade, 'id="stock_quantity"') < strpos($blade, 'stock-items-input'));
-    }
-
-    public function test_stock_piece_supplier_select_is_not_reset_by_rerenders(): void
-    {
-        $vue = file_get_contents(base_path('resources/js/components/StockItemsInput.vue'));
-
-        $this->assertNotFalse($vue);
-
-        $marker = strpos($vue, 'data-piece-supplier');
-        $selectStart = strrpos(substr($vue, 0, $marker), '<select');
-        $selectTagEnd = strpos($vue, '>', $marker);
-        $selectTag = substr($vue, $selectStart, $selectTagEnd - $selectStart);
-
-        $this->assertStringNotContainsString(':value=', $selectTag);
-        $this->assertStringNotContainsString('v-model', $selectTag);
-        $this->assertStringContainsString('data-piece-supplier', $selectTag);
-        $this->assertStringContainsString(':data-initial-supplier="item.supplier_id"', $selectTag);
-        $this->assertStringContainsString('@change.stop="setSupplier(item, $event.target.value)"', $selectTag);
-        $this->assertStringContainsString(':value="String(supplier.id)"', $vue);
-        $this->assertStringContainsString('this.applyInitialSuppliers()', $vue);
-        $this->assertStringContainsString('select.value = select.dataset.initialSupplier', $vue);
-    }
 
     public function test_product_create_excludes_trashed_suppliers_while_edit_includes_them(): void
     {

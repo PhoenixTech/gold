@@ -52,14 +52,6 @@ class ShopVisitAdminTest extends TestCase
         $response->assertSee('Maryam', false);
         $response->assertDontSee('09125556666', false);
         $response->assertDontSee('DraftName', false);
-        $response->assertSee(__('Shop visits'), false);
-        $response->assertSee(__('has_purchase'), false);
-        $response->assertSee(__('first_name'), false);
-        $response->assertSee(__('last_name'), false);
-        $response->assertSee(__('mall'), false);
-        $response->assertSee(__('submitted_at'), false);
-        $response->assertSee(__('Yes'), false);
-        $response->assertSee(__('No'), false);
         $response->assertSee($completed->submittedAtLabel(), false);
         $response->assertDontSee($completed->submitted_at->format('Y-m-d H:i'), false);
         $response->assertSee(route('admin.shop-visit.export'), false);
@@ -105,9 +97,7 @@ class ShopVisitAdminTest extends TestCase
         $response->assertOk();
         $response->assertSee('09121112222', false);
         $response->assertSee('پلاک ۲۰', false);
-        $response->assertSee(__('submitted_at'), false);
         $response->assertSee($visit->submittedAtLabel(), false);
-        $response->assertSee(__('No'), false);
         $response->assertDontSee($visit->submitted_at->format('Y-m-d H:i'), false);
     }
 

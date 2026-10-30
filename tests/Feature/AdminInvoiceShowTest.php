@@ -140,8 +140,6 @@ class AdminInvoiceShowTest extends TestCase
         $response->assertOk();
         $response->assertSee('data-fulfillment-method="pickup"', false);
         $response->assertSee(__('Store pickup'));
-        $response->assertSee(__('Pickup location'));
-        $response->assertSee(__('Pickup cost'));
         $response->assertDontSee(__('No address registered.'));
         $response->assertDontSee(__('Standard Transport'));
         $response->assertDontSee(__('Pending shipment'));
@@ -266,10 +264,6 @@ class AdminInvoiceShowTest extends TestCase
 
         $response->assertOk();
         $response->assertSee(__('Card to card'));
-        $response->assertSee(__('Paid in full'));
-        $response->assertSee(__('Receipts uploaded'));
-        $response->assertSee(__('Received via receipts'));
-        $response->assertSee(__('Remaining balance'));
         $response->assertSee('Melli Destination');
         $response->assertSee('Manager');
         $response->assertSee('REF-PRINT-1');

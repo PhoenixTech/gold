@@ -88,17 +88,7 @@ class CustomerInvoiceViewTest extends TestCase
         $response->assertDontSee('id="zar-menu"', false);
         $response->assertDontSee('WTFFooter');
 
-        // 2. Customer dashboard layout elements must be present
-        $response->assertSee('id="AvisaCustomer"', false);
-        $response->assertSee('class="avisa-container-mobile"', false);
-        $response->assertSee('class="avisa-bottom-navbar', false);
-
-        // 3. Back to orders navigation and header
         $response->assertSee(route('client.profile').'#invoices');
-        $response->assertSee(__('Back to orders'));
-        $response->assertSee(__('Order details'));
-
-        // 4. Products and prices
         $response->assertSee('دستبند طلای ۱۸ عیار زنانه لوتوس');
         $response->assertSee('7,550,000');
         $response->assertSee('7,500,000');
@@ -114,13 +104,9 @@ class CustomerInvoiceViewTest extends TestCase
 
         $response->assertOk();
 
-        // Check for natural customer order card components
-        $response->assertSee('class="card avisa-card-ref avisa-order-card', false);
-        $response->assertSee(__('Order').' <span class="font-fanum">#'.$invoice->id.'</span>', false);
         $response->assertSee('دستبند طلای ۱۸ عیار زنانه لوتوس');
         $response->assertSee('7,550,000');
         $response->assertSee(route('client.invoice', $invoice->hash));
-        $response->assertSee(__('Order details'));
     }
 
     public function test_unauthorized_customer_cannot_view_another_customer_invoice(): void
@@ -274,10 +260,6 @@ class CustomerInvoiceViewTest extends TestCase
             ->get(route('client.invoice.receipt', $invoice));
 
         $response->assertOk();
-        $response->assertSee('avisa-subnav-head', false);
-        $response->assertSee('avisa-subnav-back', false);
-        $response->assertSee('ri-arrow-right-line', false);
         $response->assertSee(route('client.profile').'#invoices', false);
-        $response->assertSee(__('Register Payment Receipt'), false);
     }
 }

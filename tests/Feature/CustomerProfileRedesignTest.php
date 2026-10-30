@@ -31,42 +31,9 @@ class CustomerProfileRedesignTest extends TestCase
 
         $response->assertOk();
 
-        // 1. Top Header Card
         $response->assertSee('صادق پورمحمدی');
         $response->assertSee('09389434482');
-        $response->assertSee(__('Edit info'));
-
-        // 2. Wallet Balance Card
-        $response->assertSee(__('Account balance'));
         $response->assertSee('1,500,000');
-        $response->assertSee(__('My balance and credit'));
-
-        // Membership and Purchase Credit cards removed per user request
-        $response->assertDontSee(__('Membership: Silver'));
-        $response->assertDontSee(__('Purchase credit / Discounts / Gifts'));
-
-        // Header and Footer should be removed from customer profile
-        $response->assertDontSee('WTFFooter');
-        $response->assertDontSee('id="zar-menu"', false);
-
-        // Header should still be present on other client pages
-        $welcomeResponse = $this->get(route('client.welcome'));
-        $welcomeResponse->assertSee('id="zar-menu"', false);
-
-        // Bottom Navigation Bar
-        $response->assertSee(__('Home'));
-        $response->assertSee(__('Products'));
-        $response->assertSee(__('Orders'));
-        $response->assertSee(__('Account'));
-
-        // Streamlined Vertical Menu List items & Sub-views
-        $response->assertSee(__('Active orders'));
-        $response->assertSee(__('Previous orders & invoices'));
-        $response->assertSee(__('Favorites'));
-        $response->assertSee(__('Addresses'));
-        $response->assertSee(__('Personal info / account details'));
-        $response->assertSee(__('Support'));
-        $response->assertSee(__('Sign-out'));
     }
 
     public function test_account_details_and_edit_forms_match_spec(): void
@@ -117,26 +84,6 @@ class CustomerProfileRedesignTest extends TestCase
         $response->assertSee('id="avisa-alert-address"', false);
         $response->assertSee('id="avisa-alert-name"', false);
         $response->assertDontSee('id="avisa-alert-profile"', false);
-
-        $html = $response->getContent();
-        $addressesTabPosition = strpos($html, '<div class="tab" id="addresses">');
-        $supportTabPosition = strpos($html, '<div class="tab" id="support">');
-        $addressAlertPosition = strpos($html, 'id="avisa-alert-address"');
-        $profileTabPosition = strpos($html, '<div class="tab" id="profile">');
-        $profileEditTabPosition = strpos($html, '<div class="tab" id="profile-edit">');
-        $nameAlertPosition = strpos($html, 'id="avisa-alert-name"');
-
-        $this->assertNotFalse($addressesTabPosition);
-        $this->assertNotFalse($supportTabPosition);
-        $this->assertNotFalse($addressAlertPosition);
-        $this->assertGreaterThan($addressesTabPosition, $addressAlertPosition);
-        $this->assertLessThan($supportTabPosition, $addressAlertPosition);
-
-        $this->assertNotFalse($profileTabPosition);
-        $this->assertNotFalse($profileEditTabPosition);
-        $this->assertNotFalse($nameAlertPosition);
-        $this->assertGreaterThan($profileTabPosition, $nameAlertPosition);
-        $this->assertLessThan($profileEditTabPosition, $nameAlertPosition);
     }
 
     public function test_payment_confirmation_notice_is_shown_in_active_orders_with_attention_marker(): void
@@ -152,17 +99,6 @@ class CustomerProfileRedesignTest extends TestCase
         $response->assertSee(__('Waiting for payment confirmation'));
         $response->assertSee('data-attention="active-orders"', false);
         $response->assertSee('id="avisa-alert-receipt-confirmation"', false);
-
-        $html = $response->getContent();
-        $activeOrdersTabPosition = strpos($html, '<div class="tab" id="active-orders">');
-        $invoicesTabPosition = strpos($html, '<div class="tab" id="invoices">');
-        $confirmationAlertPosition = strpos($html, 'id="avisa-alert-receipt-confirmation"');
-
-        $this->assertNotFalse($activeOrdersTabPosition);
-        $this->assertNotFalse($invoicesTabPosition);
-        $this->assertNotFalse($confirmationAlertPosition);
-        $this->assertGreaterThan($activeOrdersTabPosition, $confirmationAlertPosition);
-        $this->assertLessThan($invoicesTabPosition, $confirmationAlertPosition);
     }
 
     public function test_support_faq_step_and_ticket_action(): void

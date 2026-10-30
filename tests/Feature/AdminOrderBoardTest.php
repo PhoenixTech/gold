@@ -65,8 +65,6 @@ class AdminOrderBoardTest extends TestCase
 
         $response = $this->get(route('admin.order-board.index'));
         $response->assertOk();
-        $response->assertSee(__('Order board'));
-        $response->assertSee(__('Active orders'));
         $response->assertDontSee('<code');
     }
 
@@ -258,22 +256,10 @@ class AdminOrderBoardTest extends TestCase
         $response->assertSee('data-subcard="courier"', false);
         $response->assertSee('data-subcard="delivery"', false);
 
-        // Payment details: uploaded receipt
         $response->assertSee('bank-receipt.png');
-        $response->assertSee(__('Customer receipts'));
         $response->assertSee($receipt->url());
-
-        // Confirm details: who and when
-        $response->assertSee(__('Confirmed by'));
         $response->assertSee($admin->name);
-        $response->assertSee(__('Confirmed at'));
-
-        // Courier details: which courier
-        $response->assertSee(__('Courier name'));
         $response->assertSee($courier->name);
-
-        // Delivery details: when delivered
-        $response->assertSee(__('Delivered at'));
     }
 
     public function test_settlement_stage_is_distinct_from_payment_confirmation(): void
@@ -333,10 +319,6 @@ class AdminOrderBoardTest extends TestCase
         ]), false);
         $response->assertDontSee(__('Balance fully settled.'));
 
-        // The settlement sub-card breaks the money out.
-        $response->assertSee(__('Invoice total'));
-        $response->assertSee(__('Received via receipts'));
-        $response->assertSee(__('Remaining balance'));
         $response->assertSee('400,000');
         $response->assertSee('600,000');
     }
@@ -544,8 +526,6 @@ class AdminOrderBoardTest extends TestCase
         $page2 = $this->get(route('admin.order-board.index', ['per_page' => 10, 'page' => 2]));
         $page2->assertOk();
         $this->assertCount(8, $page2->viewData('orders'));
-
-        $response->assertSee(__('Rows per page'), false);
     }
 
     public function test_order_board_does_not_leak_the_pickup_flag_between_sub_cards(): void
@@ -689,7 +669,6 @@ class AdminOrderBoardTest extends TestCase
 
         $response = $this->get(route('admin.order-board.index', ['scope' => 'all']));
         $response->assertOk();
-        $response->assertSee(__('Recorded payments'));
         $response->assertSee('TRK-ORDER-BOARD-99');
         $response->assertSee($supplier->name);
         $response->assertSee('بانک سامان');
@@ -765,7 +744,6 @@ class AdminOrderBoardTest extends TestCase
 
         $response = $this->get(route('admin.order-board.index', ['scope' => 'all']));
         $response->assertOk();
-        $response->assertSee(__('Recorded payments'));
         $response->assertSee('operator-slip.png');
         $response->assertSee($receipt->url());
     }

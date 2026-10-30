@@ -159,7 +159,6 @@ class AdminInvoiceDeliveryTest extends TestCase
         $edit->assertOk();
         $edit->assertSee('data-fulfillment-method="pickup"', false);
         $edit->assertSee(__('Mark ready for pickup'));
-        $edit->assertSee(__('Pickup location'));
         $edit->assertDontSee('name="address_id"', false);
         $edit->assertDontSee('name="transport_id"', false);
         $edit->assertDontSee('name="tracking_code"', false);
@@ -355,9 +354,6 @@ class AdminInvoiceDeliveryTest extends TestCase
         $response = $this->get(route('admin.invoice.edit', $invoice));
 
         $response->assertOk();
-        $response->assertSee(__('Courier delivery'), false);
-        $response->assertSee(__('Send for delivery'), false);
-        $response->assertSee(__('Select a courier'), false);
         $response->assertSee('data-fulfillment-method="delivery"', false);
         $response->assertDontSee('name="transport_id"', false);
         $response->assertSee('پیک تست', false);

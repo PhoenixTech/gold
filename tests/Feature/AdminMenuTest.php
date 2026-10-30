@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\App;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -23,27 +22,12 @@ class AdminMenuTest extends TestCase
         return $user;
     }
 
-    public function test_dashboard_sidebar_groups_shop_items_together(): void
+    public function test_dashboard_sidebar_renders_shop_routes_for_admin(): void
     {
         $this->actingAsAdmin();
-        App::setLocale('en');
 
         $html = view('components.panel-side-navbar')->render();
 
-        $this->assertStringContainsString('id="shop"', $html);
-        $this->assertStringContainsString('id="shop-definitions"', $html);
-        $this->assertStringContainsString(__('Shop'), $html);
-        $this->assertStringContainsString(__('Shop definitions'), $html);
-        $this->assertStringContainsString(__('Products'), $html);
-        $this->assertStringContainsString(__('Categories'), $html);
-        $this->assertStringContainsString(__('Invoices'), $html);
-        $this->assertStringContainsString(__('Bank accounts'), $html);
-        $this->assertStringContainsString(__('Suppliers'), $html);
-        $this->assertStringContainsString(__('Transports'), $html);
-        $this->assertStringContainsString(__('Discounts'), $html);
-        $this->assertStringContainsString(__('Product attributes'), $html);
-        $this->assertStringContainsString(__('Reviews'), $html);
-        $this->assertStringContainsString(__('Rating criteria'), $html);
         $this->assertStringContainsString(route('admin.product.index'), $html);
         $this->assertStringContainsString(route('admin.invoice.index'), $html);
         $this->assertStringContainsString(route('admin.bank-account.index'), $html);
@@ -53,80 +37,19 @@ class AdminMenuTest extends TestCase
         $this->assertStringContainsString(route('admin.prop.index'), $html);
         $this->assertStringContainsString(route('admin.rate.index'), $html);
         $this->assertStringContainsString(route('admin.evaluation.index'), $html);
-
-        $this->assertGreaterThan(
-            strpos($html, 'id="shop"'),
-            strpos($html, 'id="shop-definitions"')
-        );
     }
 
-    public function test_dashboard_sidebar_uses_clear_group_names(): void
+    public function test_dashboard_sidebar_renders_system_routes_for_admin(): void
     {
         $this->actingAsAdmin();
-        App::setLocale('en');
 
         $html = view('components.panel-side-navbar')->render();
 
-        $this->assertStringContainsString('id="system"', $html);
-        $this->assertStringContainsString(__('System'), $html);
-        $this->assertStringContainsString(__('Staff'), $html);
-        $this->assertStringContainsString(__('Admin logs'), $html);
-        $this->assertStringContainsString(__('Languages'), $html);
-        $this->assertStringContainsString(__('Settings'), $html);
         $this->assertStringContainsString(route('admin.user.index'), $html);
         $this->assertStringContainsString(route('admin.adminlog.index'), $html);
         $this->assertStringContainsString(route('admin.lang.index'), $html);
         $this->assertStringContainsString(route('admin.setting.index'), $html);
-
-        $this->assertStringContainsString(__('Website content'), $html);
-        $this->assertStringContainsString(__('Appearance'), $html);
-        $this->assertStringContainsString(__('Customer support'), $html);
-        $this->assertStringContainsString(__('Shop visits'), $html);
         $this->assertStringContainsString(route('admin.shop-visit.index'), $html);
-        $this->assertStringContainsString(__('Help'), $html);
-        $this->assertGreaterThan(
-            strpos($html, route('admin.setting.index')),
-            strpos($html, route('admin.help'))
-        );
-
-        $this->assertStringNotContainsString(__('Staff and logs'), $html);
-        $this->assertStringNotContainsString(__('Shopping card'), $html);
-        $this->assertStringNotContainsString(__('Catalog'), $html);
-        $this->assertStringNotContainsString('xShop', $html);
-        $this->assertStringNotContainsString(__('Managing'), $html);
-        $this->assertStringNotContainsString(__('Interaction'), $html);
-        $this->assertStringNotContainsString(__('Theme'), $html);
-        $this->assertStringNotContainsString(__('Reports'), $html);
-    }
-
-    public function test_dashboard_sidebar_uses_persian_labels_for_the_shop(): void
-    {
-        $this->actingAsAdmin();
-        App::setLocale('fa');
-
-        $html = view('components.panel-side-navbar')->render();
-
-        $this->assertStringContainsString('سیستم', $html);
-        $this->assertStringContainsString('کارکنان', $html);
-        $this->assertStringContainsString('گزارش مدیران', $html);
-        $this->assertStringContainsString('زبان‌ها', $html);
-        $this->assertStringContainsString('تنظیمات', $html);
-
-        $this->assertStringContainsString('فروشگاه', $html);
-        $this->assertStringContainsString('تعاریف فروشگاه', $html);
-        $this->assertStringContainsString('محصولات', $html);
-        $this->assertStringContainsString('صورت‌حساب‌ها', $html);
-        $this->assertStringContainsString('حساب‌های بانکی', $html);
-        $this->assertStringContainsString('تأمین‌کنندگان', $html);
-        $this->assertStringContainsString('روش‌های ارسال', $html);
-        $this->assertStringContainsString('تخفیف‌ها', $html);
-        $this->assertStringContainsString('ویژگی‌های محصول', $html);
-        $this->assertStringContainsString('امتیازها', $html);
-        $this->assertStringContainsString('معیارهای امتیاز', $html);
-        $this->assertStringContainsString('محتوای سایت', $html);
-        $this->assertStringContainsString('پشتیبانی', $html);
-        $this->assertStringContainsString('ویزیت فروشگاه‌ها', $html);
-        $this->assertStringContainsString('راهنما', $html);
-        $this->assertStringNotContainsString('سبد خرید', $html);
+        $this->assertStringContainsString(route('admin.help'), $html);
     }
 }

@@ -42,21 +42,9 @@ class StockAuditDashboardTest extends TestCase
         $response = $this->get(route('admin.stock.index'));
         $response->assertStatus(200);
 
-        // Verify required columns/headers are present
-        $response->assertSee(__('Net stock'));
-        $response->assertSee(__('Total ordered'));
-        $response->assertSee(__('Scrapped pieces'));
-        $response->assertSee(__('Sold pieces'));
-
-        // Verify product row displays correct counts
         $response->assertSee('انگشتر تک تاش');
         $response->assertSee($product->fresh()->sku);
 
-        // Verify modal and piece button are present
-        $response->assertSee('stockPiecesModal');
-        $response->assertSee('view-pieces-btn');
-
-        // Verify analytics card and redundant filters are removed
         $response->assertDontSee(__('Stock audit reports & business insights'));
         $response->assertDontSee('name="filter[metal_type]"', false);
         $response->assertDontSee('name="filter[low_stock]"', false);

@@ -6,15 +6,15 @@
         <strong class="d-block text-dark fw-bold mb-1.5">{{ __("Product image guidelines") }}</strong>
         <ul class="list-unstyled mb-0 d-flex flex-column gap-1 text-muted">
             <li class="d-flex align-items-center gap-2">
-                <i class="ri-checkbox-blank-circle-fill fs-8 text-secondary"></i>
+                <i class="ri-checkbox-blank-circle-fill fs-xxs text-secondary"></i>
                 <span>{{ __("Double click on an image to set it as the main image.") }}</span>
             </li>
             <li class="d-flex align-items-center gap-2">
-                <i class="ri-checkbox-blank-circle-fill fs-8 text-secondary"></i>
+                <i class="ri-checkbox-blank-circle-fill fs-xxs text-secondary"></i>
                 <span>{{ __("You can select and upload multiple images at once.") }}</span>
             </li>
             <li class="d-flex align-items-center gap-2">
-                <i class="ri-checkbox-blank-circle-fill fs-8 text-secondary"></i>
+                <i class="ri-checkbox-blank-circle-fill fs-xxs text-secondary"></i>
                 <span>{{ __("Supported formats: JPG, PNG, GIF, WebP.") }}</span>
             </li>
         </ul>
