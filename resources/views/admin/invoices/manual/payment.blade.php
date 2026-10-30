@@ -24,41 +24,27 @@
         <input type="hidden" name="step" value="payment">
 
         <div class="item-list shadow-sm mb-4">
-            <div class="p-3">
-                <div class="row g-2 text-center align-items-center">
-                    <div class="col-4 border-end">
-                        <span class="text-muted d-block fs-12 fw-medium mb-1">{{ __('Invoice total') }}</span>
-                        <span class="fs-18 fw-bold font-fanum text-dark d-block" id="display-invoice-total" data-total="{{ $total }}">
-                            {{ number_format($total) }} <small class="fs-11 fw-normal text-muted">{{ __('Toman') }}</small>
-                        </span>
-                    </div>
-                    <div class="col-4 border-end">
-                        <span class="text-muted d-block fs-12 fw-medium mb-1">{{ __('Total payments') }}</span>
-                        <span class="fs-18 fw-bold font-fanum text-success d-block" id="display-paid-total">
-                            0 <small class="fs-11 fw-normal text-muted">{{ __('Toman') }}</small>
-                        </span>
-                    </div>
-                    <div class="col-4">
-                        <span class="text-muted d-block fs-12 fw-medium mb-1">{{ __('Remaining balance') }}</span>
-                        <span class="fs-18 fw-bold font-fanum text-danger d-block" id="display-remaining">
-                            {{ number_format($total) }} <small class="fs-11 fw-normal text-muted">{{ __('Toman') }}</small>
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="item-list shadow-sm mb-4">
             <div class="p-3 p-md-4">
-                <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2 pb-2 border-bottom">
                     <div class="d-flex align-items-center gap-2">
                         <i class="ri-bank-card-line text-primary fs-18"></i>
                         <h5 class="mb-0 fw-bold fs-16 text-dark">{{ __('Payment details') }}</h5>
                     </div>
-                    <button type="button" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1" id="add-payment-btn">
-                        <i class="ri-add-line"></i>
-                        <span>{{ __('Add another payment') }}</span>
-                    </button>
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <span class="badge bg-light text-dark border font-fanum fs-12 px-2.5 py-1.5" id="display-invoice-total" data-total="{{ $total }}">
+                            {{ number_format($total) }} <small class="text-muted">{{ __('Toman') }}</small>
+                        </span>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle font-fanum fs-12 px-2.5 py-1.5" id="display-paid-total">
+                            0 <small class="text-muted">{{ __('Toman') }}</small>
+                        </span>
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle font-fanum fs-12 px-2.5 py-1.5" id="display-remaining">
+                            {{ number_format($total) }} <small class="text-muted">{{ __('Toman') }}</small>
+                        </span>
+                        <button type="button" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1" id="add-payment-btn">
+                            <i class="ri-add-line"></i>
+                            <span>{{ __('Add another payment') }}</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div id="payment-rows-container">
@@ -241,11 +227,11 @@
             displayRemaining.innerHTML = formatNumber(remaining) + ' <small class="fs-11 fw-normal text-muted">{{ __("Toman") }}</small>';
 
             if (remaining === 0 && total > 0) {
-                displayRemaining.className = 'fs-18 fw-bold font-fanum text-success d-block';
+                displayRemaining.className = 'badge bg-success-subtle text-success border border-success-subtle font-fanum fs-12 px-2.5 py-1.5';
                 handoverCheckbox.disabled = false;
                 statusText.innerText = '{{ __("Paid in full. The invoice can be handed over to the customer.") }}';
             } else {
-                displayRemaining.className = 'fs-18 fw-bold font-fanum text-danger d-block';
+                displayRemaining.className = 'badge bg-danger-subtle text-danger border border-danger-subtle font-fanum fs-12 px-2.5 py-1.5';
                 handoverCheckbox.checked = false;
                 handoverCheckbox.disabled = true;
                 if (sum === 0) {

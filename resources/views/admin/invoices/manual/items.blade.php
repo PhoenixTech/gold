@@ -7,11 +7,10 @@
 
     <div class="item-list shadow-sm mb-4">
         <div class="p-3 p-md-4">
-            <div class="d-flex align-items-center gap-2 mb-1">
+            <div class="d-flex align-items-center gap-2 mb-3">
                 <i class="ri-search-line text-primary fs-18"></i>
                 <h5 class="mb-0 fw-bold fs-16 text-dark">{{ __('Add stock pieces') }}</h5>
             </div>
-            <p class="text-muted fs-13 mb-3">{{ __('Only available pieces are listed. Pieces below the purchase price are hidden.') }}</p>
 
             <form method="GET" action="{{ route('admin.shop-invoice.create') }}" class="mb-4">
                 <input type="hidden" name="step" value="items">
@@ -40,6 +39,7 @@
                                 <th>{{ __('Piece code') }}</th>
                                 <th>{{ __('Weight') }}</th>
                                 <th>{{ __('Price') }}</th>
+                                <th style="width: 4.5rem" class="text-end"></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -61,10 +61,17 @@
                                     <td class="font-fanum fw-bold text-dark fs-13">
                                         {{ number_format($row['price']) }} <small class="text-muted fw-normal fs-11">{{ __('Toman') }}</small>
                                     </td>
+                                    <td class="text-end">
+                                        <button type="submit" name="quantity_ids[]" value="{{ $piece->id }}"
+                                                class="btn btn-sm btn-outline-primary py-0 px-2 fs-12 d-inline-flex align-items-center gap-1">
+                                            <i class="ri-add-line"></i>
+                                            <span>{{ __('Add') }}</span>
+                                        </button>
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="text-center text-muted py-4 fs-13">
+                                    <td colspan="6" class="text-center text-muted py-4 fs-13">
                                         {{ __('No available pieces match your search.') }}
                                     </td>
                                 </tr>

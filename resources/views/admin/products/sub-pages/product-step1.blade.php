@@ -84,21 +84,12 @@
 
     <div class="col-12">
         <div class="card border border-light-subtle rounded-3 bg-light-subtle p-3 mb-2">
-            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 pb-2 border-bottom">
-                <div class="d-flex align-items-center gap-2">
-                    <i class="ri-sparkling-2-fill text-warning fs-4"></i>
-                    <div>
-                        <h6 class="fw-bold mb-0 text-dark">{{__('Product attributes')}}</h6>
-                        <span class="text-muted fs-12">{{__('Without impact on final price')}}</span>
-                    </div>
-                </div>
-                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle fs-11">
-                    <i class="ri-information-line me-1"></i>{{__('Group A')}}
-                </span>
+            <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+                <i class="ri-list-settings-line text-primary fs-5"></i>
+                <h6 class="fw-bold mb-0 text-dark">{{__('Product attributes')}}</h6>
             </div>
 
             <div class="row g-3">
-                {{-- Plating Color --}}
                 <div class="col-md-6">
                     <div class="p-3 bg-white rounded-3 border border-light-subtle h-100 shadow-xs">
                         <label class="fw-semibold text-dark d-flex align-items-center gap-1.5 mb-2.5">
@@ -120,7 +111,6 @@
                     </div>
                 </div>
 
-                {{-- Stone --}}
                 <div class="col-md-6">
                     <div class="p-3 bg-white rounded-3 border border-light-subtle h-100 shadow-xs">
                         <label class="fw-semibold text-dark d-flex align-items-center gap-1.5 mb-2.5">
@@ -144,7 +134,6 @@
                     </div>
                 </div>
 
-                {{-- Accessory --}}
                 <div class="col-md-6">
                     <div class="p-3 bg-white rounded-3 border border-light-subtle h-100 shadow-xs">
                         <label class="fw-semibold text-dark d-flex align-items-center gap-1.5 mb-2.5">
@@ -166,7 +155,6 @@
                     </div>
                 </div>
 
-                {{-- Occasions --}}
                 <div class="col-md-6">
                     <div class="p-3 bg-white rounded-3 border border-light-subtle h-100 shadow-xs">
                         <label class="fw-semibold text-dark d-flex align-items-center gap-1.5 mb-2.5">

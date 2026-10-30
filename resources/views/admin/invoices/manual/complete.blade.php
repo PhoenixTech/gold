@@ -4,7 +4,7 @@
     <div class="item-list shadow-sm mb-4">
         <div class="p-4 p-md-5 text-center">
             <div class="mb-3">
-                <i class="ri-checkbox-circle-fill text-success" style="font-size: 3.5rem;"></i>
+                <i class="ri-checkbox-circle-fill text-success fs-1"></i>
             </div>
             <h4 class="fw-bold text-dark mb-1">{{ __('Shop invoice created successfully') }}</h4>
             <p class="text-muted fs-14 mb-3">{{ __('Invoice #:hash has been recorded.', ['hash' => $invoice->hash]) }}</p>
@@ -31,22 +31,22 @@
                     <i class="ri-printer-line"></i>
                     <span>{{ __('Print invoice') }}</span>
                 </a>
-                <a href="{{ route('admin.shop-invoice.create') }}" class="btn btn-outline-primary px-3 d-inline-flex align-items-center gap-1.5">
+                <a href="{{ route('admin.shop-invoice.create') }}" class="btn btn-outline-secondary px-3 d-inline-flex align-items-center gap-1.5">
                     <i class="ri-add-line"></i>
                     <span>{{ __('New invoice') }}</span>
                 </a>
                 @if($invoice->status === \App\Models\Invoice::COMPLETED)
-                    <a href="{{ route('admin.invoice.show', $invoice) }}" class="btn btn-outline-secondary px-3 d-inline-flex align-items-center gap-1.5">
+                    <a href="{{ route('admin.invoice.show', $invoice) }}" class="btn btn-link text-secondary px-3 d-inline-flex align-items-center gap-1 text-decoration-none">
                         <i class="ri-eye-line"></i>
                         <span>{{ __('View invoice') }}</span>
                     </a>
                 @else
-                    <a href="{{ route('admin.invoice.edit', $invoice) }}" class="btn btn-outline-secondary px-3 d-inline-flex align-items-center gap-1.5">
+                    <a href="{{ route('admin.invoice.edit', $invoice) }}" class="btn btn-link text-secondary px-3 d-inline-flex align-items-center gap-1 text-decoration-none">
                         <i class="ri-edit-line"></i>
                         <span>{{ __('Manage invoice') }}</span>
                     </a>
                 @endif
-                <a href="{{ route('admin.shop-invoice.index') }}" class="btn btn-outline-secondary px-3 d-inline-flex align-items-center gap-1.5">
+                <a href="{{ route('admin.shop-invoice.index') }}" class="btn btn-link text-secondary px-3 d-inline-flex align-items-center gap-1 text-decoration-none">
                     <i class="ri-arrow-right-line"></i>
                     <span>{{ __('In-person sales') }}</span>
                 </a>

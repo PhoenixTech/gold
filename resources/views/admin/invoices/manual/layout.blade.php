@@ -130,10 +130,6 @@
 
                         <div class="p-3">
                             <div class="d-flex align-items-center justify-content-between mb-2">
-                                <span class="text-muted fs-13">{{ __('Pieces') }}</span>
-                                <span class="font-fanum fw-semibold text-dark fs-13">{{ number_format($displayPiecesCount) }}</span>
-                            </div>
-                            <div class="d-flex align-items-center justify-content-between mb-2">
                                 <span class="text-muted fs-13">{{ __('Total price') }}</span>
                                 <span class="font-fanum fw-bold text-dark fs-14">
                                     {{ number_format($total) }} <small class="text-muted fw-normal fs-11">{{ __('Toman') }}</small>

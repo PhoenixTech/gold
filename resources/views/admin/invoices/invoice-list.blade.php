@@ -1,5 +1,9 @@
 @extends('admin.templates.panel-list-template')
 
+@php
+    $hideIdCol = true;
+@endphp
+
 @section('list-title')
     <i class="ri-file-list-3-line"></i>
     {{ __($listTitleKey ?? 'Invoices list') }}
@@ -19,13 +23,13 @@
         @endphp
         <div class="d-flex align-items-center flex-wrap gap-2 mb-3 px-1">
             <a href="{{ getRoute('index', $chipQuery()) }}"
-               class="btn btn-sm {{ $currentStatus === null ? 'btn-light' : 'btn-outline-secondary' }} rounded-pill px-3">
+               class="btn btn-sm {{ $currentStatus === null ? 'btn-light' : 'btn-outline-secondary' }} px-3">
                 {{ __('All') }}
                 <span class="ms-1 opacity-75">{{ number_format($quickCounts['all'] ?? 0) }}</span>
             </a>
             @foreach($statusChips as $chip)
                 <a href="{{ getRoute('index', $chipQuery(['filter' => array_merge($otherFilters, ['status' => $chip['key']])])) }}"
-                   class="btn btn-sm {{ $currentStatus === $chip['key'] ? 'btn-light' : 'btn-outline-secondary' }} rounded-pill px-3"
+                   class="btn btn-sm {{ $currentStatus === $chip['key'] ? 'btn-light' : 'btn-outline-secondary' }} px-3"
                    title="{{ $chip['label'] }}">
                     <i class="{{ $chip['icon'] }} me-1"></i>{{ $chip['label'] }}
                     <span class="ms-1 opacity-75">{{ number_format($chip['count']) }}</span>
@@ -41,14 +45,6 @@
 
 @if($showInvoiceStatusFilters ?? true)
 @section('filter')
-    <select name="filter[status]" class="form-select form-select-sm w-auto">
-        <option value="">{{__("All statuses")}}</option>
-        @foreach(\App\Models\Invoice::adminFilterStatuses() as $st)
-            <option value="{{$st}}" @if(request()->input('filter.status') == $st) selected @endif>
-                {{__($st)}}
-            </option>
-        @endforeach
-    </select>
     <select name="filter[delivery_type]" class="form-select form-select-sm w-auto">
         <option value="">{{ __("All delivery types") }}</option>
         <option value="address" @selected(request()->input('filter.delivery_type') === 'address')>{{ __("Shipped to address") }}</option>

@@ -15,11 +15,10 @@
 
     <div class="item-list shadow-sm mb-4">
         <div class="p-3 p-md-4">
-            <div class="d-flex align-items-center gap-2 mb-1">
+            <div class="d-flex align-items-center gap-2 mb-3">
                 <i class="ri-user-3-line text-primary fs-18"></i>
-                <h5 class="mb-0 fw-bold fs-16 text-dark">{{ __('Who is buying?') }}</h5>
+                <h5 class="mb-0 fw-bold fs-16 text-dark">{{ __('Customer') }}</h5>
             </div>
-            <p class="text-muted fs-13 mb-4">{{ __('Enter the customer mobile. If the number is already registered, that customer is used.') }}</p>
 
             <form method="POST" action="{{ route('admin.shop-invoice.store') }}">
                 @csrf

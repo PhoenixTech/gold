@@ -10,27 +10,31 @@
 
 @section('content')
 
-    @if(hasRoute('create') && isset($item))
-        <a class="action-btn circle-btn"
-           data-bs-toggle="tooltip"
-           data-bs-placement="top"
-           data-bs-custom-class="custom-tooltip"
-           data-bs-title="{{__("Add another one")}}"
-           href="{{getRoute('create')}}"
-        >
-            <i class="ri-add-line"></i>
-        </a>
-    @else
-        <a class="action-btn circle-btn"
-           data-bs-toggle="tooltip"
-           data-bs-placement="top"
-           data-bs-custom-class="custom-tooltip"
-           data-bs-title="{{__("Show list")}}"
-           href="{{getRoute('index',[])}}"
-        >
-            <i class="ri-list-view"></i>
-        </a>
-    @endif
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+        <h4 class="mb-0 fw-bold d-flex align-items-center gap-2 text-dark fs-18">
+            <i class="ri-file-edit-line text-primary"></i>
+            <span>{{ isset($item) ? __('Edit product') : __('Add new product') }}</span>
+            @if(isset($item))
+                <span class="badge bg-light text-dark border font-monospace fs-12">{{ $item->sku ?: '#'.$item->id }}</span>
+            @endif
+        </h4>
+        <div class="d-flex align-items-center gap-2">
+            @if(hasRoute('create') && isset($item))
+                <a href="{{ getRoute('create') }}" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
+                    <i class="ri-add-line"></i>
+                    <span>{{ __('Add another one') }}</span>
+                </a>
+            @endif
+            <a href="{{ getRoute('index', []) }}" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
+                <i class="ri-list-check-2"></i>
+                <span>{{ __('Show list') }}</span>
+            </a>
+            <button type="submit" form="{{ isset($item) ? 'product-form-edit' : 'product-form-create' }}" class="btn btn-sm btn-primary d-inline-flex align-items-center gap-1 shadow-sm">
+                <i class="ri-save-line"></i>
+                <span>{{ __('Save product') }}</span>
+            </button>
+        </div>
+    </div>
 
     <form
         @if(isset($item))
