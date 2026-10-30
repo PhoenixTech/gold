@@ -65,9 +65,8 @@ class AdminOrderBoardTest extends TestCase
 
         $response = $this->get(route('admin.order-board.index'));
         $response->assertOk();
-        $response->assertSee(__('Manager dashboard'));
+        $response->assertSee(__('Order board'));
         $response->assertSee(__('Active orders'));
-        $response->assertSee(__('Operational order board'));
         $response->assertDontSee('<code');
     }
 

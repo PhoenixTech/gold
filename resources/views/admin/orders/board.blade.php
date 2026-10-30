@@ -6,16 +6,9 @@
 
 @section('content')
 <div class="container-fluid px-2 px-md-0 mb-5">
-    {{-- Header --}}
     <header class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
         <div>
-            <span class="fw-bold text-primary bg-primary-subtle px-2 py-0.5 rounded border border-primary-subtle fs-12 mb-2 d-inline-block">
-                {{ __('Operational order board') }}
-            </span>
-            <h1 class="h3 fw-bold text-dark mb-1">{{ __('Manager dashboard') }}</h1>
-            <p class="text-muted fs-13 mb-0">
-                {{ __('Clinic-style daily workflow table for tracking and processing active orders.') }}
-            </p>
+            <h1 class="h3 fw-bold text-dark mb-0">{{ __('Order board') }}</h1>
         </div>
         <div class="d-flex align-items-center gap-2 flex-wrap">
             <a href="{{ route('admin.invoice.index') }}" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1">
@@ -37,7 +30,7 @@
                     <div class="d-flex align-items-center flex-wrap gap-3 fs-14">
                         <a href="{{ route('admin.order-board.index', array_merge(request()->except('scope'), ['scope' => 'active'])) }}"
                            class="text-decoration-none fw-semibold {{ $scope === 'active' ? 'text-primary' : 'text-muted' }}">
-                            <i class="ri-fire-line me-1"></i>{{ __('Active orders') }}
+                            {{ __('Active orders') }}
                             <span class="badge {{ $scope === 'active' ? 'bg-primary-subtle text-primary border border-primary-subtle' : 'bg-secondary-subtle text-secondary border border-secondary-subtle' }} ms-1 rounded-pill" title="{{ __('Active orders count') }}">{{ number_format($activeCount) }}</span>
                         </a>
                         <span class="text-muted opacity-25 d-none d-sm-inline">|</span>
@@ -99,26 +92,26 @@
                         <th style="width: 60px;" class="py-2">
                             <span class="d-inline-flex align-items-center gap-1">{{ __('#') }}</span>
                         </th>
-                        <th style="min-width: 130px;" class="py-2 text-start border-group-end-md" title="{{ __('Click phone icon in any row to expand details') }}">
+                        <th style="min-width: 130px;" class="py-2 text-start border-group-end-md">
                             <span class="d-inline-flex align-items-center gap-1">{{ __('Customer') }}<i class="ri-phone-line text-muted fs-14"></i></span>
                         </th>
                         <th class="py-2 d-none d-xl-table-cell border-group-end">{{ __('Area / fulfillment') }}</th>
                         <th style="min-width: 150px;" class="py-2 cursor-pointer sort-header" data-sort="date" aria-sort="none">
                             <span class="d-inline-flex align-items-center gap-1">{{ __('Order & Date') }}<i class="ri-arrow-up-down-line text-muted fs-11"></i></span>
                         </th>
-                        <th style="min-width: 120px;" class="py-2 cursor-pointer sort-header border-group-end" data-sort="payment" aria-sort="none" title="{{ __('Click to prioritize unpaid orders') }}">
+                        <th style="min-width: 120px;" class="py-2 cursor-pointer sort-header border-group-end" data-sort="payment" aria-sort="none">
                             <span class="d-inline-flex align-items-center gap-1">{{ __('Payment') }}<i class="ri-arrow-up-down-line text-muted fs-11"></i></span>
                         </th>
-                        <th style="min-width: 130px;" class="py-2 cursor-pointer sort-header" data-sort="confirm" aria-sort="none" title="{{ __('Click to prioritize pending confirmation') }}">
+                        <th style="min-width: 130px;" class="py-2 cursor-pointer sort-header" data-sort="confirm" aria-sort="none">
                             <span class="d-inline-flex align-items-center gap-1">{{ __('Payment confirmation') }}<i class="ri-arrow-up-down-line text-muted fs-11"></i></span>
                         </th>
-                        <th style="min-width: 120px;" class="py-2 cursor-pointer sort-header border-group-end" data-sort="settle" aria-sort="none" title="{{ __('Click to prioritize unsettled orders') }}">
+                        <th style="min-width: 120px;" class="py-2 cursor-pointer sort-header border-group-end" data-sort="settle" aria-sort="none">
                             <span class="d-inline-flex align-items-center gap-1">{{ __('Settlement') }}<i class="ri-arrow-up-down-line text-muted fs-11"></i></span>
                         </th>
-                        <th style="min-width: 130px;" class="py-2 cursor-pointer sort-header" data-sort="courier" aria-sort="none" title="{{ __('Click to prioritize fulfillment') }}">
+                        <th style="min-width: 130px;" class="py-2 cursor-pointer sort-header" data-sort="courier" aria-sort="none">
                             <span class="d-inline-flex align-items-center gap-1">{{ __('Fulfillment') }}<i class="ri-arrow-up-down-line text-muted fs-11"></i></span>
                         </th>
-                        <th style="min-width: 145px;" class="py-2 cursor-pointer sort-header border-group-end" data-sort="delivery" aria-sort="none" title="{{ __('Click to prioritize pending handover') }}">
+                        <th style="min-width: 145px;" class="py-2 cursor-pointer sort-header border-group-end" data-sort="delivery" aria-sort="none">
                             <span class="d-inline-flex align-items-center gap-1">{{ __('Delivery / collection') }}<i class="ri-arrow-up-down-line text-muted fs-11"></i></span>
                         </th>
                     </tr>

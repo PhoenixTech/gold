@@ -1,3 +1,5 @@
+# Follow YAGNI principles and one-liner solutions
+
 # Repository Guidelines
 ## 1. Localization & Persian (`fa`)
 - **Avoid unnecessary secondary labels and descriptions. Let the layout do the explaining.**

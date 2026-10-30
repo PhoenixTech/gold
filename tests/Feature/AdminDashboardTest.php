@@ -234,23 +234,14 @@ class AdminDashboardTest extends TestCase
         $response = $this->get(route('home'));
 
         $response->assertOk();
-        $response->assertSee(__('WAITING_RECEIPT'), false);
-        $response->assertSee(__('WAITING_CONFIRMATION'), false);
-        $response->assertSee(__('Need process orders'), false);
         $response->assertDontSee(__('Pending tickets'), false);
         $response->assertSee(__('This month sales'), false);
-        $response->assertSee(__('Active bank account'), false);
         $response->assertSee(__('Recent invoices'), false);
         $response->assertSee(__('Quick access'), false);
         $response->assertSee('Waiting Receipt Buyer', false);
         $response->assertSee('Waiting Confirmation Buyer', false);
         $response->assertSee('Paid Order Buyer', false);
-        $response->assertSee('Melli', false);
-        $response->assertSee('Zhonella Shop', false);
         $response->assertSee(number_format(3_400_000), false);
-        $response->assertSee(route('admin.invoice.index', [
-            'filter' => ['status' => Invoice::WAITING_RECEIPT],
-        ]), false);
     }
 
     public function test_dashboard_shows_in_stock_and_sold_pieces_and_weights_breakdown(): void
@@ -330,10 +321,7 @@ class AdminDashboardTest extends TestCase
         $response->assertSee('قیمت طلا ۱۸ عیار', false);
         $response->assertSee('قیمت نقره', false);
         $response->assertSee('نرخ دلار', false);
-        $response->assertSee('در انتظار رسید', false);
-        $response->assertSee('در انتظار تایید', false);
         $response->assertSee('فروش این ماه', false);
-        $response->assertSee('حساب بانکی فعال', false);
         $response->assertSee('آخرین صورت‌حساب‌ها', false);
         $response->assertSee('دسترسی سریع', false);
         $response->assertSee('هنوز به‌روز نشده', false);

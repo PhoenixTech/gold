@@ -78,53 +78,12 @@
 
         <div class="row g-3 mb-4">
             <div class="col-md-4">
-                <a class="avisa-summary-stat-card card-receipt" href="{{ route('admin.invoice.index', ['filter' => ['status' => \App\Models\Invoice::WAITING_RECEIPT]]) }}">
-                    <div class="stat-icon-wrapper">
-                        <i class="ri-upload-2-line"></i>
-                    </div>
-                    <div class="stat-details">
-                        <span class="stat-label">{{ __('WAITING_RECEIPT') }}</span>
-                        <h5 class="stat-value">{{ number_format($waitingReceipt) }}</h5>
-                    </div>
-                </a>
-            </div>
-            <div class="col-md-4">
-                <a class="avisa-summary-stat-card card-confirm" href="{{ route('admin.invoice.index', ['filter' => ['status' => \App\Models\Invoice::WAITING_CONFIRMATION]]) }}">
-                    <div class="stat-icon-wrapper">
-                        <i class="ri-checkbox-circle-line"></i>
-                    </div>
-                    <div class="stat-details">
-                        <span class="stat-label">{{ __('WAITING_CONFIRMATION') }}</span>
-                        <h5 class="stat-value">{{ number_format($waitingConfirmation) }}</h5>
-                    </div>
-                </a>
-            </div>
-            <div class="col-md-4">
-                <a class="avisa-summary-stat-card card-invoice" href="{{ route('admin.invoice.index', ['filter' => ['status' => \App\Models\Invoice::PAID]]) }}">
-                    <div class="stat-icon-wrapper">
-                        <i class="ri-shopping-bag-4-line"></i>
-                    </div>
-                    <div class="stat-details">
-                        <span class="stat-label">{{ __('Need process orders') }}</span>
-                        <h5 class="stat-value">{{ number_format($needProcess) }}</h5>
-                    </div>
-                </a>
-            </div>
-        </div>
-
-        <div class="row g-3 mb-4">
-            <div class="col-lg-6 col-md-6">
                 <a class="avisa-summary-stat-card card-stock" href="{{ route('admin.product.index') }}">
                     <div class="stat-icon-wrapper">
                         <i class="ri-archive-line"></i>
                     </div>
                     <div class="stat-details">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="stat-label mb-0">{{ __('In-stock inventory') }}</span>
-                            <span class="badge bg-success-subtle text-success border border-success-subtle">
-                                {{ number_format($stockStats['total_count']) }} {{ __('items') }} · {{ \App\Services\AdminDashboardStats::formatWeight($stockStats['total_weight']) }} {{ __('g') }}
-                            </span>
-                        </div>
+                        <span class="stat-label">{{ __('In-stock inventory') }}</span>
                         <h5 class="stat-value">
                             {{ number_format($stockStats['total_count']) }}
                             <small class="text-muted">{{ __('items') }}</small>
@@ -136,33 +95,16 @@
                             <span class="me-2"><i class="ri-coins-line text-warning me-1"></i>{{ __('Gold') }}: {{ number_format($stockStats['gold_count']) }} {{ __('items') }} ({{ \App\Services\AdminDashboardStats::formatWeight($stockStats['gold_weight']) }} {{ __('g') }})</span>
                             <span><i class="ri-vip-diamond-line text-secondary me-1"></i>{{ __('Silver') }}: {{ number_format($stockStats['silver_count']) }} {{ __('items') }} ({{ \App\Services\AdminDashboardStats::formatWeight($stockStats['silver_weight']) }} {{ __('g') }})</span>
                         </div>
-                        @if(($lowStockCount ?? 0) > 0)
-                            <div class="mt-2 pt-2 border-top d-flex align-items-center justify-content-between text-danger fs-12">
-                                <span><i class="ri-alarm-warning-line me-1"></i>{{ __('Low stock alert') }}: <b>{{ number_format($lowStockCount) }}</b> {{ __('products') }}</span>
-                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle">{{ __('Filter') }} &larr;</span>
-                            </div>
-                        @endif
-                        @if(($belowBuyPriceCount ?? 0) > 0)
-                            <div class="mt-1 pt-1 border-top d-flex align-items-center justify-content-between text-warning-emphasis fs-12">
-                                <span><i class="ri-error-warning-line me-1"></i>{{ __('Below purchase price') }}: <b>{{ number_format($belowBuyPriceCount) }}</b> {{ __('products') }}</span>
-                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">{{ __('Filter') }} &larr;</span>
-                            </div>
-                        @endif
                     </div>
                 </a>
             </div>
-            <div class="col-lg-6 col-md-6">
+            <div class="col-md-4">
                 <a class="avisa-summary-stat-card card-sold" href="{{ route('admin.invoice.index') }}">
                     <div class="stat-icon-wrapper">
                         <i class="ri-shopping-cart-check-line"></i>
                     </div>
                     <div class="stat-details">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="stat-label mb-0">{{ __('Sold items') }}</span>
-                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
-                                {{ number_format($soldStats['total_count']) }} {{ __('items') }} · {{ \App\Services\AdminDashboardStats::formatWeight($soldStats['total_weight']) }} {{ __('g') }}
-                            </span>
-                        </div>
+                        <span class="stat-label">{{ __('Sold items') }}</span>
                         <h5 class="stat-value">
                             {{ number_format($soldStats['total_count']) }}
                             <small class="text-muted">{{ __('items') }}</small>
@@ -177,10 +119,7 @@
                     </div>
                 </a>
             </div>
-        </div>
-
-        <div class="row g-3 mb-4">
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <a class="avisa-summary-stat-card card-sales" href="{{ route('admin.invoice.index') }}">
                     <div class="stat-icon-wrapper">
                         <i class="ri-line-chart-line"></i>
@@ -191,23 +130,6 @@
                             {{ number_format($monthlySales) }}
                             <small class="text-muted">{{ config('app.currency.symbol') }}</small>
                         </h5>
-                    </div>
-                </a>
-            </div>
-            <div class="col-md-6">
-                <a class="avisa-summary-stat-card card-bank" href="{{ route('admin.bank-account.index') }}">
-                    <div class="stat-icon-wrapper">
-                        <i class="ri-bank-card-line"></i>
-                    </div>
-                    <div class="stat-details">
-                        <span class="stat-label">{{ __('Active bank account') }}</span>
-                        @if($bankAccount)
-                            <h5 class="stat-value">{{ $bankAccount->bank_name }}</h5>
-                            <small class="stat-sub">{{ $bankAccount->account_holder_name }}</small>
-                        @else
-                            <h5 class="stat-value">—</h5>
-                            <small class="stat-sub">{{ __('No active bank account') }}</small>
-                        @endif
                     </div>
                 </a>
             </div>
@@ -263,19 +185,14 @@
                         <h4><i class="ri-store-2-line me-2"></i>{{ __('Quick access') }}</h4>
                     </div>
                     <div class="widget-body">
-                        <ul class="dash-quick-links">
+                        <ul class="dash-quick-links mb-0">
+                            <li><a href="{{ route('admin.order-board.index') }}"><i class="ri-dashboard-2-fill"></i>{{ __('Order board') }}</a></li>
+                            <li><a href="{{ route('admin.invoice.index') }}"><i class="ri-file-list-3-fill"></i>{{ __('Invoices') }}</a></li>
                             <li><a href="{{ route('admin.product.index') }}"><i class="ri-vip-diamond-fill"></i>{{ __('Products') }}</a></li>
                             <li><a href="{{ route('admin.category.index') }}"><i class="ri-box-3-fill"></i>{{ __('Categories') }}</a></li>
-                            <li><a href="{{ route('admin.invoice.index') }}"><i class="ri-file-list-3-fill"></i>{{ __('Invoices') }}</a></li>
-                            <li><a href="{{ route('admin.bank-account.index') }}"><i class="ri-bank-card-line"></i>{{ __('Bank accounts') }}</a></li>
-                            <li><a href="{{ route('admin.transport.index') }}"><i class="ri-truck-fill"></i>{{ __('Transports') }}</a></li>
                             <li><a href="{{ route('admin.customer.index') }}"><i class="ri-team-fill"></i>{{ __('Customers') }}</a></li>
+                            <li><a href="{{ route('admin.setting.index') }}"><i class="ri-settings-4-fill"></i>{{ __('Settings') }}</a></li>
                         </ul>
-                        <div class="dash-visitors">
-                            <i class="ri-eye-line"></i>
-                            <span>{{ __('Monthly Visitors') }}:</span>
-                            <strong>{{ number_format($monthlyVisitors) }}</strong>
-                        </div>
                     </div>
                 </div>
             </div>
