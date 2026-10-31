@@ -7,10 +7,11 @@ function isValidMobile(p) {
 document.addEventListener('DOMContentLoaded', function () {
     document.querySelector('#send-auth-code')?.addEventListener('click', async function () {
         try {
+            const form = document.querySelector('#login-form');
             const url = this.getAttribute('data-route');
             const tel = document.querySelector('#tel')?.value || '';
             if (tel.length < 11 || !isValidMobile(tel)) {
-                window.$toast?.error('Invalid mobile');
+                window.$toast?.error(form?.dataset.msgInvalidMobile || 'Invalid mobile');
                 return;
             }
 
@@ -32,15 +33,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.querySelector('#send-auth-check')?.addEventListener('click', async function () {
         try {
+            const form = document.querySelector('#login-form');
             const url = this.getAttribute('data-route');
             const tel = document.querySelector('#tel')?.value || '';
             const code = document.querySelector('#auth')?.value || '';
             if (tel.length < 11 || !isValidMobile(tel)) {
-                window.$toast?.error('Invalid mobile');
+                window.$toast?.error(form?.dataset.msgInvalidMobile || 'Invalid mobile');
                 return;
             }
             if (code.length < 5 || code.length > 6) {
-                window.$toast?.error('Invalid code');
+                window.$toast?.error(form?.dataset.msgInvalidCode || 'Invalid code');
                 return;
             }
 

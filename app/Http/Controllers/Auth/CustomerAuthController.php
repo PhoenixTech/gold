@@ -30,7 +30,7 @@ class CustomerAuthController extends Controller
             session(['url.intended' => $request->input('redirect')]);
         }
 
-        $title = __('sign in');
+        $title = __('Sign in');
         $subtitle = __('Sign in as customer');
 
         return view('client.auth.login', compact('title', 'subtitle'));

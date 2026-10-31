@@ -1,20 +1,25 @@
-// Authentication Page Styles (Customer Sign-In & Sign-Up, Staff Login)
-
 .auth-page-section {
     min-height: calc(100vh - 200px);
     display: flex;
     align-items: center;
 
+    .auth-card {
+        border: 1px solid var(--xshop-surface-200);
+        box-shadow: var(--xshop-shadow-sm);
+        background-color: var(--xshop-surface-0);
+        border-radius: 0.75rem;
+    }
+
     .auth-split-wrapper {
-        border: 1px solid rgba(0, 0, 0, 0.08) !important;
-        box-shadow: 0 12px 36px -4px rgba(0, 0, 0, 0.12) !important;
+        border: 1px solid var(--xshop-surface-200);
+        box-shadow: var(--xshop-shadow-sm);
     }
 
     .auth-showcase-column {
         min-height: 480px;
 
         .benefit-icon-box {
-            background: rgba(219, 154, 0, 0.15);
+            background: var(--xshop-gold-100);
             color: var(--xshop-primary);
         }
 
@@ -42,4 +47,11 @@
     min-height: calc(100vh - 200px);
     display: flex;
     align-items: center;
+
+    .auth-card {
+        border: 1px solid var(--xshop-surface-200);
+        box-shadow: var(--xshop-shadow-sm);
+        background-color: var(--xshop-surface-0);
+        border-radius: 0.75rem;
+    }
 }
