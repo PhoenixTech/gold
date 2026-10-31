@@ -33,6 +33,17 @@
     min-width: 0;
 }
 
+.assay-head {
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+}
+
+.assay-icon {
+    font-size: 1rem;
+    color: var(--ck-accent);
+}
+
 .assay-kicker {
     display: inline-block;
     font-size: .72rem;
@@ -42,6 +53,7 @@
     margin-bottom: .35rem;
 }
 
+.assay-desc,
 .assay-copy p {
     margin: 0;
     color: var(--ck-muted);
@@ -275,20 +287,93 @@
     font-size: .9rem;
 }
 
+.piece-remove-col {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
 .piece-remove {
     color: var(--ck-muted);
-    font-size: 1.2rem;
+    font-size: 1.25rem;
     line-height: 1;
-    width: 2rem;
-    height: 2rem;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+    border: 1px solid transparent;
+    background: transparent;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     border-radius: 999px;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: all 0.2s ease;
 }
 
-.piece-remove:hover {
+.piece-remove:hover,
+.piece-remove:focus-visible {
+    background: var(--xshop-surface-100, #f8f9fa);
+    color: var(--xshop-danger);
+    border-color: var(--ck-line);
+}
+
+.piece-remove-confirm {
+    display: inline-flex;
+    align-items: center;
+    gap: .25rem;
     background: #fff;
+    padding: .15rem .25rem;
+    border-radius: 999px;
+    border: 1px solid var(--xshop-danger);
+    box-shadow: var(--xshop-shadow-xs);
+}
+
+.piece-confirm-btn {
+    border: 0;
+    background: var(--xshop-danger);
+    color: #fff;
+    font-size: .78rem;
+    font-weight: 700;
+    padding: 0 .65rem;
+    height: 38px;
+    min-height: 38px;
+    border-radius: 999px;
+    cursor: pointer;
+    touch-action: manipulation;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s ease;
+}
+
+.piece-confirm-btn:hover {
+    opacity: 0.9;
+}
+
+.piece-cancel-btn {
+    border: 0;
+    background: transparent;
+    color: var(--ck-muted);
+    font-size: 1.1rem;
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    min-height: 38px;
+    padding: 0;
+    border-radius: 999px;
+    cursor: pointer;
+    touch-action: manipulation;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease;
+}
+
+.piece-cancel-btn:hover {
     color: var(--ck-ink);
 }
 
@@ -891,44 +976,62 @@ textarea.full {
         white-space: nowrap;
     }
     .assay-ticket {
-        flex-direction: column;
-        gap: 0;
-        margin-bottom: .85rem;
-        border-radius: .5rem;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: .5rem;
+        margin-bottom: .75rem;
+        padding: .45rem .75rem;
+        border-radius: .6rem;
         background: linear-gradient(180deg, var(--xshop-gold-100), var(--ck-paper));
-        box-shadow: 0 1px 4px rgba(61, 46, 20, 0.08);
+        box-shadow: 0 1px 3px rgba(61, 46, 20, 0.08);
         overflow: hidden;
     }
     .assay-copy {
-        padding: .6rem .75rem .5rem;
+        padding: 0;
+        min-width: 0;
+    }
+    .assay-head {
+        display: flex;
+        align-items: center;
+        gap: .35rem;
+    }
+    .assay-icon {
+        font-size: .95rem;
+        color: var(--ck-accent);
+        flex-shrink: 0;
     }
     .assay-kicker {
-        font-size: .68rem;
-        margin-bottom: .2rem;
-    }
-    .assay-copy p {
         font-size: .76rem;
-        line-height: 1.45;
+        margin-bottom: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
+    .assay-desc,
     .assay-path {
-        margin-top: .35rem;
-        gap: .25rem .6rem;
-        font-size: .7rem;
+        display: none;
     }
     .quote-timer {
         border-inline-start: 0;
-        border-top: 1px dashed var(--xshop-gold-300);
+        border-top: 0;
         min-width: 0;
         flex-direction: row;
-        justify-content: space-between;
         align-items: center;
-        padding: .4rem .75rem;
+        gap: .35rem;
+        padding: .2rem .5rem;
+        border-radius: .4rem;
+        background: color-mix(in srgb, var(--ck-accent) 12%, white);
+        flex-shrink: 0;
     }
-    .quote-timer span {
-        font-size: .68rem;
+    .quote-timer span,
+    .quote-timer-label {
+        display: none;
     }
-    .quote-timer em {
-        font-size: 1.15rem;
+    .quote-timer em,
+    .quote-timer-val {
+        font-size: .95rem;
+        line-height: 1;
     }
     .checkout-layout {
         grid-template-columns: 1fr;

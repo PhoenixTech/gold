@@ -1,16 +1,19 @@
 <template>
     <div class="assay-ticket" role="status" :class="{ urgent: remaining <= 120 }">
         <div class="assay-copy">
-            <span class="assay-kicker">{{ t('live-price-title', 'قیمت طلا لحظه‌ای است') }}</span>
-            <p>{{ t('live-price-hint', 'قیمت هر قطعه با نرخ روز طلا محاسبه می‌شود و برای صدور فاکتور ۳۰ دقیقه اعتبار دارد.') }}</p>
+            <div class="assay-head">
+                <i class="ri-time-line assay-icon"></i>
+                <span class="assay-kicker">{{ t('live-price-title', 'قیمت طلا لحظه‌ای است') }}</span>
+            </div>
+            <p class="assay-desc">{{ t('live-price-hint', 'قیمت هر قطعه با نرخ روز طلا محاسبه می‌شود و برای صدور فاکتور ۳۰ دقیقه اعتبار دارد.') }}</p>
             <ol class="assay-path">
                 <li class="now">{{ t('quote-step', 'صدور فاکتور') }} · {{ minutes }} {{ t('minutes-short', 'دقیقه') }}</li>
                 <li>{{ t('pay-step', 'کارت‌به‌کارت و رسید') }} · {{ hours }} {{ t('hours-short', 'ساعت') }}</li>
             </ol>
         </div>
         <div class="quote-timer" :class="{ urgent: remaining <= 120 }">
-            <span>{{ remaining <= 0 ? t('quote-expired', 'در حال بروزرسانی...') : t('quote-remaining', 'زمان باقی‌مانده') }}</span>
-            <em>{{ countdown }}</em>
+            <span class="quote-timer-label">{{ remaining <= 0 ? t('quote-expired', 'در حال بروزرسانی...') : t('quote-remaining', 'زمان باقی‌مانده') }}</span>
+            <em class="quote-timer-val">{{ countdown }}</em>
         </div>
     </div>
 </template>

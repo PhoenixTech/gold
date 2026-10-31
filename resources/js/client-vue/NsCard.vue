@@ -61,9 +61,36 @@
                                     <strong class="piece-price">{{ priceing(pricez[i]) }}</strong>
                                 </div>
                             </div>
-                            <a class="piece-remove" :href="cardLink + item.slug" :title="t('remove', 'حذف')">
-                                <i class="ri-close-line"></i>
-                            </a>
+                            <div class="piece-remove-col">
+                                <div v-if="confirmingRemoveSlug === item.slug" class="piece-remove-confirm">
+                                    <button
+                                        type="button"
+                                        class="piece-confirm-btn"
+                                        @click="deletePiece(item)"
+                                    >
+                                        {{ t('remove', 'حذف') }}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="piece-cancel-btn"
+                                        :title="t('cancel', 'انصراف')"
+                                        :aria-label="t('cancel', 'انصراف')"
+                                        @click="cancelRemove"
+                                    >
+                                        <i class="ri-close-line"></i>
+                                    </button>
+                                </div>
+                                <button
+                                    v-else
+                                    type="button"
+                                    class="piece-remove"
+                                    :title="t('remove', 'حذف')"
+                                    :aria-label="t('remove', 'حذف')"
+                                    @click="promptRemove(item.slug)"
+                                >
+                                    <i class="ri-delete-bin-line"></i>
+                                </button>
+                            </div>
                         </li>
                     </ul>
                 </section>
@@ -301,6 +328,8 @@ export default {
         bankAccountNumber: '',
         bankSheba: '',
         bankAccountName: '',
+        confirmingRemoveSlug: null,
+        confirmTimer: null,
         translate: {},
     }),
     created() {
@@ -330,6 +359,9 @@ export default {
     beforeUnmount() {
         if (this.quoteTimer) {
             clearInterval(this.quoteTimer);
+        }
+        if (this.confirmTimer) {
+            clearTimeout(this.confirmTimer);
         }
         if (this.onVisibilityChange) {
             document.removeEventListener('visibilitychange', this.onVisibilityChange);
@@ -715,6 +747,30 @@ export default {
             this.profileForm.address = '';
             this.profileForm.zip = '';
             this.currentKey = 'account';
+        },
+        promptRemove(slug) {
+            if (this.confirmTimer) {
+                clearTimeout(this.confirmTimer);
+            }
+            this.confirmingRemoveSlug = slug;
+            this.confirmTimer = setTimeout(() => {
+                this.confirmingRemoveSlug = null;
+                this.confirmTimer = null;
+            }, 5000);
+        },
+        cancelRemove() {
+            if (this.confirmTimer) {
+                clearTimeout(this.confirmTimer);
+                this.confirmTimer = null;
+            }
+            this.confirmingRemoveSlug = null;
+        },
+        deletePiece(item) {
+            if (this.confirmTimer) {
+                clearTimeout(this.confirmTimer);
+                this.confirmTimer = null;
+            }
+            window.location.href = this.cardLink + item.slug;
         },
         priceing(p) {
             if (p == null || p === undefined) {

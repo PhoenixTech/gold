@@ -82,6 +82,7 @@
             'piece-missing' => __('Stock piece not selected'),
             'choose-piece' => __('Choose piece'),
             'remove' => __('Remove'),
+            'cancel' => __('Cancel'),
             'mobile-invalid' => __('Mobile number format is invalid'),
             'sent-to' => __('Sent to'),
             'check-dis' => __('Check discount'),

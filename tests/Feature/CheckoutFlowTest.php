@@ -446,6 +446,10 @@ class CheckoutFlowTest extends TestCase
         $this->assertSame('جزئیات فاکتور', $translations['invoice-details']);
         $this->assertSame('اطلاعات پرداخت', $translations['payment-details']);
         $this->assertSame('ادامه به پرداخت', $translations['continue-to-payment']);
+        $this->assertArrayHasKey('remove', $translations);
+        $this->assertArrayHasKey('cancel', $translations);
+        $this->assertSame('حذف', $translations['remove']);
+        $this->assertSame('انصراف', $translations['cancel']);
         $this->assertArrayHasKey('state', $translations);
         $this->assertArrayHasKey('city', $translations);
         $this->assertArrayHasKey('select-state', $translations);
