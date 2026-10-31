@@ -2611,6 +2611,7 @@
     "Waiting for the customer to pay by card-to-card and upload a receipt.": "در انتظار پرداخت کارت‌به‌کارت و بارگذاری فیش توسط مشتری.",
     "Waiting invoices": "فاکتورهای در انتظار",
     "Waiting on customer": "در انتظار مشتری",
+    "Waiting confirmation": "در انتظار تایید",
     "Waiting receipt": "در انتظار فیش",
     "WAITING_CONFIRMATION": "در انتظار تایید",
     "WAITING_RECEIPT": "در انتظار رسید",

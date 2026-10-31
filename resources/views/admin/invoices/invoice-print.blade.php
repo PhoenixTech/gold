@@ -44,8 +44,8 @@
 
     // Gift orders are shipped to someone other than the buyer, so the printed
     // legal document has to name the actual receiver.
-    $receiverName = $invoice->is_third_party ? ($invoice->recipient_name ?: '—') : ($invoice->customer?->name ?: __('Guest'));
-    $receiverMobile = $invoice->is_third_party ? ($invoice->recipient_mobile ?: '—') : ($invoice->customer?->mobile ?: '—');
+    $receiverName = $invoice->is_third_party ? ($invoice->recipient_name ?: '-') : ($invoice->customer?->name ?: __('Guest'));
+    $receiverMobile = $invoice->is_third_party ? ($invoice->recipient_mobile ?: '-') : ($invoice->customer?->mobile ?: '-');
 
     $subtotal = $invoice->orders->sum('price_total');
     $logoUrl = getSetting('logo_png') ? asset(getSetting('logo_png')) : (getSetting('logo_svg') ? asset(getSetting('logo_svg')) : asset('upload/images/logo.png'));
@@ -56,7 +56,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ __('Official Sales Invoice') }} #{{ $invoice->hash }}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    @vite(['resources/sass/app.scss'])
     <style>
         @page { size: A4 portrait; margin: 8mm 8mm 10mm; }
 
@@ -74,7 +74,7 @@
             margin: 0 auto;
             background: #fff;
             padding: 10mm 8mm;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, .12);
+            border: 1px solid #d8dade;
         }
 
         .fs-xxs { font-size: 7pt; }
@@ -174,7 +174,6 @@
     <a href="{{ route('admin.invoice.show', $invoice->hash) }}" class="btn btn-outline-secondary px-3">
         {{ __('Back to invoice') }}
     </a>
-    <span class="text-muted fs-13">{{ __('Use your browser dialog to save as PDF if needed.') }}</span>
 </div>
 
 <div class="paper">
@@ -182,7 +181,7 @@
     {{-- Header --}}
     <div class="d-flex align-items-start justify-content-between gap-3 pb-2 mb-2 border-bottom">
         <div class="d-flex align-items-center gap-2">
-            <img src="{{ $logoUrl }}" alt="{{ config('app.name') }}" style="max-height: 42px;" onerror="this.style.display='none'">
+            <img src="{{ $logoUrl }}" alt="{{ config('app.name') }}" width="105" height="42" style="max-height: 42px; width: auto;">
             <div>
                 <h5 class="fw-bold mb-0" style="font-size: 13pt;">{{ config('app.name') }}</h5>
                 <div class="text-muted fs-xxs">{{ getSetting('subtitle') ?: __('Official Online Store') }}</div>
@@ -206,7 +205,7 @@
                 </div>
             </div>
             @if(isset($qr))
-                <img src="{{ $qr->render(route('client.invoice', $invoice->hash)) }}" alt="{{ __('QR Code') }}" class="qr">
+                <img src="{{ $qr->render(route('client.invoice', $invoice->hash)) }}" alt="{{ __('QR Code') }}" class="qr" width="76" height="76">
             @endif
         </div>
     </div>
@@ -227,7 +226,7 @@
             <div class="block h-100">
                 <div class="block-title">{{ __('Buyer information') }}</div>
                 <div class="kv"><span>{{ __('Name') }}</span><b>{{ $invoice->customer?->name ?: __('Guest') }}</b></div>
-                <div class="kv"><span>{{ __('Mobile') }}</span><b class="fa-num" dir="ltr">{{ $invoice->customer?->mobile ?: '—' }}</b></div>
+                <div class="kv"><span>{{ __('Mobile') }}</span><b class="fa-num" dir="ltr">{{ $invoice->customer?->mobile ?: '-' }}</b></div>
                 <div class="kv">
                     <span>{{ __('Address') }}</span>
                     <b style="max-width: 72%;">{{ $fullAddress }}</b>
@@ -242,7 +241,7 @@
     {{-- Third-party receiver: the printed document has to name whoever
          actually receives the parcel, not just the buyer. --}}
     @if($invoice->is_third_party)
-        <div class="block mb-2" style="border-color:#b8d4ff;background:#f5f9ff;">
+        <div class="block mb-2 border-primary-subtle bg-light">
             <div class="block-title">{{ __('Recipient (gift order)') }}</div>
             <div class="row g-2">
                 <div class="col-4">
@@ -252,7 +251,7 @@
                     <div class="kv"><span>{{ __('Mobile') }}</span><b class="fa-num" dir="ltr">{{ $receiverMobile }}</b></div>
                 </div>
                 <div class="col-4">
-                    <div class="kv"><span>{{ __('National ID') }}</span><b class="fa-num" dir="ltr">{{ $invoice->recipient_national_id ?: '—' }}</b></div>
+                    <div class="kv"><span>{{ __('National ID') }}</span><b class="fa-num" dir="ltr">{{ $invoice->recipient_national_id ?: '-' }}</b></div>
                 </div>
             </div>
         </div>
@@ -291,7 +290,7 @@
                     @if($invoice->activeDelivery)
                         <div class="kv">
                             <span>{{ __('Courier') }}</span>
-                            <b>{{ $invoice->activeDelivery->courier?->name ?? '—' }}</b>
+                            <b>{{ $invoice->activeDelivery->courier?->name ?? '-' }}</b>
                         </div>
                         <div class="kv">
                             <span>{{ __('Delivery status') }}</span>
@@ -308,7 +307,7 @@
                 @if(! $isPickup)
                     <div class="kv">
                         <span>{{ __('Receiver') }}</span>
-                        <b>{{ $receiverName }} — <span class="fa-num" dir="ltr">{{ $receiverMobile }}</span></b>
+                        <b>{{ $receiverName }} - <span class="fa-num" dir="ltr">{{ $receiverMobile }}</span></b>
                     </div>
                 @endif
             </div>
@@ -500,10 +499,6 @@
             </div>
         </div>
     </div>
-
-    <p class="no-print text-center text-muted fs-xxs mt-3 mb-0">
-        {{ __('This document was generated from the order board on :date.', ['date' => \App\Models\Invoice::formatPersianDateTime(now())]) }}
-    </p>
 </div>
 
 <script>

@@ -38,10 +38,10 @@
 
     <div class="admin-invoice-view pb-5">
         {{-- Screen-Only Action & Navigation Bar --}}
-        <div class="no-print admin-invoice-actionbar mb-3 p-3 bg-white border rounded-3 shadow-sm d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div class="no-print mb-3 p-3 bg-white border rounded-3 d-flex flex-wrap align-items-center justify-content-between gap-3">
             <div class="d-flex align-items-center gap-2 flex-wrap">
                 <a href="{{ route($invoice->isManual() ? 'admin.shop-invoice.index' : 'admin.invoice.index') }}" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
-                    <i class="ri-arrow-right-line"></i>
+                    <i class="ri-arrow-right-line" aria-hidden="true"></i>
                     {{ $invoice->isManual() ? __('In-person sales') : __('Website sales') }}
                 </a>
                 <span class="text-muted">|</span>
@@ -49,7 +49,7 @@
                 <span class="{{ $invoice->statusBadgeClass() }}">{{ $invoice->statusLabel() }}</span>
                 @if($invoice->isManual())
                     <span class="badge bg-dark-subtle text-dark-emphasis border border-dark-subtle fs-12 px-2.5 py-1.5 d-inline-flex align-items-center gap-1">
-                        <i class="ri-store-2-line"></i>
+                        <i class="ri-store-2-line" aria-hidden="true"></i>
                         <span>{{ __('Shop sale') }}</span>
                     </span>
                     @if($invoice->createdBy)
@@ -60,27 +60,27 @@
 
             <div class="d-flex align-items-center gap-2 flex-wrap">
                 @if($invoice->canPrint())
-                    <a href="{{ route('admin.invoice.print', $invoice) }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary d-inline-flex align-items-center gap-1 shadow-sm px-3">
-                        <i class="ri-printer-line"></i>
+                    <a href="{{ route('admin.invoice.print', $invoice) }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary d-inline-flex align-items-center gap-1 px-3">
+                        <i class="ri-printer-line" aria-hidden="true"></i>
                         {{ __("Print invoice") }}
                     </a>
                 @endif
 
                 @if($invoice->status !== \App\Models\Invoice::COMPLETED)
                     <a href="{{ route('admin.invoice.edit', $invoice) }}" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
-                        <i class="ri-edit-2-line"></i>
+                        <i class="ri-edit-2-line" aria-hidden="true"></i>
                         {{ __("Edit invoice") }}
                     </a>
                 @endif
 
                 <a href="{{ route('client.invoice', $invoice->hash) }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" title="{{ __('Open Customer View') }}">
-                    <i class="ri-external-link-line"></i>
+                    <i class="ri-external-link-line" aria-hidden="true"></i>
                     {{ __("Customer view") }}
                 </a>
 
                 @if($canConfirmPayment)
-                    <button type="button" class="btn btn-sm btn-success d-inline-flex align-items-center gap-1 shadow-sm px-3" data-bs-toggle="modal" data-bs-target="#confirmPaymentModal">
-                        <i class="ri-check-double-line"></i>
+                    <button type="button" class="btn btn-sm btn-success d-inline-flex align-items-center gap-1 px-3" data-bs-toggle="modal" data-bs-target="#confirmPaymentModal">
+                        <i class="ri-check-double-line" aria-hidden="true"></i>
                         {{ __("Confirm payment") }}
                     </button>
                 @endif
@@ -92,23 +92,20 @@
             @include('components.err')
 
             @if($displayStatus === \App\Models\Invoice::WAITING_CONFIRMATION)
-                <div class="alert alert-primary d-flex align-items-center justify-content-between flex-wrap gap-2 mb-0 rounded-3 border">
+                <div class="alert alert-warning border border-warning-subtle shadow-sm d-flex align-items-center justify-content-between flex-wrap gap-2 p-3 mb-3 rounded-3">
                     <div class="d-flex align-items-center gap-2">
-                        <i class="ri-time-line fs-4"></i>
-                        <div>
-                            <strong>{{ __("Payment receipt is awaiting your confirmation.") }}</strong>
-                            <div class="text-muted fs-xs">{{ __("A receipt is waiting. Confirm the payment if the transfer matches this invoice.") }}</div>
-                        </div>
+                        <i class="ri-time-line fs-4" aria-hidden="true"></i>
+                        <span class="fw-bold">{{ __("Payment receipt is awaiting your confirmation.") }}</span>
                     </div>
                     @if($canConfirmPayment)
                         <button type="button" class="btn btn-sm btn-success d-inline-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#confirmPaymentModal">
-                            <i class="ri-check-double-line me-1"></i>{{ __("Confirm payment") }}
+                            <i class="ri-check-double-line me-1" aria-hidden="true"></i>{{ __("Confirm payment") }}
                         </button>
                     @endif
                 </div>
             @elseif($displayStatus === \App\Models\Invoice::WAITING_RECEIPT)
-                <div class="alert alert-warning d-flex align-items-center gap-2 mb-0 rounded-3 border">
-                    <i class="ri-alarm-warning-line fs-4"></i>
+                <div class="alert alert-warning border border-warning-subtle shadow-sm d-flex align-items-center gap-2 p-3 mb-3 rounded-3">
+                    <i class="ri-alarm-warning-line fs-4" aria-hidden="true"></i>
                     <div>
                         <strong>{{ __("Waiting for customer payment receipt.") }}</strong>
                         @if($persianDeadline)
@@ -126,19 +123,19 @@
         </div>
 
         {{-- Printable Official Invoice Paper --}}
-        <div class="admin-invoice-paper bg-white p-3 p-md-4 rounded-3 border shadow-sm">
+        <div class="admin-invoice-paper bg-white p-3 p-md-4 rounded-3 border">
             {{-- 1. Invoice Header --}}
             <div class="invoice-header pb-2 mb-2 border-bottom">
                 <div class="row align-items-center gy-2">
                     {{-- Company Brand & Info --}}
                     <div class="col-4 text-start">
                         <div class="d-flex align-items-center gap-2">
-                            <img src="{{ $logoUrl }}" alt="{{ config('app.name') }}" class="invoice-brand-logo" onerror="this.style.display='none'">
+                            <img src="{{ $logoUrl }}" alt="{{ config('app.name') }}" class="invoice-brand-logo" width="140" height="56">
                             <div>
                                 <h5 class="fw-bold mb-0 text-dark">{{ config('app.name') }}</h5>
                                 <div class="text-muted fs-xxs">{{ getSetting('subtitle') ?: __('Official Online Store') }}</div>
                                 @if(getSetting('tel'))
-                                    <div class="text-muted fs-xxs" dir="ltr"><i class="ri-phone-line me-1"></i>{{ getSetting('tel') }}</div>
+                                    <div class="text-muted fs-xxs" dir="ltr"><i class="ri-phone-line me-1" aria-hidden="true"></i>{{ getSetting('tel') }}</div>
                                 @endif
                             </div>
                         </div>
@@ -169,7 +166,7 @@
                             </div>
                             @if(isset($qr))
                                 <div class="invoice-qr-box flex-shrink-0">
-                                    <img src="{{ $qr->render(route('client.invoice', $invoice->hash)) }}" alt="{{ __('QR Code') }}" class="invoice-qr-img">
+                                    <img src="{{ $qr->render(route('client.invoice', $invoice->hash)) }}" alt="{{ __('QR Code') }}" class="invoice-qr-img" width="72" height="72">
                                 </div>
                             @endif
                         </div>
@@ -183,8 +180,7 @@
                     {{-- Seller Information --}}
                     <div class="col-6">
                         <div class="party-box h-100 p-2 rounded-2 border bg-light bg-opacity-50 fs-xs lh-sm">
-                            <div class="party-box-title d-flex align-items-center gap-1 mb-1 pb-1 border-bottom fw-bold text-dark">
-                                <i class="ri-store-2-line text-warning"></i>
+                            <div class="party-box-title mb-1 pb-1 border-bottom fw-bold text-dark">
                                 <span>{{ __("Seller information") }}</span>
                             </div>
                             <div class="party-box-content d-flex flex-column gap-1">
@@ -209,8 +205,7 @@
                     {{-- Buyer Information --}}
                     <div class="col-6">
                         <div class="party-box h-100 p-2 rounded-2 border bg-light bg-opacity-50 fs-xs lh-sm">
-                            <div class="party-box-title d-flex align-items-center gap-1 mb-1 pb-1 border-bottom fw-bold text-dark">
-                                <i class="ri-user-3-line text-primary"></i>
+                            <div class="party-box-title mb-1 pb-1 border-bottom fw-bold text-dark">
                                 <span>{{ __("Buyer information") }}</span>
                             </div>
                             <div class="party-box-content d-flex flex-column gap-1">
@@ -246,12 +241,10 @@
             @if($isPickup)
                 <div class="invoice-shipping-strip mb-2 p-1.5 px-2 rounded-2 border bg-light d-flex flex-wrap align-items-center justify-content-between gap-2 fs-xs" data-fulfillment-method="pickup">
                     <div class="d-flex align-items-center gap-1.5">
-                        <i class="ri-store-2-line text-primary"></i>
                         <span class="text-muted">{{ __('Fulfillment method:') }}</span>
                         <b class="text-dark">{{ __('Store pickup') }}</b>
                     </div>
                     <div class="d-flex align-items-center gap-1.5">
-                        <i class="ri-map-pin-line text-primary"></i>
                         <span class="text-muted">{{ __('Pickup location') }}:</span>
                         <b class="text-dark">{{ $fullAddress }}</b>
                     </div>
@@ -259,19 +252,18 @@
             @else
                 <div class="invoice-shipping-strip mb-2 p-1.5 px-2 rounded-2 border bg-light d-flex flex-wrap align-items-center justify-content-between gap-2 fs-xs" data-fulfillment-method="delivery">
                     <div class="d-flex align-items-center gap-1.5">
-                        <i class="{{ $invoice->requiresDeliveryCode() ? 'ri-motorbike-line' : 'ri-truck-line' }} text-primary"></i>
                         <span class="text-muted">{{ __("Shipping method") }}:</span>
                         <b class="text-dark">{{ $invoice->transport?->title ?? __('Standard Transport') }}</b>
                         <span class="text-muted">({{ number_format($invoice->transport_price) }} {{ config('app.currency.symbol') }})</span>
                     </div>
 
                     <div class="d-flex align-items-center gap-1.5">
-                        <i class="ri-barcode-line text-dark"></i>
+                        <i class="ri-barcode-line text-dark" aria-hidden="true"></i>
                         <span class="text-muted">{{ __("Tracking code") }}:</span>
                         @if($invoice->tracking_code)
-                            <code class="fw-bold text-primary px-1.5 py-0.5 bg-white border rounded" dir="ltr">{{ $invoice->tracking_code }}</code>
+                            <code class="fw-bold text-dark px-1.5 py-0.5 bg-white border rounded" dir="ltr">{{ $invoice->tracking_code }}</code>
                         @else
-                            <span class="badge bg-secondary-subtle text-secondary">{{ __("Pending shipment") }}</span>
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle">{{ __("Pending shipment") }}</span>
                         @endif
                     </div>
                 </div>
@@ -279,12 +271,10 @@
             @if($invoice->activeDelivery && !$isPickup)
                 <div class="invoice-shipping-strip mb-2 p-1.5 px-2 rounded-2 border bg-light d-flex flex-wrap align-items-center justify-content-between gap-2 fs-xs">
                     <div class="d-flex align-items-center gap-1.5">
-                        <i class="ri-motorbike-line text-primary"></i>
                         <span class="text-muted">{{ __('Courier') }}:</span>
                         <b class="text-dark">{{ $invoice->activeDelivery->courier?->name ?? '---' }}</b>
                         <span class="{{ $invoice->activeDelivery->status->badgeClass() }}">{{ $invoice->activeDelivery->status->label() }}</span>
                     </div>
-                    <span class="text-muted">{{ __('The customer must recite the SMS code. It is not shown here.') }}</span>
                 </div>
             @endif
 
@@ -314,7 +304,7 @@
                                     <td class="text-start">
                                         <div class="d-flex align-items-center gap-1.5">
                                             @if($product && method_exists($product, 'imgUrl'))
-                                                <img src="{{ $product->imgUrl() }}" alt="{{ $product->name }}" class="invoice-item-img rounded" onerror="this.style.display='none'">
+                                                <img src="{{ $product->imgUrl() }}" alt="{{ $product->name }}" class="invoice-item-img rounded" width="44" height="44">
                                             @endif
                                             <div>
                                                 @if($product)
@@ -384,8 +374,7 @@
                     {{-- Payment Details & Transaction Info (Left) --}}
                     <div class="col-6">
                         <div class="p-2 rounded-2 border bg-light bg-opacity-50 h-100 fs-xs lh-sm">
-                            <div class="d-flex align-items-center gap-1 mb-1 pb-1 border-bottom fw-bold text-dark">
-                                <i class="ri-bank-card-line text-success"></i>
+                            <div class="mb-1 pb-1 border-bottom fw-bold text-dark">
                                 <span>{{ __("Payment details") }}</span>
                             </div>
                             <div class="d-flex flex-column gap-1">
@@ -393,11 +382,11 @@
                                     <span class="text-muted">{{ __("Payment method") }}:</span>
                                     <b class="text-dark">
                                         @if($shopMethod)
-                                            <i class="ri-store-2-line text-success me-1"></i>{{ __("In-store payment") }}: {{ $shopMethod->label() }}
+                                            {{ __("In-store payment") }}: {{ $shopMethod->label() }}
                                         @elseif($invoice->isOfflineCardPayment())
-                                            <i class="ri-exchange-funds-line text-warning me-1"></i>{{ __("Card to card") }}
+                                            {{ __("Card to card") }}
                                         @else
-                                            <i class="ri-bank-card-2-line text-success me-1"></i>{{ __("Online Gateway") }}
+                                            {{ __("Online Gateway") }}
                                         @endif
                                     </b>
                                 </div>
@@ -436,14 +425,14 @@
                                 <span class="fw-semibold text-dark">{{ number_format($invoice->transport_price) }} {{ config('app.currency.symbol') }}</span>
                             </div>
                             @if($invoice->credit_price > 0)
-                                <div class="d-flex justify-content-between py-0.5 border-bottom text-danger">
-                                    <span>{{ __("Discount amount") }}:</span>
-                                    <span>-{{ number_format($invoice->credit_price) }} {{ config('app.currency.symbol') }}</span>
+                                <div class="d-flex justify-content-between py-0.5 border-bottom">
+                                    <span class="text-muted">{{ __("Customer credit used") }}:</span>
+                                    <span class="fw-semibold text-dark">-{{ number_format($invoice->credit_price) }} {{ config('app.currency.symbol') }}</span>
                                 </div>
                             @endif
                             <div class="d-flex justify-content-between align-items-center pt-1">
                                 <span class="fw-bolder text-dark">{{ __("Final payable amount") }}:</span>
-                                <span class="fw-bolder fs-6 text-primary">
+                                <span class="fw-bolder fs-6 text-dark">
                                     {{ number_format($invoice->total_price) }}
                                     <small class="fs-xxs fw-normal text-muted">{{ config('app.currency.symbol') }}</small>
                                 </span>
@@ -457,16 +446,16 @@
             @if($receipts->count())
                 <div class="no-print invoice-receipts-gallery mb-2 p-2 rounded-2 border bg-light bg-opacity-25">
                     <div class="d-flex align-items-center gap-1 mb-1.5 pb-1 border-bottom fw-bold text-dark fs-xs">
-                        <i class="ri-attachment-line text-primary"></i>
+                        <i class="ri-attachment-line" aria-hidden="true"></i>
                         <span>{{ __("Payment receipts") }} ({{ $receipts->count() }})</span>
                     </div>
                     <div class="d-flex flex-wrap gap-2">
                         @foreach($receipts as $receipt)
-                            <a href="{{ $receipt->url() }}" target="_blank" rel="noopener" class="invoice-receipt-card d-flex align-items-center gap-2 p-1.5 bg-white border rounded-2 text-dark text-decoration-none shadow-sm">
+                            <a href="{{ $receipt->url() }}" target="_blank" rel="noopener" class="invoice-receipt-card d-flex align-items-center gap-2 p-1.5 bg-white border rounded-2 text-dark text-decoration-none">
                                 @if($receipt->isImage())
-                                    <img src="{{ $receipt->url() }}" alt="{{ $receipt->original_name }}" class="invoice-receipt-thumb rounded">
+                                    <img src="{{ $receipt->url() }}" alt="{{ $receipt->original_name }}" class="invoice-receipt-thumb rounded" width="48" height="48">
                                 @else
-                                    <i class="ri-file-pdf-2-line fs-2 text-danger p-1"></i>
+                                    <i class="ri-file-pdf-2-line fs-2 text-danger p-1" aria-hidden="true"></i>
                                 @endif
                                 <div class="fs-xs lh-sm">
                                     <b class="d-block text-truncate" style="max-width: 160px;">{{ $receipt->original_name }}</b>
@@ -483,13 +472,13 @@
                 <div class="invoice-notes mb-2 p-2 rounded-2 border bg-light bg-opacity-25 fs-xs lh-sm">
                     @if($invoice->desc)
                         <div class="mb-1">
-                            <b class="text-dark"><i class="ri-message-2-line me-1 text-warning"></i>{{ __("Description") }}:</b>
+                            <b class="text-dark">{{ __("Description") }}:</b>
                             <span class="text-muted">{{ $invoice->desc }}</span>
                         </div>
                     @endif
                     @if(getSetting('guarantee'))
                         <div>
-                            <b class="text-dark"><i class="ri-shield-check-line me-1 text-success"></i>{{ __("Guarantee and return policy") }}:</b>
+                            <b class="text-dark">{{ __("Guarantee and return policy") }}:</b>
                             <span class="text-muted">{{ getSetting('guarantee') }}</span>
                         </div>
                     @endif
@@ -519,13 +508,12 @@
     @if($canConfirmPayment)
         <div class="modal fade" id="confirmPaymentModal" tabindex="-1" aria-labelledby="confirmPaymentModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content border-0 shadow">
+                <div class="modal-content border">
                     <form action="{{ route('admin.invoice.confirm-payment', $invoice) }}" method="post" id="confirm-payment-form">
                         @csrf
                         <div class="modal-header bg-light">
-                            <h5 class="modal-title fs-15 fw-bold text-dark d-flex align-items-center gap-2" id="confirmPaymentModalLabel">
-                                <i class="ri-shield-check-line text-success fs-5"></i>
-                                {{ __('4-Point Payment Approval Safeguards') }}
+                            <h5 class="modal-title fs-15 fw-bold text-dark" id="confirmPaymentModalLabel">
+                                {{ __('Confirm payment') }}
                             </h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('Close') }}"></button>
                         </div>
@@ -557,7 +545,7 @@
                                     <option value="">{{ __('Select destination bank account') }}</option>
                                     @foreach($activeBankAccounts as $bankAccount)
                                         <option value="{{ $bankAccount->id }}" {{ old('bank_account_id') == $bankAccount->id ? 'selected' : '' }}>
-                                            {{ $bankAccount->bank_name }} — {{ $bankAccount->card_number }} ({{ $bankAccount->account_holder_name }})
+                                            {{ $bankAccount->bank_name }} - {{ $bankAccount->card_number }} ({{ $bankAccount->account_holder_name }})
                                         </option>
                                     @endforeach
                                 </select>
@@ -593,7 +581,7 @@
                                     <label class="form-check-label fs-13" for="modal_zero_balance">
                                         {{ __('Zero Balance') }}
                                         @if($remainingBalance > 0)
-                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle ms-2">
+                                            <span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle ms-2">
                                                 {{ __('Remaining balance must be zero') }}
                                             </span>
                                         @endif
@@ -606,7 +594,7 @@
                                 {{ __('Cancel') }}
                             </button>
                             <button type="submit" id="modal-approve-payment-btn" class="btn btn-sm btn-success px-3" disabled>
-                                <i class="ri-check-double-line me-1"></i> {{ __('Approve Payment') }}
+                                <i class="ri-check-double-line me-1" aria-hidden="true"></i> {{ __('Approve Payment') }}
                             </button>
                         </div>
                     </form>
@@ -660,10 +648,19 @@
     {{-- Auto-print trigger when ?print=1 or opened via print action --}}
     @if(!empty($autoPrint))
         <script>
-            window.addEventListener('DOMContentLoaded', function () {
-                setTimeout(function () {
+            window.addEventListener('load', function () {
+                Promise.all(Array.prototype.map.call(document.images, function (img) {
+                    if (img.complete) return Promise.resolve();
+                    if (typeof img.decode === 'function') return img.decode().catch(function () {});
+                    return new Promise(function (resolve) {
+                        img.addEventListener('load', resolve);
+                        img.addEventListener('error', resolve);
+                    });
+                })).then(function () {
+                    if (document.fonts && document.fonts.ready) return document.fonts.ready;
+                }).then(function () {
                     window.print();
-                }, 400);
+                });
             });
         </script>
     @endif
