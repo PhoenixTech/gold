@@ -550,7 +550,7 @@ class ClientController extends Controller
     {
 
         $product = Product::where('slug', $slug)
-            ->with(['category.parent', 'media', 'availableQuantities', 'activeDiscounts'])
+            ->with(['category.parent', 'categories', 'media', 'availableQuantities', 'activeDiscounts'])
             ->firstOrFail();
         if ($product->status == 0 && ! auth()->check()) {
             return abort(403);

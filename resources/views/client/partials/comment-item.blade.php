@@ -15,7 +15,7 @@
                 @endif
             </div>
         </div>
-        <button type="button" class="btn btn-outline-primary btn-sm rounded-pill comment-reply px-2.5 py-1 fs-12" data-id="{{$comment->id}}">
+        <button type="button" class="btn btn-outline-primary btn-sm rounded-pill comment-reply px-2.5 py-1 fs-12" data-id="{{$comment->id}}" data-name="{{$comment->commentator()['name'] ?? __('Guest')}}">
             <i class="ri-reply-line me-1"></i>
             <span>{{__("Reply")}}</span>
         </button>

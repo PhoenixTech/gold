@@ -4,11 +4,14 @@
     {{$product->name}} - {{config('app.name')}}
 @endsection
 
+@php
+    $isGold = ($product->metal_type ?? 'gold') !== 'silver';
+@endphp
+
 @section('content')
 <section id="ProductAria" class="product-show-view py-4">
     <div class="{{gfx()['container']}}">
 
-        <!-- Breadcrumbs -->
         <nav aria-label="breadcrumb" class="mb-4">
             <ol class="breadcrumb bg-light-subtle p-2 px-3 rounded-pill border d-inline-flex align-items-center mb-0 fs-12 flex-wrap">
                 <li class="breadcrumb-item">
@@ -34,14 +37,12 @@
             </ol>
         </nav>
 
-        <!-- Main Product Card Grid -->
         <div class="product-main-card card border-0 shadow-sm rounded-4 p-3 p-md-4 mb-5">
             <div class="row g-4">
-                <!-- Gallery Column -->
                 <div class="col-lg-5">
                     <div id="preview" class="main-image-box position-relative overflow-hidden rounded-4 border bg-light mb-3">
                         <a href="{{$product->originalImageUrl()}}" id="aria-main-img" class="light-box d-block" data-gallery="aria-products">
-                            <img src="{{$product->originalImageUrl()}}" alt="{{$product->name}}" class="img-fluid w-100 object-fit-cover rounded-4 gallery-main-img" style="aspect-ratio: 1 / 1;">
+                            <img src="{{$product->originalImageUrl()}}" alt="{{$product->name}}" class="img-fluid w-100 object-fit-cover rounded-4 gallery-main-img" style="aspect-ratio: 1 / 1;" fetchpriority="high">
                         </a>
                     </div>
 
@@ -50,7 +51,7 @@
                             @foreach($product->getMedia() as $media)
                                 <div class="item flex-shrink-0" style="width: 72px; height: 72px;">
                                     <a href="{{$media->getUrl('product-image')}}" class="d-block h-100 w-100 rounded-3 overflow-hidden border">
-                                        <img src="{{$media->getUrl('product-image')}}" alt="{{$product->name}}" class="h-100 w-100 object-fit-cover rounded-3">
+                                        <img src="{{$media->getUrl('product-image')}}" alt="{{$product->name}}" class="h-100 w-100 object-fit-cover rounded-3" loading="lazy" width="72" height="72">
                                     </a>
                                 </div>
                             @endforeach
@@ -58,9 +59,7 @@
                     @endif
                 </div>
 
-                <!-- Product Details Column -->
                 <div class="col-lg-7" id="aria-product-detail">
-                    <!-- Top Action Bar (Category + Quick Actions) -->
                     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
                         @if($product->category)
                             <a href="{{$product->category->webUrl()}}" class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-3 py-1.5 fs-12 fw-semibold text-decoration-none hover-primary">
@@ -109,12 +108,10 @@
                         </div>
                     </div>
 
-                    <!-- Product Title (Refactoring UI: Balanced Heading Scale) -->
                     <h1 class="product-title fs-20 fw-bold text-dark mb-3 leading-snug">
                         {{$product->name}}
                     </h1>
 
-                    <!-- Price Box -->
                     <div class="product-price-card p-3 rounded-3 mb-3 border">
                         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                             <div>
@@ -130,22 +127,15 @@
                                     @endif
                                 </div>
                             </div>
-
-                            <span class="badge bg-white text-dark border rounded-pill px-2.5 py-1 fs-11 d-inline-flex align-items-center gap-1 shadow-xs">
-                                <i class="ri-line-chart-line text-warning"></i>
-                                <span>{{__("Live price calculation")}}</span>
-                            </span>
                         </div>
                     </div>
 
-                    <!-- Excerpt / Highlights -->
                     @if($product->excerpt)
-                        <div class="description border-start border-warning border-3 ps-3 py-1 mb-3 text-muted fs-14 leading-relaxed">
+                        <div class="description mb-3 text-muted fs-14 leading-relaxed">
                             <p class="mb-0">{{$product->excerpt}}</p>
                         </div>
                     @endif
 
-                    <!-- Stock Status & Add to Cart -->
                     @php
                         $offerPiece = $product->firstAvailableQuantity();
                         $rawPrice = $offerPiece?->price ?? $product->lowestAvailablePrice();
@@ -213,29 +203,27 @@
                         @endif
                     </div>
 
-                    <!-- Trust Strip Under Add To Cart -->
                     <div class="row g-2 mb-3 py-2 border-top border-bottom">
                         <div class="col-4 text-center">
                             <div class="d-flex align-items-center justify-content-center gap-1 text-muted fs-12">
-                                <i class="ri-shield-check-line text-success fs-15"></i>
-                                <span>{{__("18K Certified")}}</span>
+                                <i class="ri-shield-check-line text-muted fs-15"></i>
+                                <span>{{ $isGold ? __('18K Certified') : __('Original Product Guarantee') }}</span>
                             </div>
                         </div>
                         <div class="col-4 text-center">
                             <div class="d-flex align-items-center justify-content-center gap-1 text-muted fs-12">
-                                <i class="ri-truck-line text-primary fs-15"></i>
+                                <i class="ri-truck-line text-muted fs-15"></i>
                                 <span>{{__("Insured Delivery")}}</span>
                             </div>
                         </div>
                         <div class="col-4 text-center">
                             <div class="d-flex align-items-center justify-content-center gap-1 text-muted fs-12">
-                                <i class="ri-file-list-3-line text-warning fs-15"></i>
+                                <i class="ri-file-list-3-line text-muted fs-15"></i>
                                 <span>{{__("Official Invoice")}}</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Meta Data Badges -->
                     <div class="product-metadata fs-13 text-muted d-flex flex-column gap-1.5">
                         @if($product->sku != null && $product->sku != '')
                             <div class="aria-product-data d-flex align-items-center gap-2">
@@ -244,19 +232,20 @@
                             </div>
                         @endif
 
-                        @if($product->categories()->count() > 0)
-                            <div class="aria-product-data d-flex align-items-center gap-2 flex-wrap">
+                        @php
+                            $allCats = $product->categories->isNotEmpty() ? $product->categories : ($product->category ? collect([$product->category]) : collect());
+                        @endphp
+                        @if($allCats->isNotEmpty())
+                            <div class="aria-product-data d-flex align-items-center gap-1.5 flex-wrap">
                                 <span class="text-muted">{{__("Categories")}}:</span>
-                                @foreach($product->categories()->where('id','<>',$product->category?->id)->get() as $cat)
+                                @foreach($allCats as $cat)
                                     <a href="{{$cat->webUrl()}}" class="text-decoration-none text-dark hover-primary fw-medium">
-                                        {{$cat->name}},
+                                        {{$cat->name}}
                                     </a>
+                                    @if(!$loop->last)
+                                        <span class="text-muted">،</span>
+                                    @endif
                                 @endforeach
-                                @if($product->category)
-                                    <a href="{{$product->category->webUrl()}}" class="text-decoration-none text-dark hover-primary fw-medium">
-                                        {{$product->category->name}}
-                                    </a>
-                                @endif
                             </div>
                         @endif
 
@@ -275,14 +264,13 @@
             </div>
         </div>
 
-        <!-- Product Information Accordion / Tabs -->
         <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 mb-5">
             <div class="accordion accordion-flush" id="product-detail">
                 @if($product->description)
                     <div class="accordion-item border-0 mb-3 rounded-3 overflow-hidden border">
                         <h2 class="accordion-header">
                             <button class="accordion-button fw-bold fs-15 bg-light-subtle text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#desc" aria-expanded="true" aria-controls="desc">
-                                <i class="ri-file-text-line text-warning me-2 fs-18"></i> {{__("Description")}}
+                                <i class="ri-file-text-line text-muted me-2 fs-18"></i> {{__("Description")}}
                             </button>
                         </h2>
                         <div id="desc" class="accordion-collapse collapse show" data-bs-parent="#product-detail">
@@ -297,7 +285,7 @@
                     <div class="accordion-item border-0 mb-3 rounded-3 overflow-hidden border">
                         <h2 class="accordion-header">
                             <button class="accordion-button collapsed fw-bold fs-15 bg-light-subtle text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#table" aria-expanded="false" aria-controls="table">
-                                <i class="ri-table-line text-warning me-2 fs-18"></i> {{__("Product table")}}
+                                <i class="ri-table-line text-muted me-2 fs-18"></i> {{__("Product table")}}
                             </button>
                         </h2>
                         <div id="table" class="accordion-collapse collapse" data-bs-parent="#product-detail">
@@ -313,7 +301,6 @@
                     $stoneLabels = $product->getStoneLabels();
                     $accessoryLabels = $product->getAccessoryLabels();
                     $occasionLabels = $product->getOccasionLabels();
-                    $isGold = ($product->metal_type ?? 'gold') !== 'silver';
                     $hasAttributes = $isGold || !empty($platingLabels) || !empty($stoneLabels) || !empty($accessoryLabels) || !empty($occasionLabels);
                     $fullMetaItems = $product->fullMeta();
                     $hasMeta = !empty($fullMetaItems) && count($fullMetaItems) > 0;
@@ -323,7 +310,7 @@
                     <div class="accordion-item border-0 mb-3 rounded-3 overflow-hidden border">
                         <h2 class="accordion-header">
                             <button class="accordion-button collapsed fw-bold fs-15 bg-light-subtle text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#info" aria-expanded="false" aria-controls="info">
-                                <i class="ri-information-line text-warning me-2 fs-18"></i> {{__("Information")}}
+                                <i class="ri-information-line text-muted me-2 fs-18"></i> {{__("Information")}}
                             </button>
                         </h2>
                         <div id="info" class="accordion-collapse collapse" data-bs-parent="#product-detail">
@@ -339,7 +326,7 @@
                                         @if($isGold)
                                             <tr>
                                                 <td class="ps-3 fw-medium text-dark">
-                                                    <i class="ri-vip-diamond-line text-warning me-1.5"></i>
+                                                    <i class="ri-vip-diamond-line text-muted me-1.5"></i>
                                                     {{__("Gold Karat")}}
                                                 </td>
                                                 <td class="text-center pe-3 text-body">
@@ -350,7 +337,7 @@
                                         @if(!empty($platingLabels))
                                             <tr>
                                                 <td class="ps-3 fw-medium text-dark">
-                                                    <i class="ri-paint-brush-line text-warning me-1.5"></i>
+                                                    <i class="ri-paint-brush-line text-muted me-1.5"></i>
                                                     {{__("Plating Color")}}
                                                 </td>
                                                 <td class="text-center pe-3 text-body">
@@ -361,7 +348,7 @@
                                         @if(!empty($stoneLabels))
                                             <tr>
                                                 <td class="ps-3 fw-medium text-dark">
-                                                    <i class="ri-vip-diamond-line text-primary me-1.5"></i>
+                                                    <i class="ri-vip-diamond-line text-muted me-1.5"></i>
                                                     {{__("Stone")}}
                                                 </td>
                                                 <td class="text-center pe-3 text-body">
@@ -372,7 +359,7 @@
                                         @if(!empty($accessoryLabels))
                                             <tr>
                                                 <td class="ps-3 fw-medium text-dark">
-                                                    <i class="ri-handbag-line text-success me-1.5"></i>
+                                                    <i class="ri-handbag-line text-muted me-1.5"></i>
                                                     {{__("Accessory")}}
                                                 </td>
                                                 <td class="text-center pe-3 text-body">
@@ -383,7 +370,7 @@
                                         @if(!empty($occasionLabels))
                                             <tr>
                                                 <td class="ps-3 fw-medium text-dark">
-                                                    <i class="ri-gift-line text-danger me-1.5"></i>
+                                                    <i class="ri-gift-line text-muted me-1.5"></i>
                                                     {{__("Occasions")}}
                                                 </td>
                                                 <td class="text-center pe-3 text-body">
@@ -395,7 +382,7 @@
                                             @foreach($fullMetaItems as $meta)
                                                 <tr>
                                                     <td class="ps-3 fw-medium text-dark">
-                                                        <i class="{{$meta['data']->icon}} text-warning me-1.5"></i>
+                                                        <i class="{{$meta['data']->icon}} text-muted me-1.5"></i>
                                                         {{$meta['data']->label}}
                                                     </td>
                                                     <td class="text-center pe-3 text-body">
@@ -411,11 +398,10 @@
                     </div>
                 @endif
 
-                <!-- Comments & Reviews Accordion Item -->
                 <div class="accordion-item border-0 rounded-3 overflow-hidden border" id="comments">
                     <h2 class="accordion-header">
                         <button class="accordion-button collapsed fw-bold fs-15 bg-light-subtle text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#comments-collapse" aria-expanded="false" aria-controls="comments-collapse">
-                            <i class="ri-chat-3-line text-warning me-2 fs-18"></i> {{__("Comments")}} ({{$product->approvedComments()->count()}})
+                            <i class="ri-chat-3-line text-muted me-2 fs-18"></i> {{__("Comments")}} ({{$product->approvedComments()->count()}})
                         </button>
                     </h2>
                     <div id="comments-collapse" class="accordion-collapse collapse" data-bs-parent="#product-detail">
@@ -425,11 +411,10 @@
                             @endphp
 
                             <div class="row g-4">
-                                <!-- Left Column: Comments List -->
                                 <div class="col-lg-7">
                                     <div class="d-flex align-items-center justify-content-between mb-3 pb-1 border-bottom">
                                         <h6 class="fw-bold mb-0 text-dark fs-15 d-flex align-items-center gap-1.5">
-                                            <i class="ri-discuss-line text-warning"></i>
+                                            <i class="ri-discuss-line text-muted"></i>
                                             <span>{{ __("Customer Reviews & Questions") }}</span>
                                         </h6>
                                         <span class="badge bg-light text-dark border rounded-pill fs-12 px-2.5 py-1">
@@ -454,11 +439,10 @@
                                     @endif
                                 </div>
 
-                                <!-- Right Column: Comment Submit Form -->
                                 <div class="col-lg-5">
                                     <div class="comment-form-card border rounded-4 p-3.5 bg-light-subtle sticky-top" style="top: 2rem;">
                                         <h6 class="fw-bold mb-3 d-flex align-items-center gap-2 fs-15 text-dark">
-                                            <i class="ri-edit-box-line text-warning"></i>
+                                            <i class="ri-edit-box-line text-muted"></i>
                                             <span>{{ __("Post your comment") }}</span>
                                         </h6>
                                         @include('components.err')
@@ -468,6 +452,11 @@
                                             <input type="hidden" name="commentable_type" value="{{\App\Models\Product::class}}">
                                             <input type="hidden" name="commentable_id" value="{{$product->id}}">
                                             <input type="hidden" name="parent_id" id="parent_id" value="">
+
+                                            <div id="replying-to-badge" class="alert alert-secondary py-1 px-2.5 fs-12 d-none align-items-center justify-content-between mb-2 rounded-3">
+                                                <span>{{ __('Reply') }}: <strong id="reply-to-name"></strong></span>
+                                                <button type="button" class="btn-close fs-10" id="cancel-reply-btn" aria-label="{{ __('Cancel') }}"></button>
+                                            </div>
 
                                             <div class="row g-2.5">
                                                 @if(auth()->check())
@@ -517,7 +506,6 @@
             </div>
         </div>
 
-        <!-- Related Products Section -->
         @if($product->category)
             @php
                 $relatedProducts = $product->category->products()
@@ -531,7 +519,7 @@
                 <div class="related-products-section mb-4">
                     <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
                         <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2 fs-18">
-                            <i class="ri-grid-fill text-warning"></i>
+                            <i class="ri-grid-fill text-primary"></i>
                             <span>{{__("Related products")}}</span>
                         </h5>
                         <a href="{{$product->category->webUrl()}}" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1.5">
@@ -551,7 +539,6 @@
         @endif
     </div>
 
-    <!-- Hidden Lightbox Gallery Images -->
     <div id="hidden-images" class="d-none">
         @foreach($product->getMedia() as $k => $media)
             <a href="{{$media->getUrl()}}" class="light-box" data-gallery="aria-products">

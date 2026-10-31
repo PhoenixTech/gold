@@ -1,4 +1,3 @@
-// Products Listing & Single Product Controller
 import { tns } from "tiny-slider/src/tiny-slider";
 
 window.addEventListener('load', function () {
@@ -13,20 +12,17 @@ window.addEventListener('load', function () {
 document.addEventListener('DOMContentLoaded', function () {
     try {
         const sliderContainer = document.querySelector('#aria-img-slider');
-        const relProductsContainer = document.querySelector('#rel-products');
 
         if (sliderContainer) {
             tns({
                 container: '#aria-img-slider',
                 items: 3,
-                autoplay: true,
-                autoplayButton: false,
+                autoplay: false,
                 controls: false,
-                autoplayHoverPause: true,
+                nav: false,
                 mouseDrag: true,
-                gutter: 5,
+                gutter: 8,
                 slideBy: 1,
-                autoplayTimeout: 5000,
             });
 
             sliderContainer.querySelectorAll('a')?.forEach(function (el) {
@@ -43,23 +39,47 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
 
-        if (relProductsContainer) {
-            tns({
-                container: '#rel-products',
-                items: 3,
-                autoplay: true,
-                autoplayButton: false,
-                controls: false,
-                autoplayHoverPause: true,
-                mouseDrag: true,
-                gutter: 5,
-                slideBy: 1,
-                autoplayTimeout: 5000,
-                responsive: {
-                    560: { items: 1 },
-                    768: { items: 2 },
-                    1000: { items: 4 },
-                    1400: { items: 5 },
+        const commentBtn = document.querySelector('.comment-btn');
+        const commentsCollapse = document.querySelector('#comments-collapse');
+        if (commentBtn && commentsCollapse && window.bootstrap) {
+            commentBtn.addEventListener('click', function () {
+                window.bootstrap.Collapse.getOrCreateInstance(commentsCollapse).show();
+            });
+        }
+
+        const replyBtns = document.querySelectorAll('.comment-reply');
+        const parentIdInput = document.querySelector('#parent_id');
+        const replyBadge = document.querySelector('#replying-to-badge');
+        const replyName = document.querySelector('#reply-to-name');
+        const cancelReplyBtn = document.querySelector('#cancel-reply-btn');
+        const commentMessage = document.querySelector('#comment-message');
+
+        if (replyBtns.length && parentIdInput) {
+            replyBtns.forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    const id = btn.getAttribute('data-id');
+                    const name = btn.getAttribute('data-name');
+                    parentIdInput.value = id;
+                    if (replyBadge && replyName) {
+                        replyName.textContent = name;
+                        replyBadge.classList.remove('d-none');
+                        replyBadge.classList.add('d-flex');
+                    }
+                    if (commentsCollapse && window.bootstrap) {
+                        window.bootstrap.Collapse.getOrCreateInstance(commentsCollapse).show();
+                    }
+                    if (commentMessage) {
+                        commentMessage.focus();
+                        commentMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                });
+            });
+
+            cancelReplyBtn?.addEventListener('click', function () {
+                parentIdInput.value = '';
+                if (replyBadge) {
+                    replyBadge.classList.add('d-none');
+                    replyBadge.classList.remove('d-flex');
                 }
             });
         }

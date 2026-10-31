@@ -363,7 +363,7 @@
     padding: 1.5rem 0;
 
     .product-title {
-        font-size: 1.3rem; // 20.8px
+        font-size: 1.3rem;
         font-weight: 700;
         color: var(--xshop-text-main);
         line-height: 1.45;
@@ -376,13 +376,13 @@
     }
 
     .product-price-card {
-        background: rgba(219, 154, 0, 0.035);
-        border: 1px solid rgba(219, 154, 0, 0.2) !important;
+        background: var(--xshop-gold-50);
+        border: 1px solid var(--xshop-gold-200) !important;
         border-radius: 0.85rem;
     }
 
     .product-main-card {
-        background: #ffffff;
+        background: var(--xshop-surface-0);
         border: 1px solid var(--xshop-border-card) !important;
         box-shadow: var(--xshop-shadow-xs);
     }
