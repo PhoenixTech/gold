@@ -1,133 +1,56 @@
 .grid-post-card {
-    background: var(--xshop-background);
-    border: 1px solid var(--xshop-border-soft) !important;
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    background: var(--xshop-surface-0);
+    border: 1px solid var(--xshop-border-card);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 
     &:hover {
         transform: translateY(var(--xshop-lift));
-        box-shadow: var(--xshop-shadow-lg) !important;
+        box-shadow: var(--xshop-shadow-md);
 
         .post-card-img {
-            transform: scale(1.06);
+            transform: scale(1.03);
         }
     }
 
     .card-img-wrapper {
         aspect-ratio: 16 / 9;
-        background: var(--xshop-gray-50);
+        background: var(--xshop-surface-100);
     }
 
     .post-card-img {
         aspect-ratio: 16 / 9;
         width: 100%;
         object-fit: cover;
-        transition: transform 0.4s ease;
-    }
-
-    .post-read-btn {
-        width: 30px;
-        height: 30px;
-        font-size: 14px;
-        transition: all 0.2s ease;
-
-        &:hover {
-            transform: scale(1.08);
-            background-color: var(--xshop-primary) !important;
-            border-color: var(--xshop-primary) !important;
-            color: #ffffff !important;
-        }
-
-        @media (min-width: 768px) {
-            width: 32px;
-            height: 32px;
-            font-size: 15px;
-        }
+        transition: transform 0.3s ease;
     }
 
     .hover-primary {
-        transition: color 0.2s ease;
+        transition: color 0.15s ease;
         &:hover {
             color: var(--xshop-primary) !important;
         }
     }
-
-    @media (max-width: 767.98px) {
-        .post-card-title {
-            font-size: 0.8125rem;
-            line-height: 1.35;
-        }
-    }
 }
 
-.GridPostListSidebar {
+.posts-page-view,
+.post-single-view,
+.posts-group-view,
+.posts-tag-view {
+    color: var(--xshop-text-body);
 
-    .post-sidebar-widget {
-        background: var(--xshop-background);
-        border: 1px solid var(--xshop-border-soft);
-        border-radius: 1.1rem;
-        padding: 1.25rem;
-        box-shadow: var(--xshop-shadow-sm);
-        margin-bottom: 1.5rem;
-
-        .widget-title {
-            font-size: 1.05rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px solid color-mix(in srgb, var(--xshop-primary) 10%, transparent);
-            color: var(--xshop-text);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-
-            i {
-                color: var(--xshop-primary);
-            }
-        }
-    }
-}
-.PostSidebar {
     .post-article-card {
-        background: var(--xshop-background);
-        border: 1px solid var(--xshop-border-soft);
-        border-radius: 1.25rem;
-        padding: 2rem;
-        box-shadow: var(--xshop-shadow-sm);
-
-        @media (max-width: 767.98px) {
-            padding: 1.25rem;
-            border-radius: 1rem;
-        }
+        background: var(--xshop-surface-0);
+        border: 1px solid var(--xshop-border-card);
     }
 
     .post-title {
-        font-size: 1.85rem;
-        font-weight: 800;
-        color: var(--xshop-text);
-        line-height: 1.4;
-        margin-bottom: 0.5rem;
-
-        @media (max-width: 767.98px) {
-            font-size: 1.4rem;
-        }
-    }
-
-    .post-subtitle {
-        font-size: 1.05rem;
-        line-height: 1.6;
-    }
-
-    .post-featured-image {
-        max-height: 480px;
-        width: 100%;
-        object-fit: cover;
-        border-radius: 1.1rem;
-        box-shadow: var(--xshop-shadow-lg);
+        color: var(--xshop-text-main);
+        line-height: 1.45;
     }
 
     .post-content {
-        line-height: 1.95;
-        color: var(--xshop-text);
+        line-height: 2;
+        color: var(--xshop-text-body);
 
         p {
             margin-bottom: 1.25rem;
@@ -135,7 +58,7 @@
 
         h2, h3, h4, h5 {
             font-weight: 700;
-            color: var(--xshop-text);
+            color: var(--xshop-text-main);
             margin-top: 1.75rem;
             margin-bottom: 0.75rem;
         }
@@ -143,42 +66,41 @@
         img {
             max-width: 100%;
             height: auto;
-            border-radius: 0.75rem;
-            margin: 1rem 0;
+            border-radius: 0.5rem;
+            margin: 1.25rem 0;
         }
 
         blockquote {
-            border-inline-start: 4px solid var(--xshop-primary);
-            padding: 1rem 1.25rem;
+            border-inline-start: 3px solid var(--xshop-primary);
+            padding: 0.875rem 1.25rem;
             margin: 1.5rem 0;
-            background: color-mix(in srgb, var(--xshop-primary) 5%, var(--xshop-background));
-            border-radius: 0 0.75rem 0.75rem 0;
-            font-style: italic;
+            background: var(--xshop-gold-50);
+            border-radius: 0 0.5rem 0.5rem 0;
+            color: var(--xshop-text-main);
         }
     }
+}
 
-    .post-sidebar-widget {
-        background: var(--xshop-background);
-        border: 1px solid var(--xshop-border-soft);
-        border-radius: 1.1rem;
-        padding: 1.25rem;
-        box-shadow: var(--xshop-shadow-sm);
-        margin-bottom: 1.5rem;
+.post-sidebar {
+    .card {
+        background: var(--xshop-surface-0);
+        border: 1px solid var(--xshop-border-card);
+    }
+}
 
-        .widget-title {
-            font-size: 1.05rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px solid color-mix(in srgb, var(--xshop-primary) 10%, transparent);
-            color: var(--xshop-text);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
 
-            i {
-                color: var(--xshop-primary);
-            }
-        }
+@media (prefers-reduced-motion: reduce) {
+    .grid-post-card,
+    .grid-post-card .post-card-img,
+    .btn,
+    .transition-all {
+        transition: none !important;
+        transform: none !important;
     }
 }
