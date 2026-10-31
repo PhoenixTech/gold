@@ -1,13 +1,12 @@
-// Brand Intro & Trust Badge Cards (Shared between Home & Contact)
 .brand-intro-card, .contact-intro-card {
-    background: linear-gradient(135deg, rgba(219, 154, 0, 0.05) 0%, rgba(26, 26, 32, 0.02) 100%);
-    border: 1px solid rgba(219, 154, 0, 0.18);
+    background: var(--xshop-surface-50);
+    border: 1px solid var(--xshop-gold-200);
     border-radius: 1.25rem;
 }
 
 .trust-badge-card {
-    background: var(--xshop-background, #ffffff);
-    border: 1px solid var(--xshop-border-soft, rgba(0, 0, 0, 0.08));
+    background: var(--xshop-surface-0);
+    border: 1px solid var(--xshop-border-card);
     border-radius: 0.875rem;
     padding: 0.75rem 0.25rem;
     transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
@@ -18,7 +17,7 @@
     }
 
     &:hover {
-        transform: translateY(-3px);
+        transform: translateY(var(--xshop-lift));
         box-shadow: var(--xshop-shadow-md);
         border-color: var(--xshop-primary);
     }
@@ -27,7 +26,7 @@
         width: 38px;
         height: 38px;
         border-radius: 50%;
-        background: rgba(219, 154, 0, 0.12);
+        background: var(--xshop-gold-50);
         color: var(--xshop-primary);
         display: flex;
         align-items: center;
@@ -46,7 +45,7 @@
     .badge-title {
         font-size: 0.75rem;
         font-weight: 700;
-        color: var(--xshop-text, #111111);
+        color: var(--xshop-text-main);
         margin-bottom: 0;
         line-height: 1.3;
         white-space: nowrap;
@@ -64,42 +63,42 @@
     }
 }
 
-// Contact Page Styles
 .contact-page-view {
 
     .contact-info-card {
-        background: var(--xshop-background);
-        border: 1px solid var(--xshop-border-soft);
+        background: var(--xshop-surface-0);
+        border: 1px solid var(--xshop-border-card);
         border-radius: 1.25rem;
         padding: 1.75rem 1.5rem;
         height: 100%;
-        transition: transform 0.25s ease, box-shadow 0.25s ease;
+        transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 
         &:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--xshop-shadow-lg);
+            transform: translateY(var(--xshop-lift));
+            box-shadow: var(--xshop-shadow-md);
+            border-color: var(--xshop-primary);
         }
 
         .info-icon-wrapper {
-            width: 52px;
-            height: 52px;
-            border-radius: 1rem;
-            background: var(--xshop-primary);
-            color: #ffffff;
+            width: 44px;
+            height: 44px;
+            border-radius: 0.75rem;
+            background: var(--xshop-surface-50);
+            color: var(--xshop-primary);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
-            box-shadow: 0 4px 12px rgba(219, 154, 0, 0.3);
+            font-size: 20px;
+            border: 1px solid var(--xshop-border-card);
         }
     }
 
     .contact-form-card {
-        background: var(--xshop-background);
-        border: 1px solid var(--xshop-border-soft);
+        background: var(--xshop-surface-0);
+        border: 1px solid var(--xshop-border-card);
         border-radius: 1.25rem;
         padding: 2.25rem;
-        box-shadow: var(--xshop-shadow-sm);
+        box-shadow: var(--xshop-shadow-xs);
 
         @media (max-width: 575.98px) {
             padding: 1.5rem 1rem;
@@ -114,25 +113,25 @@
 
             &:focus {
                 border-color: var(--xshop-primary);
-                box-shadow: 0 0 0 3px rgba(219, 154, 0, 0.15);
+                box-shadow: var(--xshop-ring-focus);
             }
         }
     }
 
     .contact-side-card {
-        background: #1a1a20;
-        color: #ffffff;
+        background: var(--xshop-surface-50);
+        color: var(--xshop-text-main);
         border-radius: 1.25rem;
         padding: 2.25rem;
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        border: 1px solid var(--xshop-border-card);
 
         @media (max-width: 575.98px) {
             padding: 1.5rem 1.25rem;
         }
 
         .side-heading {
-            color: #ffffff;
-            font-size: 1.2rem;
+            color: var(--xshop-text-main);
+            font-size: 1.15rem;
             font-weight: 700;
         }
 
@@ -141,9 +140,9 @@
             align-items: center;
             justify-content: space-between;
             padding: 0.6rem 0;
-            border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+            border-bottom: 1px dashed var(--xshop-border-card);
             font-size: 13.5px;
-            color: #cbd5e1;
+            color: var(--xshop-text-muted);
 
             &:last-child {
                 border-bottom: none;
@@ -152,8 +151,8 @@
     }
 
     .faq-card {
-        background: var(--xshop-background);
-        border: 1px solid var(--xshop-border-soft);
+        background: var(--xshop-surface-0);
+        border: 1px solid var(--xshop-border-card);
         border-radius: 1.25rem;
         padding: 2rem;
 
@@ -166,12 +165,12 @@
             .accordion-button {
                 font-weight: 600;
                 font-size: 14.5px;
-                background: var(--xshop-background);
-                color: var(--xshop-text);
+                background: var(--xshop-surface-0);
+                color: var(--xshop-text-main);
                 padding: 1rem 1.25rem;
 
                 &:not(.collapsed) {
-                    background: rgba(219, 154, 0, 0.06);
+                    background: var(--xshop-gold-50);
                     color: var(--xshop-primary);
                     box-shadow: none;
                 }
@@ -184,7 +183,7 @@
             .accordion-body {
                 font-size: 13.5px;
                 line-height: 1.8;
-                color: #64748b;
+                color: var(--xshop-text-body);
                 padding: 1rem 1.25rem 1.25rem;
             }
         }

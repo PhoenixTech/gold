@@ -1,10 +1,9 @@
 <div class="faq-card shadow-sm bg-white rounded-4 p-4 p-md-5">
-    <div class="text-center mb-4 pb-2">
-        <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-3 py-1 fs-12 fw-bold mb-2">
-            {{__("Frequently Asked Questions")}}
-        </span>
-        <h3 class="fw-bold text-dark fs-22 mb-1">{{__("Common Inquiries & Answers")}}</h3>
-        <p class="text-muted fs-13 mb-0">{{__("Quick answers to important questions about gold orders and delivery")}}</p>
+    <div class="mb-4 pb-2 border-bottom">
+        <h3 class="fw-bold text-dark fs-18 mb-0 d-flex align-items-center gap-2">
+            <i class="ri-questionnaire-line text-primary"></i>
+            <span>{{__("Frequently Asked Questions")}}</span>
+        </h3>
     </div>
 
     <div class="accordion" id="siteFaqAccordion">
