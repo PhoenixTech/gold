@@ -13,7 +13,9 @@
     $currentHasDiscount = request()->boolean('has_discount');
     $currentMinPrice = request('min_price', '');
     $currentMaxPrice = request('max_price', '');
-    $hasActiveFilters = request()->hasAny(['q', 'category', 'in_stock', 'has_discount', 'min_price', 'max_price']) || ($currentSort && $currentSort !== 'latest');
+    $currentMetal = request('metal', '');
+    $currentTargetGroup = request('target_group', '');
+    $hasActiveFilters = request()->hasAny(['q', 'category', 'metal', 'target_group', 'in_stock', 'has_discount', 'min_price', 'max_price']) || ($currentSort && $currentSort !== 'latest');
 @endphp
 
 @section('content')
@@ -108,7 +110,7 @@
                     </a>
                     @foreach($categoriesList as $cat)
                         @php $isCatActive = ($currentCategorySlug == $cat->slug || $currentCategorySlug == $cat->id); @endphp
-                        <a href="{{ route('client.products', array_merge(request()->except(['category', 'page']), ['category' => $cat->slug])) }}" class="category-chip-card d-flex align-items-center gap-2 text-decoration-none {{ $isCatActive ? 'active' : '' }}">
+                        <a href="{{ route('client.category', array_merge(['category' => $cat->slug], request()->except(['category', 'page']))) }}" class="category-chip-card d-flex align-items-center gap-2 text-decoration-none {{ $isCatActive ? 'active' : '' }}">
                             <div class="category-chip-icon">
                                 @if($cat->image)
                                     <img src="{{ $cat->imgUrl() }}" alt="{{ $cat->name }}" loading="lazy">
@@ -217,6 +219,27 @@
                             </span>
                         @endif
 
+                        @if($currentMetal)
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill py-1.5 px-3 d-inline-flex align-items-center gap-1.5 fs-12">
+                                <span>{{ $currentMetal === 'gold' ? __('Gold') : __('Silver') }}</span>
+                                <a href="{{ route('client.products', request()->except(['metal', 'page'])) }}" class="text-primary text-decoration-none hover-danger">
+                                    <i class="ri-close-line"></i>
+                                </a>
+                            </span>
+                        @endif
+
+                        @if($currentTargetGroup)
+                            @php
+                                $tgLabels = ['women' => __('Women'), 'men' => __('Men'), 'children' => __('Children'), 'unisex' => __('Unisex')];
+                            @endphp
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill py-1.5 px-3 d-inline-flex align-items-center gap-1.5 fs-12">
+                                <span>{{ $tgLabels[$currentTargetGroup] ?? $currentTargetGroup }}</span>
+                                <a href="{{ route('client.products', request()->except(['target_group', 'page'])) }}" class="text-primary text-decoration-none hover-danger">
+                                    <i class="ri-close-line"></i>
+                                </a>
+                            </span>
+                        @endif
+
                         @if($currentInStock)
                             <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill py-1.5 px-3 d-inline-flex align-items-center gap-1.5 fs-12">
                                 <span>{{ __('In-stock only') }}</span>
@@ -259,7 +282,7 @@
                     <div class="row g-3 g-md-4">
                         @foreach($products as $product)
                             <div class="col-6 col-md-6 col-lg-4">
-                                @include('client.partials.product-card', ['product' => $product])
+                                @include('client.partials.product-card', ['product' => $product, 'eager' => $loop->index < 4])
                             </div>
                         @endforeach
                     </div>

@@ -35,7 +35,7 @@
             </div>
 
             <a href="{{$product->webUrl()}}" class="d-block h-100 w-100">
-                <img src="{{$product->thumbUrl()}}" alt="{{$product->name}}" class="card-img-top h-100 w-100 object-fit-cover product-img-hover {{ !$canBuy ? 'opacity-75' : '' }}" loading="lazy">
+                <img src="{{$product->thumbUrl()}}" alt="{{$product->name}}" class="card-img-top h-100 w-100 object-fit-cover product-img-hover {{ !$canBuy ? 'opacity-75' : '' }}" {{ ($eager ?? false) ? 'loading=eager fetchpriority=high' : 'loading=lazy' }}>
             </a>
         </div>
 

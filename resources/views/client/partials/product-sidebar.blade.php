@@ -152,8 +152,8 @@
                     @php
                         $metals = [
                             '' => ['label' => __('All metals'), 'icon' => 'ri-apps-2-line'],
-                            'gold' => ['label' => __('Gold'), 'icon' => 'ri-copper-coin-fill text-warning'],
-                            'silver' => ['label' => __('Silver'), 'icon' => 'ri-copper-coin-line text-secondary'],
+                            'gold' => ['label' => __('Gold'), 'icon' => 'ri-copper-coin-fill'],
+                            'silver' => ['label' => __('Silver'), 'icon' => 'ri-copper-coin-line'],
                         ];
                     @endphp
                     @foreach($metals as $metalKey => $metalData)
@@ -161,7 +161,7 @@
                         <li class="category-tree-item {{ $isMetalActive ? 'active' : '' }}">
                             <a href="{{ $filterUrl($metalKey ? ['metal' => $metalKey] : [], ['metal', 'page']) }}" class="category-tree-link d-flex align-items-center justify-content-between p-2 rounded-3 text-decoration-none">
                                 <span class="d-flex align-items-center gap-2">
-                                    <i class="{{ $metalData['icon'] }} fs-14"></i>
+                                    <i class="{{ $metalData['icon'] }} fs-14 {{ $isMetalActive ? 'text-primary' : 'text-muted' }}"></i>
                                     <span class="fs-13 {{ $isMetalActive ? 'fw-bold text-primary' : 'text-dark' }}">{{ $metalData['label'] }}</span>
                                 </span>
                                 @if($isMetalActive)
@@ -191,10 +191,10 @@
                     @php
                         $targetGroups = [
                             '' => ['label' => __('All target groups'), 'icon' => 'ri-group-line'],
-                            'women' => ['label' => __('Women'), 'icon' => 'ri-women-line text-danger'],
-                            'men' => ['label' => __('Men'), 'icon' => 'ri-men-line text-primary'],
-                            'children' => ['label' => __('Children'), 'icon' => 'ri-bear-smile-line text-success'],
-                            'unisex' => ['label' => __('Unisex'), 'icon' => 'ri-user-shared-line text-info'],
+                            'women' => ['label' => __('Women'), 'icon' => 'ri-women-line'],
+                            'men' => ['label' => __('Men'), 'icon' => 'ri-men-line'],
+                            'children' => ['label' => __('Children'), 'icon' => 'ri-bear-smile-line'],
+                            'unisex' => ['label' => __('Unisex'), 'icon' => 'ri-user-shared-line'],
                         ];
                     @endphp
                     @foreach($targetGroups as $tgKey => $tgData)
@@ -202,7 +202,7 @@
                         <li class="category-tree-item {{ $isTgActive ? 'active' : '' }}">
                             <a href="{{ $filterUrl($tgKey ? ['target_group' => $tgKey] : [], ['target_group', 'page']) }}" class="category-tree-link d-flex align-items-center justify-content-between p-2 rounded-3 text-decoration-none">
                                 <span class="d-flex align-items-center gap-2">
-                                    <i class="{{ $tgData['icon'] }} fs-14"></i>
+                                    <i class="{{ $tgData['icon'] }} fs-14 {{ $isTgActive ? 'text-primary' : 'text-muted' }}"></i>
                                     <span class="fs-13 {{ $isTgActive ? 'fw-bold text-primary' : 'text-dark' }}">{{ $tgData['label'] }}</span>
                                 </span>
                                 @if($isTgActive)
@@ -224,7 +224,7 @@
                 </h6>
             </div>
             <div class="filter-card-body p-3">
-                <div class="row g-2 mb-2">
+                <div class="row g-2">
                     <div class="col-6">
                         <label class="form-label fs-11 text-muted mb-1">{{ __("From") }} ({{ config('app.currency.symbol') }}):</label>
                         <input type="number" name="min_price" value="{{ $currentMinPrice }}" class="form-control form-control-sm text-center" placeholder="0">
@@ -234,10 +234,6 @@
                         <input type="number" name="max_price" value="{{ $currentMaxPrice }}" class="form-control form-control-sm text-center" placeholder="Max">
                     </div>
                 </div>
-                <button type="submit" class="btn btn-outline-primary btn-sm rounded-pill w-100 fw-semibold py-1 mt-1">
-                    <i class="ri-filter-3-line me-1"></i>
-                    {{ __("Apply") }}
-                </button>
             </div>
         </div>
 

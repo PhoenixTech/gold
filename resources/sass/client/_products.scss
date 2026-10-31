@@ -25,8 +25,8 @@
         }
 
         .category-chip-card {
-            background: #ffffff;
-            border: 1px solid rgba(0, 0, 0, 0.08);
+            background: var(--xshop-surface-0);
+            border: 1px solid var(--xshop-border-soft);
             border-radius: 9999px;
             padding: 0.4rem 0.9rem 0.4rem 0.5rem;
             white-space: nowrap;
@@ -37,14 +37,14 @@
                 width: 32px;
                 height: 32px;
                 border-radius: 50%;
-                background: var(--xshop-gray-50);
+                background: var(--xshop-surface-50);
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 color: var(--xshop-primary);
                 font-size: 15px;
                 overflow: hidden;
-                border: 1px solid rgba(0, 0, 0, 0.05);
+                border: 1px solid var(--xshop-border-card);
 
                 img {
                     width: 100%;
@@ -56,12 +56,12 @@
             .category-chip-title {
                 font-size: 13px;
                 font-weight: 500;
-                color: var(--xshop-text, #111111);
+                color: var(--xshop-text-main);
             }
 
             .category-chip-count {
-                background: rgba(0, 0, 0, 0.05);
-                color: var(--xshop-gray-500);
+                background: var(--xshop-surface-100);
+                color: var(--xshop-text-muted);
                 font-size: 11px;
                 padding: 0.1rem 0.45rem;
                 border-radius: 9999px;
@@ -80,10 +80,10 @@
             &.active {
                 background: var(--xshop-primary);
                 border-color: var(--xshop-primary);
-                box-shadow: 0 4px 14px color-mix(in srgb, var(--xshop-primary) 25%, transparent);
+                box-shadow: var(--xshop-shadow-sm);
 
                 .category-chip-icon {
-                    background: #ffffff;
+                    background: var(--xshop-surface-0);
                     color: var(--xshop-primary);
                 }
 
@@ -109,16 +109,16 @@
 
     .product-filters-sidebar {
         .filter-card {
-            background: #ffffff;
-            border: 1px solid rgba(0, 0, 0, 0.08);
-            border-radius: max(var(--xshop-border-radius), 14px);
+            background: var(--xshop-surface-0);
+            border: 1px solid var(--xshop-border-soft);
+            border-radius: max(var(--xshop-border-radius, 12px), 14px);
             overflow: hidden;
             box-shadow: var(--xshop-shadow-xs);
 
             .filter-card-header {
                 padding: 0.75rem 1rem;
-                background: var(--xshop-gray-50);
-                border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+                background: var(--xshop-surface-50);
+                border-bottom: 1px solid var(--xshop-border-card);
             }
 
             .filter-card-body {
@@ -131,12 +131,12 @@
                 transition: background 0.15s ease;
 
                 &:hover {
-                    background: var(--xshop-gray-50);
+                    background: var(--xshop-surface-50);
                 }
             }
 
             .category-tree-item.active > .category-tree-row {
-                background: rgba(219, 154, 0, 0.08);
+                background: var(--xshop-gold-50);
 
                 .category-tree-link {
                     color: var(--xshop-primary);
@@ -174,7 +174,7 @@
 
     // Toolbar
     .products-toolbar {
-        border: 1px solid rgba(0, 0, 0, 0.07) !important;
+        border: 1px solid var(--xshop-border-soft) !important;
 
         .sort-tab-btn {
             font-size: 13px;
@@ -184,11 +184,11 @@
                 background-color: var(--xshop-primary);
                 border-color: var(--xshop-primary);
                 color: #ffffff;
-                box-shadow: 0 2px 8px color-mix(in srgb, var(--xshop-primary) 25%, transparent);
+                box-shadow: var(--xshop-shadow-xs);
             }
 
             &:not(.btn-primary):hover {
-                background-color: var(--xshop-gray-100);
+                background-color: var(--xshop-surface-100);
                 color: var(--xshop-primary);
             }
         }
@@ -210,7 +210,7 @@
         width: 80px;
         height: 80px;
         border-radius: 50%;
-        background: rgba(219, 154, 0, 0.1);
+        background: var(--xshop-gold-100);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -219,8 +219,8 @@
 
     // Trust Banner
     .products-trust-banner {
-        background: var(--xshop-gray-50) !important;
-        border: 1px solid rgba(0, 0, 0, 0.06) !important;
+        background: var(--xshop-surface-50) !important;
+        border: 1px solid var(--xshop-border-card) !important;
 
         .trust-item {
             i {
@@ -430,11 +430,11 @@
 // Sub & Parallel Categories Grids
 .SubCategoriesGrid, .ParallelCategoriesGrid {
     .sub-category-card, .parallel-category-card {
-        background: var(--xshop-background);
+        background: var(--xshop-surface-0);
 
         &:hover {
             transform: translateY(var(--xshop-lift));
-            box-shadow: var(--xshop-shadow-lg) !important;
+            box-shadow: var(--xshop-shadow-md) !important;
 
             .card-img-bg {
                 transform: scale(1.06);
