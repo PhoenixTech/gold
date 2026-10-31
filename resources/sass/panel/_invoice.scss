@@ -245,24 +245,11 @@
    ========================================================================== */
 
 .admin-invoice-view {
-    --inv-primary: #db9a00;
-    --inv-ink: #2b2b2b;
-    --inv-border: #e2e8f0;
-    --inv-light: #f8fafc;
-
-    .admin-invoice-actionbar {
-        position: sticky;
-        top: 60px;
-        z-index: 100;
-    }
-
     .admin-invoice-paper {
         max-width: 960px;
         margin: 0 auto;
         background: #ffffff;
-        color: var(--inv-ink);
         position: relative;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 
         .invoice-brand-logo {
             max-height: 56px;
@@ -281,64 +268,16 @@
             display: block;
         }
 
-        .party-box {
-            border: 1px solid rgba(0, 0, 0, 0.08) !important;
-            background-color: #fbfbfb;
-
-            .party-box-title {
-                font-size: 0.88rem;
-            }
+        .invoice-item-img {
+            width: 44px;
+            height: 44px;
+            object-fit: cover;
         }
 
-        .invoice-shipping-strip {
-            border: 1px dashed rgba(0, 0, 0, 0.15) !important;
-            background-color: #f9f9f9;
-        }
-
-        .invoice-items-table {
-            table {
-                thead th {
-                    background-color: #f1f5f9;
-                    color: #475569;
-                    font-size: 0.82rem;
-                    font-weight: 700;
-                    border-bottom: 2px solid #cbd5e1;
-                    padding: 0.65rem 0.75rem;
-                }
-
-                tbody td {
-                    padding: 0.65rem 0.75rem;
-                    border-color: #e2e8f0;
-                }
-            }
-
-            .invoice-item-img {
-                width: 44px;
-                height: 44px;
-                object-fit: cover;
-                border: 1px solid #e2e8f0;
-            }
-        }
-
-        .invoice-receipt-card {
-            border: 1px solid #e2e8f0;
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
-
-            &:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
-            }
-
-            .invoice-receipt-thumb {
-                width: 48px;
-                height: 48px;
-                object-fit: cover;
-            }
-        }
-
-        .signature-box {
-            border: 1px dashed #cbd5e1 !important;
-            background: #fafafa;
+        .invoice-receipt-thumb {
+            width: 48px;
+            height: 48px;
+            object-fit: cover;
         }
     }
 }
