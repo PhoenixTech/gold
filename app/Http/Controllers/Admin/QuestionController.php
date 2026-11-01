@@ -21,7 +21,7 @@ class QuestionController extends Controller
 
     public function index(Request $request, AdminTableService $tableService): View
     {
-        $tableData = $tableService->for(Question::class)
+        $tableData = $tableService->for(Question::query()->with('product'))
             ->columns(['body', 'product_id', 'status'], ['id'])
             ->searchable(['body', 'answer'])
             ->buttons([

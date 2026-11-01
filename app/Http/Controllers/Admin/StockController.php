@@ -45,7 +45,7 @@ class StockController extends Controller
         $belowBuyPrice = $request->input('filter.below_buy_price');
         $stockCondition = $request->input('filter.stock_condition', 'in_stock');
 
-        $query = Product::query()->with(['quantities', 'category']);
+        $query = Product::query()->with(['quantities', 'category', 'media']);
 
         $query->withCount([
             'quantities as total_ordered_count',

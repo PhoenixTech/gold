@@ -185,7 +185,7 @@ class CustomerController extends Controller
             'customer',
             'address.state',
             'address.city',
-            'orders.product',
+            'orders.product.media',
             'orders.quantity',
             'payments',
             'paymentReceipts',
@@ -315,6 +315,8 @@ class CustomerController extends Controller
 
     public function showTicket(Ticket $ticket)
     {
+        $ticket->loadMissing(['user', 'subTickets.user']);
+
         return view('client.customer.ticket', compact('ticket'));
     }
 

@@ -310,7 +310,7 @@ class InvoiceController extends Controller
         $query = Invoice::query()
             ->onlyTrashed()
             ->where('source', $source->value)
-            ->with(['customer', 'paymentReceipts']);
+            ->with(['customer', 'transport', 'activeDelivery.courier', 'paymentReceipts']);
 
         $tableData = $tableService->for($query)
             ->columns($this->cols, $this->extraCols)
@@ -355,7 +355,7 @@ class InvoiceController extends Controller
 
         $invoice->loadMissing([
             'customer.addresses',
-            'orders.product',
+            'orders.product.media',
             'orders.quantity',
             'payments.supplier',
             'payments.receipts',
@@ -430,7 +430,7 @@ class InvoiceController extends Controller
             'customer.addresses.city',
             'address.state',
             'address.city',
-            'orders.product',
+            'orders.product.media',
             'orders.quantity',
             'payments.receipts',
             'paymentReceipts',
@@ -468,7 +468,7 @@ class InvoiceController extends Controller
             'customer.addresses.city',
             'address.state',
             'address.city',
-            'orders.product',
+            'orders.product.media',
             'orders.quantity',
             'payments.receipts',
             'paymentReceipts',

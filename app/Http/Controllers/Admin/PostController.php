@@ -23,7 +23,7 @@ class PostController extends Controller
 
     public function index(Request $request, AdminTableService $tableService): View
     {
-        $tableData = $tableService->for(Post::class)
+        $tableData = $tableService->for(Post::query()->with('media'))
             ->columns(['title', 'hash', 'status'], ['id', 'slug'])
             ->searchable(['title', 'subtitle', 'body'])
             ->buttons([

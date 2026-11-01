@@ -25,7 +25,7 @@ class GroupController extends Controller
 
     public function index(Request $request, AdminTableService $tableService): View
     {
-        $tableData = $tableService->for(Group::class)
+        $tableData = $tableService->for(Group::query()->with('parent'))
             ->columns(['name', 'subtitle', 'parent_id'], ['id', 'slug', 'image'])
             ->searchable(['name', 'subtitle', 'description'])
             ->buttons([

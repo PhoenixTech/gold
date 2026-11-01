@@ -7,8 +7,10 @@ use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Menu;
 use App\Models\Product;
+use App\Models\Ticket;
 use App\Models\User;
 use App\Services\AdminDashboardStats;
+use Database\Seeders\GfxSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
@@ -109,5 +111,73 @@ class NPlusOneOptimizationTest extends TestCase
         $html = view('client.partials.header')->render();
         $this->assertStringContainsString('sub-menu', $html);
         $this->assertStringContainsString('Jewelry', $html);
+    }
+
+    public function test_admin_product_list_eager_loads_relations_and_media(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        $admin = $this->actingAsAdmin();
+        $category = Category::create(['name' => 'Jewelry Cat', 'slug' => 'jewel-cat']);
+
+        for ($i = 1; $i <= 5; $i++) {
+            Product::forceCreate([
+                'name' => "Gold Product $i",
+                'slug' => "gold-product-$i",
+                'sku' => "SKU-$i",
+                'category_id' => $category->id,
+                'user_id' => $admin->id,
+                'status' => 1,
+                'stock_status' => 'IN_STOCK',
+                'stock_quantity' => 10,
+                'weight' => 2.5,
+                'price' => 2000000,
+            ]);
+        }
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        $response = $this->get(route('admin.product.index'));
+        $response->assertOk();
+
+        $queries = DB::getQueryLog();
+        DB::disableQueryLog();
+
+        $categoryQueries = array_filter($queries, fn ($q) => str_contains($q['query'], 'from `categories` where `categories`.`id` ='));
+        $this->assertCount(0, $categoryQueries);
+    }
+
+    public function test_admin_ticket_list_eager_loads_customer(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        $this->actingAsAdmin();
+
+        $customer = Customer::forceCreate([
+            'name' => 'Test Customer',
+            'mobile' => '09120000000',
+        ]);
+
+        for ($i = 1; $i <= 5; $i++) {
+            Ticket::forceCreate([
+                'title' => "Ticket $i",
+                'body' => "Ticket body $i",
+                'customer_id' => $customer->id,
+                'status' => 'PENDING',
+            ]);
+        }
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        $response = $this->get(route('admin.ticket.index'));
+        $response->assertOk();
+
+        $queries = DB::getQueryLog();
+        DB::disableQueryLog();
+
+        $customerQueries = array_filter($queries, fn ($q) => str_contains($q['query'], 'from `customers` where `customers`.`id` ='));
+        $this->assertCount(0, $customerQueries);
     }
 }

@@ -21,7 +21,7 @@ class DiscountController extends Controller
 
     public function index(Request $request, AdminTableService $tableService): View
     {
-        $tableData = $tableService->for(Discount::class)
+        $tableData = $tableService->for(Discount::query()->with('product'))
             ->columns(['title', 'code', 'expire', 'product_id'], ['id'])
             ->searchable(['title', 'code', 'body'])
             ->buttons([

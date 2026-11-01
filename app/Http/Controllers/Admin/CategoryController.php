@@ -25,7 +25,7 @@ class CategoryController extends Controller
 
     public function index(Request $request, AdminTableService $tableService): View
     {
-        $tableData = $tableService->for(Category::class)
+        $tableData = $tableService->for(Category::query()->with('parent'))
             ->columns(['name', 'code', 'subtitle', 'parent_id'], ['id', 'slug', 'image'])
             ->searchable(['name', 'subtitle', 'description'])
             ->buttons([

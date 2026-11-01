@@ -21,7 +21,7 @@ class RateController extends Controller
 
     public function index(Request $request, AdminTableService $tableService): View
     {
-        $tableData = $tableService->for(Rate::class)
+        $tableData = $tableService->for(Rate::query()->with('evaluation'))
             ->columns(['rateable_type', 'rateable_id', 'rater_type', 'rater_id', 'rate', 'evaluation_id'], ['id'])
             ->searchable(['rate', 'rateable_type', 'rateable_id', 'rater_type', 'rater_id'])
             ->buttons([])

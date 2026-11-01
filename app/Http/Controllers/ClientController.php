@@ -135,7 +135,7 @@ class ClientController extends Controller
         $featuredTagGroups = app(FeaturedProductsService::class)->getTagsWithProducts();
 
         $latestPosts = Post::where('status', 1)
-            ->with('mainGroup')
+            ->with(['mainGroup', 'media'])
             ->orderByDesc('id')
             ->take(4)
             ->get();
@@ -198,7 +198,7 @@ class ClientController extends Controller
             ->get();
 
         $latestPosts = Post::where('status', 1)
-            ->with('mainGroup')
+            ->with(['mainGroup', 'media'])
             ->orderByDesc('id')
             ->take(4)
             ->get();
@@ -309,7 +309,7 @@ class ClientController extends Controller
         $title = __('Posts list');
         $subtitle = '';
         $posts = Post::where('status', 1)
-            ->with('mainGroup')
+            ->with(['mainGroup', 'media'])
             ->orderByDesc('id')->paginate($this->paginate);
 
         return view('client.posts.index', compact('posts', 'title', 'subtitle'));
@@ -389,6 +389,7 @@ class ClientController extends Controller
         $title = __('Galleries list');
         $subtitle = '';
         $galleries = Gallery::where('status', 1)
+            ->with('media')
             ->orderByDesc('id')->paginate($this->paginate);
 
         return view('client.galleries.index', compact('galleries', 'title', 'subtitle'));
@@ -433,8 +434,8 @@ class ClientController extends Controller
     {
 
         $tag = Tag::where('slug->'.config('app.locale'), 'like', $slug)->first();
-        $posts = Post::withAnyTags([$tag])->where('status', 1)->paginate(100);
-        $products = Product::withAnyTags([$tag])->where('status', 1)->paginate(100);
+        $posts = Post::withAnyTags([$tag])->where('status', 1)->with(['mainGroup', 'media'])->paginate(100);
+        $products = Product::withAnyTags([$tag])->where('status', 1)->with(['category', 'availableQuantities', 'activeDiscounts', 'media'])->paginate(100);
         $clips = Clip::withAnyTags([$tag])->where('status', 1)->paginate(100);
         $title = __('Tag').': '.$tag->name;
         $subtitle = '';
@@ -510,13 +511,13 @@ class ClientController extends Controller
             $query->where('title', 'LIKE', $term)
                 ->orWhere('subtitle', 'LIKE', $term)
                 ->orWhere('body', 'LIKE', $term);
-        })->paginate($this->paginate)->withQueryString();
+        })->with(['mainGroup', 'media'])->paginate($this->paginate)->withQueryString();
 
         $products = Product::where('status', 1)->where(function ($query) use ($term) {
             $query->where('name', 'LIKE', $term)
                 ->orWhere('excerpt', 'LIKE', $term)
                 ->orWhere('description', 'LIKE', $term);
-        })->paginate($this->paginate)->withQueryString();
+        })->with(['category', 'availableQuantities', 'activeDiscounts', 'media'])->paginate($this->paginate)->withQueryString();
 
         $clips = Clip::where('status', 1)->where(function ($query) use ($term) {
             $query->where('title', 'LIKE', $term)
@@ -535,7 +536,7 @@ class ClientController extends Controller
         $subtitle = $group->subtitle;
         $posts = $group->posts()
             ->where('status', 1)
-            ->with('mainGroup')
+            ->with(['mainGroup', 'media'])
             ->orderByDesc('id')
             ->paginate($this->paginate);
 
@@ -709,7 +710,10 @@ class ClientController extends Controller
         $title = __('Compare products');
         $subtitle = '';
         $ids = json_decode(\Cookie::get('compares'), true);
-        $products = Product::whereIn('id', $ids)->where('status', 1)->get();
+        $products = Product::whereIn('id', $ids ?: [])
+            ->where('status', 1)
+            ->with(['category', 'availableQuantities', 'activeDiscounts', 'media'])
+            ->get();
 
         return view('client.compare.index', compact('products', 'title', 'subtitle'));
     }

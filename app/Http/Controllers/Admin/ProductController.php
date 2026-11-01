@@ -35,7 +35,7 @@ class ProductController extends Controller
         $belowBuyPrice = $request->input('filter.below_buy_price');
         $tagFilter = $request->input('filter.tag');
 
-        $query = Product::query()->with(['availableQuantities']);
+        $query = Product::query()->with(['availableQuantities', 'category', 'media']);
 
         if ($lowStock !== null && $lowStock !== '') {
             if ((string) $lowStock === '1') {
@@ -120,7 +120,7 @@ class ProductController extends Controller
         $belowBuyPrice = $request->input('filter.below_buy_price');
         $tagFilter = $request->input('filter.tag');
 
-        $query = Product::query()->onlyTrashed()->with(['availableQuantities']);
+        $query = Product::query()->onlyTrashed()->with(['availableQuantities', 'category', 'media']);
 
         if ($lowStock !== null && $lowStock !== '') {
             if ((string) $lowStock === '1') {

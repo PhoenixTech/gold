@@ -22,7 +22,7 @@ class CommentController extends Controller
 
     public function index(Request $request, AdminTableService $tableService): View
     {
-        $tableData = $tableService->for(Comment::class)
+        $tableData = $tableService->for(Comment::query()->with(['parent', 'commentable']))
             ->columns(['*'], ['id'])
             ->searchable(['body', 'name', 'email', 'ip'])
             ->buttons([])

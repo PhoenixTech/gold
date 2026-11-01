@@ -36,7 +36,7 @@ class ManualInvoiceController extends Controller
         if ($step === 'complete') {
             $invoiceHash = (string) $request->query('invoice', '');
             $invoice = Invoice::query()
-                ->with(['customer', 'orders.product', 'orders.quantity', 'payments.supplier', 'createdBy'])
+                ->with(['customer', 'orders.product', 'orders.quantity', 'payments.supplier', 'paymentReceipts', 'createdBy'])
                 ->where('hash', $invoiceHash)
                 ->first();
             abort_unless($invoice, 404);

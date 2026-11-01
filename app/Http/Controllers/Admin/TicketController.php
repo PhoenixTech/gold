@@ -21,7 +21,7 @@ class TicketController extends Controller
 
     public function index(Request $request, AdminTableService $tableService): View
     {
-        $tableData = $tableService->for(Ticket::whereNull('parent_id'))
+        $tableData = $tableService->for(Ticket::whereNull('parent_id')->with('customer'))
             ->columns(['title', 'status', 'customer_id'], ['id'])
             ->searchable([])
             ->buttons([

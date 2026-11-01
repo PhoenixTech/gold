@@ -23,7 +23,7 @@ class GalleryController extends Controller
 
     public function index(Request $request, AdminTableService $tableService): View
     {
-        $tableData = $tableService->for(Gallery::class)
+        $tableData = $tableService->for(Gallery::query()->with('media'))
             ->columns(['title', 'status'], ['id', 'slug'])
             ->searchable(['title', 'description'])
             ->buttons([
