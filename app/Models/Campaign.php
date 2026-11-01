@@ -174,16 +174,13 @@ class Campaign extends Model
         };
     }
 
-    /**
-     * A Jalali schedule summary, e.g. "۱۴۰۴/۰۸/۱۹ → ۱۴۰۴/۰۸/۲۹".
-     */
     public function scheduleLabel(): string
     {
         $start = $this->starts_at?->ldate('Y/m/d');
         $end = $this->ends_at?->ldate('Y/m/d');
 
         return match (true) {
-            $start !== null && $end !== null => $start.' → '.$end,
+            $start !== null && $end !== null => $start.' '.__('To').' '.$end,
             $start !== null => __('From :date', ['date' => $start]),
             $end !== null => __('Until :date', ['date' => $end]),
             default => __('Always on'),

@@ -1,27 +1,8 @@
-{{-- Tab: how the campaign's product set is built.
-     @var \App\Models\Campaign|null $item
-     @var array{products: \Illuminate\Support\Collection, pinnedIds: array, pinned: int, excluded: int, occasions: int, final: int}|null $preview
-     @var \Illuminate\Support\Collection $productOptions
-     @var array $occasions
-     @var array $selectedOccasions
-     @var string $includedValue
-     @var string $excludedValue --}}
-
-<div class="alert alert-info border border-info-subtle d-flex align-items-start gap-2 py-2 mb-4">
-    <i class="ri-lightbulb-flash-line fs-5"></i>
-    <div>
-        {{__("The tile is filled by three inputs combined: your included products first, then every published product carrying the selected occasions, minus everything you excluded.")}}
-    </div>
-</div>
-
 <div class="p-3 bg-white rounded-3 border border-light-subtle mb-4">
-    <label class="fw-semibold text-dark d-flex align-items-center gap-1.5 mb-1">
+    <label class="fw-semibold text-dark d-flex align-items-center gap-1.5 mb-2">
         <i class="ri-gift-line text-danger"></i>
         <span>{{__("Occasions")}}</span>
     </label>
-    <p class="text-muted fs-13 mb-3">
-        {{__("Every published product carrying any of these occasions is added to the tile automatically. Tag products from the product form.")}}
-    </p>
 
     @error('occasions') <div class="text-danger small mb-2">{{$message}}</div> @enderror
 
@@ -32,7 +13,7 @@
                     <input class="form-check-input" type="checkbox" name="occasions[]"
                            id="campaign_occasion_{{$key}}" value="{{$key}}"
                            @checked(in_array($key, (array) $selectedOccasions))>
-                    <label class="form-check-label fs-13 text-dark cursor-pointer" for="campaign_occasion_{{$key}}">{{$label}}</label>
+                    <label class="form-check-label fs-13 text-dark" for="campaign_occasion_{{$key}}">{{$label}}</label>
                 </div>
             </div>
         @endforeach
@@ -40,16 +21,13 @@
 </div>
 
 <div class="form-group mb-4">
-    <label class="fw-semibold text-dark d-flex align-items-center gap-1.5 mb-1">
+    <label class="fw-semibold text-dark d-flex align-items-center gap-1.5 mb-2">
         <i class="ri-checkbox-circle-line text-success"></i>
         <span>{{__("Include specific products")}}</span>
     </label>
-    <p class="text-muted fs-13 mb-2">
-        {{__("Pinned to the front of the tile, in the order you pick them. Useful for a hero piece.")}}
-    </p>
     <searchable-multi-select
         @error('included_products') :err="true" @enderror
-    :items='@json($productOptions)'
+        :items='@json($productOptions)'
         title-field="name"
         value-field="id"
         xlang="{{config('app.locale')}}"
@@ -61,16 +39,13 @@
 </div>
 
 <div class="form-group mb-4">
-    <label class="fw-semibold text-dark d-flex align-items-center gap-1.5 mb-1">
+    <label class="fw-semibold text-dark d-flex align-items-center gap-1.5 mb-2">
         <i class="ri-forbid-circle-line text-danger"></i>
         <span>{{__("Exclude products")}}</span>
     </label>
-    <p class="text-muted fs-13 mb-2">
-        {{__("Held back from the tile, even when their occasion matches — sold out pieces, or anything you do not want advertised.")}}
-    </p>
     <searchable-multi-select
         @error('excluded_products') :err="true" @enderror
-    :items='@json($productOptions)'
+        :items='@json($productOptions)'
         title-field="name"
         value-field="id"
         xlang="{{config('app.locale')}}"
@@ -105,33 +80,23 @@
 
         @if($preview['products']->isEmpty())
             <div class="alert alert-danger border border-danger-subtle shadow-sm p-3 mb-0 rounded-3">
-                <i class="ri-error-warning-line"></i>
+                <i class="ri-error-warning-line me-1"></i>
                 {{__("No product matches, so the tile will be hidden. Tag products with one of the selected occasions, or include some by hand.")}}
             </div>
         @else
-            <p class="text-muted fs-13 mb-2">
-                {{__("Included products come first, then the occasion matches, minus everything you excluded.")}}
-            </p>
             <div class="d-flex flex-wrap gap-2">
                 @foreach($preview['products'] as $previewProduct)
-                    <span class="badge bg-light text-dark border border-secondary-subtle fw-normal d-inline-flex align-items-center gap-1">
-                        <img src="{{$previewProduct->thumbUrl()}}" alt="" class="rounded-1" style="width: 18px; height: 18px; object-fit: cover;">
+                    <span class="badge bg-light-subtle text-body border border-secondary-subtle fw-normal d-inline-flex align-items-center gap-1">
+                        <img src="{{$previewProduct->thumbUrl()}}" alt="{{$previewProduct->name}}" width="18" height="18" class="rounded-1" style="width: 18px; height: 18px; object-fit: cover;">
                         <span class="fs-12">{{$previewProduct->name}}</span>
                         @if(in_array($previewProduct->getKey(), $preview['pinnedIds'], true))
                             <i class="ri-pushpin-fill text-success" title="{{__("Included by hand")}}"></i>
                         @else
-                            <i class="ri-sparkling-fill text-primary" title="{{__("Matched by occasion")}}"></i>
+                            <i class="ri-price-tag-3-fill text-primary" title="{{__("Matched by occasion")}}"></i>
                         @endif
                     </span>
                 @endforeach
             </div>
-
-            @if(! $item->isLive())
-                <p class="text-muted fs-13 mb-0 mt-3">
-                    <i class="ri-information-line"></i>
-                    {{__("The tile stays hidden until the status is published and the start date is reached.")}}
-                </p>
-            @endif
         @endif
     </div>
 @endif

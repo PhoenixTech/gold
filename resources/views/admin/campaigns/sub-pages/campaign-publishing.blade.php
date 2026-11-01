@@ -5,18 +5,13 @@
             <option value="{{$case->value}}" @selected(old('status', $item->status->value ?? 'draft') === $case->value)>{{$case->label()}}</option>
         @endforeach
     </select>
-    @if(isset($item))
-        <small class="text-muted d-block mt-1">
-            {{__("Current state")}}: <span class="{{$item->statusBadgeClass()}}">{{$item->statusLabel()}}</span>
-        </small>
-        @if($item->isLive())
-            <small class="d-block mt-2">
-                <a href="{{$item->url()}}" target="_blank" class="text-decoration-none">
-                    <i class="ri-external-link-line"></i>
-                    {{__("Open the campaign page")}}
-                </a>
-            </small>
-        @endif
+    @if(isset($item) && $item->isLive())
+        <div class="mt-2">
+            <a href="{{$item->url()}}" target="_blank" class="text-decoration-none fs-13">
+                <i class="ri-external-link-line me-1"></i>
+                {{__("Open the campaign page")}}
+            </a>
+        </div>
     @endif
     @error('status') <div class="text-danger small mt-1">{{$message}}</div> @enderror
 </div>
@@ -25,11 +20,7 @@
     <label for="slug" class="fw-semibold">{{__("Slug")}}</label>
     <input name="slug" type="text" id="slug" dir="ltr"
            class="form-control @error('slug') is-invalid @enderror"
-           placeholder="{{__("Generated from the title when left empty")}}"
            value="{{old('slug', $item->slug ?? null)}}">
-    <small class="text-muted d-block mt-1" dir="ltr">
-        {{__("Campaign page address")}}: {{ route('client.products') }}?campaign=<b>{{ old('slug', $item->slug ?? '…') }}</b>
-    </small>
     @error('slug') <div class="text-danger small mt-1">{{$message}}</div> @enderror
 </div>
 

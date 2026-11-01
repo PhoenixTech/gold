@@ -340,12 +340,9 @@
     @endforelse
     @break
     @case('metal_scope')
-    {{-- Guarded because this partial renders every admin list: a bare
-         `metal_scope` column on an unrelated model must fall through to the
-         default cell rather than calling a method it does not have. --}}
     @if(method_exists($item, 'metalLabels'))
         @foreach($item->metalLabels() as $metalLabel)
-            <span class="badge @if($metalLabel === __('Silver')) bg-secondary text-white @else bg-warning text-dark @endif">{{ $metalLabel }}</span>
+            <span class="badge @if($metalLabel === __('Silver')) bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle @else bg-warning-subtle text-warning-emphasis border border-warning-subtle @endif">{{ $metalLabel }}</span>
         @endforeach
     @else
         {{ $item->$col }}

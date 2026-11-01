@@ -26,7 +26,6 @@
 @section('form')
     @include('components.err')
 
-    {{-- A schedule collision silently costs the slot, so it stays above the tabs. --}}
     @if($clashes->isNotEmpty())
         <div class="alert alert-warning border border-warning-subtle shadow-sm d-flex align-items-start gap-2 p-3 mb-4 rounded-3">
             <i class="ri-alarm-warning-line fs-5"></i>
@@ -36,7 +35,7 @@
                     @foreach($clashes as $clash)
                         <li>
                             <a href="{{route('admin.campaign.edit', $clash->slug)}}" target="_blank" class="fw-bold">{{$clash->name}}</a>
-                            — {{$clash->scheduleLabel()}} ({{__("priority")}} {{$clash->priority}})
+                            : {{$clash->scheduleLabel()}} ({{__("priority")}} {{$clash->priority}})
                         </li>
                     @endforeach
                 </ul>
@@ -80,28 +79,18 @@
             </div>
         </div>
 
-        {{-- One action bar for every tab. --}}
-        <div class="p-3 border-top d-flex align-items-center justify-content-between flex-wrap gap-2">
-            <span class="text-muted fs-13">
-                <i class="ri-save-line"></i>
-                {{__("Changes go live on the home page as soon as you save.")}}
-            </span>
-            <div class="d-flex gap-2">
-                <a href="{{route('admin.campaign.index')}}" class="btn btn-outline-secondary">{{__("Cancel")}}</a>
-                <button type="submit" class="btn btn-primary px-4">
-                    <i class="ri-save-3-line me-1"></i>
-                    {{__("Save")}}
-                </button>
-            </div>
+        <div class="p-3 border-top d-flex align-items-center justify-content-end gap-2">
+            <a href="{{route('admin.campaign.index')}}" class="btn btn-outline-secondary">{{__("Cancel")}}</a>
+            <button type="submit" class="btn btn-primary px-4">
+                <i class="ri-save-3-line me-1"></i>
+                {{__("Save")}}
+            </button>
         </div>
     </div>
 @endsection
 
 @section('js-content')
     <script>
-        // After a failed validation, jump to the tab that actually holds the
-        // first error instead of leaving the admin on the first tab wondering
-        // what went wrong.
         document.addEventListener('DOMContentLoaded', function () {
             if (typeof window.bootstrap === 'undefined') {
                 return;

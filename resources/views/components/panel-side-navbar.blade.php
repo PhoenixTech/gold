@@ -111,7 +111,7 @@
                     @if(auth()->user()->hasAnyAccess('campaign'))
                         <li>
                             <a href="{{route('admin.campaign.index')}}">
-                                <i class="ri-lightbulb-flash-fill"></i>
+                                <i class="ri-advertisement-fill"></i>
                                 {{__('Campaigns')}}
                             </a>
                         </li>
