@@ -490,30 +490,40 @@ class ClientController extends Controller
 
     public function search(Request $request)
     {
-        $q = trim($request->input('q'));
-        if (mb_strlen($q) < 3) {
-            return abort(403, __('Search word is too short'));
-        }
-        $q = '%'.$q.'%';
-        $posts = Post::where('status', 1)->where(function ($query) use ($q) {
-            $query->where('title', 'LIKE', $q)
-                ->orWhere('subtitle', 'LIKE', $q)
-                ->orWhere('body', 'LIKE', $q);
-        })->paginate(100);
-        $products = Product::where('status', 1)->where(function ($query) use ($q) {
-            $query->where('name', 'LIKE', $q)
-                ->orWhere('excerpt', 'LIKE', $q)
-                ->orWhere('description', 'LIKE', $q);
-        })->paginate(100);
-        $clips = Clip::where('status', 1)->where(function ($query) use ($q) {
-            $query->where('title', 'LIKE', $q)
-                ->orWhere('body', 'LIKE', $q);
-        })->paginate(100);
-        $title = __('Search for').': '.$request->input('q');
+        $q = trim((string) $request->input('q', ''));
+        $title = $q !== '' ? __('Search results for ":q"', ['q' => $q]) : __('Search');
         $subtitle = '';
         $noIndex = true;
 
-        return view('client.tag', compact('posts', 'products', 'clips', 'title', 'subtitle', 'noIndex'));
+        if (mb_strlen($q) < 2) {
+            $posts = Post::whereRaw('1 = 0')->paginate($this->paginate)->withQueryString();
+            $products = Product::whereRaw('1 = 0')->paginate($this->paginate)->withQueryString();
+            $clips = Clip::whereRaw('1 = 0')->paginate($this->paginate)->withQueryString();
+
+            return view('client.search', compact('posts', 'products', 'clips', 'title', 'subtitle', 'noIndex', 'q'));
+        }
+
+        $escaped = addcslashes($q, '%_\\');
+        $term = '%'.$escaped.'%';
+
+        $posts = Post::where('status', 1)->where(function ($query) use ($term) {
+            $query->where('title', 'LIKE', $term)
+                ->orWhere('subtitle', 'LIKE', $term)
+                ->orWhere('body', 'LIKE', $term);
+        })->paginate($this->paginate)->withQueryString();
+
+        $products = Product::where('status', 1)->where(function ($query) use ($term) {
+            $query->where('name', 'LIKE', $term)
+                ->orWhere('excerpt', 'LIKE', $term)
+                ->orWhere('description', 'LIKE', $term);
+        })->paginate($this->paginate)->withQueryString();
+
+        $clips = Clip::where('status', 1)->where(function ($query) use ($term) {
+            $query->where('title', 'LIKE', $term)
+                ->orWhere('body', 'LIKE', $term);
+        })->paginate($this->paginate)->withQueryString();
+
+        return view('client.search', compact('posts', 'products', 'clips', 'title', 'subtitle', 'noIndex', 'q'));
     }
 
     public function group($slug)
