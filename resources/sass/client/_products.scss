@@ -387,6 +387,52 @@
         box-shadow: var(--xshop-shadow-xs);
     }
 
+    .product-tabs-card {
+        background: var(--xshop-surface-0);
+        border: 1px solid var(--xshop-border-card) !important;
+        box-shadow: var(--xshop-shadow-xs);
+
+        #productNavTabs {
+            display: flex;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+
+            &::-webkit-scrollbar {
+                display: none;
+            }
+
+            .nav-item {
+                flex-shrink: 0;
+            }
+
+            .nav-link {
+                white-space: nowrap;
+                color: var(--xshop-text-muted);
+                background: transparent;
+                padding: 0.45rem 0.85rem;
+                font-size: 0.8125rem;
+                transition: all 0.2s ease;
+
+                @media (min-width: 768px) {
+                    padding: 0.5rem 1.25rem;
+                    font-size: 0.875rem;
+                }
+
+                &:hover {
+                    color: var(--xshop-text-main);
+                    background: var(--xshop-surface-100);
+                }
+
+                &.active {
+                    color: #ffffff !important;
+                    background: var(--xshop-primary) !important;
+                }
+            }
+        }
+    }
+
     .fav-btn, .bookmark-btn, .comment-btn, .share-btn {
         cursor: pointer;
         transition: all 0.2s ease;

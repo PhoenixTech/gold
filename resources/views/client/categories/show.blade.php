@@ -29,7 +29,7 @@
 
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                 <div>
-                    <h1 class="page-title fw-bold text-dark mb-1 d-flex align-items-center gap-2 fs-4">
+                    <h1 class="page-title fw-bold text-dark mb-1 d-flex align-items-center gap-2 fs-20">
                         <i class="ri-folder-3-line text-primary"></i>
                         <span>
                             @if($currentSearch)
@@ -96,13 +96,9 @@
             </div>
 
             <div class="col-lg-8 col-xl-9">
-                <div class="products-toolbar card border-0 shadow-sm rounded-4 p-2.5 mb-4 bg-white">
+                <div class="products-toolbar card border-0 shadow-xs rounded-4 p-2 mb-4 bg-white">
                     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                         <div class="d-none d-md-flex align-items-center gap-1.5 flex-wrap">
-                            <span class="text-muted fs-13 ms-2 fw-medium d-flex align-items-center gap-1">
-                                <i class="ri-sort-desc"></i>
-                                {{ __("Sort by") }}:
-                            </span>
                             @php
                                 $sortOptions = [
                                     'latest' => __('Latest'),
@@ -114,7 +110,7 @@
                             @endphp
                             @foreach($sortOptions as $sortKey => $sortLabel)
                                 <a href="{{ route('client.category', array_merge(['category' => $category->slug], request()->except(['sort', 'page']), ['sort' => $sortKey])) }}"
-                                   class="sort-tab-btn btn btn-sm rounded-pill px-3 py-1 text-decoration-none {{ $currentSort === $sortKey ? 'btn-primary fw-bold active' : 'btn-light text-dark border-0' }}">
+                                   class="sort-tab-btn btn btn-sm rounded-pill px-3 py-1 text-decoration-none fs-12 {{ $currentSort === $sortKey ? 'btn-primary fw-semibold active' : 'btn-light text-muted border-0' }}">
                                     {{ $sortLabel }}
                                 </a>
                             @endforeach
@@ -138,16 +134,9 @@
                                     @endforeach
                                 </ul>
                             </div>
-                            <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 py-1.5 d-flex align-items-center gap-1.5 shadow-sm" data-bs-toggle="offcanvas" data-bs-target="#mobileFilterDrawer" aria-controls="mobileFilterDrawer">
-                                <i class="ri-sound-module-line"></i>
-                                <span>{{ __("Filters") }}</span>
-                                @if($hasActiveFilters)
-                                    <span class="badge bg-white text-primary rounded-pill px-1.5 py-0.5 fs-11">✓</span>
-                                @endif
-                            </button>
                         </div>
 
-                        <div class="d-none d-md-block text-muted fs-12 ms-auto">
+                        <div class="d-none d-md-block text-muted fs-12 ms-auto px-2">
                             @if($products->total() > 0)
                                 <span>{{ __('Showing :from-:to of :total', ['from' => $products->firstItem(), 'to' => $products->lastItem(), 'total' => $products->total()]) }}</span>
                             @endif
@@ -157,11 +146,9 @@
 
                 @if($hasActiveFilters)
                     <div class="active-filter-chips d-flex align-items-center flex-wrap gap-2 mb-3">
-                        <span class="text-muted fs-12 fw-medium">{{ __("Active filters") }}:</span>
-
                         @if($currentSearch)
                             <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill py-1.5 px-3 d-inline-flex align-items-center gap-1.5 fs-12">
-                                <span>{{ __('Search') }}: {{ $currentSearch }}</span>
+                                <span>{{ $currentSearch }}</span>
                                 <a href="{{ route('client.category', array_merge(['category' => $category->slug], request()->except(['q', 'page']))) }}" class="text-primary text-decoration-none hover-danger">
                                     <i class="ri-close-line"></i>
                                 </a>
@@ -210,7 +197,6 @@
                         @if($currentMinPrice || $currentMaxPrice)
                             <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill py-1.5 px-3 d-inline-flex align-items-center gap-1.5 fs-12">
                                 <span>
-                                    {{ __('Price') }}:
                                     @if($currentMinPrice) {{ __('From') }} {{ number_format($currentMinPrice) }} @endif
                                     @if($currentMaxPrice) {{ __('To') }} {{ number_format($currentMaxPrice) }} @endif
                                 </span>
@@ -239,14 +225,14 @@
                         {{ $products->withQueryString()->links() }}
                     </div>
                 @else
-                    <div class="card border-0 shadow-sm rounded-4 p-5 text-center my-4 bg-white">
+                    <div class="card border-0 shadow-xs rounded-4 p-5 text-center my-4 bg-white">
                         <div class="empty-products-icon-bg mx-auto mb-3">
                             <i class="ri-search-eye-line fs-1 text-primary"></i>
                         </div>
-                        <h5 class="fw-bold text-dark mb-2">
+                        <h2 class="fw-bold text-dark fs-18 mb-2">
                             {{ __("No products found in this category matching your filters.") }}
-                        </h5>
-                        <p class="text-muted fs-14 mb-4 mx-auto" style="max-width: 480px;">
+                        </h2>
+                        <p class="text-muted fs-14 mb-4 max-w-md mx-auto">
                             {{ __("Try adjusting your search or filters to find what you are looking for.") }}
                         </p>
                         <div class="d-flex justify-content-center gap-2">

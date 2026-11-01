@@ -1,7 +1,5 @@
-// Shopping Cart & Checkout Styles
-
 .NsCard {
-    padding: 3rem 0 3.5rem;
+    padding: 2.5rem 0 3.5rem;
     min-height: calc(100vh - 250px);
 
     .ri-checkbox-circle-line {
@@ -19,28 +17,17 @@
     }
 
     .empty-cart-wrapper {
-        max-width: 1140px;
+        max-width: 960px;
         margin: 0 auto;
     }
 
     .empty-cart-card {
-        background: var(--xshop-gold-50);
-        border: 1px solid rgba(61, 46, 20, 0.1);
-        border-radius: var(--xshop-border-radius);
-        padding: 3.5rem 2rem;
-        box-shadow: var(--xshop-shadow-xl);
+        background: var(--xshop-surface-0);
+        border: 1px solid var(--xshop-border-card);
+        border-radius: 1rem;
+        padding: 2.5rem 1.5rem;
+        box-shadow: var(--xshop-shadow-xs);
         position: relative;
-        overflow: hidden;
-
-        &::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--xshop-primary), color-mix(in srgb, var(--xshop-primary) 40%, var(--xshop-gold-900)));
-        }
     }
 
     .empty-cart-illustration {
@@ -49,41 +36,15 @@
         margin-bottom: 0.75rem;
     }
 
-    .empty-cart-icon-bg {
-        width: 110px;
-        height: 110px;
-        border-radius: 50%;
-        background: rgba(219, 154, 0, 0.1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-        color: var(--xshop-primary);
-        box-shadow: 0 10px 25px color-mix(in srgb, var(--xshop-primary) 18%, transparent);
-
-        .empty-main-icon {
-            font-size: 52px;
-            line-height: 1;
-        }
-
-        .empty-icon-sparkle {
-            position: absolute;
-            top: 4px;
-            right: 8px;
-            font-size: 22px;
-            color: var(--xshop-primary);
-        }
-    }
-
     .empty-cart-title {
-        color: var(--xshop-text);
-        font-size: 1.45rem;
+        color: var(--xshop-text-main);
+        font-size: 1.25rem;
     }
 
     .empty-cart-desc {
-        max-width: 560px;
-        font-size: 0.95rem;
-        line-height: 1.8;
+        max-width: 480px;
+        font-size: 0.875rem;
+        line-height: 1.7;
     }
 
     .empty-cta-btn {
@@ -91,63 +52,7 @@
 
         &:hover {
             transform: translateY(var(--xshop-lift));
-            box-shadow: var(--xshop-shadow-lg);
-        }
-    }
-
-    .category-explore-card {
-        background: #ffffff;
-        border: 1px solid rgba(0, 0, 0, 0.08);
-        border-radius: var(--xshop-border-radius);
-        transition: all 0.25s ease;
-        box-shadow: var(--xshop-shadow-xs);
-
-        .category-img-box {
-            width: 58px;
-            height: 58px;
-            border-radius: 50%;
-            background: var(--xshop-gray-50);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            border: 1px solid rgba(0, 0, 0, 0.05);
-
-            img {
-                width: 36px;
-                height: 36px;
-                object-fit: contain;
-                transition: transform 0.3s ease;
-            }
-        }
-
-        &:hover {
-            transform: translateY(var(--xshop-lift));
-            border-color: var(--xshop-primary);
-            box-shadow: var(--xshop-shadow-lg);
-
-            .category-img-box img {
-                transform: scale(1.06);
-            }
-
-            .category-name {
-                color: var(--xshop-primary) !important;
-            }
-        }
-    }
-
-    .empty-cart-perks {
-        background: var(--xshop-gold-50) !important;
-        border: 1px solid rgba(61, 46, 20, 0.08) !important;
-
-        .perk-icon {
-            font-size: 32px;
-            display: inline-block;
-            transition: transform 0.2s ease;
-        }
-
-        .perk-item:hover .perk-icon {
-            transform: scale(1.1);
+            box-shadow: var(--xshop-shadow-md);
         }
     }
 
@@ -160,20 +65,18 @@
     }
 
     .btn-primary-cta {
-        background: #db9a00 !important;
-        background: linear-gradient(135deg, #f59e0b 0%, #db9a00 100%) !important;
+        background: var(--xshop-primary) !important;
         color: #ffffff !important;
         border: none !important;
-        font-weight: 700 !important;
-        box-shadow: 0 4px 14px rgba(219, 154, 0, 0.35) !important;
+        font-weight: 600 !important;
+        box-shadow: var(--xshop-shadow-sm) !important;
         transition: all 0.2s ease !important;
 
         &:hover {
-            background: #c78b00 !important;
-            background: linear-gradient(135deg, #d97706 0%, #c78b00 100%) !important;
+            background: var(--xshop-primary-hover) !important;
             color: #ffffff !important;
             transform: translateY(-1px);
-            box-shadow: 0 6px 18px rgba(219, 154, 0, 0.45) !important;
+            box-shadow: var(--xshop-shadow-md) !important;
         }
 
         &:disabled {

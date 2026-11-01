@@ -26,7 +26,6 @@
                 </div>
             </div>
 
-            <!-- Contact Information -->
             <div class="tf-col">
                 <h4>{{__("Contact us")}}</h4>
                 <ul class="tf-contact">
@@ -51,7 +50,6 @@
                 </ul>
             </div>
 
-            <!-- Social Links & Follow -->
             <div class="tf-col">
                 <h4>{{__("Follow us")}}</h4>
                 @if(!empty($socials))
@@ -65,14 +63,10 @@
                         @endforeach
                     </ul>
                 @endif
-                <p class="tf-social-hint mt-3">
-                    {{__("Stay connected with us on social media for the latest collections and offers.")}}
-                </p>
             </div>
         </div>
     </div>
 
-    <!-- Bottom Copyright -->
     <div class="tf-bottom">
         <div class="{{gfx()['container']}}">
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
@@ -117,4 +111,3 @@
         </nav>
     @endif
 @endif
-

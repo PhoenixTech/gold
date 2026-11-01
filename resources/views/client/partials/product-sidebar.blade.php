@@ -26,15 +26,14 @@
             <input type="hidden" name="target_group" value="{{ $currentTargetGroup }}">
         @endif
 
-        <!-- Search Filter Block -->
         <div class="filter-card mb-3">
             <div class="filter-card-header">
-                <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">
-                    <i class="ri-search-2-line text-primary"></i>
+                <h6 class="mb-0 fw-bold d-flex align-items-center gap-2 fs-13">
+                    <i class="ri-search-2-line text-muted"></i>
                     <span>{{ __("Search") }}</span>
                 </h6>
             </div>
-            <div class="filter-card-body">
+            <div class="filter-card-body p-2.5">
                 <div class="search-input-wrapper position-relative">
                     <input type="search" name="q" value="{{ $currentSearch }}" class="form-control form-control-sm rounded-pill pe-5 ps-3" placeholder="{{ __('Search in products...') }}">
                     <button type="submit" class="btn btn-sm btn-primary rounded-circle position-absolute top-50 end-0 translate-middle-y me-1 p-0 d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;" aria-label="{{ __('Search') }}">
@@ -44,19 +43,16 @@
             </div>
         </div>
 
-        <!-- Toggles Block (In-Stock & Discount) -->
         <div class="filter-card mb-3">
             <div class="filter-card-body p-3">
-                <div class="form-check form-switch d-flex align-items-center justify-content-between mb-2.5 ps-0">
-                    <label class="form-check-label fw-medium text-dark cursor-pointer fs-13 mb-0" for="filterInStock">
-                        <i class="ri-checkbox-circle-line text-success me-1"></i>
+                <div class="form-check form-switch d-flex align-items-center justify-content-between mb-2 ps-0">
+                    <label class="form-check-label fw-medium text-body cursor-pointer fs-13 mb-0" for="filterInStock">
                         {{ __("In-stock only") }}
                     </label>
                     <input class="form-check-input ms-0 cursor-pointer" type="checkbox" name="in_stock" value="1" id="filterInStock" {{ $currentInStock ? 'checked' : '' }} onchange="this.form.submit()">
                 </div>
                 <div class="form-check form-switch d-flex align-items-center justify-content-between ps-0">
-                    <label class="form-check-label fw-medium text-dark cursor-pointer fs-13 mb-0" for="filterDiscount">
-                        <i class="ri-percent-line text-danger me-1"></i>
+                    <label class="form-check-label fw-medium text-body cursor-pointer fs-13 mb-0" for="filterDiscount">
                         {{ __("Discounted only") }}
                     </label>
                     <input class="form-check-input ms-0 cursor-pointer" type="checkbox" name="has_discount" value="1" id="filterDiscount" {{ $currentHasDiscount ? 'checked' : '' }} onchange="this.form.submit()">
@@ -64,11 +60,10 @@
             </div>
         </div>
 
-        <!-- Categories Tree Block -->
         <div class="filter-card mb-3">
             <div class="filter-card-header d-flex align-items-center justify-content-between">
-                <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">
-                    <i class="ri-folder-3-line text-primary"></i>
+                <h6 class="mb-0 fw-bold d-flex align-items-center gap-2 fs-13">
+                    <i class="ri-folder-3-line text-muted"></i>
                     <span>{{ __("Categories") }}</span>
                 </h6>
                 @if($currentCategorySlug)
@@ -80,9 +75,9 @@
             <div class="filter-card-body p-2">
                 <ul class="category-tree-list list-unstyled mb-0">
                     <li class="category-tree-item {{ !$currentCategorySlug ? 'active' : '' }}">
-                        <a href="{{ route('client.products', request()->except(['category', 'page'])) }}" class="category-tree-link d-flex align-items-center justify-content-between p-2 rounded-3 text-decoration-none">
+                        <a href="{{ route('client.products', request()->except(['category', 'page'])) }}" class="category-tree-link d-flex align-items-center justify-content-between p-2 rounded-2 text-decoration-none">
                             <span class="d-flex align-items-center gap-2">
-                                <i class="ri-apps-2-line fs-14"></i>
+                                <i class="ri-apps-2-line fs-14 text-muted"></i>
                                 <span class="fs-13">{{ __("All categories") }}</span>
                             </span>
                             @if(!$currentCategorySlug)
@@ -98,10 +93,10 @@
                             });
                         @endphp
                         <li class="category-tree-item {{ ($isCatActive || $hasActiveChild) ? 'active open' : '' }}">
-                            <div class="d-flex align-items-center justify-content-between p-2 rounded-3 category-tree-row">
+                            <div class="d-flex align-items-center justify-content-between p-2 rounded-2 category-tree-row">
                                 <a href="{{ route('client.category', array_merge(['category' => $cat->slug], request()->except(['category', 'page']))) }}" class="category-tree-link d-flex align-items-center gap-2 text-decoration-none flex-grow-1">
                                     <i class="ri-folder-line fs-14 {{ $isCatActive ? 'text-primary' : 'text-muted' }}"></i>
-                                    <span class="fs-13 {{ $isCatActive ? 'fw-bold text-primary' : 'text-dark' }}">{{ $cat->name }}</span>
+                                    <span class="fs-13 {{ $isCatActive ? 'fw-bold text-primary' : 'text-body' }}">{{ $cat->name }}</span>
                                 </a>
                                 @if($cat->children->count() > 0)
                                     <button type="button" class="btn btn-sm p-0 text-muted category-toggle-btn" data-bs-toggle="collapse" data-bs-target="#subCatCollapse{{ $cat->id }}" aria-expanded="{{ ($isCatActive || $hasActiveChild) ? 'true' : 'false' }}">
@@ -137,8 +132,8 @@
 
         <div class="filter-card mb-3">
             <div class="filter-card-header d-flex align-items-center justify-content-between">
-                <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">
-                    <i class="ri-vip-diamond-line text-primary"></i>
+                <h6 class="mb-0 fw-bold d-flex align-items-center gap-2 fs-13">
+                    <i class="ri-vip-diamond-line text-muted"></i>
                     <span>{{ __("Metal type") }}</span>
                 </h6>
                 @if($currentMetal)
@@ -159,10 +154,10 @@
                     @foreach($metals as $metalKey => $metalData)
                         @php $isMetalActive = ($currentMetal === $metalKey || ($metalKey === '' && empty($currentMetal))); @endphp
                         <li class="category-tree-item {{ $isMetalActive ? 'active' : '' }}">
-                            <a href="{{ $filterUrl($metalKey ? ['metal' => $metalKey] : [], ['metal', 'page']) }}" class="category-tree-link d-flex align-items-center justify-content-between p-2 rounded-3 text-decoration-none">
+                            <a href="{{ $filterUrl($metalKey ? ['metal' => $metalKey] : [], ['metal', 'page']) }}" class="category-tree-link d-flex align-items-center justify-content-between p-2 rounded-2 text-decoration-none">
                                 <span class="d-flex align-items-center gap-2">
                                     <i class="{{ $metalData['icon'] }} fs-14 {{ $isMetalActive ? 'text-primary' : 'text-muted' }}"></i>
-                                    <span class="fs-13 {{ $isMetalActive ? 'fw-bold text-primary' : 'text-dark' }}">{{ $metalData['label'] }}</span>
+                                    <span class="fs-13 {{ $isMetalActive ? 'fw-bold text-primary' : 'text-body' }}">{{ $metalData['label'] }}</span>
                                 </span>
                                 @if($isMetalActive)
                                     <i class="ri-check-line text-primary fw-bold"></i>
@@ -176,8 +171,8 @@
 
         <div class="filter-card mb-3">
             <div class="filter-card-header d-flex align-items-center justify-content-between">
-                <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">
-                    <i class="ri-user-heart-line text-primary"></i>
+                <h6 class="mb-0 fw-bold d-flex align-items-center gap-2 fs-13">
+                    <i class="ri-user-heart-line text-muted"></i>
                     <span>{{ __("Target group") }}</span>
                 </h6>
                 @if($currentTargetGroup)
@@ -200,10 +195,10 @@
                     @foreach($targetGroups as $tgKey => $tgData)
                         @php $isTgActive = ($currentTargetGroup === $tgKey || ($tgKey === '' && empty($currentTargetGroup))); @endphp
                         <li class="category-tree-item {{ $isTgActive ? 'active' : '' }}">
-                            <a href="{{ $filterUrl($tgKey ? ['target_group' => $tgKey] : [], ['target_group', 'page']) }}" class="category-tree-link d-flex align-items-center justify-content-between p-2 rounded-3 text-decoration-none">
+                            <a href="{{ $filterUrl($tgKey ? ['target_group' => $tgKey] : [], ['target_group', 'page']) }}" class="category-tree-link d-flex align-items-center justify-content-between p-2 rounded-2 text-decoration-none">
                                 <span class="d-flex align-items-center gap-2">
                                     <i class="{{ $tgData['icon'] }} fs-14 {{ $isTgActive ? 'text-primary' : 'text-muted' }}"></i>
-                                    <span class="fs-13 {{ $isTgActive ? 'fw-bold text-primary' : 'text-dark' }}">{{ $tgData['label'] }}</span>
+                                    <span class="fs-13 {{ $isTgActive ? 'fw-bold text-primary' : 'text-body' }}">{{ $tgData['label'] }}</span>
                                 </span>
                                 @if($isTgActive)
                                     <i class="ri-check-line text-primary fw-bold"></i>
@@ -215,11 +210,10 @@
             </div>
         </div>
 
-        <!-- Price Range Filter Block -->
         <div class="filter-card mb-3">
             <div class="filter-card-header">
-                <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">
-                    <i class="ri-money-dollar-circle-line text-primary"></i>
+                <h6 class="mb-0 fw-bold d-flex align-items-center gap-2 fs-13">
+                    <i class="ri-money-dollar-circle-line text-muted"></i>
                     <span>{{ __("Price range") }}</span>
                 </h6>
             </div>
@@ -237,9 +231,8 @@
             </div>
         </div>
 
-        <!-- Filter Actions Block -->
         <div class="filter-actions-block d-flex gap-2">
-            <button type="submit" class="btn btn-primary btn-sm rounded-pill flex-grow-1 py-2 fw-bold d-flex align-items-center justify-content-center gap-1">
+            <button type="submit" class="btn btn-primary btn-sm rounded-pill flex-grow-1 py-2 fw-semibold d-flex align-items-center justify-content-center gap-1 shadow-xs">
                 <i class="ri-filter-2-fill"></i>
                 <span>{{ __("Apply Filters") }}</span>
             </button>

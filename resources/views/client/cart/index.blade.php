@@ -198,144 +198,72 @@
         @include('components.err')
         @if(cardCount() == 0)
             @php
-                $popularCategories = \App\Models\Category::where(function($q) {
-                        $q->whereNull('parent_id')->orWhere('parent_id', 0);
-                    })
-                    ->take(6)
-                    ->get();
                 $suggestedProducts = \App\Models\Product::where('status', 1)
                     ->latest()
                     ->take(4)
                     ->get();
             @endphp
-            <div class="empty-cart-wrapper">
-                <!-- Main Empty State Hero Card -->
-                <div class="empty-cart-card text-center">
-                    <div class="empty-cart-illustration">
-                        <div class="empty-cart-icon-bg">
-                            <i class="ri-shopping-bag-3-line empty-main-icon"></i>
-                            <span class="empty-icon-sparkle"><i class="ri-sparkling-2-fill"></i></span>
+            <div class="empty-cart-wrapper max-w-xl mx-auto text-center py-4">
+                <div class="empty-cart-card card border-0 shadow-xs rounded-4 p-4 p-md-5 bg-white mb-5">
+                    <div class="empty-cart-illustration mb-3">
+                        <div class="empty-cart-icon-bg mx-auto rounded-circle d-flex align-items-center justify-content-center" style="width: 72px; height: 72px; background: var(--xshop-surface-100); color: var(--xshop-primary);">
+                            <i class="ri-shopping-bag-3-line fs-28"></i>
                         </div>
                     </div>
 
-                    <h5 class="empty-cart-title fw-bold mt-4 mb-2">
+                    <h2 class="empty-cart-title fw-bold text-main fs-18 mb-2">
                         {{ __("Your shopping cart is empty!") }}
-                    </h5>
+                    </h2>
 
-                    <p class="empty-cart-desc text-muted mx-auto mb-4">
+                    <p class="empty-cart-desc text-muted fs-14 mx-auto mb-4 max-w-md">
                         {{ __("You have not added any products to your cart yet. Explore our store to discover the latest items.") }}
                     </p>
 
-                    <div class="d-flex flex-wrap align-items-center justify-content-center gap-3">
-                        <a href="{{ route('client.products') }}" class="btn btn-primary btn-lg rounded-pill px-4 py-2.5 d-inline-flex align-items-center gap-2 empty-cta-btn">
+                    <div class="d-grid d-sm-flex justify-content-sm-center gap-2">
+                        <a href="{{ route('client.products') }}" class="btn btn-primary rounded-pill px-4 py-2.5 d-inline-flex align-items-center justify-content-center gap-2 fw-semibold shadow-xs">
                             <i class="ri-shopping-basket-2-line"></i>
                             <span>{{ __("Explore Products") }}</span>
-                            <i class="ri-arrow-left-line"></i>
                         </a>
-                        <a href="{{ route('client.welcome') }}" class="btn btn-outline-secondary btn-lg rounded-pill px-4 py-2.5 d-inline-flex align-items-center gap-2">
-                            <i class="ri-home-4-line"></i>
+                        <a href="{{ route('client.welcome') }}" class="btn btn-light rounded-pill px-4 py-2.5 d-inline-flex align-items-center justify-content-center gap-2 text-muted">
                             <span>{{ __("Home Page") }}</span>
                         </a>
                     </div>
 
                     @if(!$isLoggedIn)
-                        <div class="mt-4 pt-3 border-top d-inline-flex align-items-center gap-2 text-muted fs-14">
+                        <div class="mt-4 pt-3 border-top border-light-subtle d-inline-flex align-items-center gap-1.5 text-muted fs-13">
                             <span>{{ __("Already have an account?") }}</span>
-                            <a href="{{ route('client.sign-in', ['redirect' => route('client.card')]) }}" class="text-primary fw-bold text-decoration-none hover-underline">
+                            <a href="{{ route('client.sign-in', ['redirect' => route('client.card')]) }}" class="text-primary fw-semibold text-decoration-none hover-underline">
                                 {{ __("Sign in to your account") }}
                             </a>
                         </div>
                     @endif
                 </div>
 
-                <!-- Popular Categories to Explore -->
-                @if($popularCategories->isNotEmpty())
-                    <div class="empty-cart-categories mt-5">
-                        <div class="d-flex align-items-center justify-content-between mb-3">
-                            <h5 class="fw-bold mb-0 d-flex align-items-center gap-2">
-                                <i class="ri-grid-fill text-primary"></i>
-                                {{ __("Popular Categories") }}
-                            </h5>
-                            <a href="{{ route('client.products') }}" class="text-muted fs-14 text-decoration-none hover-primary">
-                                {{ __("View all") }} <i class="ri-arrow-left-s-line"></i>
-                            </a>
-                        </div>
-                        <div class="row g-3">
-                            @foreach($popularCategories as $category)
-                                <div class="col-6 col-md-4 col-lg-2">
-                                    <a href="{{ $category->webUrl() }}" class="category-explore-card d-flex flex-column align-items-center justify-content-center p-3 text-center text-decoration-none">
-                                        <div class="category-img-box mb-2">
-                                            <img src="{{ $category->imgUrl() }}" alt="{{ $category->name }}" loading="lazy">
-                                        </div>
-                                        <span class="category-name fw-medium fs-14 text-dark">{{ $category->name }}</span>
-                                    </a>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                @endif
-
-                <!-- Suggested Products -->
                 @if($suggestedProducts->isNotEmpty())
-                    <div class="empty-cart-products mt-5">
-                        <div class="d-flex align-items-center justify-content-between mb-3">
-                            <h5 class="fw-bold mb-0 d-flex align-items-center gap-2">
-                                <i class="ri-fire-fill text-danger"></i>
-                                {{ __("Suggested Products") }}
-                            </h5>
-                            <a href="{{ route('client.products') }}" class="text-muted fs-14 text-decoration-none hover-primary">
-                                {{ __("View all") }} <i class="ri-arrow-left-s-line"></i>
+                    <div class="empty-cart-products text-start">
+                        <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-light-subtle">
+                            <h3 class="fw-bold fs-16 text-main mb-0 d-flex align-items-center gap-2">
+                                <i class="ri-fire-fill text-primary"></i>
+                                <span>{{ __("Suggested Products") }}</span>
+                            </h3>
+                            <a href="{{ route('client.products') }}" class="text-muted fs-13 text-decoration-none hover-primary">
+                                {{ __("View all") }}
                             </a>
                         </div>
                         <div class="row g-3">
                             @foreach($suggestedProducts as $prod)
-                                <div class="col-6 col-md-4 col-xl-3">
+                                <div class="col-6 col-md-3">
                                     @include('client.partials.product-card', ['product' => $prod])
                                 </div>
                             @endforeach
                         </div>
                     </div>
                 @endif
-
-                <!-- Trust Perks Footer -->
-                <div class="empty-cart-perks mt-5 p-4 rounded-4 bg-light border">
-                    <div class="row g-3 text-center">
-                        <div class="col-6 col-md-3">
-                            <div class="perk-item">
-                                <i class="ri-truck-line perk-icon text-primary"></i>
-                                <h6 class="fw-bold mt-2 mb-1">{{ __("Fast & Secure Delivery") }}</h6>
-                                <p class="text-muted fs-12 mb-0">{{ __("Delivery to your doorstep") }}</p>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="perk-item">
-                                <i class="ri-shield-check-line perk-icon text-success"></i>
-                                <h6 class="fw-bold mt-2 mb-1">{{ __("Original Product Guarantee") }}</h6>
-                                <p class="text-muted fs-12 mb-0">{{ __("100% genuine and verified") }}</p>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="perk-item">
-                                <i class="ri-bank-card-line perk-icon text-warning"></i>
-                                <h6 class="fw-bold mt-2 mb-1">{{ __('Card to card') }}</h6>
-                                <p class="text-muted fs-12 mb-0">{{ __('Pay and upload your receipt within :hours hours.', ['hours' => \App\Models\Invoice::offlinePaymentHours()]) }}</p>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="perk-item">
-                                <i class="ri-customer-service-2-line perk-icon text-info"></i>
-                                <h6 class="fw-bold mt-2 mb-1">{{ __("24/7 Dedicated Support") }}</h6>
-                                <p class="text-muted fs-12 mb-0">{{ __("We are here to help you") }}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         @else
             <form method="post" class="safe-form">
                 <input type="hidden" class="safe-url" data-url="{{route('client.card.check')}}">
                 @csrf
-                {{-- base64 avoids HTML minify stripping quotes from JSON attributes --}}
                 <ns-card payload-b64="{{ base64_encode(json_encode($nsCardPayload, JSON_UNESCAPED_UNICODE)) }}">
                     @if($isLoggedIn)
                         <p class="text-light small mb-2 mt-2">

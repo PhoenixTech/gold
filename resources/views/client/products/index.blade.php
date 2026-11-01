@@ -22,18 +22,14 @@
 <section class="ProductGridSidebar py-4" id="product-list-view">
     <div class="{{gfx()['container']}}">
 
-        <!-- Top Breadcrumb & Page Header -->
         <div class="products-header-wrapper mb-4">
             <nav aria-label="breadcrumb" class="mb-2">
                 <ol class="breadcrumb fs-13 mb-0">
                     <li class="breadcrumb-item"><a href="{{ route('client.welcome') }}" class="text-muted text-decoration-none hover-primary">{{ __("Home") }}</a></li>
-                    <li class="breadcrumb-item active text-dark fw-bold" aria-current="page">{{ $title ?? __("Products") }}</li>
+                    <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">{{ $title ?? __("Products") }}</li>
                 </ol>
             </nav>
 
-            {{-- The campaign banner. The page itself is the ordinary catalog,
-                 scoped to the campaign's product set, so filters and pagination
-                 keep working. --}}
             @if($campaign ?? null)
                 <div class="campaign-header mb-4 p-3 rounded-4 border bg-light-subtle d-flex flex-column flex-md-row align-items-md-center gap-3">
                     @if($campaign->hasImage())
@@ -44,7 +40,7 @@
                     <div class="flex-grow-1">
                         <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
                             @if($campaign->badge_text)
-                                <span class="badge rounded-pill px-3 py-2 {{ $campaign->primaryOccasion()?->isSeasonal() ? 'bg-danger-subtle text-danger-emphasis border border-danger-subtle' : 'bg-primary-subtle text-primary-emphasis border border-primary-subtle' }}">
+                                <span class="badge rounded-pill px-3 py-1.5 {{ $campaign->primaryOccasion()?->isSeasonal() ? 'bg-danger-subtle text-danger border border-danger-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle' }}">
                                     <i class="ri-flashlight-fill"></i>
                                     {{ $campaign->badge_text }}
                                 </span>
@@ -60,11 +56,11 @@
                         </div>
 
                         @if($campaign->subtitle)
-                            <p class="text-muted mb-1">{{ $campaign->subtitle }}</p>
+                            <p class="text-muted mb-1 fs-13">{{ $campaign->subtitle }}</p>
                         @endif
 
                         @if($campaign->description)
-                            <div class="fs-14 text-body">{{ $campaign->description }}</div>
+                            <div class="fs-13 text-body">{{ $campaign->description }}</div>
                         @endif
                     </div>
                 </div>
@@ -72,7 +68,7 @@
 
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                 <div>
-                    <h5 class="page-title fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                    <h1 class="page-title fs-20 fw-bold text-dark mb-1 d-flex align-items-center gap-2">
                         <i class="ri-store-2-line text-primary"></i>
                         <span>
                             @if($currentSearch)
@@ -81,13 +77,12 @@
                                 {{ $title ?? __("Products list") }}
                             @endif
                         </span>
-                    </h5>
+                    </h1>
                     <p class="text-muted fs-13 mb-0">
                         {{ __("Showing :count products", ['count' => $products->total()]) }}
                     </p>
                 </div>
 
-                <!-- Mobile Filter Trigger Button -->
                 <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 py-2 d-lg-none d-flex align-items-center gap-1.5 shadow-sm" data-bs-toggle="offcanvas" data-bs-target="#mobileFilterDrawer" aria-controls="mobileFilterDrawer">
                     <i class="ri-sound-module-line"></i>
                     <span>{{ __("Filters") }}</span>
@@ -98,7 +93,6 @@
             </div>
         </div>
 
-        <!-- Top Category Explorer Strip -->
         @if($categoriesList->isNotEmpty())
             <div class="category-explorer-strip mb-4">
                 <div class="category-chips-scroll d-flex align-items-center gap-2 pb-2">
@@ -128,27 +122,18 @@
             </div>
         @endif
 
-        <!-- Main Content Layout (Sidebar + Product Grid) -->
         <div class="row g-4">
-            <!-- Desktop Sidebar -->
             <div class="col-lg-4 col-xl-3 d-none d-lg-block">
                 <div class="sticky-sidebar-wrapper">
                     @include('client.partials.product-sidebar')
                 </div>
             </div>
 
-            <!-- Product Grid Column -->
             <div class="col-lg-8 col-xl-9">
 
-                <!-- Sorting Toolbar -->
-                <div class="products-toolbar card border-0 shadow-sm rounded-4 p-2.5 mb-4 bg-white">
+                <div class="products-toolbar card border-0 shadow-xs rounded-4 p-2 mb-4 bg-white">
                     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-                        <!-- Desktop Sort Tabs -->
                         <div class="d-none d-md-flex align-items-center gap-1.5 flex-wrap">
-                            <span class="text-muted fs-13 ms-2 fw-medium d-flex align-items-center gap-1">
-                                <i class="ri-sort-desc"></i>
-                                {{ __("Sort by") }}:
-                            </span>
                             @php
                                 $sortOptions = [
                                     'latest' => __('Latest'),
@@ -160,13 +145,12 @@
                             @endphp
                             @foreach($sortOptions as $sortKey => $sortLabel)
                                 <a href="{{ route('client.products', array_merge(request()->except(['sort', 'page']), ['sort' => $sortKey])) }}"
-                                   class="sort-tab-btn btn btn-sm rounded-pill px-3 py-1 text-decoration-none {{ $currentSort === $sortKey ? 'btn-primary fw-bold active' : 'btn-light text-dark border-0' }}">
+                                   class="sort-tab-btn btn btn-sm rounded-pill px-3 py-1 text-decoration-none fs-12 {{ $currentSort === $sortKey ? 'btn-primary fw-semibold active' : 'btn-light text-muted border-0' }}">
                                     {{ $sortLabel }}
                                 </a>
                             @endforeach
                         </div>
 
-                        <!-- Mobile Sort Dropdown -->
                         <div class="d-flex d-md-none align-items-center gap-2 w-100 justify-content-between">
                             <div class="dropdown flex-grow-1">
                                 <button class="btn btn-light border btn-sm rounded-pill dropdown-toggle w-100 text-start d-flex align-items-center justify-content-between px-3 py-1.5" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="true">
@@ -187,8 +171,7 @@
                             </div>
                         </div>
 
-                        <!-- Product Counts Summary -->
-                        <div class="d-none d-md-block text-muted fs-12 ms-auto">
+                        <div class="d-none d-md-block text-muted fs-12 ms-auto px-2">
                             @if($products->total() > 0)
                                 <span>{{ __('Showing :from-:to of :total', ['from' => $products->firstItem(), 'to' => $products->lastItem(), 'total' => $products->total()]) }}</span>
                             @endif
@@ -196,14 +179,11 @@
                     </div>
                 </div>
 
-                <!-- Active Filter Badges -->
                 @if($hasActiveFilters)
                     <div class="active-filter-chips d-flex align-items-center flex-wrap gap-2 mb-3">
-                        <span class="text-muted fs-12 fw-medium">{{ __("Active filters") }}:</span>
-
                         @if($currentSearch)
                             <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill py-1.5 px-3 d-inline-flex align-items-center gap-1.5 fs-12">
-                                <span>{{ __('Search') }}: {{ $currentSearch }}</span>
+                                <span>{{ $currentSearch }}</span>
                                 <a href="{{ route('client.products', request()->except(['q', 'page'])) }}" class="text-primary text-decoration-none hover-danger">
                                     <i class="ri-close-line"></i>
                                 </a>
@@ -212,7 +192,7 @@
 
                         @if(isset($activeCategory))
                             <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill py-1.5 px-3 d-inline-flex align-items-center gap-1.5 fs-12">
-                                <span>{{ __('Category') }}: {{ $activeCategory->name }}</span>
+                                <span>{{ $activeCategory->name }}</span>
                                 <a href="{{ route('client.products', request()->except(['category', 'page'])) }}" class="text-primary text-decoration-none hover-danger">
                                     <i class="ri-close-line"></i>
                                 </a>
@@ -261,7 +241,6 @@
                         @if($currentMinPrice || $currentMaxPrice)
                             <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill py-1.5 px-3 d-inline-flex align-items-center gap-1.5 fs-12">
                                 <span>
-                                    {{ __('Price') }}:
                                     @if($currentMinPrice) {{ __('From') }} {{ number_format($currentMinPrice) }} @endif
                                     @if($currentMaxPrice) {{ __('To') }} {{ number_format($currentMaxPrice) }} @endif
                                 </span>
@@ -277,7 +256,6 @@
                     </div>
                 @endif
 
-                <!-- Product Grid -->
                 @if($products->count() > 0)
                     <div class="row g-3 g-md-4">
                         @foreach($products as $product)
@@ -287,20 +265,18 @@
                         @endforeach
                     </div>
 
-                    <!-- Pagination -->
                     <div class="products-pagination-wrapper mt-5 d-flex justify-content-center">
                         {{ $products->withQueryString()->links() }}
                     </div>
                 @else
-                    <!-- Empty State -->
-                    <div class="card border-0 shadow-sm rounded-4 p-5 text-center my-4 bg-white">
+                    <div class="card border-0 shadow-xs rounded-4 p-5 text-center my-4 bg-white">
                         <div class="empty-products-icon-bg mx-auto mb-3">
                             <i class="ri-search-eye-line fs-1 text-primary"></i>
                         </div>
-                        <h5 class="fw-bold text-dark mb-2">
+                        <h2 class="fw-bold text-dark fs-18 mb-2">
                             {{ __("No products found matching your filters.") }}
-                        </h5>
-                        <p class="text-muted fs-14 mb-4 mx-auto" style="max-width: 480px;">
+                        </h2>
+                        <p class="text-muted fs-14 mb-4 max-w-md mx-auto">
                             {{ __("Try adjusting your search or filters to find what you are looking for.") }}
                         </p>
                         <div class="d-flex justify-content-center gap-2">
@@ -315,35 +291,30 @@
             </div>
         </div>
 
-        <!-- Trust Banner -->
-        <div class="products-trust-banner mt-5 p-4 rounded-4 bg-light border">
+        <div class="products-trust-banner mt-5 p-4 rounded-4 bg-white border shadow-xs">
             <div class="row g-3 text-center">
                 <div class="col-6 col-md-3">
-                    <div class="trust-item">
+                    <div class="trust-item d-flex flex-column align-items-center">
                         <i class="ri-truck-line text-primary fs-3"></i>
-                        <h6 class="fw-bold mt-2 mb-1 fs-14">{{ __("Fast & Secure Delivery") }}</h6>
-                        <p class="text-muted fs-12 mb-0">{{ __("Delivery to your doorstep") }}</p>
+                        <h6 class="fw-semibold mt-2 mb-0 fs-13 text-dark">{{ __("Fast & Secure Delivery") }}</h6>
                     </div>
                 </div>
                 <div class="col-6 col-md-3">
-                    <div class="trust-item">
+                    <div class="trust-item d-flex flex-column align-items-center">
                         <i class="ri-shield-check-line text-success fs-3"></i>
-                        <h6 class="fw-bold mt-2 mb-1 fs-14">{{ __("Original Product Guarantee") }}</h6>
-                        <p class="text-muted fs-12 mb-0">{{ __("100% genuine and verified") }}</p>
+                        <h6 class="fw-semibold mt-2 mb-0 fs-13 text-dark">{{ __("Original Product Guarantee") }}</h6>
                     </div>
                 </div>
                 <div class="col-6 col-md-3">
-                    <div class="trust-item">
+                    <div class="trust-item d-flex flex-column align-items-center">
                         <i class="ri-bank-card-line text-warning fs-3"></i>
-                        <h6 class="fw-bold mt-2 mb-1 fs-14">{{ __("Secure Online Payment") }}</h6>
-                        <p class="text-muted fs-12 mb-0">{{ __("Connected to official bank gateways") }}</p>
+                        <h6 class="fw-semibold mt-2 mb-0 fs-13 text-dark">{{ __("Secure Online Payment") }}</h6>
                     </div>
                 </div>
                 <div class="col-6 col-md-3">
-                    <div class="trust-item">
+                    <div class="trust-item d-flex flex-column align-items-center">
                         <i class="ri-customer-service-2-line text-info fs-3"></i>
-                        <h6 class="fw-bold mt-2 mb-1 fs-14">{{ __("24/7 Dedicated Support") }}</h6>
-                        <p class="text-muted fs-12 mb-0">{{ __("We are here to help you") }}</p>
+                        <h6 class="fw-semibold mt-2 mb-0 fs-13 text-dark">{{ __("24/7 Dedicated Support") }}</h6>
                     </div>
                 </div>
             </div>
@@ -352,7 +323,6 @@
     </div>
 </section>
 
-<!-- Mobile Filter Offcanvas Drawer -->
 <div class="offcanvas offcanvas-start rounded-end-4" tabindex="-1" id="mobileFilterDrawer" aria-labelledby="mobileFilterDrawerLabel">
     <div class="offcanvas-header border-bottom">
         <h5 class="offcanvas-title fw-bold fs-16 d-flex align-items-center gap-2" id="mobileFilterDrawerLabel">
