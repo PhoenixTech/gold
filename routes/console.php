@@ -10,6 +10,6 @@ Schedule::command("gold:free")
 
 Schedule::command("offline:expire")->everyFifteenMinutes();
 
-Schedule::command(BackupDatabase::class, ["--days" => 5])->dailyAt("01:00");
+Schedule::command(BackupDatabase::class)->dailyAt("01:00");
 
 Schedule::command("model:prune", ["--model" => [AdminLog::class]])->daily();
