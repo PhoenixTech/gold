@@ -12,14 +12,12 @@ use App\Services\PersianDate;
 use Carbon\Carbon;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
-use Translator\Framework\TranslatorCommand;
 
 class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
         $this->commands([
-            TranslatorCommand::class,
             GoldFreePriceUpdate::class,
         ]);
         foreach (config('xshop.payment.gateways') as $gateway) {
