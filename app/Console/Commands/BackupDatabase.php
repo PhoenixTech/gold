@@ -28,12 +28,6 @@ class BackupDatabase extends Command
     public function handle(): int
     {
         $disk = (string) ($this->option('disk') ?: 's3');
-
-        if ($this->option('prune-only')) {
-            $this->pruneBackups($disk);
-            return Command::SUCCESS;
-        }
-
         $connectionName = $this->option('connection') ?: config('database.default');
         $dbConfig = config("database.connections.{$connectionName}");
 
@@ -42,10 +36,15 @@ class BackupDatabase extends Command
             return Command::FAILURE;
         }
 
-        $database = $this->option('database') ?: ($dbConfig['database'] ?? '');
+        $database = (string) ($this->option('database') ?: ($dbConfig['database'] ?? ''));
         if (empty($database)) {
             $this->error('No database specified for backup.');
             return Command::FAILURE;
+        }
+
+        if ($this->option('prune-only')) {
+            $this->pruneBackups($disk, $database);
+            return Command::SUCCESS;
         }
 
         $finder = new ExecutableFinder();
@@ -152,7 +151,7 @@ class BackupDatabase extends Command
             Log::info("Database backup stored successfully at [{$disk}]: {$targetPath} ({$sizeMb} MB)");
 
             if (!$this->option('no-prune')) {
-                $this->pruneBackups($disk);
+                $this->pruneBackups($disk, $database);
             }
 
             return Command::SUCCESS;
@@ -175,7 +174,7 @@ class BackupDatabase extends Command
         }
     }
 
-    private function pruneBackups(string $disk): void
+    private function pruneBackups(string $disk, string $database): void
     {
         try {
             $allFiles = Storage::disk($disk)->files('db_backups');
@@ -187,29 +186,18 @@ class BackupDatabase extends Command
         $backupFiles = [];
         $today = now()->startOfDay();
         $daysLimit = (int) ($this->option('days') ?: 14);
+        $pattern = '/^backup_' . preg_quote($database, '/') . '_(\d{4}-\d{2}-\d{2})(?:_(\d{6}))?\.(sql|sql\.gz|gz)$/';
 
         foreach ($allFiles as $file) {
             $baseName = basename($file);
-            if (!str_ends_with($baseName, '.sql') && !str_ends_with($baseName, '.sql.gz') && !str_ends_with($baseName, '.gz')) {
+            if (!preg_match($pattern, $baseName, $matches)) {
                 continue;
             }
 
-            $date = null;
-            if (preg_match('/(\d{4}-\d{2}-\d{2})(?:_(\d{6}))?/', $baseName, $matches)) {
-                if (!empty($matches[2])) {
-                    $date = Carbon::createFromFormat('Y-m-d_His', $matches[1] . '_' . $matches[2]);
-                } else {
-                    $date = Carbon::parse($matches[1])->startOfDay();
-                }
-            }
-
-            if (!$date) {
-                try {
-                    $date = Carbon::createFromTimestamp(Storage::disk($disk)->lastModified($file));
-                } catch (Throwable) {
-                    $date = now();
-                }
-            }
+            $date = rescue(fn () => !empty($matches[2])
+                ? Carbon::createFromFormat('Y-m-d_His', "{$matches[1]}_{$matches[2]}")
+                : Carbon::parse($matches[1])->startOfDay(), null, false)
+                ?: rescue(fn () => Carbon::createFromTimestamp(Storage::disk($disk)->lastModified($file)), now(), false);
 
             $backupFiles[] = [
                 'path' => $file,
