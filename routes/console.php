@@ -1,18 +1,15 @@
 <?php
 
+use App\Console\Commands\BackupDatabase;
 use App\Models\AdminLog;
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote')->hourly();
-
-Schedule::command('gold:free')
-    ->everyTwoMinutes()
+Schedule::command("gold:free")
+    ->everyFiveMinutes()
     ->withoutOverlapping(10, false);
 
-Schedule::command('offline:expire')->everyFifteenMinutes();
+Schedule::command("offline:expire")->everyFifteenMinutes();
 
-Schedule::command('model:prune', ['--model' => [AdminLog::class]])->daily();
+Schedule::command(BackupDatabase::class, ["--days" => 5])->dailyAt("01:00");
+
+Schedule::command("model:prune", ["--model" => [AdminLog::class]])->daily();
