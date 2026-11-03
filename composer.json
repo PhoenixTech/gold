@@ -13,6 +13,7 @@
         "laravel/sanctum": "^4.3",
         "laravel/tinker": "^3.0",
         "laravel/ui": "^4.6",
+        "league/flysystem-aws-s3-v3": "^3.0",
         "plank/laravel-metable": "^6.3",
         "spatie/laravel-medialibrary": "^11.23",
         "spatie/laravel-permission": "^6.25",
