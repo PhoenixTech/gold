@@ -25,7 +25,8 @@ class RestrictVisitorToPanel
             'admin.logout',
             'logout',
             'admin.shop-visit.step-one',
-            'admin.shop-visit.step-two'
+            'admin.shop-visit.step-two',
+            'admin.shop-visit.edit-step-one'
         )) {
             return $next($request);
         }

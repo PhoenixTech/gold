@@ -205,4 +205,65 @@ class VisitorFormTest extends TestCase
             'has_purchase' => '1',
         ])->assertForbidden();
     }
+
+    private function stepOne(string $mobile = '09121234567'): void
+    {
+        $this->post(route('admin.shop-visit.step-one'), [
+            'mobile' => $mobile,
+            'first_name' => 'حسن',
+            'last_name' => 'زرگر',
+            'has_purchase' => 1,
+        ])->assertSessionHasNoErrors();
+    }
+
+    public function test_visitor_can_go_back_and_fix_step_one(): void
+    {
+        $this->makeTehranCity();
+        $user = $this->actingAsVisitor();
+        $this->stepOne('09120000000');
+
+        $this->post(route('admin.shop-visit.edit-step-one'))->assertRedirect(route('admin.home'));
+        $this->stepOne('09121234567');
+
+        $visit = ShopVisit::query()->where('user_id', $user->id)->sole();
+        $this->assertSame('09121234567', $visit->mobile);
+        $this->assertSame(ShopVisitStatus::StepTwo, $visit->status);
+    }
+
+    public function test_step_two_warns_when_the_shop_was_already_registered(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        $city = $this->makeTehranCity();
+        $earlier = User::factory()->visitor()->create(['name' => 'بازاریاب قبلی']);
+        $earlierVisit = ShopVisit::query()->create([
+            'user_id' => $earlier->id, 'status' => ShopVisitStatus::Completed, 'mobile' => '09121234567',
+            'first_name' => 'حسن', 'last_name' => 'زرگر', 'has_purchase' => true,
+            'state_id' => $city->state_id, 'city_id' => $city->id, 'mall' => 'پاساژ افشار',
+            'address' => 'پلاک ۱', 'submitted_at' => now()->subDay(),
+        ]);
+        $this->actingAsVisitor();
+        $this->stepOne();
+
+        $this->get(route('admin.home'))->assertOk()
+            ->assertSee(__('This shop was already registered on :date.', ['date' => $earlierVisit->submittedAtLabel()]), false);
+    }
+
+    public function test_dashboard_shows_only_a_count_of_todays_visits(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        $city = $this->makeTehranCity();
+        $user = $this->actingAsVisitor();
+        ShopVisit::query()->create([
+            'user_id' => $user->id, 'status' => ShopVisitStatus::Completed, 'mobile' => '09125556677',
+            'first_name' => 'کوثر', 'last_name' => 'شریفی', 'has_purchase' => true,
+            'state_id' => $city->state_id, 'city_id' => $city->id, 'mall' => 'پاساژ طلافروشان',
+            'address' => 'پلاک ۲', 'submitted_at' => now(),
+        ]);
+
+        $this->get(route('admin.home'))->assertOk()
+            ->assertSee(__('Shops registered today: :count', ['count' => 1]), false)
+            ->assertDontSee('شریفی', false);
+    }
 }

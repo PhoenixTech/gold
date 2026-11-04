@@ -352,4 +352,78 @@ class CourierDeliveryTest extends TestCase
         $this->assertSame(DeliveryStatus::Delivered, $delivery->fresh()->status);
         $this->assertSame(Invoice::COMPLETED, $invoice->fresh()->status);
     }
+
+    private function makeGift(Invoice $invoice): Invoice
+    {
+        $invoice->forceFill([
+            'is_third_party' => true,
+            'recipient_name' => 'نگار گیرنده',
+            'recipient_mobile' => '09005556677',
+            'recipient_national_id' => '0012345678',
+        ])->save();
+
+        return $invoice;
+    }
+
+    public function test_courier_sees_gift_recipient_and_customer_note(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        [, $invoice, $courier] = $this->makeAssignedDelivery();
+        $this->makeGift($invoice)->forceFill(['desc' => 'قبل از رسیدن تماس بگیرید'])->save();
+        $this->actingAs($courier);
+
+        $this->get(route('admin.delivery.index'))
+            ->assertOk()
+            ->assertSee('نگار گیرنده', false)
+            ->assertSee('tel:09005556677', false)
+            ->assertSee('0012345678', false)
+            ->assertSee('قبل از رسیدن تماس بگیرید', false);
+    }
+
+    public function test_delivery_code_sms_goes_to_buyer_and_gift_recipient(): void
+    {
+        $sms = \Mockery::spy(\App\Services\SmsService::class);
+        $this->app->instance(\App\Services\SmsService::class, $sms);
+        [$delivery, $invoice] = $this->makeAssignedDelivery();
+        $this->makeGift($invoice);
+        \Illuminate\Support\Facades\Cache::put(\App\Services\DeliveryService::codeCacheKey($delivery), '1234');
+
+        (new \App\Jobs\SendDeliveryCodeSms($delivery->fresh()))->handle();
+
+        $sms->shouldHaveReceived('send')->with(\Mockery::any(), '09002223344', \Mockery::any())->once();
+        $sms->shouldHaveReceived('send')->with(\Mockery::any(), '09005556677', \Mockery::any())->once();
+    }
+
+    public function test_admin_sees_why_the_courier_could_not_deliver(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        [$delivery, $invoice, $courier] = $this->makeAssignedDelivery(status: 'accepted');
+        $this->actingAs($courier);
+        $this->post(route('admin.delivery.fail', $delivery), ['reason' => 'مشتری در خانه نبود']);
+
+        $this->actingAsAdmin();
+        $this->get(route('admin.invoice.edit', $invoice))
+            ->assertOk()
+            ->assertSee('مشتری در خانه نبود', false);
+    }
+
+    public function test_wrong_code_error_only_marks_the_card_that_was_submitted(): void
+    {
+        $this->withoutVite();
+        $this->seed(GfxSeeder::class);
+        $courier = $this->makeCourier();
+        [$first] = $this->makeAssignedDelivery($courier, 'accepted');
+        $first->invoice->customer->forceFill(['mobile' => '09001110000'])->save();
+        $this->makeAssignedDelivery($courier, 'accepted');
+        $this->actingAs($courier);
+
+        $this->from(route('admin.delivery.index'))
+            ->post(route('admin.delivery.confirm', $first), ['code' => '0000', 'delivery_id' => $first->id])
+            ->assertRedirect(route('admin.delivery.index'));
+
+        $html = $this->get(route('admin.delivery.index'))->getContent();
+        $this->assertSame(1, substr_count($html, 'is-invalid'));
+    }
 }

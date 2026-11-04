@@ -25,7 +25,7 @@
         $citiesForState = $states->firstWhere('id', (int) $selectedStateId)?->cities ?? collect();
     @endphp
 
-    <div class="shop-visit visit-sheet" v-cloak>
+    <div class="shop-visit visit-sheet">
         <div class="shop-visit__head">
             <h1>
                 <i class="ri-store-2-line"></i>
@@ -130,7 +130,7 @@
                                        @checked(old('has_own_workshop', $visit->has_own_workshop))>
                                 <span>{{ __('Has a personal production workshop') }}</span>
                             </label>
-                            <label for="other_reason" class="d-block">{{ __('Explain other reasons') }} <span class="text-muted fw-normal">({{ __('optional') }})</span></label>
+                            <label for="other_reason" class="d-block">{{ __('Explain other reasons') }}</label>
                             <input id="other_reason" name="other_reason" type="text" class="form-control"
                                    value="{{ old('other_reason', $visit->other_reason) }}"
                                    placeholder="{{ __('Explain other reasons') }}">
@@ -159,7 +159,20 @@
                             <span>{{ __('Do you have a purchase?') }}:</span>
                             <strong>{{ $visit->purchaseLabel() }}</strong>
                         </div>
+                        <form method="POST" action="{{ route('admin.shop-visit.edit-step-one') }}" class="ms-auto">
+                            @csrf
+                            <button type="submit" class="btn btn-sm btn-outline-secondary py-0">
+                                <i class="ri-edit-line"></i> {{ __('Edit') }}
+                            </button>
+                        </form>
                     </div>
+
+                    @if($previousVisit)
+                        <div class="alert alert-warning border border-warning-subtle d-flex align-items-start gap-2 p-2.5 mb-3 rounded-3 fs-13">
+                            <i class="ri-error-warning-line fs-5"></i>
+                            <span>{{ __('This shop was already registered on :date.', ['date' => $previousVisit->submittedAtLabel()]) }}</span>
+                        </div>
+                    @endif
 
                     <form method="POST" action="{{ route('admin.shop-visit.step-two') }}" id="visit-step-two" novalidate>
                         @csrf
@@ -264,6 +277,13 @@
                 @endif
             </div>
         </div>
+
+        @if($todayCount > 0)
+            <p class="text-center text-muted fs-13 mt-3 mb-0">
+                <i class="ri-store-2-line"></i>
+                {{ __('Shops registered today: :count', ['count' => $todayCount]) }}
+            </p>
+        @endif
     </div>
 
     <script>

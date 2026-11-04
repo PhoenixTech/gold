@@ -70,4 +70,33 @@ class ShopVisitRecorder
 
         return $visit;
     }
+
+    /**
+     * Send an open visit back to part 1 so a typo can be fixed; the data stays.
+     */
+    public function reopenStepOne(ShopVisit $visit): ShopVisit
+    {
+        if ($visit->status === ShopVisitStatus::StepTwo) {
+            $visit->update(['status' => ShopVisitStatus::Collecting]);
+        }
+
+        return $visit;
+    }
+
+    /**
+     * An earlier completed visit to the same shop contact, if any.
+     */
+    public function previousVisit(ShopVisit $visit): ?ShopVisit
+    {
+        if (! $visit->mobile) {
+            return null;
+        }
+
+        return ShopVisit::query()
+            ->completed()
+            ->where('mobile', $visit->mobile)
+            ->whereKeyNot($visit->id)
+            ->latest('submitted_at')
+            ->first();
+    }
 }

@@ -769,7 +769,7 @@
     "Dispatched": "تحویل پیک",
     "Do it": "انجام بده",
     "Do you have a discount code?": "کد تخفیف دارید؟",
-    "Do you have a purchase?": "خریدی ثبت کرده‌اید؟",
+    "Do you have a purchase?": "فروشنده خرید می‌کند؟",
     "Dollar price": "قیمت دلار",
     "Dollar Rate": "نرخ دلار",
     "Don't have an account?": "حساب کاربری ندارید؟",
@@ -2805,5 +2805,10 @@
     "Record the payment": "پرداخت را ثبت کنید",
     "Record each payment the customer makes in the shop.": "هر پرداختی که مشتری در فروشگاه انجام می‌دهد را ثبت کنید.",
     "Your turn": "نوبت شما",
-    "Waiting": "در انتظار"
+    "Waiting": "در انتظار",
+    "Check the national ID card": "کارت ملی را بررسی کنید",
+    "Customer note": "یادداشت مشتری",
+    "A 4-digit code was sent to you and the recipient. The recipient gives it only to the courier.": "یک کد ۴ رقمی برای شما و گیرنده پیامک شد. گیرنده فقط آن را به پیک می‌دهد.",
+    "This shop was already registered on :date.": "این فروشگاه قبلاً در :date ثبت شده است.",
+    "Shops registered today: :count": "فروشگاه‌های ثبت‌شده امروز: :count"
 }

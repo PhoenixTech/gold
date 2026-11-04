@@ -802,7 +802,21 @@ class Invoice extends Model
             });
     }
 
-    public function requiresDeliveryCode(): bool
+    /**
+     * Who gets the courier code: the buyer, plus the recipient of a gift
+     * order, since that is the person who opens the door.
+     *
+     * @return list<string>
+     */
+    public function deliveryCodeMobiles(): array
+    {
+        return array_values(array_unique(array_filter([
+            $this->customer?->mobile,
+            $this->is_third_party ? $this->recipient_mobile : null,
+        ])));
+    }
+
+        public function requiresDeliveryCode(): bool
     {
         return ! $this->isPickup() && (bool) $this->transport?->requires_delivery_code;
     }

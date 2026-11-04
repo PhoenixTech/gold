@@ -57,4 +57,11 @@ class VisitorFormController extends Controller
             ->route('admin.home')
             ->with(['message' => __('Visit saved. You can start a new blank form.')]);
     }
+
+    public function editStepOne(ShopVisitRecorder $recorder): RedirectResponse
+    {
+        $recorder->reopenStepOne($recorder->current(auth()->user()));
+
+        return redirect()->route('admin.home');
+    }
 }

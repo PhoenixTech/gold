@@ -435,6 +435,9 @@ Route::prefix(config('app.panel.prefix'))->name('admin.')->group(
                         Route::post('step-two', [VisitorFormController::class, 'storeStepTwo'])
                             ->middleware('visitor')
                             ->name('step-two');
+                        Route::post('edit-step-one', [VisitorFormController::class, 'editStepOne'])
+                            ->middleware('visitor')
+                            ->name('edit-step-one');
                     });
 
                 Route::get('deliveries/dispatch-sheet', [CourierDeliveryController::class, 'dispatchSheet'])->name('delivery.dispatch-sheet');

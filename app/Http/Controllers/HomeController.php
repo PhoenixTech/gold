@@ -26,6 +26,12 @@ class HomeController extends Controller
 
             return view('admin.shop-visits.visitor-form', [
                 'visit' => $visit,
+                'previousVisit' => $recorder->previousVisit($visit),
+                'todayCount' => ShopVisit::query()
+                    ->where('user_id', auth()->id())
+                    ->completed()
+                    ->where('submitted_at', '>=', today())
+                    ->count(),
                 'states' => $states,
                 'selectedStateId' => $selectedStateId,
                 'selectedCityId' => $selectedCityId,

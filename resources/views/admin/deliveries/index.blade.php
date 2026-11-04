@@ -52,6 +52,10 @@
                     $address = $invoice->address;
                     $fullAddress = $formatAddress($invoice);
                     $hasLocation = $address?->lat && $address?->lng;
+                    $isGift = (bool) $invoice->is_third_party;
+                    $contactName = $isGift ? $invoice->recipient_name : $invoice->customer?->name;
+                    $contactMobile = $isGift ? $invoice->recipient_mobile : $invoice->customer?->mobile;
+                    $isThisCard = (int) old('delivery_id') === $delivery->id;
                 @endphp
                 <div class="item-list mb-3">
                     <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 p-3 border-bottom">
@@ -65,21 +69,38 @@
                     <div class="p-3">
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
-                                <div class="text-muted fs-13">{{ __('Customer') }}</div>
-                                <div class="fw-semibold">{{ $invoice->customer?->name ?? __('Guest') }}</div>
+                                <div class="text-muted fs-13">{{ $isGift ? __('Recipient (gift order)') : __('Customer') }}</div>
+                                <div class="fw-semibold">{{ $contactName ?: __('Guest') }}</div>
+                                @if($isGift)
+                                    <small class="text-muted">{{ __('Buyer') }}: {{ $invoice->customer?->name }}</small>
+                                @endif
                             </div>
                             <div class="col-md-6">
                                 <div class="text-muted fs-13">{{ __('Mobile') }}</div>
-                                @if($invoice->customer?->mobile)
-                                    <a href="tel:{{ $invoice->customer->mobile }}" dir="ltr" class="fw-semibold">{{ $invoice->customer->mobile }}</a>
+                                @if($contactMobile)
+                                    <a href="tel:{{ $contactMobile }}" dir="ltr" class="fw-semibold">{{ $contactMobile }}</a>
                                 @else
                                     <span class="fw-semibold">---</span>
                                 @endif
                             </div>
+                            @if($isGift && $invoice->recipient_national_id)
+                                <div class="col-12">
+                                    <div class="alert alert-warning border border-warning-subtle d-flex align-items-center gap-2 p-2 mb-0 rounded-3 fs-13">
+                                        <i class="ri-profile-line fs-5"></i>
+                                        <span>{{ __('Check the national ID card') }}: <strong class="font-monospace" dir="ltr">{{ $invoice->recipient_national_id }}</strong></span>
+                                    </div>
+                                </div>
+                            @endif
                             <div class="col-12">
                                 <div class="text-muted fs-13">{{ __('Address') }}</div>
                                 <div class="fw-semibold">{{ $fullAddress }}</div>
                             </div>
+                            @if(trim((string) $invoice->desc) !== '')
+                                <div class="col-12">
+                                    <div class="text-muted fs-13">{{ __('Customer note') }}</div>
+                                    <div>{{ $invoice->desc }}</div>
+                                </div>
+                            @endif
                         </div>
 
                         <div class="table-responsive mb-3">
@@ -118,9 +139,9 @@
                                     <i class="ri-map-pin-line"></i> {{ __('Open map') }}
                                 </a>
                             @endif
-                            @if($invoice->customer?->mobile)
-                                <a class="btn btn-outline-secondary btn-sm" href="tel:{{ $invoice->customer->mobile }}">
-                                    <i class="ri-phone-line"></i> {{ __('Call customer') }}
+                            @if($contactMobile)
+                                <a class="btn btn-outline-secondary btn-sm" href="tel:{{ $contactMobile }}">
+                                    <i class="ri-phone-line"></i> {{ $isGift ? __('Call recipient') : __('Call customer') }}
                                 </a>
                             @endif
                             @if($delivery->sms_sent_at)
@@ -180,11 +201,12 @@
                                 @else
                                     <form method="post" action="{{ route('admin.delivery.confirm', $delivery) }}" class="row g-2 align-items-center mb-3">
                                         @csrf
+                                        <input type="hidden" name="delivery_id" value="{{ $delivery->id }}">
                                         <div class="col-6 col-sm-4 col-md-3">
                                             <input id="code-{{ $delivery->id }}" name="code"
-                                                   class="form-control form-control-lg text-center font-monospace @error('code') is-invalid @enderror"
+                                                   class="form-control form-control-lg text-center font-monospace {{ $isThisCard && $errors->has('code') ? 'is-invalid' : '' }}"
                                                    inputmode="numeric" autocomplete="one-time-code" maxlength="4" required
-                                                   placeholder="••••" value="{{ old('code') }}">
+                                                   placeholder="••••" value="{{ $isThisCard ? old('code') : '' }}">
                                         </div>
                                         <div class="col-auto">
                                             <button class="btn btn-success" type="submit">
@@ -218,6 +240,7 @@
                                 <tr>
                                     <th>{{ __('Invoice') }}</th>
                                     <th>{{ __('Customer') }}</th>
+                                    <th>{{ __('Date') }}</th>
                                     <th class="text-end">{{ __('Status') }}</th>
                                 </tr>
                             </thead>
@@ -226,6 +249,7 @@
                                     <tr>
                                         <td class="font-monospace">{{ $delivery->invoice?->hash }}</td>
                                         <td>{{ $delivery->invoice?->customer?->name }}</td>
+                                        <td class="font-fanum text-muted fs-13">{{ \App\Models\Invoice::formatPersianDateTime($delivery->delivered_at ?? $delivery->failed_at ?? $delivery->rejected_at ?? $delivery->updated_at) }}</td>
                                         <td class="text-end">
                                             <span class="{{ $delivery->status->badgeClass() }}">{{ $delivery->status->label() }}</span>
                                         </td>

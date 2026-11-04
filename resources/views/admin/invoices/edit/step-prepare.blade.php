@@ -35,6 +35,22 @@
                 @endif
             </div>
         @else
+            @php
+                $lastAttempt = $item->deliveries()->with('courier')->latest('id')->first();
+                $lastAttemptFailed = in_array($lastAttempt?->status, [\App\Enums\DeliveryStatus::Rejected, \App\Enums\DeliveryStatus::Failed], true);
+            @endphp
+            @if($lastAttemptFailed)
+                <div class="alert alert-warning border border-warning-subtle shadow-sm d-flex align-items-start gap-2 p-3 mb-3 rounded-3">
+                    <i class="ri-alarm-warning-line fs-4 text-warning"></i>
+                    <div class="fs-13">
+                        <strong class="d-block text-dark">{{ $lastAttempt->courier?->name }} — {{ $lastAttempt->status->label() }}</strong>
+                        @if($lastAttempt->reject_reason)
+                            <span class="text-muted">{{ __('Reason:') }} {{ $lastAttempt->reject_reason }}</span>
+                        @endif
+                        <small class="d-block text-muted font-fanum">{{ \App\Models\Invoice::formatPersianDateTime($lastAttempt->failed_at ?? $lastAttempt->rejected_at) }}</small>
+                    </div>
+                </div>
+            @endif
             <form action="{{ route('admin.invoice.update', $item) }}" method="post">
                 @csrf
                 <div class="form-group mb-3">

@@ -32,26 +32,16 @@ class SendDeliveryCodeSms implements ShouldQueue
 
         $this->delivery->loadMissing(['invoice.customer']);
         $invoice = $this->delivery->invoice;
-        $mobile = $invoice?->customer?->mobile;
-        if ($mobile === null || $mobile === '') {
-            return;
+        $sent = false;
+
+        foreach ($invoice?->deliveryCodeMobiles() ?? [] as $mobile) {
+            $args = config('app.sms.driver') == 'Kavenegar'
+                ? ['receptor' => $mobile, 'template' => trim((string) getSetting('delivery_code')), 'token' => $code, 'token2' => $invoice->hash]
+                : ['code' => $code, 'hash' => $invoice->hash];
+
+            $sent = sendingSMS(getSetting('delivery_code'), $mobile, $args) || $sent;
         }
 
-        if (config('app.sms.driver') == 'Kavenegar') {
-            $args = [
-                'receptor' => $mobile,
-                'template' => trim((string) getSetting('delivery_code')),
-                'token' => $code,
-                'token2' => $invoice->hash,
-            ];
-        } else {
-            $args = [
-                'code' => $code,
-                'hash' => $invoice->hash,
-            ];
-        }
-
-        $sent = sendingSMS(getSetting('delivery_code'), $mobile, $args);
         if ($sent) {
             $this->delivery->sms_sent_at = now();
             $this->delivery->save();

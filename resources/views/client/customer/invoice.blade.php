@@ -208,7 +208,9 @@
             <div class="alert alert-warning border border-warning-subtle rounded-3 p-3 mb-3 d-flex align-items-center gap-2.5">
                 <i class="ri-motorbike-line fs-4 text-warning"></i>
                 <div class="fs-13 text-dark fw-medium">
-                    {{ __('A 4-digit code was sent to your mobile. Give it only to the courier.') }}
+                    {{ $invoice->is_third_party
+                        ? __('A 4-digit code was sent to you and the recipient. The recipient gives it only to the courier.')
+                        : __('A 4-digit code was sent to your mobile. Give it only to the courier.') }}
                 </div>
             </div>
         @else
