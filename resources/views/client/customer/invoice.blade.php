@@ -11,7 +11,6 @@
     $receipts = $invoice->paymentReceipts ?? collect();
     $canUploadReceipts = $invoice->needsReceiptUpload();
     $isOfflinePayment = $invoice->isOfflineCardPayment();
-    $offlineHours = \App\Models\Invoice::offlinePaymentHours();
     $offlineDeadline = $invoice->offlinePaymentDeadline();
     $offlineIsExpired = $invoice->isOfflinePaymentExpired();
     $showOfflinePaymentHint = $isOfflinePayment
@@ -53,7 +52,7 @@
             <i class="ri-arrow-right-line"></i>
         </a>
         <div class="d-flex align-items-center justify-content-between flex-grow-1">
-            <h4 class="fw-bold mb-0 text-dark">{{ __('Order details') }} <span class="font-fanum">#{{ $invoice->id }}</span></h4>
+            <h4 class="fw-bold mb-0 text-dark">{{ __('Order details') }} <span class="font-fanum" dir="ltr">#{{ $invoice->hash }}</span></h4>
             <span class="inv-badge inv-{{ $invoice->displayStatusKey() }}">{{ $invoice->statusLabel() }}</span>
         </div>
     </div>
@@ -93,9 +92,7 @@
                         <div class="liana-offline-deadline mt-1">
                             <i class="ri-timer-line"></i>
                             <span>
-                                {{ __('Pay and upload your receipt within :hours hours.', ['hours' => $offlineHours]) }}
-                                {{ __('Deadline:') }}
-                                <b>{{ $offlineDeadline->jdate('Y/m/d H:i') }}</b>
+                                {{ __('Transfer the amount and upload your receipt before :date.', ['date' => $invoice->formattedDeadline()]) }}
                             </span>
                         </div>
                         <div class="mt-2 pt-2 border-top">
@@ -229,7 +226,7 @@
             <div class="d-flex align-items-center gap-2">
                 <i class="ri-shopping-bag-3-line text-primary fs-5"></i>
                 <div>
-                    <h6 class="fw-bold mb-0 text-dark fs-14">{{ __('Order') }} <span class="font-fanum">#{{ $invoice->id }}</span></h6>
+                    <h6 class="fw-bold mb-0 text-dark fs-14">{{ __('Order') }} <span class="font-fanum" dir="ltr">#{{ $invoice->hash }}</span></h6>
                     <span class="text-muted fs-12 font-fanum">{{ $invoice->created_at->jdate('j F Y - H:i') }}</span>
                 </div>
             </div>

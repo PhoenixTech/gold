@@ -276,8 +276,7 @@ class PaymentReceiptTest extends TestCase
             },
         ])->render();
 
-        $this->assertStringContainsString(__('Deadline:'), $html);
-        $this->assertStringContainsString(__('Pay and upload your receipt within :hours hours.', ['hours' => Invoice::offlinePaymentHours()]), $html);
+        $this->assertStringContainsString(__('Transfer the amount and upload your receipt before :date.', ['date' => $invoice->formattedDeadline()]), $html);
         $this->assertStringContainsString(Invoice::formatPersianDateTime($invoice->offlinePaymentDeadline()), $html);
         $this->assertStringNotContainsString($invoice->offlinePaymentDeadline()->format('Y-m-d H:i'), $html);
         $this->assertStringContainsString(__('WAITING_RECEIPT'), $html);
@@ -671,5 +670,22 @@ class PaymentReceiptTest extends TestCase
             str_contains($response->getContent(), 'در انتظار بررسی و تأیید فروشگاه') ||
             str_contains($response->getContent(), 'همکاران ما تا چند ساعت آینده با شما تماس خواهند گرفت')
         );
+    }
+
+    public function test_customer_pages_show_the_extended_deadline_and_the_invoice_hash(): void
+    {
+        $this->withoutVite();
+        $this->seed(\Database\Seeders\GfxSeeder::class);
+        [$customer, $invoice] = $this->createAwaitingCardInvoice();
+        $invoice->extendOfflinePaymentDeadline(5);
+        $invoice->save();
+        $deadlineText = __('Transfer the amount and upload your receipt before :date.', ['date' => $invoice->fresh()->formattedDeadline()]);
+
+        $this->actingAs($customer, 'customer');
+        foreach ([route('client.invoice', $invoice), route('client.invoice.receipt', $invoice)] as $url) {
+            $this->get($url)->assertOk()
+                ->assertSee($deadlineText, false)
+                ->assertSee('dir="ltr">#'.$invoice->hash.'</span>', false);
+        }
     }
 }

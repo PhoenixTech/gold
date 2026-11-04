@@ -533,11 +533,9 @@ class AdminManualInvoiceTest extends TestCase
         $this->assertSame(QuantityPieceStatus::Sold, $piece->fresh()->status);
         $this->assertSame(0, $invoice->receivedAmount());
 
-        $payment = $invoice->payments()->firstOrFail();
-        $this->assertSame('CARD', $payment->type);
-        $this->assertSame(Payment::PENDING, $payment->status);
-        $this->assertSame($bank->id, $payment->meta['bank_account_id']);
-        $this->assertArrayNotHasKey('channel', $payment->meta);
+        // Collected later in the shop: no online card-to-card request.
+        $this->assertSame(0, $invoice->payments()->count());
+        $this->assertFalse($invoice->needsReceiptUpload());
     }
 
     public function test_a_piece_that_is_already_sold_cannot_be_added(): void
@@ -785,6 +783,59 @@ class AdminManualInvoiceTest extends TestCase
         $response->assertOk();
         $response->assertSee(route('admin.invoice.restore', $manual), false);
     }
+
+    public function test_unpaid_shop_sale_never_auto_fails(): void
+    {
+        $this->seedMetalSettings();
+        $this->actingAsAdmin();
+        BankAccount::factory()->active()->create();
+        $piece = $this->makePiece();
+        $this->startWithCustomer('09121230021', 'مشتری بعدا');
+        $this->addPiece($piece);
+        $this->step(['step' => 'payment', 'payments' => [], 'handover' => '0']);
+        $this->step(['step' => 'review']);
+        $invoice = Invoice::query()->where('source', InvoiceSource::Manual->value)->firstOrFail();
+        $invoice->forceFill(['created_at' => now()->subDays(2)])->save();
+
+        $this->artisan('offline:expire')->assertSuccessful();
+
+        $this->assertSame(Invoice::AWAITING_PAYMENT, $invoice->fresh()->status);
+        $this->assertSame(QuantityPieceStatus::Sold, $piece->fresh()->status);
+    }
+
+    public function test_slip_uploaded_in_the_wizard_is_attached_to_the_payment(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+        $this->seedMetalSettings();
+        $this->actingAsAdmin();
+        $piece = $this->makePiece();
+        $this->startWithCustomer('09121230022', 'مشتری فیش');
+        $this->addPiece($piece);
+        $total = app(\App\Services\ManualInvoiceService::class)->total(app(\App\Services\ManualInvoiceService::class)->lines([$piece->id]));
+        $this->step(['step' => 'payment', 'handover' => '0', 'payments' => [[
+            'method' => 'card_to_card', 'amount' => $total,
+            'slip' => \Illuminate\Http\UploadedFile::fake()->image('slip.jpg'),
+        ]]]);
+        $this->step(['step' => 'review']);
+
+        $invoice = Invoice::query()->where('source', InvoiceSource::Manual->value)->firstOrFail();
+        $receipt = $invoice->paymentReceipts()->firstOrFail();
+        $this->assertSame('slip.jpg', $receipt->original_name);
+        \Illuminate\Support\Facades\Storage::disk('public')->assertExists($receipt->path);
+    }
+
+    public function test_price_change_after_review_blocks_saving(): void
+    {
+        $this->seedMetalSettings();
+        $this->actingAsAdmin();
+        $piece = $this->makePiece();
+        $this->startWithCustomer('09121230023', 'مشتری قیمت');
+        $this->addPiece($piece);
+        $this->step(['step' => 'payment', 'payments' => [], 'handover' => '0']);
+
+        $this->step(['step' => 'review', 'expected_total' => 1])
+            ->assertSessionHasErrors('total');
+
+        $this->assertSame(0, Invoice::query()->where('source', InvoiceSource::Manual->value)->count());
+    }
 }
-
-

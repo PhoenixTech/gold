@@ -103,9 +103,13 @@ class ManualInvoiceService
         return array_values(array_merge($current, $fresh));
     }
 
-    public function create(array $draft, User $admin): Invoice
+    /**
+     * @param  int|null  $expectedTotal  the total the admin reviewed; a gold price
+     *                                   change since then must not slip through
+     */
+    public function create(array $draft, User $admin, ?int $expectedTotal = null): Invoice
     {
-        return DB::transaction(function () use ($draft, $admin): Invoice {
+        return DB::transaction(function () use ($draft, $admin, $expectedTotal): Invoice {
             $customer = $this->resolveCustomer($draft['customer'] ?? []);
             $pieces = $this->lockSellablePieces($draft['quantity_ids']);
 
@@ -114,6 +118,14 @@ class ManualInvoiceService
                 $prices[$piece->id] = $this->calculator->priceForQuantity($piece->product, $piece);
             }
             $orderTotal = array_sum($prices);
+
+            if ($expectedTotal !== null && $expectedTotal !== $orderTotal) {
+                throw ValidationException::withMessages([
+                    'total' => __('Gold prices changed. The new total is :total Toman; check the payments and save again.', [
+                        'total' => number_format($orderTotal),
+                    ]),
+                ]);
+            }
 
             $rawPayments = (array) ($draft['payments'] ?? []);
             $validPayments = array_values(array_filter($rawPayments, fn ($p) => is_array($p) && (int) ($p['amount'] ?? 0) > 0));
@@ -161,25 +173,9 @@ class ManualInvoiceService
                 $this->calculator->syncProductAggregates($product);
             }
 
-            if ($validPayments !== []) {
-                foreach ($validPayments as $index => $paymentData) {
-                    $this->recordSinglePayment($invoice, $paymentData, $admin, $index);
-                }
-            } else {
-                $bankAccount = BankAccount::activeAccount();
-                if ($bankAccount !== null) {
-                    $payment = new Payment;
-                    $payment->type = 'CARD';
-                    $payment->status = Payment::PENDING;
-                    $payment->amount = $invoice->total_price;
-                    $payment->order_id = 'SHOP-'.$invoice->hash.'-'.time();
-                    $payment->meta = array_merge($bankAccount->toPaymentMeta(), [
-                        'method' => ShopPaymentMethod::CardToCard->value,
-                        'recorded_by' => $admin->id,
-                        'recorded_at' => now()->toDateTimeString(),
-                    ]);
-                    $invoice->payments()->save($payment);
-                }
+            // Whatever is left unpaid is collected in the shop with "Record payment".
+            foreach ($validPayments as $index => $paymentData) {
+                $this->recordSinglePayment($invoice, $paymentData, $admin, $index);
             }
 
             if ($willHandover) {
@@ -363,15 +359,20 @@ class ManualInvoiceService
         $payment->meta = $meta;
         $invoice->payments()->save($payment);
 
-        if ($slipFile instanceof UploadedFile) {
-            $path = $slipFile->store('receipts', 'public');
+        // A slip comes either as an upload (Record payment) or as a file the
+        // sale wizard already stored in its draft.
+        $slip = $slipFile instanceof UploadedFile
+            ? ['path' => $slipFile->store('receipts', 'public'), 'name' => $slipFile->getClientOriginalName(), 'mime' => $slipFile->getMimeType(), 'size' => $slipFile->getSize()]
+            : (! empty($data['slip_path']) ? ['path' => $data['slip_path'], 'name' => $data['slip_name'] ?? '', 'mime' => $data['slip_mime'] ?? null, 'size' => $data['slip_size'] ?? null] : null);
+
+        if ($slip !== null) {
             PaymentReceipt::query()->create([
                 'payment_id' => $payment->id,
                 'invoice_id' => $invoice->id,
-                'path' => $path,
-                'original_name' => $slipFile->getClientOriginalName(),
-                'mime' => $slipFile->getMimeType(),
-                'size' => $slipFile->getSize(),
+                'path' => $slip['path'],
+                'original_name' => $slip['name'],
+                'mime' => $slip['mime'],
+                'size' => $slip['size'],
                 'amount' => $amount,
                 'payment_date' => $paymentDate,
                 'payment_time' => $paymentTime,

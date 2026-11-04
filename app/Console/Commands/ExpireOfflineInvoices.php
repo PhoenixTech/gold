@@ -32,6 +32,7 @@ class ExpireOfflineInvoices extends Command
 
         Invoice::query()
             ->where('status', Invoice::AWAITING_PAYMENT)
+            ->where('source', '!=', \App\Enums\InvoiceSource::Manual->value)
             ->where('created_at', '<', $deadline)
             ->whereHas('payments', function ($query) {
                 $query->where('type', 'CARD')->where('status', Payment::PENDING);

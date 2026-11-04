@@ -43,7 +43,7 @@
             <i class="ri-arrow-right-line"></i>
         </a>
         <div class="d-flex align-items-center justify-content-between flex-grow-1">
-            <h4 class="fw-bold mb-0 text-dark">{{ __('Register Payment Receipt') }} <span class="font-fanum text-muted fs-13">#{{ $invoice->id }}</span></h4>
+            <h4 class="fw-bold mb-0 text-dark">{{ __('Register Payment Receipt') }} <span class="font-fanum text-muted fs-13" dir="ltr">#{{ $invoice->hash }}</span></h4>
             <span class="inv-badge inv-{{ $invoice->displayStatusKey() }}">{{ $invoice->statusLabel() }}</span>
         </div>
     </div>
@@ -67,12 +67,8 @@
                         <i class="ri-timer-line text-warning fs-3"></i>
                         <div>
                             <strong class="d-block text-dark">
-                                {{ __('Transfer the amount and upload your receipt within :hours hours.', ['hours' => \App\Models\Invoice::offlinePaymentHours()]) }}
+                                {{ __('Transfer the amount and upload your receipt before :date.', ['date' => $invoice->formattedDeadline()]) }}
                             </strong>
-                            <span class="text-muted fs-13">
-                                {{ __('Deadline:') }}
-                                <b class="font-fanum">{{ $invoice->formattedDeadline() }}</b>
-                            </span>
                         </div>
                     </div>
                     @include('components.offline-countdown', ['invoice' => $invoice])

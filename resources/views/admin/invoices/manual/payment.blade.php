@@ -32,13 +32,13 @@
                     </div>
                     <div class="d-flex align-items-center gap-2 flex-wrap">
                         <span class="badge bg-light text-dark border font-fanum fs-12 px-2.5 py-1.5" id="display-invoice-total" data-total="{{ $total }}">
-                            {{ number_format($total) }} <small class="text-muted">{{ __('Toman') }}</small>
+                            <span class="text-muted fw-normal">{{ __('Total') }}:</span> {{ number_format($total) }} <small class="text-muted">{{ __('Toman') }}</small>
                         </span>
                         <span class="badge bg-success-subtle text-success border border-success-subtle font-fanum fs-12 px-2.5 py-1.5" id="display-paid-total">
-                            0 <small class="text-muted">{{ __('Toman') }}</small>
+                            <span class="text-muted fw-normal">{{ __('Received amount') }}:</span> 0 <small class="text-muted">{{ __('Toman') }}</small>
                         </span>
                         <span class="badge bg-danger-subtle text-danger border border-danger-subtle font-fanum fs-12 px-2.5 py-1.5" id="display-remaining">
-                            {{ number_format($total) }} <small class="text-muted">{{ __('Toman') }}</small>
+                            <span class="text-muted fw-normal">{{ __('Remaining balance') }}:</span> {{ number_format($total) }} <small class="text-muted">{{ __('Toman') }}</small>
                         </span>
                         <button type="button" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1" id="add-payment-btn">
                             <i class="ri-add-line"></i>
@@ -48,11 +48,12 @@
                 </div>
 
                 <div id="payment-rows-container">
+                    {{-- Removing every row is allowed: the sale is saved unpaid and the rest is recorded later. --}}
                     @foreach($payments as $index => $row)
                         <div class="payment-row border border-light-subtle rounded-3 p-3 mb-3 bg-light" data-row-index="{{ $index }}">
                             <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
                                 <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle font-fanum px-2 py-1 payment-row-title">#{{ $index + 1 }}</span>
-                                <button type="button" class="btn btn-sm btn-outline-danger remove-payment-btn py-0 px-2 fs-12 d-inline-flex align-items-center gap-1 {{ count($payments) <= 1 ? 'd-none' : '' }}">
+                                <button type="button" class="btn btn-sm btn-outline-danger remove-payment-btn py-0 px-2 fs-12 d-inline-flex align-items-center gap-1">
                                     <i class="ri-delete-bin-line"></i>
                                     <span>{{ __('Remove') }}</span>
                                 </button>
@@ -74,7 +75,7 @@
                                     <label class="form-label fs-12 text-muted fw-semibold mb-1">{{ __('Amount') }} ({{ __('Toman') }}) <span class="text-danger">*</span></label>
                                     <input type="text" name="payments[{{ $index }}][amount]"
                                            class="form-control form-control-sm font-fanum payment-amount-input"
-                                           value="{{ $row['amount'] ?? '' }}" placeholder="50,000,000" required>
+                                           value="{{ $row['amount'] ?? '' }}" required>
                                 </div>
 
                                 <div class="col-md-3">
@@ -105,7 +106,7 @@
                                     <label class="form-label fs-12 text-muted fw-semibold mb-1">{{ __('Tracking Number') }}</label>
                                     <input type="text" name="payments[{{ $index }}][tracking_number]"
                                            class="form-control form-control-sm font-monospace"
-                                           value="{{ $row['tracking_number'] ?? '' }}" placeholder="12345678">
+                                           value="{{ $row['tracking_number'] ?? '' }}">
                                 </div>
 
                                 <div class="col-md-4">
@@ -205,11 +206,7 @@
                 });
                 var removeBtn = row.querySelector('.remove-payment-btn');
                 if (removeBtn) {
-                    if (rows.length <= 1) {
-                        removeBtn.classList.add('d-none');
-                    } else {
-                        removeBtn.classList.remove('d-none');
-                    }
+                    removeBtn.classList.remove('d-none');
                 }
             });
         }
@@ -223,8 +220,8 @@
 
             var remaining = Math.max(0, total - sum);
 
-            displayPaid.innerHTML = formatNumber(sum) + ' <small class="fs-11 fw-normal text-muted">{{ __("Toman") }}</small>';
-            displayRemaining.innerHTML = formatNumber(remaining) + ' <small class="fs-11 fw-normal text-muted">{{ __("Toman") }}</small>';
+            displayPaid.innerHTML = '<span class="text-muted fw-normal">{{ __("Received amount") }}:</span> ' + formatNumber(sum) + ' <small class="fs-11 fw-normal text-muted">{{ __("Toman") }}</small>';
+            displayRemaining.innerHTML = '<span class="text-muted fw-normal">{{ __("Remaining balance") }}:</span> ' + formatNumber(remaining) + ' <small class="fs-11 fw-normal text-muted">{{ __("Toman") }}</small>';
 
             if (remaining === 0 && total > 0) {
                 displayRemaining.className = 'badge bg-success-subtle text-success border border-success-subtle font-fanum fs-12 px-2.5 py-1.5';
@@ -252,19 +249,16 @@
             var btn = e.target.closest('.remove-payment-btn');
             if (btn) {
                 var row = btn.closest('.payment-row');
-                if (container.querySelectorAll('.payment-row').length > 1) {
-                    row.remove();
-                    reindexRows();
-                    recalculate();
-                }
+                row.remove();
+                reindexRows();
+                recalculate();
             }
         });
 
+        var rowTemplate = container.querySelector('.payment-row').cloneNode(true);
+
         addBtn.addEventListener('click', function () {
-            var firstRow = container.querySelector('.payment-row');
-            if (!firstRow) {
-                return;
-            }
+            var firstRow = container.querySelector('.payment-row') || rowTemplate;
 
             var newRow = firstRow.cloneNode(true);
 

@@ -211,7 +211,7 @@ class ManualInvoiceController extends Controller
 
     private function createInvoice(Request $request, array $draft): RedirectResponse
     {
-        $invoice = $this->sales->create($draft, $request->user());
+        $invoice = $this->sales->create($draft, $request->user(), $request->filled('expected_total') ? $request->integer('expected_total') : null);
 
         $this->draft->forget();
         logAdmin(__METHOD__, Invoice::class, $invoice->id);

@@ -397,8 +397,9 @@ class Invoice extends Model
             return false;
         }
 
-        // Money is already on the invoice; failing it would silently drop it.
-        if ($this->shopPaymentsTotal() > 0) {
+        // Money is already on the invoice, or it is a shop sale collected at
+        // the counter; failing either would silently drop it.
+        if ($this->isManual() || $this->shopPaymentsTotal() > 0) {
             return false;
         }
 

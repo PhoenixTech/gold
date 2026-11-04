@@ -2391,7 +2391,6 @@
     "Tracking Number": "شماره پیگیری / ارجاع",
     "Transaction reference": "شناسه رهگیری تراکنش",
     "Transfer the amount": "انتقال وجه واریز",
-    "Transfer the amount and upload your receipt within :hours hours.": "مبلغ را کارت به کارت واریز کنید و رسید را حداکثر تا :hours ساعت دیگر بارگذاری کنید.",
     "Transfer to shop card and upload the receipt within :hours hours": "واریز به کارت فروشگاه و بارگذاری فیش ظرف :hours ساعت",
     "Transfer to shop card and wait for confirmation": "واریز به کارت فروشگاه و انتظار تایید",
     "Translate": "ترجمه",
@@ -2750,5 +2749,9 @@
     "The job locks. Press \"Resend delivery code\" to unlock it with a new code.": "سفارش قفل می‌شود. با زدن «ارسال دوباره کد تحویل» کد جدید ارسال و قفل باز می‌شود.",
     "Another courier should take it": "پیک دیگری باید ببرد",
     "Choose the new courier and press \"Reassign\". The old code stops working.": "پیک جدید را انتخاب کنید و «واگذاری مجدد» را بزنید. کد قبلی دیگر کار نمی‌کند.",
-    "The code is never shown to the courier or in the admin panel.": "کد هیچ‌وقت به پیک یا در پنل مدیریت نمایش داده نمی‌شود."
+    "The code is never shown to the courier or in the admin panel.": "کد هیچ‌وقت به پیک یا در پنل مدیریت نمایش داده نمی‌شود.",
+    "Transfer the amount and upload your receipt before :date.": "مبلغ را واریز کنید و فیش را تا :date بارگذاری کنید.",
+    "Shop invoices": "فروش حضوری",
+    "shop-invoice": "فاکتور حضوری",
+    "Gold prices changed. The new total is :total Toman; check the payments and save again.": "قیمت طلا تغییر کرد. مبلغ جدید :total تومان است؛ پرداخت‌ها را بررسی کنید و دوباره ثبت کنید."
 }

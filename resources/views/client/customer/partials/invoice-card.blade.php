@@ -6,7 +6,7 @@
     {{-- Card Header: Order Code, Persian Date, Status Pill --}}
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2.5">
         <div class="d-flex align-items-center gap-2">
-            <span class="fw-bold text-dark fs-14">{{ __('Order') }} <span class="font-fanum">#{{ $inv->id }}</span></span>
+            <span class="fw-bold text-dark fs-14">{{ __('Order') }} <span class="font-fanum" dir="ltr">#{{ $inv->hash }}</span></span>
             <span class="text-muted fs-12 font-fanum d-flex align-items-center gap-1">
                 <i class="ri-calendar-line fs-13 text-secondary"></i>
                 {{ $inv->created_at->jdate('j F Y') }}

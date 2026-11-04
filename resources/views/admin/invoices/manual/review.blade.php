@@ -192,6 +192,7 @@
         <form method="POST" action="{{ route('admin.shop-invoice.store') }}">
             @csrf
             <input type="hidden" name="step" value="review">
+            <input type="hidden" name="expected_total" value="{{ $total }}">
             <button type="submit" class="btn btn-success fw-bold px-4 py-2 shadow-sm d-inline-flex align-items-center gap-1.5" @disabled($hasUnavailable)>
                 <i class="ri-check-double-line"></i>
                 <span>{{ __('Create invoice') }}</span>
