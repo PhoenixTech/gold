@@ -211,7 +211,18 @@ class ManualInvoiceService
             $payment = $this->recordSinglePayment($invoice, $data, $admin, time(), $slip);
 
             $invoice->refresh();
-            if ($invoice->remainingReceiptBalance() === 0 && $invoice->status === Invoice::AWAITING_PAYMENT) {
+            // Unverified customer receipts must still go through the receipt
+            // review, so only shop-recorded money can settle the invoice here.
+            if ($invoice->shopPaymentsTotal() >= (int) $invoice->total_price && $invoice->status === Invoice::AWAITING_PAYMENT) {
+                // A website invoice still has the customer's pending card
+                // payment; the shop settled it instead, so close it out.
+                $pending = $invoice->cardPayment();
+                if ($pending !== null && $pending->status === Payment::PENDING) {
+                    $pending->status = Payment::CANCEL;
+                    $pending->comment = 'Settled by payments recorded in the shop.';
+                    $pending->save();
+                }
+
                 $invoice->status = Invoice::PAID;
                 $invoice->save();
             }

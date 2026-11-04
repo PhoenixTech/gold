@@ -213,7 +213,7 @@ class AdminInvoiceReceiptReviewTest extends TestCase
         );
     }
 
-    public function test_successful_receipt_reupload_removes_the_files_and_extends_the_deadline(): void
+    public function test_successful_receipt_reupload_keeps_the_files_as_history_and_extends_the_deadline(): void
     {
         $this->withoutVite();
         $this->seed(GfxSeeder::class);
@@ -227,9 +227,11 @@ class AdminInvoiceReceiptReviewTest extends TestCase
             'reason' => 'Unreadable slip',
         ])->assertRedirect(route('admin.invoice.edit', $invoice));
 
-        $this->assertFalse(Storage::disk('public')->exists($path));
-        $this->assertSame(0, PaymentReceipt::query()->where('invoice_id', $invoice->id)->count());
+        $this->assertTrue(Storage::disk('public')->exists($path));
         $invoice->refresh();
+        $this->assertFalse($invoice->hasUploadedReceipt());
+        $this->assertSame(Invoice::WAITING_RECEIPT, $invoice->displayStatusKey());
+        $this->assertSame('Unreadable slip', $invoice->rejectedReceipts()->first()->rejected_reason);
 
         // The deadline was pushed forward explicitly rather than merely
         // recomputed from created_at.

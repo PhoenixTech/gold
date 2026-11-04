@@ -1,14 +1,18 @@
+@php
+    $recordedPayments = $item->payments->where('status', \App\Models\Payment::SUCCESS);
+    $canRecordPayment = $item->remainingReceiptBalance() > 0;
+@endphp
 <div class="item-list shadow-sm mb-4">
     <div class="d-flex align-items-center justify-content-between p-3 p-md-3.5 border-bottom flex-wrap gap-2">
         <div class="d-flex align-items-center gap-2">
             <i class="ri-bank-card-line text-primary fs-18"></i>
             <h5 class="mb-0 fw-bold fs-16 text-dark">{{ __('Payment') }}</h5>
         </div>
-        @if($item->remainingReceiptBalance() > 0)
-            <button type="button" class="btn btn-sm btn-primary d-inline-flex align-items-center gap-1 shadow-sm"
-                    data-bs-toggle="collapse" data-bs-target="#add-payment-panel">
+        @if($canRecordPayment)
+            <button type="button" class="btn btn-sm {{ $isShopSale ? 'btn-primary shadow-sm' : 'btn-outline-secondary' }} d-inline-flex align-items-center gap-1"
+                    data-bs-toggle="collapse" data-bs-target="#add-payment-panel" aria-expanded="{{ $isShopSale ? 'true' : 'false' }}">
                 <i class="ri-add-line"></i>
-                <span>{{ __('Record payment') }}</span>
+                <span>{{ $isShopSale ? __('Record payment') : __('Customer paid in the shop') }}</span>
             </button>
         @endif
     </div>
@@ -41,107 +45,12 @@
             </div>
         @endif
 
-        <div class="row g-2 mb-3">
-            <div class="col-sm-6 col-md-3">
-                <div class="p-2.5 rounded-3 bg-light border">
-                    <div class="text-muted fs-11 fw-medium">{{ __('Amount to pay') }}</div>
-                    <div class="font-fanum fw-bold text-dark fs-14 mt-0.5">
-                        {{ number_format($item->total_price) }} <small class="text-muted fs-11 fw-normal">{{ __('Toman') }}</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-6 col-md-3">
-                <div class="p-2.5 rounded-3 bg-light border">
-                    <div class="text-muted fs-11 fw-medium">{{ __('Received amount') }}</div>
-                    <div class="font-fanum fw-bold text-success fs-14 mt-0.5">
-                        {{ number_format($item->receivedAmount()) }} <small class="text-muted fs-11 fw-normal">{{ __('Toman') }}</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-6 col-md-3">
-                <div class="p-2.5 rounded-3 bg-light border">
-                    <div class="text-muted fs-11 fw-medium">{{ __('Remaining balance') }}</div>
-                    <div class="font-fanum fw-bold {{ $item->remainingReceiptBalance() > 0 ? 'text-danger' : 'text-success' }} fs-14 mt-0.5">
-                        {{ number_format($item->remainingReceiptBalance()) }} <small class="text-muted fs-11 fw-normal">{{ __('Toman') }}</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-6 col-md-3">
-                <div class="p-2.5 rounded-3 bg-light border">
-                    <div class="text-muted fs-11 fw-medium">{{ __('Receipts uploaded') }}</div>
-                    <div class="font-fanum fw-bold text-dark fs-14 mt-0.5">
-                        {{ number_format($item->paymentReceipts->count()) }}
-                    </div>
-                </div>
-            </div>
-        </div>
+        @include('admin.invoices.edit.rejected-receipts')
 
-        @if($item->payments->isNotEmpty())
-            <h6 class="fw-bold text-dark mb-2"><i class="ri-file-list-3-line me-1"></i> {{ __('Recorded payments') }}</h6>
-            <div class="table-responsive border rounded-3 mb-3">
-                <table class="table align-middle mb-0 fs-13">
-                    <thead class="table-light text-muted fs-12 fw-semibold">
-                        <tr>
-                            <th style="width: 2.5rem" class="text-center">#</th>
-                            <th>{{ __('Method') }}</th>
-                            <th>{{ __('Amount') }}</th>
-                            <th>{{ __('Status') }}</th>
-                            <th>{{ __('Related supplier') }}</th>
-                            <th>{{ __('Destination account') }}</th>
-                            <th>{{ __('Tracking Number') }}</th>
-                            <th>{{ __('Date') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($item->payments as $index => $pay)
-                            @php
-                                $methodEnum = ! empty($pay->meta['method']) ? \App\Enums\ShopPaymentMethod::tryFrom($pay->meta['method']) : null;
-                            @endphp
-                            <tr>
-                                <td class="text-center font-fanum text-muted">{{ $index + 1 }}</td>
-                                <td>
-                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">
-                                        {{ $methodEnum?->label() ?? ($pay->meta['method'] ?? $pay->type) }}
-                                    </span>
-                                </td>
-                                <td class="font-fanum fw-bold text-success">{{ number_format($pay->amount) }} {{ __('Toman') }}</td>
-                                <td>
-                                    <span class="badge {{ $pay->status === \App\Models\Payment::SUCCESS ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-warning-subtle text-warning-emphasis border border-warning-subtle' }}">
-                                        {{ __($pay->status) }}
-                                    </span>
-                                </td>
-                                <td>
-                                    @if($pay->supplier)
-                                        <span class="badge bg-info-subtle text-info border border-info-subtle">
-                                            <i class="ri-building-line me-0.5"></i>{{ $pay->supplier->name }}
-                                        </span>
-                                    @else
-                                        <span class="text-muted">—</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    @if(! empty($pay->meta['bank_account_name']))
-                                        <span class="font-fanum fw-semibold text-dark">{{ $pay->meta['bank_account_name'] }}</span>
-                                        @if(! empty($pay->meta['card_number']))
-                                            <small class="text-muted font-monospace d-block fs-11" dir="ltr">{{ $pay->meta['card_number'] }}</small>
-                                        @endif
-                                    @else
-                                        <span class="text-muted">—</span>
-                                    @endif
-                                </td>
-                                <td class="font-monospace text-dark">{{ $pay->reference_id ?: '—' }}</td>
-                                <td class="font-fanum fs-12 text-muted">
-                                    {{ $pay->meta['payment_date'] ?? $pay->created_at->jdate('Y/m/d') }}
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        @endif
+        @include('admin.invoices.edit.rejected-receipts')
 
-        @if($item->remainingReceiptBalance() > 0)
-            <div class="collapse mb-3" id="add-payment-panel">
+        @if($canRecordPayment)
+            <div class="collapse mb-3 {{ $isShopSale ? 'show' : '' }}" id="add-payment-panel">
                 <div class="card card-body border bg-light p-3">
                     <h6 class="fw-bold text-dark mb-3"><i class="ri-add-circle-line me-1"></i> {{ __('Record new payment') }}</h6>
                     <form method="POST" action="{{ route('admin.invoice.add-payment', $item) }}" enctype="multipart/form-data">
@@ -201,9 +110,41 @@
             </div>
         @endif
 
-        <small class="text-muted d-block mt-3 fs-12">
-            <i class="ri-information-line text-primary"></i>
-            {{ __('If no receipt arrives before the deadline, the order fails automatically and the stock is released.') }}
-        </small>
+        @if($recordedPayments->isNotEmpty())
+            <h6 class="fw-bold text-dark mb-2">{{ __('Recorded payments') }}</h6>
+            <div class="table-responsive border rounded-3 mb-3">
+                <table class="table align-middle mb-0 fs-13">
+                    <thead class="table-light text-muted fs-12 fw-semibold">
+                        <tr>
+                            <th>{{ __('Method') }}</th>
+                            <th>{{ __('Amount') }}</th>
+                            <th>{{ __('Destination account') }}</th>
+                            <th>{{ __('Tracking Number') }}</th>
+                            <th>{{ __('Date') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($recordedPayments as $pay)
+                            <tr>
+                                <td>{{ $pay->methodLabel() }}@if($pay->supplier) <small class="text-muted d-block">{{ $pay->supplier->name }}</small>@endif</td>
+                                <td class="font-fanum fw-bold text-success">{{ number_format($pay->amount) }} <small class="text-muted fw-normal">{{ __('Toman') }}</small></td>
+                                <td>{{ $pay->meta['bank_account_name'] ?? '—' }}</td>
+                                <td class="font-monospace">{{ $pay->reference_id ?: '—' }}</td>
+                                <td class="font-fanum fs-12 text-muted">{{ $pay->meta['payment_date'] ?? $pay->created_at->jdate('Y/m/d') }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @elseif(! $isShopSale)
+            <p class="text-muted fs-13 mb-0">{{ __('No money has arrived yet.') }}</p>
+        @endif
+
+        @if($hasPendingCardPayment)
+            <small class="text-muted d-block mt-3 fs-12">
+                <i class="ri-information-line"></i>
+                {{ __('If no receipt arrives before the deadline, the order fails automatically and the stock is released.') }}
+            </small>
+        @endif
     </div>
 </div>

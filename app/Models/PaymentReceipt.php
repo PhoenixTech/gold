@@ -24,6 +24,12 @@ class PaymentReceipt extends Model
         'tracking_number',
         'bank_account_id',
         'uploaded_by_customer_id',
+        'rejected_at',
+        'rejected_reason',
+    ];
+
+    protected $casts = [
+        'rejected_at' => 'datetime',
     ];
 
     public function payment(): BelongsTo

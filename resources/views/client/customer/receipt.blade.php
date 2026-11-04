@@ -182,7 +182,7 @@
                             <div class="row g-2">
                                 <div class="col-12 col-md-6 col-lg-3">
                                     <label class="form-label fs-12 text-muted mb-1">{{ __('Amount') }} ({{ $currency }})</label>
-                                    <input type="number" name="receipts[0][amount]" class="form-control form-control-sm receipt-amount-input" placeholder="{{ __('Amount') }}">
+                                    <input type="number" name="receipts[0][amount]" class="form-control form-control-sm receipt-amount-input" placeholder="{{ __('Amount') }}" min="1" required>
                                 </div>
                                 <div class="col-12 col-md-6 col-lg-3">
                                     <label class="form-label fs-12 text-muted mb-1">{{ __('Tracking Number') }}</label>
@@ -208,7 +208,7 @@
                                 </div>
                                 <div class="col-12">
                                     <label class="form-label fs-12 text-muted mb-1">{{ __('Receipt Image / Slip') }}</label>
-                                    <input type="file" name="receipts[0][slip]" class="form-control form-control-sm" accept="image/*,.pdf">
+                                    <input type="file" name="receipts[0][slip]" class="form-control form-control-sm" accept="image/*,.pdf" required>
                                 </div>
                             </div>
                         </div>
@@ -337,7 +337,7 @@ document.addEventListener('DOMContentLoaded', function () {
             '<div class="row g-2">' +
             '<div class="col-12 col-md-6 col-lg-3">' +
             '<label class="form-label fs-12 text-muted mb-1">{{ __("Amount") }} ({{ $currency }})</label>' +
-            '<input type="number" name="receipts[' + idx + '][amount]" class="form-control form-control-sm receipt-amount-input" placeholder="{{ __("Amount") }}">' +
+            '<input type="number" name="receipts[' + idx + '][amount]" class="form-control form-control-sm receipt-amount-input" placeholder="{{ __("Amount") }}" min="1" required>' +
             '</div>' +
             '<div class="col-12 col-md-6 col-lg-3">' +
             '<label class="form-label fs-12 text-muted mb-1">{{ __("Tracking Number") }}</label>' +
@@ -357,7 +357,7 @@ document.addEventListener('DOMContentLoaded', function () {
             '</div>' +
             '<div class="col-12">' +
             '<label class="form-label fs-12 text-muted mb-1">{{ __("Receipt Image / Slip") }}</label>' +
-            '<input type="file" name="receipts[' + idx + '][slip]" class="form-control form-control-sm" accept="image/*,.pdf">' +
+            '<input type="file" name="receipts[' + idx + '][slip]" class="form-control form-control-sm" accept="image/*,.pdf" required>' +
             '</div>' +
             '</div>';
 

@@ -28,16 +28,19 @@
         $isClosed = in_array($displayStatus, [\App\Models\Invoice::FAILED, \App\Models\Invoice::CANCELED], true);
 
         $offlineIsExpired = $item->isOfflinePaymentExpired();
-        $persianDeadline = $item->formattedDeadline();
+        $hasPendingCardPayment = $cardPayment?->status === \App\Models\Payment::PENDING;
+        $persianDeadline = $hasPendingCardPayment ? $item->formattedDeadline() : null;
+        $isShopSale = $item->isManual();
+        // The admin's turn unless the customer or the courier has the next move.
+        $isMyTurn = ! (($isWaitingReceipt && ! $isShopSale) || $isOutForDelivery);
         $declinedReason = $item->declinedReceiptReason();
         $reuploadReason = $item->reuploadRequestedReason();
         $pickupLocation = (string) getSetting('address');
         $canCancel = in_array($item->status, \App\Services\InvoiceWorkflow::cancelableStatuses(), true);
-        $refundAmount = in_array($item->status, \App\Services\InvoiceWorkflow::refundableStatuses(), true)
-            ? (int) $item->total_price
-            : 0;
+        $refundAmount = $item->refundableAmount();
 
         $nowTitle = match (true) {
+            $isWaitingReceipt && $isShopSale => __('Record the payment'),
             $isWaitingReceipt => __('Waiting for the customer'),
             $isWaitingConfirmation => __('Review the receipt'),
             $isPrepare && $isPickup => __('Prepare the order for pickup'),
@@ -48,6 +51,7 @@
             default => __('Invoice closed'),
         };
         $nowHelp = match (true) {
+            $isWaitingReceipt && $isShopSale => __('Record each payment the customer makes in the shop.'),
             $isWaitingReceipt => __('The customer must pay by card-to-card and upload a receipt. You do not need to do anything.'),
             $isWaitingConfirmation => __('Open the receipt, compare the amount and account, then confirm or send it back.'),
             $isPrepare && $isPickup => __('Pack the order. Press the button when the customer can collect it from the store.'),
@@ -60,18 +64,6 @@
     @endphp
 
     <div class="invoice-manage pb-5">
-        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
-            <h4 class="mb-0 fw-bold d-flex align-items-center gap-2 text-dark fs-18">
-                <i class="ri-file-edit-line text-primary"></i>
-                <span>{{ __('Edit invoice') }}</span>
-                <span class="badge bg-light text-dark border font-monospace fs-12">#{{ $item->hash }}</span>
-            </h4>
-            <a href="{{ route($item->isManual() ? 'admin.shop-invoice.index' : 'admin.invoice.index') }}" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
-                <i class="ri-arrow-right-line"></i>
-                <span>{{ $item->isManual() ? __('In-person sales') : __('Website sales') }}</span>
-            </a>
-        </div>
-
         @include('components.err')
         @include('admin.invoices.edit.header')
         @unless($isClosed)
@@ -81,10 +73,10 @@
         <div class="row g-3">
             <div class="col-lg-8">
                 @unless($isClosed)
-                    <div class="alert alert-primary border border-primary-subtle shadow-sm d-flex align-items-start gap-3 p-3 mb-4 rounded-3" data-current-step="{{ $currentStep }}">
-                        <i class="ri-arrow-right-circle-fill fs-3 text-primary"></i>
+                    <div class="alert {{ $isMyTurn ? 'alert-primary border-primary-subtle' : 'alert-light' }} border shadow-sm d-flex align-items-start gap-3 p-3 mb-4 rounded-3" data-current-step="{{ $currentStep }}">
+                        <i class="{{ $isMyTurn ? 'ri-arrow-left-circle-fill text-primary' : 'ri-time-line text-secondary' }} fs-3"></i>
                         <div>
-                            <div class="fs-12 text-muted fw-semibold">{{ __('What to do now') }}</div>
+                            <div class="fs-12 text-muted fw-semibold">{{ $isMyTurn ? __('Your turn') : __('Waiting') }}</div>
                             <strong class="d-block fs-16 text-dark mt-0.5">{{ $nowTitle }}</strong>
                             <span class="fs-13 text-muted">{{ $nowHelp }}</span>
                         </div>

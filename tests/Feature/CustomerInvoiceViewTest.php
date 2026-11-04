@@ -201,7 +201,7 @@ class CustomerInvoiceViewTest extends TestCase
         $responseBefore->assertDontSee(__('Payment receipt is under review'));
 
         $this->actingAs($customer, 'customer')->post(route('client.invoice.receipts.store', $invoice), [
-            'receipts' => [UploadedFile::fake()->image('receipt.jpg')],
+            'receipts' => [['amount' => 1000, 'slip' => UploadedFile::fake()->image('receipt.jpg')]],
         ])->assertRedirect();
 
         $responseAfter = $this->actingAs($customer, 'customer')->get(route('client.profile'));

@@ -1,16 +1,4 @@
 <div class="item-list shadow-sm mb-4">
-    <div class="p-3 border-bottom d-flex align-items-center justify-content-between">
-        <h5 class="mb-0 fw-bold fs-15 text-dark d-flex align-items-center gap-2">
-            <i class="ri-file-list-3-line text-primary fs-18"></i>
-            <span>{{ __('Invoice summary') }}</span>
-        </h5>
-        @if($item->orders->count() > 0)
-            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle font-fanum">
-                {{ number_format($item->orders->count()) }} {{ __('Pieces') }}
-            </span>
-        @endif
-    </div>
-
     <div class="p-3 border-bottom">
         <div class="d-flex align-items-center justify-content-between mb-2">
             <span class="text-muted fs-12">{{ __('Customer') }}</span>
@@ -77,38 +65,29 @@
         </div>
     @endunless
 
+    @unless($isClosed)
     <div class="p-3 {{ trim((string) $item->desc) !== '' ? 'border-bottom' : '' }}">
-        <div class="d-flex align-items-center justify-content-between mb-2">
-            <span class="text-muted fs-13">{{ __('Pieces') }}</span>
-            <span class="font-fanum fw-semibold text-dark fs-13">{{ number_format($item->orders->count()) }}</span>
-        </div>
-        <div class="d-flex align-items-center justify-content-between mb-2">
-            <span class="text-muted fs-13">{{ __('Total price') }}</span>
-            <span class="font-fanum fw-bold text-dark fs-14">
-                {{ number_format($item->total_price) }} <small class="text-muted fw-normal fs-11">{{ __('Toman') }}</small>
-            </span>
-        </div>
-        <div class="d-flex align-items-center justify-content-between mb-3">
-            <span class="text-muted fs-13">{{ __('Paid amount') }}</span>
-            <span class="font-fanum fw-bold text-success fs-14">
-                {{ number_format($item->receivedAmount()) }} <small class="text-muted fw-normal fs-11">{{ __('Toman') }}</small>
-            </span>
-        </div>
-
-        @if($item->remainingReceiptBalance() > 0)
-            <div class="p-2.5 rounded-3 bg-danger-subtle border border-danger-subtle d-flex align-items-center justify-content-between">
-                <span class="text-danger fw-semibold fs-13">{{ __('Remaining balance') }}</span>
-                <span class="font-fanum fw-bold text-danger fs-15">
+        @if(in_array($item->status, \App\Models\Invoice::successfulStatuses(), true))
+            <div class="p-2.5 rounded-3 bg-success-subtle border border-success-subtle d-flex align-items-center justify-content-between">
+                <span class="text-success-emphasis fw-semibold fs-13"><i class="ri-checkbox-circle-line"></i> {{ __('Payment') }}</span>
+                <span class="badge bg-success text-white">{{ __('Paid') }}</span>
+            </div>
+        @else
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="text-muted fs-13">{{ __('Received amount') }}</span>
+                <span class="font-fanum fw-bold text-success fs-14">
+                    {{ number_format($item->receivedAmount()) }} <small class="text-muted fw-normal fs-11">{{ __('Toman') }}</small>
+                </span>
+            </div>
+            <div class="p-2.5 rounded-3 {{ $item->remainingReceiptBalance() > 0 ? 'bg-danger-subtle border border-danger-subtle text-danger' : 'bg-success-subtle border border-success-subtle text-success' }} d-flex align-items-center justify-content-between">
+                <span class="fw-semibold fs-13">{{ __('Remaining balance') }}</span>
+                <span class="font-fanum fw-bold fs-15">
                     {{ number_format($item->remainingReceiptBalance()) }} <small class="fw-normal fs-11">{{ __('Toman') }}</small>
                 </span>
             </div>
-        @elseif($item->total_price > 0)
-            <div class="p-2.5 rounded-3 bg-success-subtle border border-success-subtle d-flex align-items-center justify-content-between">
-                <span class="text-success fw-semibold fs-13">{{ __('Remaining balance') }}</span>
-                <span class="badge bg-success text-white font-fanum">{{ __('Settled') }}</span>
-            </div>
         @endif
     </div>
+    @endunless
 
     @if(trim((string) $item->desc) !== '')
         <div class="p-3">

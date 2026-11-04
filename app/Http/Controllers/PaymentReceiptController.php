@@ -7,7 +7,6 @@ use App\Models\BankAccount;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\PaymentReceipt;
-use Illuminate\Http\UploadedFile;
 
 class PaymentReceiptController extends Controller
 {
@@ -55,10 +54,7 @@ class PaymentReceiptController extends Controller
                 ->withErrors(__('The offline payment deadline for this invoice has passed. The invoice was failed, please contact support.'));
         }
 
-        $payment = $invoice->payments()
-            ->where('type', 'CARD')
-            ->latest('id')
-            ->first();
+        $payment = $invoice->cardPayment();
 
         if ($payment === null || $payment->status !== Payment::PENDING) {
             return redirect()
@@ -68,45 +64,23 @@ class PaymentReceiptController extends Controller
 
         $activeAccountId = BankAccount::activeAccount()?->id;
 
-        if ($request->isStructured()) {
-            $receiptsData = (array) $request->input('receipts', []);
+        foreach ($request->validated('receipts') as $index => $item) {
+            $file = $request->file("receipts.{$index}.slip");
 
-            foreach ($receiptsData as $index => $item) {
-                $file = $request->file("receipts.{$index}.slip");
-                if (! $file && isset($item['slip']) && $item['slip'] instanceof UploadedFile) {
-                    $file = $item['slip'];
-                }
-
-                PaymentReceipt::query()->create([
-                    'payment_id' => $payment->id,
-                    'invoice_id' => $invoice->id,
-                    'path' => $file ? $file->store('payment-receipts/'.$invoice->id, 'public') : '',
-                    'original_name' => $file?->getClientOriginalName() ?? '',
-                    'mime' => $file?->getClientMimeType(),
-                    'size' => $file?->getSize(),
-                    'amount' => isset($item['amount']) && $item['amount'] !== '' ? (int) $item['amount'] : null,
-                    'payment_date' => $item['payment_date'] ?? null,
-                    'payment_time' => $item['payment_time'] ?? null,
-                    'tracking_number' => $item['tracking_number'] ?? null,
-                    'bank_account_id' => ! empty($item['bank_account_id'])
-                        ? (int) $item['bank_account_id']
-                        : $activeAccountId,
-                    'uploaded_by_customer_id' => $customer->id,
-                ]);
-            }
-        } else {
-            foreach ($request->file('receipts') as $file) {
-                PaymentReceipt::query()->create([
-                    'payment_id' => $payment->id,
-                    'invoice_id' => $invoice->id,
-                    'path' => $file->store('payment-receipts/'.$invoice->id, 'public'),
-                    'original_name' => $file->getClientOriginalName(),
-                    'mime' => $file->getClientMimeType(),
-                    'size' => $file->getSize(),
-                    'bank_account_id' => $activeAccountId,
-                    'uploaded_by_customer_id' => $customer->id,
-                ]);
-            }
+            PaymentReceipt::query()->create([
+                'payment_id' => $payment->id,
+                'invoice_id' => $invoice->id,
+                'path' => $file->store('payment-receipts/'.$invoice->id, 'public'),
+                'original_name' => $file->getClientOriginalName(),
+                'mime' => $file->getClientMimeType(),
+                'size' => $file->getSize(),
+                'amount' => (int) $item['amount'],
+                'payment_date' => $item['payment_date'] ?? null,
+                'payment_time' => $item['payment_time'] ?? null,
+                'tracking_number' => $item['tracking_number'] ?? null,
+                'bank_account_id' => $item['bank_account_id'] ?? $activeAccountId,
+                'uploaded_by_customer_id' => $customer->id,
+            ]);
         }
 
         return redirect()

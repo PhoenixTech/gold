@@ -32,7 +32,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -360,6 +359,7 @@ class InvoiceController extends Controller
             'payments.supplier',
             'payments.receipts',
             'paymentReceipts',
+            'rejectedReceipts',
             'transport',
             'activeDelivery.courier',
             'createdBy',
@@ -538,7 +538,7 @@ class InvoiceController extends Controller
             ->with(['message' => __('A new delivery code was sent to the customer.')]);
     }
 
-    public function confirmPayment(ConfirmInvoicePaymentRequest $request, Invoice|string|int $item): RedirectResponse
+    public function confirmPayment(ConfirmInvoicePaymentRequest $request, Invoice|string|int $item, CreditService $credits): RedirectResponse
     {
         $invoice = $this->resolveInvoice($item);
 
@@ -568,14 +568,32 @@ class InvoiceController extends Controller
 
         $bankAccount = BankAccount::find($request->input('bank_account_id'));
 
-        DB::transaction(function () use ($invoice, $payment, $bankAccount): void {
+        $overpaid = DB::transaction(function () use ($invoice, $payment, $bankAccount, $credits): int {
+            $overpaid = max(0, $invoice->receivedAmount() - (int) $invoice->total_price);
+
             $invoice->storeSuccessPayment(
                 $payment->id,
-                'CARD-CONFIRM-'.$payment->id.'-'.time()
+                'CARD-CONFIRM-'.$payment->id.'-'.time(),
+                notify: false,
             );
 
+            if ($overpaid > 0 && $invoice->customer !== null) {
+                $credits->refund(
+                    $invoice->customer,
+                    $overpaid,
+                    $invoice,
+                    __('Overpayment on invoice :hash', ['hash' => $invoice->hash]),
+                    auth()->user()
+                );
+            }
+
             $payment->refresh();
+            // Record what actually arrived by card; shop payments are their own rows.
+            $payment->amount = (int) ($invoice->receiptsTotalAmount() * config('app.currency.factor'));
             $meta = $payment->meta ?? [];
+            if ($overpaid > 0) {
+                $meta['overpaid_credit'] = $overpaid;
+            }
             $meta['confirmed_by'] = auth()->id();
             $meta['confirmed_at'] = now()->toDateTimeString();
             if ($bankAccount) {
@@ -584,6 +602,8 @@ class InvoiceController extends Controller
             }
             $payment->meta = $meta;
             $payment->save();
+
+            return $overpaid;
         });
 
         logAdmin(__METHOD__, Invoice::class, $invoice->id);
@@ -592,21 +612,28 @@ class InvoiceController extends Controller
 
         return redirect()
             ->route('admin.invoice.edit', $invoice)
-            ->with(['message' => __('Payment confirmed. The invoice is now paid.')]);
+            ->with(['message' => $overpaid > 0
+                ? __('Payment confirmed. :amount overpayment was added to the customer credit.', ['amount' => number_format($overpaid)])
+                : __('Payment confirmed. The invoice is now paid.')]);
     }
 
     public function addPayment(AddInvoicePaymentRequest $request, Invoice|string|int $item, ManualInvoiceService $sales): RedirectResponse
     {
         $invoice = $this->resolveInvoice($item);
+        $wasAwaiting = $invoice->status === Invoice::AWAITING_PAYMENT;
         $data = $request->validated();
         $payment = $sales->addPaymentToInvoice($invoice, $data, $request->user(), $request->file('slip'));
+
+        if ($wasAwaiting && ! $invoice->isManual() && $invoice->fresh()->status === Invoice::PAID) {
+            $this->notifyPaymentApproved($invoice);
+        }
 
         return redirect()
             ->route('admin.invoice.edit', $invoice)
             ->with(['message' => __('Payment of :amount Toman was recorded.', ['amount' => number_format($payment->amount)])]);
     }
 
-    public function declinePayment(DeclineInvoicePaymentRequest $request, Invoice|string|int $item, DeliveryService $deliveryService): RedirectResponse
+    public function declinePayment(DeclineInvoicePaymentRequest $request, Invoice|string|int $item, InvoiceCancellationService $cancellation): RedirectResponse
     {
         $invoice = $this->resolveInvoice($item);
 
@@ -630,14 +657,14 @@ class InvoiceController extends Controller
 
         $reason = trim((string) $request->input('reason', ''));
 
-        DB::transaction(function () use ($invoice, $payment, $reason, $deliveryService): void {
+        DB::transaction(function () use ($invoice, $payment, $reason, $cancellation): void {
             $meta = $invoice->meta ?? [];
             $meta['decline_reason'] = $reason !== '' ? $reason : null;
             $meta['declined_at'] = now()->toDateTimeString();
             $invoice->meta = $meta;
             $invoice->save();
 
-            $deliveryService->applyAdminStatus($invoice, Invoice::CANCELED, null);
+            $cancellation->cancel($invoice, null, auth()->user());
 
             $payment->status = Payment::CANCEL;
             $payment->comment = $reason !== ''
@@ -679,10 +706,8 @@ class InvoiceController extends Controller
 
         $reason = trim((string) $request->input('reason', ''));
 
-        // Collect the paths inside the transaction, but only unlink once the
-        // database write has committed -- otherwise a mid-transaction failure
-        // destroys the customer's evidence with nothing to show for it.
-        $receiptPaths = DB::transaction(function () use ($invoice, $reason): array {
+        // The old receipts stay on disk as history; they just stop counting.
+        DB::transaction(function () use ($invoice, $reason): void {
             $meta = $invoice->meta ?? [];
             $meta['reupload_reason'] = $reason;
             $meta['reupload_requested_at'] = now()->toDateTimeString();
@@ -690,16 +715,8 @@ class InvoiceController extends Controller
             $invoice->extendOfflinePaymentDeadline(3);
             $invoice->save();
 
-            $paths = $invoice->paymentReceipts->pluck('path')->filter()->all();
-
-            $invoice->paymentReceipts()->delete();
-
-            return $paths;
+            $invoice->paymentReceipts()->update(['rejected_at' => now(), 'rejected_reason' => $reason]);
         });
-
-        if ($receiptPaths !== []) {
-            Storage::disk('public')->delete($receiptPaths);
-        }
 
         logAdmin(__METHOD__, Invoice::class, $invoice->id);
 

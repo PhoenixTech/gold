@@ -8,6 +8,7 @@ use App\Enums\InvoiceStatus;
 use App\Enums\ShopPaymentMethod;
 use App\Events\InvoiceFailed;
 use App\Events\InvoiceSucceed;
+use App\Services\InvoiceWorkflow;
 use App\Services\ProductPriceCalculator;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -203,9 +204,18 @@ class Invoice extends Model
         return $this->hasMany(Payment::class);
     }
 
+    /**
+     * Receipts still under consideration. Receipts the admin sent back are kept
+     * as history in rejectedReceipts() and no longer count toward the balance.
+     */
     public function paymentReceipts()
     {
-        return $this->hasMany(PaymentReceipt::class);
+        return $this->hasMany(PaymentReceipt::class)->whereNull('rejected_at');
+    }
+
+    public function rejectedReceipts()
+    {
+        return $this->hasMany(PaymentReceipt::class)->whereNotNull('rejected_at')->latest('rejected_at');
     }
 
     public function receiptsTotalAmount(): int
@@ -262,18 +272,39 @@ class Invoice extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    /**
+     * The customer's card-to-card payment. Payments the admin records in the
+     * shop are CARD too, so they are skipped: they must not hide the pending
+     * one the customer still uploads receipts against.
+     */
     public function cardPayment(): ?Payment
     {
         if ($this->relationLoaded('payments')) {
-            return $this->payments->where('type', 'CARD')->sortByDesc('id')->first();
+            return $this->payments->where('type', 'CARD')->reject->isPhysical()->sortByDesc('id')->first();
         }
 
-        return $this->payments()->where('type', 'CARD')->latest('id')->first();
+        return $this->payments()->where('type', 'CARD')->online()->latest('id')->first();
     }
 
     public function isOfflineCardPayment(): bool
     {
-        return $this->cardPayment() !== null;
+        if ($this->relationLoaded('payments')) {
+            return $this->payments->contains('type', 'CARD');
+        }
+
+        return $this->payments()->where('type', 'CARD')->exists();
+    }
+
+    /**
+     * Money that must go back to the customer credit when this invoice is
+     * canceled: the full total once paid, otherwise whatever the shop already
+     * recorded. Unverified receipts are never refunded.
+     */
+    public function refundableAmount(): int
+    {
+        return in_array($this->status, InvoiceWorkflow::refundableStatuses(), true)
+            ? (int) $this->total_price
+            : $this->shopPaymentsTotal();
     }
 
     /**
@@ -363,6 +394,11 @@ class Invoice extends Model
     public function isOfflinePaymentExpired(): bool
     {
         if ($this->status !== self::AWAITING_PAYMENT || ! $this->isOfflineCardPayment()) {
+            return false;
+        }
+
+        // Money is already on the invoice; failing it would silently drop it.
+        if ($this->shopPaymentsTotal() > 0) {
             return false;
         }
 
@@ -668,7 +704,7 @@ class Invoice extends Model
         return $payment;
     }
 
-    public function storeSuccessPayment($paymentId, $referenceId, $cardNumber = null, $confirmedBy = null): Payment
+    public function storeSuccessPayment($paymentId, $referenceId, $cardNumber = null, $confirmedBy = null, bool $notify = true): Payment
     {
         /** @var Payment $payment */
         $payment = Payment::findOrFail($paymentId);
@@ -690,6 +726,22 @@ class Invoice extends Model
         $this->status = self::PAID;
         $this->save();
         $this->markOrderedPiecesAsSold();
+        if ($notify) {
+            $this->sendOrderSms();
+        }
+
+        try {
+            event(new InvoiceSucceed($this, $payment));
+        } catch (\Throwable $exception) {
+            \Log::debug('Error In Event OrderSucceed. But Process Continued!', compact('payment'));
+            \Log::warning($exception->getMessage(), [$exception->getTraceAsString()]);
+        }
+
+        return $payment;
+    }
+
+    private function sendOrderSms(): void
+    {
         if (config('app.sms.driver') == 'Kavenegar') {
             $args = [
                 'receptor' => $this->customer->mobile,
@@ -703,15 +755,6 @@ class Invoice extends Model
         }
 
         sendingSMS(getSetting('order'), $this->customer->mobile, $args);
-
-        try {
-            event(new InvoiceSucceed($this, $payment));
-        } catch (\Throwable $exception) {
-            \Log::debug('Error In Event OrderSucceed. But Process Continued!', compact('payment'));
-            \Log::warning($exception->getMessage(), [$exception->getTraceAsString()]);
-        }
-
-        return $payment;
     }
 
     public function storeFailPayment($paymentId, $message = null): Payment

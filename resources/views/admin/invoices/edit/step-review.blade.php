@@ -4,18 +4,17 @@
         <h5 class="mb-0 fw-bold fs-16 text-dark">{{ __('Receipt review') }}</h5>
     </div>
     <div class="p-3 p-md-3.5">
-        <p class="text-muted fs-13 mb-3">{{ __('Check the receipt against the invoice total, then confirm the payment or send it back to the customer.') }}</p>
+        @php $showAccount = $item->paymentReceipts->contains(fn ($r) => $r->bankAccount !== null); @endphp
+        @include('admin.invoices.edit.rejected-receipts')
         <div class="table-responsive border rounded-3 mb-3">
             <table class="table table-hover align-middle mb-0 fs-13">
                 <thead class="table-light text-muted fs-12 fw-semibold">
                     <tr>
                         <th style="width: 60px;">{{ __('Preview') }}</th>
                         <th>{{ __('Amount') }}</th>
-                        <th>{{ __('Destination account') }}</th>
+                        @if($showAccount)<th>{{ __('Destination account') }}</th>@endif
                         <th>{{ __('Payment Date & Time') }}</th>
                         <th>{{ __('Tracking Number') }}</th>
-                        <th>{{ __('File') }}</th>
-                        <th class="text-center" style="width: 90px;">{{ __('Action') }}</th>
                     </tr>
                 </thead>
                                 <tbody>
@@ -47,6 +46,7 @@
                                                     <span class="text-muted">-</span>
                                                 @endif
                                             </td>
+                                            @if($showAccount)
                                             <td>
                                                 @if($declaredAccount)
                                                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle font-fanum fs-12" title="{{ $declaredAccount->card_number }}">
@@ -57,6 +57,7 @@
                                                     <span class="text-muted">-</span>
                                                 @endif
                                             </td>
+                                            @endif
                                             <td>
                                                 @if($receipt->payment_date || $receipt->payment_time)
                                                     <div class="font-fanum text-dark fw-semibold">
@@ -78,24 +79,10 @@
                                                     <span class="text-muted">-</span>
                                                 @endif
                                             </td>
-                                            <td>
-                                                <span class="text-truncate d-block" style="max-width: 170px;" title="{{ $receipt->original_name }}">
-                                                    {{ $receipt->original_name }}
-                                                </span>
-                                                @if($receipt->size)
-                                                    <small class="text-muted font-fanum fs-11">{{ number_format($receipt->size / 1024, 1) }} KB</small>
-                                                @endif
-                                            </td>
-                                            <td class="text-center">
-                                                <a href="{{ $receipt->url() }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary py-1 px-2 d-inline-flex align-items-center gap-1 fs-12">
-                                                    <i class="ri-external-link-line"></i>
-                                                    <span>{{ __('View') }}</span>
-                                                </a>
-                                            </td>
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="7" class="text-center text-muted py-4">
+                                            <td colspan="{{ $showAccount ? 5 : 4 }}" class="text-center text-muted py-4">
                                                 <i class="ri-inbox-line fs-4 d-block mb-2 opacity-50"></i>
                                                 {{ __('No receipt uploaded yet.') }}
                                             </td>
@@ -106,8 +93,9 @@
                         </div>
 
                         @php
-                            $receiptsTotal = $item->receiptsTotalAmount();
+                            $receiptsTotal = $item->receivedAmount();
                             $remainingBalance = $item->remainingReceiptBalance();
+                            $overpaid = max(0, $receiptsTotal - (int) $item->total_price);
                             $activeBankAccounts = $bankAccounts ?? \App\Models\BankAccount::where('is_active', true)->get();
                         @endphp
 
@@ -118,12 +106,17 @@
                                     <strong class="fs-5 text-dark">{{ number_format($item->total_price) }} {{ __('Toman') }}</strong>
                                 </div>
                                 <div class="col-md-4 border-start border-end">
-                                    <span class="text-muted fs-13 d-block">{{ __('Uploaded Sum') }}</span>
+                                    <span class="text-muted fs-13 d-block">{{ __('Received amount') }}</span>
                                     <strong class="fs-5 text-success">{{ number_format($receiptsTotal) }} {{ __('Toman') }}</strong>
                                 </div>
                                 <div class="col-md-4">
-                                    <span class="text-muted fs-13 d-block">{{ __('Remaining Balance') }}</span>
-                                    <strong class="fs-5 {{ $remainingBalance === 0 ? 'text-success' : 'text-danger' }}">{{ number_format($remainingBalance) }} {{ __('Toman') }}</strong>
+                                    @if($overpaid > 0)
+                                        <span class="text-muted fs-13 d-block">{{ __('Overpayment Amount') }}</span>
+                                        <strong class="fs-5 text-primary" title="{{ __('Added to the customer credit on approval.') }}">{{ number_format($overpaid) }} {{ __('Toman') }}</strong>
+                                    @else
+                                        <span class="text-muted fs-13 d-block">{{ __('Remaining Balance') }}</span>
+                                        <strong class="fs-5 {{ $remainingBalance === 0 ? 'text-success' : 'text-danger' }}">{{ number_format($remainingBalance) }} {{ __('Toman') }}</strong>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -202,52 +195,27 @@
 
                             <div class="col-lg-5">
                                 @if($canReviewReceipt)
-                                    <div class="card border border-warning-subtle shadow-sm rounded-3 p-3 mb-3">
-                                        <h6 class="fw-bold mb-2 d-flex align-items-center gap-2 text-warning-emphasis">
-                                            <i class="ri-refresh-line fs-5"></i>
-                                            {{ __('Request Receipt Re-upload') }}
+                                    <div class="card border shadow-sm rounded-3 p-3">
+                                        <h6 class="fw-bold mb-3 d-flex align-items-center gap-2 text-dark">
+                                            <i class="ri-error-warning-line fs-5 text-warning"></i>
+                                            {{ __('Problem with the receipt?') }}
                                         </h6>
-                                        <p class="fs-12 text-muted mb-3">
-                                            {{ __('Keep invoice active, extend deadline by :hours hours, and ask customer for a new slip.', ['hours' => 3]) }}
-                                        </p>
-                                        <form action="{{ route('admin.invoice.request-receipt-reupload', $item) }}" method="post"
-                                              data-confirm="{{ __('Request receipt re-upload from customer?') }}">
+                                        <form action="{{ route('admin.invoice.request-receipt-reupload', $item) }}" method="post">
                                             @csrf
-                                            <div class="mb-3">
-                                                <label for="reupload_reason" class="form-label fs-13 text-muted">
-                                                    {{ __('Reason for re-upload') }}
-                                                </label>
-                                                <input type="text" id="reupload_reason" name="reason" class="form-control"
-                                                       placeholder="{{ __('e.g. Unreadable receipt image or incorrect amount') }}" required maxlength="255">
-                                            </div>
-                                            <button type="submit" class="btn btn-warning w-100 fw-bold">
-                                                <i class="ri-refresh-line me-1"></i> {{ __('Request Re-upload') }}
+                                            <label for="receipt_problem_reason" class="form-label fs-13 text-muted">{{ __('Reason for the customer') }}</label>
+                                            <input type="text" id="receipt_problem_reason" name="reason" class="form-control mb-3"
+                                                   placeholder="{{ __('e.g. Unreadable receipt image or incorrect amount') }}" required maxlength="255">
+                                            <button type="submit" class="btn btn-outline-warning text-warning-emphasis fw-semibold w-100 mb-2"
+                                                    data-confirm="{{ __('Request receipt re-upload from customer?') }}">
+                                                <i class="ri-refresh-line me-1"></i> {{ __('Ask for a new receipt') }}
+                                            </button>
+                                            <button type="submit" class="btn btn-link link-danger w-100 fs-13"
+                                                    formaction="{{ route('admin.invoice.decline-payment', $item) }}"
+                                                    data-confirm="{{ __('Are you sure you want to decline this payment and cancel the invoice?') }}">
+                                                {{ __('Decline and cancel invoice') }}
                                             </button>
                                         </form>
-                                    </div>
-
-                                    <div class="card border border-danger-subtle shadow-sm rounded-3 p-3">
-                                        <h6 class="fw-bold mb-2 d-flex align-items-center gap-2 text-danger">
-                                            <i class="ri-close-circle-line fs-5"></i>
-                                            {{ __('Decline and Cancel') }}
-                                        </h6>
-                                        <p class="fs-12 text-muted mb-3">
-                                            {{ __('Permanently cancel the invoice and release reserved gold stock.') }}
-                                        </p>
-                                        <form action="{{ route('admin.invoice.decline-payment', $item) }}" method="post"
-                                              data-confirm="{{ __('Are you sure you want to decline this payment and cancel the invoice?') }}">
-                                            @csrf
-                                            <div class="mb-3">
-                                                <label for="decline_reason" class="form-label fs-13 text-muted">
-                                                    {{ __('Decline reason (optional)') }}
-                                                </label>
-                                                <input type="text" id="decline_reason" name="reason" class="form-control"
-                                                       placeholder="{{ __('Decline reason (optional)') }}" maxlength="255">
-                                            </div>
-                                            <button type="submit" class="btn btn-outline-danger w-100">
-                                                <i class="ri-close-line me-1"></i> {{ __('Decline and cancel invoice') }}
-                                            </button>
-                                        </form>
+                                        <small class="text-muted fs-12">{{ __('A new receipt keeps the order and gives the customer 3 more hours. Declining cancels the order.') }}</small>
                                     </div>
                                 @else
                                     <div class="alert alert-warning border border-warning-subtle shadow-sm rounded-3 p-3 mb-3">

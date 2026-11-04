@@ -17,7 +17,8 @@ export function initGeneralEvents() {
         document.addEventListener('submit', (e) => {
             const form = e.target;
             if (!(form instanceof HTMLFormElement)) return;
-            const message = form.getAttribute('data-confirm');
+            // A button can carry its own message when one form has several actions.
+            const message = e.submitter?.getAttribute('data-confirm') || form.getAttribute('data-confirm');
             if (message && !confirm(message)) {
                 e.preventDefault();
                 e.stopPropagation();

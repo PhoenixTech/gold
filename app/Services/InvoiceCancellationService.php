@@ -30,9 +30,7 @@ class InvoiceCancellationService
 
             $meta = $locked->meta ?? [];
             $alreadyRefunded = (int) ($meta['refunded_amount'] ?? 0) > 0;
-            $shouldRefund = in_array($locked->status, InvoiceWorkflow::refundableStatuses(), true)
-                && ! $alreadyRefunded;
-            $amount = $shouldRefund ? (int) $locked->total_price : 0;
+            $amount = $alreadyRefunded ? 0 : $locked->refundableAmount();
 
             $this->deliveries->applyAdminStatus($locked, Invoice::CANCELED, null);
 

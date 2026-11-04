@@ -92,8 +92,8 @@ class PaymentReceiptTest extends TestCase
 
         $response = $this->actingAs($customer, 'customer')->post(route('client.invoice.receipts.store', $invoice), [
             'receipts' => [
-                UploadedFile::fake()->image('receipt1.jpg'),
-                UploadedFile::fake()->create('receipt2.pdf', 100, 'application/pdf'),
+                ['amount' => 1000, 'slip' => UploadedFile::fake()->image('receipt1.jpg')],
+                ['amount' => 2000, 'slip' => UploadedFile::fake()->create('receipt2.pdf', 100, 'application/pdf')],
             ],
         ]);
 
@@ -113,7 +113,7 @@ class PaymentReceiptTest extends TestCase
         ]);
 
         $response = $this->actingAs($other, 'customer')->post(route('client.invoice.receipts.store', $invoice), [
-            'receipts' => [UploadedFile::fake()->image('receipt.jpg')],
+            'receipts' => [['amount' => 1000, 'slip' => UploadedFile::fake()->image('receipt.jpg')]],
         ]);
 
         $response->assertForbidden();
@@ -128,7 +128,7 @@ class PaymentReceiptTest extends TestCase
         auth('customer')->logout();
 
         $response = $this->post(route('client.invoice.receipts.store', $invoice), [
-            'receipts' => [UploadedFile::fake()->image('receipt.jpg')],
+            'receipts' => [['amount' => 1000, 'slip' => UploadedFile::fake()->image('receipt.jpg')]],
         ]);
 
         $response->assertRedirect();
@@ -209,7 +209,7 @@ class PaymentReceiptTest extends TestCase
         $invoice->forceFill(['created_at' => now()->subHours(4)])->save();
 
         $response = $this->actingAs($customer, 'customer')->post(route('client.invoice.receipts.store', $invoice), [
-            'receipts' => [UploadedFile::fake()->image('receipt.jpg')],
+            'receipts' => [['amount' => 1000, 'slip' => UploadedFile::fake()->image('receipt.jpg')]],
         ]);
 
         $response->assertRedirect();
@@ -249,7 +249,7 @@ class PaymentReceiptTest extends TestCase
         [$customer, $invoice, $payment] = $this->createAwaitingCardInvoice();
 
         $this->actingAs($customer, 'customer')->post(route('client.invoice.receipts.store', $invoice), [
-            'receipts' => [UploadedFile::fake()->image('receipt.jpg')],
+            'receipts' => [['amount' => 1000, 'slip' => UploadedFile::fake()->image('receipt.jpg')]],
         ])->assertRedirect();
 
         $invoice->forceFill(['created_at' => now()->subHours(4)])->save();
@@ -296,7 +296,7 @@ class PaymentReceiptTest extends TestCase
         [$customer, $invoice] = $this->createAwaitingCardInvoice();
 
         $this->actingAs($customer, 'customer')->post(route('client.invoice.receipts.store', $invoice), [
-            'receipts' => [UploadedFile::fake()->image('receipt.jpg')],
+            'receipts' => [['amount' => 1000, 'slip' => UploadedFile::fake()->image('receipt.jpg')]],
         ])->assertRedirect();
 
         $this->assertSame(
@@ -343,7 +343,7 @@ class PaymentReceiptTest extends TestCase
         [$customer, $invoice] = $this->createAwaitingCardInvoice();
 
         $this->actingAs($customer, 'customer')->post(route('client.invoice.receipts.store', $invoice), [
-            'receipts' => [UploadedFile::fake()->image('receipt.jpg')],
+            'receipts' => [['amount' => 1000, 'slip' => UploadedFile::fake()->image('receipt.jpg')]],
         ])->assertRedirect();
 
         Role::findOrCreate('admin', 'web');
@@ -364,7 +364,7 @@ class PaymentReceiptTest extends TestCase
         [$customer, $invoice, $payment] = $this->createAwaitingCardInvoice();
 
         $this->actingAs($customer, 'customer')->post(route('client.invoice.receipts.store', $invoice), [
-            'receipts' => [UploadedFile::fake()->image('receipt.jpg')],
+            'receipts' => [['amount' => 1000, 'slip' => UploadedFile::fake()->image('receipt.jpg')]],
         ])->assertRedirect();
 
         $this->assertSame(1, PaymentReceipt::query()->where('invoice_id', $invoice->id)->count());
@@ -401,7 +401,7 @@ class PaymentReceiptTest extends TestCase
         [$customer, $invoice] = $this->createAwaitingCardInvoice();
 
         $this->actingAs($customer, 'customer')->post(route('client.invoice.receipts.store', $invoice), [
-            'receipts' => [UploadedFile::fake()->image('receipt.jpg')],
+            'receipts' => [['amount' => 1000, 'slip' => UploadedFile::fake()->image('receipt.jpg')]],
         ])->assertRedirect();
 
         Role::findOrCreate('admin', 'web');
@@ -425,7 +425,7 @@ class PaymentReceiptTest extends TestCase
 
         [$customer, $withReceipt] = $this->createAwaitingCardInvoice();
         $this->actingAs($customer, 'customer')->post(route('client.invoice.receipts.store', $withReceipt), [
-            'receipts' => [UploadedFile::fake()->image('receipt.jpg')],
+            'receipts' => [['amount' => 1000, 'slip' => UploadedFile::fake()->image('receipt.jpg')]],
         ])->assertRedirect();
 
         [, $withoutReceipt] = $this->createAwaitingCardInvoice();
@@ -660,7 +660,7 @@ class PaymentReceiptTest extends TestCase
 
         $this->actingAs($customer, 'customer')->post(route('client.invoice.receipts.store', $invoice), [
             'receipts' => [
-                UploadedFile::fake()->image('receipt.jpg'),
+                ['amount' => 1000, 'slip' => UploadedFile::fake()->image('receipt.jpg')],
             ],
         ]);
 
