@@ -80,19 +80,34 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="labor_charge_1" class="fw-semibold">{{__('Labor charge 1')}}</label>
-                        <currency-input xname="labor_charge_1" xid="labor_charge_1" @error('labor_charge_1') :err="true" @enderror :xvalue="{{old('labor_charge_1', $item->labor_charge_1 ?? $item->wage ?? 15)}}"></currency-input>
+                        <div class="input-group">
+                            <input name="labor_charge_1" type="number" step="0.01" min="0" id="labor_charge_1"
+                                   class="form-control @error('labor_charge_1') is-invalid @enderror"
+                                   value="{{old('labor_charge_1', $item->labor_charge_1 ?? $item->wage ?? 15)}}"/>
+                            <span class="input-group-text text-muted fs-12">%</span>
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="labor_charge_2" class="fw-semibold">{{__('Labor charge 2')}}</label>
-                        <currency-input xname="labor_charge_2" xid="labor_charge_2" @error('labor_charge_2') :err="true" @enderror :xvalue="{{old('labor_charge_2', $item->labor_charge_2 ?? 0)}}"></currency-input>
+                        <div class="input-group">
+                            <input name="labor_charge_2" type="number" step="0.01" min="0" id="labor_charge_2"
+                                   class="form-control @error('labor_charge_2') is-invalid @enderror"
+                                   value="{{old('labor_charge_2', $item->labor_charge_2 ?? 0)}}"/>
+                            <span class="input-group-text text-muted fs-12">%</span>
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="labor_charge_3" class="fw-semibold">{{__('Labor charge 3')}}</label>
-                        <currency-input xname="labor_charge_3" xid="labor_charge_3" @error('labor_charge_3') :err="true" @enderror :xvalue="{{old('labor_charge_3', $item->labor_charge_3 ?? 0)}}"></currency-input>
+                        <div class="input-group">
+                            <input name="labor_charge_3" type="number" step="0.01" min="0" id="labor_charge_3"
+                                   class="form-control @error('labor_charge_3') is-invalid @enderror"
+                                   value="{{old('labor_charge_3', $item->labor_charge_3 ?? 0)}}"/>
+                            <span class="input-group-text text-muted fs-12">%</span>
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-3">

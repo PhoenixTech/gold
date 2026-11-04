@@ -2753,5 +2753,10 @@
     "Transfer the amount and upload your receipt before :date.": "مبلغ را واریز کنید و فیش را تا :date بارگذاری کنید.",
     "Shop invoices": "فروش حضوری",
     "shop-invoice": "فاکتور حضوری",
-    "Gold prices changed. The new total is :total Toman; check the payments and save again.": "قیمت طلا تغییر کرد. مبلغ جدید :total تومان است؛ پرداخت‌ها را بررسی کنید و دوباره ثبت کنید."
+    "Gold prices changed. The new total is :total Toman; check the payments and save again.": "قیمت طلا تغییر کرد. مبلغ جدید :total تومان است؛ پرداخت‌ها را بررسی کنید و دوباره ثبت کنید.",
+    "PERCENT": "درصدی",
+    "PRICE": "مبلغ ثابت",
+    "Auto-generated from the name": "خودکار از روی نام ساخته می‌شود",
+    "Save the product first to add discounts and attachments.": "برای افزودن تخفیف و پیوست، ابتدا محصول را ذخیره کنید.",
+    "Has errors": "دارای خطا"
 }

@@ -1,12 +1,13 @@
 <div class="row g-3">
     <div class="col-md-6">
         <div class="form-group">
-            <label for="name" class="fw-semibold">{{__('Name')}}</label>
+            <label for="name" class="fw-semibold">{{__('Name')}} <span class="text-danger">*</span></label>
             <input name="name" type="text"
                    id="name"
                    class="form-control @error('name') is-invalid @enderror"
                    placeholder="{{__('Name')}}"
                    value="{{old('name',$item->name??null)}}"/>
+            @error('name')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
     </div>
     <div class="col-md-6">
@@ -15,17 +16,17 @@
             <input name="slug" type="text"
                    id="slug"
                    class="form-control @error('slug') is-invalid @enderror"
-                   placeholder="{{__('Slug')}}"
+                   placeholder="{{__('Auto-generated from the name')}}"
                    value="{{old('slug',$item->slug??null)}}"/>
+            @error('slug')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
     </div>
 
     <div class="col-lg-4">
         <div class="form-group">
-            <label for="categoryId" class="fw-semibold">{{__('Main product category')}}</label>
+            <label for="categoryId" class="fw-semibold">{{__('Main product category')}} <span class="text-danger">*</span></label>
             <searchable-select
                 vuex-dispatch="updateCategory"
-                @error('category_id') :err="true" @enderror
                 :items='@json($cats)'
                 title-field="name"
                 value-field="id"
@@ -35,6 +36,7 @@
                 @error('category_id') :err="true" @enderror
                 xvalue='{{old('category_id',$item->category_id??null)}}'
                 :close-on-Select="true"></searchable-select>
+            @error('category_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
     </div>
     <div class="col-lg-4">
@@ -183,21 +185,22 @@
 
     <div class="col-12">
         <div class="form-group">
-            <label for="excerpt" class="fw-semibold">{{__('Excerpt')}}</label>
+            <label for="excerpt" class="fw-semibold">{{__('Excerpt')}} <span class="text-danger">*</span></label>
             <textarea name="excerpt"
                       class="form-control @error('excerpt') is-invalid @enderror"
                       placeholder="{{__('Excerpt')}}"
                       id="excerpt"
                       rows="3">{{old('excerpt',$item->excerpt??null)}}</textarea>
+            @error('excerpt')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
     </div>
     <div class="col-12">
         <div class="form-group">
             <label for="description" class="fw-semibold">{{__('Description Text')}}</label>
-            <textarea name="desc" class="form-control quill-editor @error('description') is-invalid @enderror"
+            <textarea name="desc" class="form-control quill-editor @error('desc') is-invalid @enderror"
                       placeholder="{{__('Description Text')}}"
                       id="description"
-                      rows="8">{{old('description',$item->description??null)}}</textarea>
+                      rows="8">{{old('desc',$item->description??null)}}</textarea>
         </div>
     </div>
     <div class="col-12">

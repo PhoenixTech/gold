@@ -75,13 +75,15 @@
     </div>
     <div class="col-md-4">
         <div class="form-group">
-            <label for="stock_status" class="fw-semibold">{{__("Status")}}</label>
-            <select class="form-control" name="stock_status" id="stock_status">
-                @foreach(\App\Models\Product::$stock_status as $k => $v)
-                    <option
-                        value="{{ $v }}" {{ old("stock_status", $item->stock_status??null) == $v ? "selected" : "" }}>{{ __($v) }}</option>
-                @endforeach
-            </select>
+            {{-- Recalculated from the available pieces on every save. --}}
+            <label class="fw-semibold d-flex align-items-center justify-content-between">
+                <span>{{ __('Stock status') }}</span>
+                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle fs-11">
+                    <i class="ri-lock-line me-1"></i>{{ __('Auto-calculated') }}
+                </span>
+            </label>
+            <input type="text" class="form-control bg-light text-dark fw-bold" readonly tabindex="-1"
+                   value="{{ __($item->stock_status ?? 'OUT_STOCK') }}">
         </div>
     </div>
 

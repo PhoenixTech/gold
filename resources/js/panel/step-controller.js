@@ -52,5 +52,7 @@ export function initStepController() {
         });
     });
 
-    showStep(0);
+    // After a failed save, open the first tab that holds an error.
+    const firstError = Array.from(steps).findIndex((step) => step.classList.contains('has-error'));
+    showStep(firstError >= 0 ? firstError : 0);
 }

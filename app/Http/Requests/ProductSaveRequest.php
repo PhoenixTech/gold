@@ -72,9 +72,27 @@ class ProductSaveRequest extends FormRequest
         ];
     }
 
+    /**
+     * Field names as the admin sees them on the form.
+     *
+     * @return array<string, string>
+     */
     public function attributes(): array
     {
         return [
+            'name' => __('Name'),
+            'slug' => __('Slug'),
+            'sku' => __('SKU'),
+            'excerpt' => __('Excerpt'),
+            'category_id' => __('Main product category'),
+            'weight' => __('Reference weight (grams)'),
+            'labor_charge_1' => __('Labor charge 1'),
+            'labor_charge_2' => __('Labor charge 2'),
+            'labor_charge_3' => __('Labor charge 3'),
+            'profit' => __('Profit (%)'),
+            'tax' => __('Tax (%)'),
+            'min_stock_level' => __('Minimum stock level'),
+            'canonical' => __('Canonical'),
             'stock_items.*.supplier_id' => __('Supplier'),
         ];
     }

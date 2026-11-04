@@ -51,27 +51,34 @@
             <input type="hidden" name="id" value="{{$item->id}}"/>
         @endif
 
+        @php
+            // Which tab each validated field lives on, so a failed save points at it.
+            $tabFields = [
+                'step1' => ['name', 'slug', 'category_id', 'status', 'metal_type', 'target_group', 'plating_colors*', 'stones*', 'accessories*', 'occasions*', 'excerpt', 'desc', 'keyword', 'sku'],
+                'step2' => ['buy_price', 'addon', 'weight', 'karat', 'profit', 'tax', 'labor_charge_*'],
+                'step3' => ['stock_items*', 'stock_quantity', 'min_stock_level'],
+                'step4' => ['image*'],
+                'step5' => ['tags', 'canonical', 'cat', 'cat.*', 'table', 'meta'],
+            ];
+            $tabs = [
+                'step1' => ['ri-file-info-line', __('Product info')],
+                'step2' => ['ri-funds-line', __('Pricing')],
+                'step3' => ['ri-stack-line', __('Stock pieces')],
+                'step4' => ['ri-image-2-line', __('Medias')],
+                'step5' => ['ri-list-check-2', __('Additional data')],
+            ];
+        @endphp
         <ul class="steps product-form-tabs">
-            <li data-tab="step1" class="active">
-                <i class="ri-file-info-line"></i>
-                <span>{{__("Product info")}}</span>
-            </li>
-            <li data-tab="step2">
-                <i class="ri-funds-line"></i>
-                <span>{{__("Pricing")}}</span>
-            </li>
-            <li data-tab="step3">
-                <i class="ri-stack-line"></i>
-                <span>{{__("Stock pieces")}}</span>
-            </li>
-            <li data-tab="step4">
-                <i class="ri-image-2-line"></i>
-                <span>{{__("Medias")}}</span>
-            </li>
-            <li data-tab="step5">
-                <i class="ri-list-check-2"></i>
-                <span>{{__("Additional data")}}</span>
-            </li>
+            @foreach($tabs as $tab => [$icon, $label])
+                @php $tabHasError = collect($errors->keys())->contains(fn ($key) => \Illuminate\Support\Str::is($tabFields[$tab], $key)); @endphp
+                <li data-tab="{{ $tab }}" class="{{ $loop->first ? 'active' : '' }} {{ $tabHasError ? 'has-error' : '' }}">
+                    <i class="{{ $icon }}"></i>
+                    <span>{{ $label }}</span>
+                    @if($tabHasError)
+                        <span class="badge rounded-pill bg-danger ms-1" aria-label="{{ __('Has errors') }}">!</span>
+                    @endif
+                </li>
+            @endforeach
         </ul>
 
         @include('components.err')
