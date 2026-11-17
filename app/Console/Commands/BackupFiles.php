@@ -81,10 +81,6 @@ class BackupFiles extends Command
             $this->info("Backup stored successfully at [{$disk}]: {$targetPath} ({$fileCount} files, {$sizeMb} MB)");
             Log::info("Files backup stored successfully at [{$disk}]: {$targetPath} ({$fileCount} files, {$sizeMb} MB)");
 
-            if (!$this->option('no-prune')) {
-                $this->pruneBackups($disk);
-            }
-
             return Command::SUCCESS;
         } catch (Throwable $e) {
             $this->error("Backup failed: {$e->getMessage()}");
@@ -146,73 +142,5 @@ class BackupFiles extends Command
                 fn (SplFileInfo $file): bool => !in_array($file->getRelativePathname(), self::EXCLUDED_ROOT_DIRECTORIES, true),
                 true
             );
-    }
-
-    private function pruneBackups(string $disk): void
-    {
-        try {
-            $allFiles = Storage::disk($disk)->files(self::BACKUP_DIRECTORY);
-        } catch (Throwable $e) {
-            $this->warn("Failed to list files for pruning: {$e->getMessage()}");
-
-            return;
-        }
-
-        $today = now()->startOfDay();
-        $daysLimit = (int) ($this->option('days') ?: 14);
-        $backups = [];
-
-        foreach ($allFiles as $path) {
-            if (!preg_match('/^backup_files_(\d{4}-\d{2}-\d{2}_\d{6})\.zip$/', basename($path), $matches)) {
-                continue;
-            }
-
-            $date = rescue(fn () => Carbon::createFromFormat('Y-m-d_His', $matches[1]), null, false);
-            if ($date === null) {
-                continue;
-            }
-
-            $backups[] = [
-                'path' => $path,
-                'date' => $date,
-                'daysAgo' => (int) round($date->copy()->startOfDay()->diffInDays($today, false)),
-            ];
-        }
-
-        // Newest first, so the first backup seen for a day is the one kept.
-        usort($backups, fn ($a, $b) => $b['date']->timestamp <=> $a['date']->timestamp);
-
-        $keepPaths = [];
-        foreach ($backups as $backup) {
-            if ($backup['daysAgo'] <= $daysLimit) {
-                $keepPaths[$backup['date']->format('Y-m-d')] ??= $backup['path'];
-            }
-        }
-
-        if ($this->option('keep-monthly')) {
-            $monthly = array_filter($backups, fn ($b) => $b['daysAgo'] > $daysLimit && $b['daysAgo'] <= 30);
-            if ($monthly !== []) {
-                $keepPaths['monthly'] = end($monthly)['path'];
-            }
-        }
-
-        $deletedCount = 0;
-        foreach ($backups as $backup) {
-            if (in_array($backup['path'], $keepPaths, true)) {
-                continue;
-            }
-
-            try {
-                Storage::disk($disk)->delete($backup['path']);
-                Log::info("Pruned old files backup from {$disk}: {$backup['path']}");
-                $deletedCount++;
-            } catch (Throwable $e) {
-                $this->warn("Failed to delete {$backup['path']}: {$e->getMessage()}");
-            }
-        }
-
-        if ($deletedCount > 0) {
-            $this->info("Pruned {$deletedCount} old backup(s) according to retention policy.");
-        }
     }
 }

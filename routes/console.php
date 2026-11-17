@@ -12,6 +12,6 @@ Schedule::command("gold:free")
 Schedule::command("offline:expire")->everyFifteenMinutes();
 
 Schedule::command(BackupDatabase::class)->dailyAt("01:00");
-Schedule::command(BackupFiles::class, ["--filename" => sprintf("gold_source_%s",now()->format('Y-m-d_His') )])->dailyAt('01:30');
+Schedule::command(BackupFiles::class, ["--filename" => "gold_source.zip"])->dailyAt('01:30');
 
 Schedule::command("model:prune", ["--model" => [AdminLog::class]])->daily();
